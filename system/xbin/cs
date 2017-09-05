@@ -1,0 +1,159 @@
+#!/system/bin/sh
+
+# Magic Charging Switch (cs)
+# VR25 @ XDA Developers
+
+echo
+i=/sys/class/power_supply/battery/uevent
+s=/sys/class/power_supply/battery/charging_enabled
+h=/magisk/cs/.history
+ht=/magisk/cs/.history_tmp
+sON="$(echo "S/ON --> $(date)")"
+
+exxit() {
+	echo '(!) cs: Invalid option/argument!'
+	echo
+	exit 1
+}
+
+
+if [ "$1" = '--help' ]; then
+	cat <<eot
+Magic Charging Switch (cs)
+
+Automagically stops charging at a given % level to extend battery lifespan.
+
+Usage:
+cs -i --> Show battery info.
+cs -d --> Disable charging mechanism.
+cs -e --> Enable charging mechanism.
+cs % --> Stop charging at given % (i.e., 80).
+just "cs" --> Stop charging at last given %.
+cs --help --> Self explanatory
+
+Tip: "cs 80 30" updates charging info every 30 seconds & switches charging OFF at 80% battery level. You can also use minutes or hours instead of seconds (#m or #h). If "UpdateFreq" value is not specified, then the default (60 seconds) is used.
+
+Tip2: "-d" & "-e" options can also take a "timeout" argument to automatically enable & disable charging, respectively (i.e., "cs -d 30m" --> disables charging for 30 minutes, "cs -e 1h" --> enables charging for 1 hour).
+eot
+	echo
+	exit 0
+	
+
+elif [ "$1" = '-d' ]; then
+	echo 0 > $s
+	if [ "$2" ]; then 
+		if echo "$2" | grep -Eq '[a-z]{1}'; then
+			echo "Charging disabled for $2."
+			if echo "$2" | grep -q 'm'; then sleep $(( 60 * $(echo $2 | grep -ov 'm') ))
+			elif echo "$2" | grep -q 'h'; then sleep $(( 3600 * $(echo $2 | grep -ov 'h') ))
+			else exxit; fi
+		else
+			echo "Charging disabled for $2s."
+			sleep $2; fi
+		echo
+		echo 'Timeount reached.'
+		echo 1 > $s
+		echo '- Charging re-enabled.'
+	else echo 'Charging disabled.'; fi
+	echo
+	exit 0
+	
+elif [ "$1" = '-e' ]; then
+	echo 1 > $s
+	if [ "$2" ]; then 
+		if echo "$2" | grep -Eq '[a-z]{1}'; then
+			echo "Charging enabled for $2."
+			if echo "$2" | grep -q 'm'; then sleep $(( 60 * $(echo $2 | grep -ov 'm') ))
+			elif echo "$2" | grep -q 'h'; then sleep $(( 3600 * $(echo $2 | grep -ov 'h') ))
+			else exxit; fi
+		else
+			echo "Charging enabled for $2s."
+			sleep $2; fi
+		echo
+		echo 'Timeount reached.'
+		echo 0 > $s
+		echo '- Charging disabled.'
+	else echo 'Charging enabled.'; fi
+	echo
+	exit 0
+
+elif [ "$1" = '-i' ]; then
+	echo 'Battery Info'
+	echo "$(echo "$i" | cut -d/ -f6)	$(cat "$i")" | grep -Ev 'NAME|PRESENT' | grep -vEo 'uevent| |POWER_SUPPLY_' | sed s/CAPACITY/LEVEL/ | sed /'LEVEL='/s/$/'%'/ | sed s/'_NOW'/''/ | sed s/RGE/RGING/
+	echo
+	exit 0
+
+
+elif [ -z "$1" ]; then
+	echo 1 > $s
+	if [ ! -f "$h" ]; then echo "(!) cs: $h not found!"; echo; exit 1; fi
+	source $h
+	source $i
+	
+	while [ "$POWER_SUPPLY_CAPACITY" -lt "$p" ]; do
+		clear
+		source $i
+		echo "Charging to $p%..."
+		echo "$sON"
+		echo
+		echo "$(echo "$i" | cut -d/ -f6)	$(cat "$i")" | grep -vE 'NAME|STATUS|PRESENT|HEALTH|COUNTER' | grep -vEo 'uevent| |POWER_SUPPLY_' | sed s/CAPACITY/'LEVEL'/ | sed /'LEVEL='/s/$/'%'/ | sed s/'_NOW'/''/ | sed s/RGE/RGING/
+		if echo "$u" | grep -Eq '[a-z]{1}'; then
+			if echo "$u" | grep -q 'm'; then sleep $(( 60 * $(echo $2 | grep -ov 'm') ))
+			elif echo "$u" | grep -q 'h'; then sleep $(( 3600 * $(echo $2 | grep -ov 'h') ))
+			else exxit; fi
+		else sleep $u; fi
+	done
+	
+	echo 0 > $s
+	echo "Desired charge % reached!"
+	echo "S/OFF --> $(date)"
+	echo "- Press RETURN to re-enable charging & exit."
+	read INPUT
+	echo 1 > $s
+	exit 0
+
+
+elif echo "$1" | grep -Eq '[0-9]{2}'; then :
+
+else exxit; fi
+
+
+echo 1 > $s
+source $i
+while [ "$POWER_SUPPLY_CAPACITY" -lt "$1" ]; do
+	clear
+	source $i
+	echo "Charging to $1%..."
+	echo "$sON"
+	echo
+	echo "$(echo "$i" | cut -d/ -f6)	$(cat "$i")" | grep -vE 'NAME|STATUS|PRESENT|HEALTH|COUNTER' | grep -vEo 'uevent| |POWER_SUPPLY_' | sed s/CAPACITY/'LEVEL'/ | sed /'LEVEL='/s/$/'%'/ | sed s/'_NOW'/''/ | sed s/RGE/RGING/
+	if [ "$2" ]; then 
+		if echo "$2" | grep -Eq '[a-z]{1}'; then
+			if echo "$2" | grep -q 'm'; then sleep $(( 60 * $(echo $2 | grep -ov 'm') ))
+			elif echo "$2" | grep -q 'h'; then sleep $(( 3600 * $(echo $2 | grep -ov 'h') ))
+			else exxit; fi
+		else sleep $2; fi
+	else sleep 60; fi
+done
+
+if [ "$2" ]; then
+	if [ -f "$h" ]; then
+		grep -q 'u=' $h && grep 'u=' $h > $ht
+		echo "p=$1" > $h
+		cat "$ht" >> $h
+		rm -f $ht
+	else
+		echo "p=$1" > $h
+		echo "u=$2" >> $h; fi
+else
+	echo "p=$1" > $h
+	echo "u=60" >> $h; fi
+
+echo
+echo 0 > $s
+echo "Desired charge % reached!"
+echo "S/OFF --> $(date)"
+	echo "- Press RETURN to re-enable charging & exit."
+read INPUT
+echo 1 > $s
+exit 0

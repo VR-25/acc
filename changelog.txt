@@ -1,0 +1,9 @@
+# v2017.9.5.1
+- Fixed cs history not fully read (missing percentage value).
+
+# v2017.9.5
+- Major optimizations
+- Initial release
+
+# v2017.9.1
+- Initial version
