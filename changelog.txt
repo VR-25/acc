@@ -1,3 +1,9 @@
+# v2017.9.10 (20179100)
+- Settings are now preserved across updates.
+- Option to clear battery stats after the target % level is reached, or manually at anytime.
+- Ability to start & stop charging intermittently on set time intervals until the desired % is reached.
+- Improved reference for extra user friendliness (more real life usage tips).
+
 # v2017.9.5.1
 - Fixed cs history not fully read (missing percentage value).
 

@@ -7,8 +7,11 @@ echo
 i=/sys/class/power_supply/battery/uevent
 s=/sys/class/power_supply/battery/charging_enabled
 h=/magisk/cs/.history
-ht=/magisk/cs/.history_tmp
-sON="$(echo "S/ON --> $(date)")"
+ht=/data/.cs_history_tmp
+sON() { echo "S/ON --> $(date)"; }
+sOFF() { echo "S/OFF --> $(date)"; }
+st=/data/.cs_sON
+sON > $st
 
 exxit() {
 	echo '(!) cs: Invalid option/argument!'
@@ -24,37 +27,71 @@ Magic Charging Switch (cs)
 Automagically stops charging at a given % level to extend battery lifespan.
 
 Usage:
-cs -i --> Show battery info.
+cs % --> Stop charging at given % (i.e., 80).
+cs -a --> Run "cs" & "cs -c" afterwards.
+cs -c --> Clear battery stats.
 cs -d --> Disable charging mechanism.
 cs -e --> Enable charging mechanism.
-cs % --> Stop charging at given % (i.e., 80).
-just "cs" --> Stop charging at last given %.
+cs -i --> Show battery info.
+
 cs --help --> Self explanatory
+just "cs" --> Stop charging at last given %.
 
-Tip: "cs 80 30" updates charging info every 30 seconds & switches charging OFF at 80% battery level. You can also use minutes or hours instead of seconds (#m or #h). If "UpdateFreq" value is not specified, then the default (60 seconds) is used.
 
-Tip2: "-d" & "-e" options can also take a "timeout" argument to automatically enable & disable charging, respectively (i.e., "cs -d 30m" --> disables charging for 30 minutes, "cs -e 1h" --> enables charging for 1 hour).
+Tips
+
+"cs 80 30" updates charging info every 30 seconds & switches charging off at 80% battery level. You can also use minutes or hours instead of seconds (#m or #h). If "UpdateFreq" value is not specified, then the default (60 seconds) is used.
+
+"-d" & "-e" options can also take a "timeout" argument to automatically enable & disable charging, respectively (i.e., "cs -d 30m" --> keep charging disabled for 30 minutes, "cs -e 1h" --> charge for 1 hour).
+
+"cs -a" runs "cs" with your last settings (% & UpdateFreq), then executes "cs -c" to clear battery stats.
+
+"cs -c 80" switches off charging at 80% & clears battery stats afterwards.
+
+"cs -c 80 2m" updates charging info every 2 minutes, switches off charging at 80% & clears battery stats afterwards.
+
+"cs -e 1h && cs -c" charge for 1 hour, then clear battery stats.
+
+"cs -e 120 && cs -d 30m && cs -e 1h" charge for 120 seconds, then stop for 30 minutes, then charge again for 1h.
+
+"cs -e 30m && cs -d 30m && cs 90" charge for 30 minutes, then stop for 30 minutes, then charge again, but this time until battery level is greater or equal to 90%.
 eot
+
 	echo
 	exit 0
-	
+
+
+elif [ "$1" = '-c' ]; then
+	if [ "$2" ] && [ -z "$3" ]; then cs "$2"
+	elif [ "$3" ]; then cs "$2" "$3"; fi
+	rm -f /data/system/batterystats.bin
+	echo "Battery stats cleared."
+	echo
+	exit 0
+
+
+elif [ "$1" = '-a' ]; then cs && cs -c; exit 0
+
 
 elif [ "$1" = '-d' ]; then
 	echo 0 > $s
 	if [ "$2" ]; then 
 		if echo "$2" | grep -Eq '[a-z]{1}'; then
 			echo "Charging disabled for $2."
+			sOFF
 			if echo "$2" | grep -q 'm'; then sleep $(( 60 * $(echo $2 | grep -ov 'm') ))
 			elif echo "$2" | grep -q 'h'; then sleep $(( 3600 * $(echo $2 | grep -ov 'h') ))
 			else exxit; fi
 		else
 			echo "Charging disabled for $2s."
+			sOFF
 			sleep $2; fi
 		echo
 		echo 'Timeount reached.'
 		echo 1 > $s
 		echo '- Charging re-enabled.'
-	else echo 'Charging disabled.'; fi
+		sON
+	else echo 'Charging disabled.'; sOFF; fi
 	echo
 	exit 0
 	
@@ -63,17 +100,20 @@ elif [ "$1" = '-e' ]; then
 	if [ "$2" ]; then 
 		if echo "$2" | grep -Eq '[a-z]{1}'; then
 			echo "Charging enabled for $2."
+			sON
 			if echo "$2" | grep -q 'm'; then sleep $(( 60 * $(echo $2 | grep -ov 'm') ))
 			elif echo "$2" | grep -q 'h'; then sleep $(( 3600 * $(echo $2 | grep -ov 'h') ))
 			else exxit; fi
 		else
 			echo "Charging enabled for $2s."
+			sON
 			sleep $2; fi
 		echo
 		echo 'Timeount reached.'
 		echo 0 > $s
 		echo '- Charging disabled.'
-	else echo 'Charging enabled.'; fi
+		sOFF
+	else echo 'Charging enabled.'; sON; fi
 	echo
 	exit 0
 
@@ -94,7 +134,7 @@ elif [ -z "$1" ]; then
 		clear
 		source $i
 		echo "Charging to $p%..."
-		echo "$sON"
+		cat $st
 		echo
 		echo "$(echo "$i" | cut -d/ -f6)	$(cat "$i")" | grep -vE 'NAME|STATUS|PRESENT|HEALTH|COUNTER' | grep -vEo 'uevent| |POWER_SUPPLY_' | sed s/CAPACITY/'LEVEL'/ | sed /'LEVEL='/s/$/'%'/ | sed s/'_NOW'/''/ | sed s/RGE/RGING/
 		if echo "$u" | grep -Eq '[a-z]{1}'; then
@@ -104,9 +144,11 @@ elif [ -z "$1" ]; then
 		else sleep $u; fi
 	done
 	
+	rm -f $st
+	echo
 	echo 0 > $s
 	echo "Desired charge % reached!"
-	echo "S/OFF --> $(date)"
+	sOFF
 	echo "- Press RETURN to re-enable charging & exit."
 	read INPUT
 	echo 1 > $s
@@ -124,7 +166,7 @@ while [ "$POWER_SUPPLY_CAPACITY" -lt "$1" ]; do
 	clear
 	source $i
 	echo "Charging to $1%..."
-	echo "$sON"
+	cat $st
 	echo
 	echo "$(echo "$i" | cut -d/ -f6)	$(cat "$i")" | grep -vE 'NAME|STATUS|PRESENT|HEALTH|COUNTER' | grep -vEo 'uevent| |POWER_SUPPLY_' | sed s/CAPACITY/'LEVEL'/ | sed /'LEVEL='/s/$/'%'/ | sed s/'_NOW'/''/ | sed s/RGE/RGING/
 	if [ "$2" ]; then 
@@ -136,6 +178,7 @@ while [ "$POWER_SUPPLY_CAPACITY" -lt "$1" ]; do
 	else sleep 60; fi
 done
 
+rm -f $st
 if [ "$2" ]; then
 	if [ -f "$h" ]; then
 		grep -q 'u=' $h && grep 'u=' $h > $ht
@@ -152,7 +195,7 @@ else
 echo
 echo 0 > $s
 echo "Desired charge % reached!"
-echo "S/OFF --> $(date)"
+sOFF
 	echo "- Press RETURN to re-enable charging & exit."
 read INPUT
 echo 1 > $s
