@@ -1,7 +1,7 @@
 id=cs
 name=Magic Charging Switch (cs)
-version=v2017.9.10
-versionCode=20179100
+version=v2017.10.8
+versionCode=201710800
 author=VR25 @ XDA Developers
-description=Automagically stops charging at a given % level to extend battery lifespan.
+description=Stops charging at a set % level below 100 to extend battery lifespan. Battery stats are cleared automatically.
 template=1400

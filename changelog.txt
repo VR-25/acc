@@ -1,8 +1,18 @@
+# v2017.10.8 (201710800)
+* Added
+-- Additional devices support
+-- Debugging option (cs debug)
+-- Ability to automatically resume charging if battery level drops below a set %
+* Bug fixes
+* Major optimizations
+* Note: your terminal emulator must be excluded from battery optimization &/or Doze for cs to work properly.
+
 # v2017.9.10 (20179100)
 - Settings are now preserved across updates.
 - Option to clear battery stats after the target % level is reached, or manually at anytime.
 - Ability to start & stop charging intermittently on set time intervals until the desired % is reached.
 - Improved reference for extra user friendliness (more real life usage tips).
+- Module template 1400
 
 # v2017.9.5.1
 - Fixed cs history not fully read (missing percentage value).

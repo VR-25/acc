@@ -4,199 +4,266 @@
 # VR25 @ XDA Developers
 
 echo
-i=/sys/class/power_supply/battery/uevent
-s=/sys/class/power_supply/battery/charging_enabled
-h=/magisk/cs/.history
-ht=/data/.cs_history_tmp
-sON() { echo "S/ON --> $(date)"; }
-sOFF() { echo "S/OFF --> $(date)"; }
-st=/data/.cs_sON
-sON > $st
+
+
+# Toolbox
+
+c_info() { echo "$(echo "$i" | cut -d/ -f6)	$(cat "$i")" \
+	| grep -vE 'NAME|STATUS|PRESENT|HEALTH|COUNTER' \
+	| grep -vEo 'uevent| |POWER_SUPPLY_' \
+	| sed s/CAPACITY/'LEVEL'/ \
+	| sed /'LEVEL='/s/$/'%'/ \
+	| sed s/'_NOW'/''/ \
+	| sed s/RGE/RGING/
+}
+
+c_loop() { echo
+	echo "(i) Desired charge % reached"
+	sOFF
+	rm -f $st
+	echo 0 > $s
+	if echo "$p0" | grep -q [0-9]; then
+		echo "- Maintaining $p0% - $p%..."
+		. $i
+		until [ "$POWER_SUPPLY_CAPACITY" -lt "$p0" ]; do
+			. $i
+			sleep 1800
+		done
+		cs
+		exit 0
+	else
+		echo "- Press RETURN to re-enable charging & exit"
+		read INPUT
+		echo 1 > $s
+		exit 0
+	fi
+}
 
 exxit() {
-	echo '(!) cs: Invalid option/argument!'
-	echo
+	echo '(!) cs: Invalid option/argument'
+	cs --help
 	exit 1
 }
+
+model() { getprop | grep -Eiq "$1"; }
+sON() { echo "- S/ON --> $(date)"; }
+sOFF() { echo "- S/OFF --> $(date)"; }
+switch() { s=/sys/class/power_supply/battery/"$1"; }
+
+
+# Environment
+
+i=/sys/class/power_supply/battery/uevent
+
+if model 'Moto|Nexus|Pixel' && ! model 'Nexus 4' \
+&& ! model 'Nexus 10' && ! model 'Nexus 5' \
+&& ! model 'Galaxy Nexus' && ! model 'Nexus 9'
+then switch battery_charging_enabled
+
+elif model 'Galaxy Note'; then switch store_mode
+elif ! model 'Galaxy Note' && model Samsung; then switch batt_slate_mode
+elif model Huawei; then switch enable_charger
+elif model 'Amazon Fire'; then switch Charging_Enable
+elif model 'Nexus 4'; then switch pm8921_charger
+elif model 'Nexus 10'; then switch 'manta-battery'
+elif model 'Nvidia Shield'; then switch 7000c400.i2c
+elif model 'Xiaomi Mi6'; then switch input_suspend
+elif model 'Xiaomi MiPad 2'; then switch bq2589x_charger
+elif model 'Nexus 5'; then switch 'ac/charging_enabled'
+elif model 'Teclast X98 Air III'; then switch dollar_cove_charger
+elif model 'Nexus 9'; then switch 'tegra12-i2c.0'
+elif model 'Galaxy Nexus'; then switch charge_enabled
+
+else s=/sys/class/power_supply/battery/charging_enabled
+fi
+
+if [ ! -f "$s" ]; then echo "(!) cs: Unsupported device"; exit 1; fi
+
+h=/data/.cs_settings
+st=/data/.cs_sON
+sON > $st
 
 
 if [ "$1" = '--help' ]; then
 	cat <<eot
 Magic Charging Switch (cs)
 
-Automagically stops charging at a given % level to extend battery lifespan.
+Stops charging at a set % level below 100 to extend battery lifespan. Battery stats are cleared automatically.
+
+Note: your terminal emulator must be excluded from battery optimization &/or Doze for cs to work properly.
+
 
 Usage:
-cs % --> Stop charging at given % (i.e., 80).
-cs -a --> Run "cs" & "cs -c" afterwards.
-cs -c --> Clear battery stats.
-cs -d --> Disable charging mechanism.
-cs -e --> Enable charging mechanism.
-cs -i --> Show battery info.
 
-cs --help --> Self explanatory
-just "cs" --> Stop charging at last given %.
+cs -i --> show battery info
+
+cs % % --> pause charging at first %; resume charging if battery drops below second % (optional)
+
+cs -d [timeout (optional)] --> disable charging
+
+cs -e [timeout (optional)] --> enable charging
+
+just "cs" --> run cs with previous settings
+
+cs --help --> self-explanatory
+
+cs debug --> generate 3 debugging zips in /data/_cs_debug (one per run). Upload these (manually) to the official XDA thread (link -- README)
+- Run
+-- While charging (USB)
+-- While charging (AC)
+-- While unplugged (not charging)
 
 
 Tips
 
-"cs 80 30" updates charging info every 30 seconds & switches charging off at 80% battery level. You can also use minutes or hours instead of seconds (#m or #h). If "UpdateFreq" value is not specified, then the default (60 seconds) is used.
+"cs 80" --> stop charging at 80%.
 
-"-d" & "-e" options can also take a "timeout" argument to automatically enable & disable charging, respectively (i.e., "cs -d 30m" --> keep charging disabled for 30 minutes, "cs -e 1h" --> charge for 1 hour).
+"cs 80 20" --> pause charging at 80%; resume if battery drops below 20%.
 
-"cs -a" runs "cs" with your last settings (% & UpdateFreq), then executes "cs -c" to clear battery stats.
+"-d" & "-e" options can take a "timeout" argument to automatically enable & disable charging, respectively (i.e., "cs -d 30m" --> keep charging disabled for 30 minutes, "cs -e 1h" --> charge for 1 hour).
 
-"cs -c 80" switches off charging at 80% & clears battery stats afterwards.
+"cs -e 120 && cs -d 30m && cs -e 1h" --> charge for 120 seconds, pause for 30 minutes, then charge again for 1h.
 
-"cs -c 80 2m" updates charging info every 2 minutes, switches off charging at 80% & clears battery stats afterwards.
-
-"cs -e 1h && cs -c" charge for 1 hour, then clear battery stats.
-
-"cs -e 120 && cs -d 30m && cs -e 1h" charge for 120 seconds, then stop for 30 minutes, then charge again for 1h.
-
-"cs -e 30m && cs -d 30m && cs 90" charge for 30 minutes, then stop for 30 minutes, then charge again, but this time until battery level is greater or equal to 90%.
+"cs -e 30m && cs -d 30m && cs 90" --> charge for 30 minutes, pause for 30 minutes, then charge again, but this time until battery level is greater or equal to 90%.
 eot
-
-	echo
-	exit 0
-
-
-elif [ "$1" = '-c' ]; then
-	if [ "$2" ] && [ -z "$3" ]; then cs "$2"
-	elif [ "$3" ]; then cs "$2" "$3"; fi
-	rm -f /data/system/batterystats.bin
-	echo "Battery stats cleared."
-	echo
-	exit 0
-
-
-elif [ "$1" = '-a' ]; then cs && cs -c; exit 0
+echo
+exit 0
 
 
 elif [ "$1" = '-d' ]; then
 	echo 0 > $s
 	if [ "$2" ]; then 
 		if echo "$2" | grep -Eq '[a-z]{1}'; then
-			echo "Charging disabled for $2."
+			echo "(i) Charging disabled for $2"
 			sOFF
 			if echo "$2" | grep -q 'm'; then sleep $(( 60 * $(echo $2 | grep -ov 'm') ))
 			elif echo "$2" | grep -q 'h'; then sleep $(( 3600 * $(echo $2 | grep -ov 'h') ))
 			else exxit; fi
 		else
-			echo "Charging disabled for $2s."
+			echo "(i) Charging disabled for $2s"
 			sOFF
 			sleep $2; fi
 		echo
-		echo 'Timeount reached.'
+		echo '(i) Timeount reached'
 		echo 1 > $s
-		echo '- Charging re-enabled.'
+		echo '- Charging re-enabled'
 		sON
-	else echo 'Charging disabled.'; sOFF; fi
+	else echo '(i) Charging disabled'; sOFF; fi
 	echo
 	exit 0
+	
 	
 elif [ "$1" = '-e' ]; then
 	echo 1 > $s
 	if [ "$2" ]; then 
 		if echo "$2" | grep -Eq '[a-z]{1}'; then
-			echo "Charging enabled for $2."
+			echo "(i) Charging enabled for $2"
 			sON
 			if echo "$2" | grep -q 'm'; then sleep $(( 60 * $(echo $2 | grep -ov 'm') ))
 			elif echo "$2" | grep -q 'h'; then sleep $(( 3600 * $(echo $2 | grep -ov 'h') ))
 			else exxit; fi
 		else
-			echo "Charging enabled for $2s."
+			echo "(i) Charging enabled for $2s"
 			sON
 			sleep $2; fi
 		echo
-		echo 'Timeount reached.'
+		echo '(i) Timeount reached'
 		echo 0 > $s
-		echo '- Charging disabled.'
+		echo '- Charging disabled'
 		sOFF
-	else echo 'Charging enabled.'; sON; fi
+	else echo '(i) Charging enabled'; sON; fi
 	echo
 	exit 0
 
+
 elif [ "$1" = '-i' ]; then
 	echo 'Battery Info'
-	echo "$(echo "$i" | cut -d/ -f6)	$(cat "$i")" | grep -Ev 'NAME|PRESENT' | grep -vEo 'uevent| |POWER_SUPPLY_' | sed s/CAPACITY/LEVEL/ | sed /'LEVEL='/s/$/'%'/ | sed s/'_NOW'/''/ | sed s/RGE/RGING/
+	echo "$(echo "$i" | cut -d/ -f6)	$(cat "$i")" \
+		| grep -Ev 'NAME|PRESENT' \
+		| grep -vEo 'uevent| |POWER_SUPPLY_' \
+		| sed s/CAPACITY/LEVEL/ \
+		| sed /'LEVEL='/s/$/'%'/ \
+		| sed s/'_NOW'/''/ \
+		| sed s/RGE/RGING/
 	echo
 	exit 0
 
 
 elif [ -z "$1" ]; then
 	echo 1 > $s
-	if [ ! -f "$h" ]; then echo "(!) cs: $h not found!"; echo; exit 1; fi
-	source $h
-	source $i
+	if [ ! -f "$h" ]; then clear; cs --help; exit 0; fi
+	. $h
+	. $i
 	
 	while [ "$POWER_SUPPLY_CAPACITY" -lt "$p" ]; do
 		clear
-		source $i
+		. $i
 		echo "Charging to $p%..."
 		cat $st
 		echo
-		echo "$(echo "$i" | cut -d/ -f6)	$(cat "$i")" | grep -vE 'NAME|STATUS|PRESENT|HEALTH|COUNTER' | grep -vEo 'uevent| |POWER_SUPPLY_' | sed s/CAPACITY/'LEVEL'/ | sed /'LEVEL='/s/$/'%'/ | sed s/'_NOW'/''/ | sed s/RGE/RGING/
-		if echo "$u" | grep -Eq '[a-z]{1}'; then
-			if echo "$u" | grep -q 'm'; then sleep $(( 60 * $(echo $2 | grep -ov 'm') ))
-			elif echo "$u" | grep -q 'h'; then sleep $(( 3600 * $(echo $2 | grep -ov 'h') ))
-			else exxit; fi
-		else sleep $u; fi
+		c_info
+		echo
+		echo "(i) Press CTRL+C to abort"
+		sleep 90
 	done
-	
-	rm -f $st
+	c_loop
+
+
+ elif [ "$1" = "debug" ]; then
+ 	mkdir /data/_cs
+	mkdir /data/_cs_debug 2>/dev/null
+	cd /sys/class/power_supply/battery
+	for f in $(ls -1); do
+		[ -f $f ] && cp "$f" /data/_cs
+	done
+	cp /system/build.prop /data/_cs
+	cd /data/_cs
+
+	if [ -f /data/cs_debug.zip ]; then
+		zip -9 /data/cs_debug_2.zip *
+		echo
+		echo "(i) $(zip -T /data/cs_debug_2.zip)"
+		rm -rf /data/_cs
+		run_step="2/3"
+	elif [ -f /data/cs_debug_2.zip ]; then
+		zip -9 /data/cs_debug_3.zip *
+		echo
+		echo "(i) $(zip -T /data/cs_debug_3.zip)"
+		rm -rf /data/_cs
+		run_step="3/3"
+	else
+		zip -9 /data/cs_debug.zip *
+		echo
+		echo "(i) $(zip -T /data/cs_debug.zip)"
+		rm -rf /data/_cs
+		run_step="1/3"
+	fi
+
 	echo
-	echo 0 > $s
-	echo "Desired charge % reached!"
-	sOFF
-	echo "- Press RETURN to re-enable charging & exit."
-	read INPUT
-	echo 1 > $s
-	exit 0
+	[ "$run_step" = "3/3" ] && echo Done \
+		|| echo "Step $run_step"
+ 	exit 0
+ 
 
-
-elif echo "$1" | grep -Eq '[0-9]{2}'; then :
-
+elif echo "$1" | grep -q [0-9]; then :
 else exxit; fi
 
 
 echo 1 > $s
-source $i
+. $i
 while [ "$POWER_SUPPLY_CAPACITY" -lt "$1" ]; do
 	clear
-	source $i
+	. $i
 	echo "Charging to $1%..."
 	cat $st
 	echo
-	echo "$(echo "$i" | cut -d/ -f6)	$(cat "$i")" | grep -vE 'NAME|STATUS|PRESENT|HEALTH|COUNTER' | grep -vEo 'uevent| |POWER_SUPPLY_' | sed s/CAPACITY/'LEVEL'/ | sed /'LEVEL='/s/$/'%'/ | sed s/'_NOW'/''/ | sed s/RGE/RGING/
-	if [ "$2" ]; then 
-		if echo "$2" | grep -Eq '[a-z]{1}'; then
-			if echo "$2" | grep -q 'm'; then sleep $(( 60 * $(echo $2 | grep -ov 'm') ))
-			elif echo "$2" | grep -q 'h'; then sleep $(( 3600 * $(echo $2 | grep -ov 'h') ))
-			else exxit; fi
-		else sleep $2; fi
-	else sleep 60; fi
+	c_info
+	echo
+	echo "(i) Press CTRL+C to abort"
+	sleep 90
 done
 
-rm -f $st
-if [ "$2" ]; then
-	if [ -f "$h" ]; then
-		grep -q 'u=' $h && grep 'u=' $h > $ht
-		echo "p=$1" > $h
-		cat "$ht" >> $h
-		rm -f $ht
-	else
-		echo "p=$1" > $h
-		echo "u=$2" >> $h; fi
-else
-	echo "p=$1" > $h
-	echo "u=60" >> $h; fi
-
-echo
-echo 0 > $s
-echo "Desired charge % reached!"
-sOFF
-	echo "- Press RETURN to re-enable charging & exit."
-read INPUT
-echo 1 > $s
-exit 0
+echo "p=$1" > $h
+echo "p0=$2" >> $h
+. $h
+c_loop

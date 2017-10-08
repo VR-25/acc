@@ -126,12 +126,8 @@ MAGISKLOOP=`$MAGISKBIN/magisk --mountimg $IMG $MOUNTPATH`
 is_mounted $MOUNTPATH || abort "! $IMG mount failed..."
 
 # Create mod paths
-HIST=false
-HISTFILE=/magisk/cs/.history
-if [ -f $HISTFILE ]; then cp $HISTFILE $INSTALLER; HIST=true; fi
 rm -rf $MODPATH 2>/dev/null
 mkdir -p $MODPATH
-$HIST && mv $INSTALLER/.history $MODPATH
 
 ui_print "- Extracting module files"
 unzip -o "$ZIP" 'system/*' -d $MODPATH 2>/dev/null
