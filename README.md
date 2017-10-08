@@ -39,5 +39,8 @@
 
 
 **Online Support**
-- [XDA Thread](https://forum.xda-developers.com/apps/magisk/module-magic-charging-switch-cs-v2017-9-t3668427)
+- [Battery University](http://batteryuniversity.com/learn/article/how_to_prolong_lithium_based_batteries)
 - [GitHub Repo](https://github.com/Magisk-Modules-Repo/Magic-Charging-Switch)
+- [XDA Thread](https://forum.xda-developers.com/apps/magisk/module-magic-charging-switch-cs-v2017-9-t3668427)
+
+

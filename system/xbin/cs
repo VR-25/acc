@@ -20,10 +20,11 @@ c_info() { echo "$(echo "$i" | cut -d/ -f6)	$(cat "$i")" \
 c_loop() { echo
 	echo "(i) Desired charge % reached"
 	sOFF
+	rm -f /data/system/batterystats.bin 2>/dev/null
 	rm -f $st
-	echo 0 > $s
+	echo $c_OFF > $s
 	if echo "$p0" | grep -q [0-9]; then
-		echo "- Maintaining $p0% - $p%..."
+		echo "- Maintaining $p0 - $p%..."
 		. $i
 		until [ "$POWER_SUPPLY_CAPACITY" -lt "$p0" ]; do
 			. $i
@@ -34,7 +35,7 @@ c_loop() { echo
 	else
 		echo "- Press RETURN to re-enable charging & exit"
 		read INPUT
-		echo 1 > $s
+		echo $c_ON > $s
 		exit 0
 	fi
 }
@@ -48,7 +49,17 @@ exxit() {
 model() { getprop | grep -Eiq "$1"; }
 sON() { echo "- S/ON --> $(date)"; }
 sOFF() { echo "- S/OFF --> $(date)"; }
-switch() { s=/sys/class/power_supply/battery/"$1"; }
+
+switch() { echo "$1" | grep -q 's=' && "$1" \
+	|| s=/sys/class/power_supply/battery/"$1"
+	if [ "$2" ]; then
+		c_ON=$2
+		c_OFF=$3
+	else
+		c_ON=1
+		c_OFF=0
+	fi
+}
 
 
 # Environment
@@ -60,21 +71,22 @@ if model 'Moto|Nexus|Pixel' && ! model 'Nexus 4' \
 && ! model 'Galaxy Nexus' && ! model 'Nexus 9'
 then switch battery_charging_enabled
 
-elif model 'Galaxy Note'; then switch store_mode
-elif ! model 'Galaxy Note' && model Samsung; then switch batt_slate_mode
-elif model Huawei; then switch enable_charger
-elif model 'Amazon Fire'; then switch Charging_Enable
-elif model 'Nexus 4'; then switch pm8921_charger
-elif model 'Nexus 10'; then switch 'manta-battery'
-elif model 'Nvidia Shield'; then switch 7000c400.i2c
-elif model 'Xiaomi Mi6'; then switch input_suspend
-elif model 'Xiaomi MiPad 2'; then switch bq2589x_charger
-elif model 'Nexus 5'; then switch 'ac/charging_enabled'
-elif model 'Teclast X98 Air III'; then switch dollar_cove_charger
-elif model 'Nexus 9'; then switch 'tegra12-i2c.0'
+elif model 'Galaxy Note'; then switch store_mode 0 1
+elif ! model 'Galaxy Note' && model Samsung; then switch batt_slate_mode 0 1
+elif model Huawei; then switch s=/sys/class/hw_power/charger/charge_data/enable_charger
+elif model 'Amazon Fire'; then switch "/device/Charging_Enable"
+elif model 'Nexus 4'; then switch s=/sys/module/pm8921_charger/parameters/disabled 0 1
+elif model 'Nexus 10'; then switch "s=/sys/devices/virtual/power_supply/manta-battery/charge_enabled"
+elif model 'Nvidia Shield'; then switch "s=/sys/devices/platform/7000c400.i2c/i2c-1/1-006b/charging_state" enabled disabled
+elif model 'Xiaomi Mi6'; then switch input_suspend 0 1
+elif model 'Xiaomi MiPad 2'; then switch s=/sys/class/power_supply/bq2589x_charger/enable_charging
+elif model 'Nexus 5'; then switch s=/sys/class/power_supply/ac/charging_enabled
+elif model 'Teclast X98 Air III'; then switch s=/sys/class/power_supply/dollar_cove_charger/present
+elif model 'Nexus 9'; then switch "s=/sys/devices/platform/tegra12-i2c.0/i2c-0/0-006b/charging_state" enabled disabled
 elif model 'Galaxy Nexus'; then switch charge_enabled
+elif model 'Xiaomi Redmi Note 2'; then switch s=/sys/devices/platform/battery/ChargerEnable
 
-else s=/sys/class/power_supply/battery/charging_enabled
+else switch charging_enabled
 fi
 
 if [ ! -f "$s" ]; then echo "(!) cs: Unsupported device"; exit 1; fi
@@ -131,7 +143,7 @@ exit 0
 
 
 elif [ "$1" = '-d' ]; then
-	echo 0 > $s
+	echo $c_OFF > $s
 	if [ "$2" ]; then 
 		if echo "$2" | grep -Eq '[a-z]{1}'; then
 			echo "(i) Charging disabled for $2"
@@ -145,7 +157,7 @@ elif [ "$1" = '-d' ]; then
 			sleep $2; fi
 		echo
 		echo '(i) Timeount reached'
-		echo 1 > $s
+		echo $c_ON > $s
 		echo '- Charging re-enabled'
 		sON
 	else echo '(i) Charging disabled'; sOFF; fi
@@ -154,7 +166,7 @@ elif [ "$1" = '-d' ]; then
 	
 	
 elif [ "$1" = '-e' ]; then
-	echo 1 > $s
+	echo $c_ON > $s
 	if [ "$2" ]; then 
 		if echo "$2" | grep -Eq '[a-z]{1}'; then
 			echo "(i) Charging enabled for $2"
@@ -168,7 +180,7 @@ elif [ "$1" = '-e' ]; then
 			sleep $2; fi
 		echo
 		echo '(i) Timeount reached'
-		echo 0 > $s
+		echo $c_OFF > $s
 		echo '- Charging disabled'
 		sOFF
 	else echo '(i) Charging enabled'; sON; fi
@@ -190,7 +202,7 @@ elif [ "$1" = '-i' ]; then
 
 
 elif [ -z "$1" ]; then
-	echo 1 > $s
+	echo $c_ON > $s
 	if [ ! -f "$h" ]; then clear; cs --help; exit 0; fi
 	. $h
 	. $i
@@ -249,7 +261,7 @@ elif echo "$1" | grep -q [0-9]; then :
 else exxit; fi
 
 
-echo 1 > $s
+echo $c_ON > $s
 . $i
 while [ "$POWER_SUPPLY_CAPACITY" -lt "$1" ]; do
 	clear
