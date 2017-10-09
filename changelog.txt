@@ -1,3 +1,7 @@
+# v2017.10.9-1 (201710910)
+* Enhanced debugging option (cs debug).
+-- It can now gather much better data to hopefully support an even wider range of devices.
+
 # v2017.10.9 (201710900)
 - Additional devices support
 - Bug fixes & optimizations

@@ -115,11 +115,7 @@ just "cs" --> run cs with previous settings
 
 cs --help --> self-explanatory
 
-cs debug --> generate 3 debugging zips in /data/_cs_debug (one per run). Upload these (manually) to the official XDA thread (link -- README)
-- Run
--- While charging (USB)
--- While charging (AC)
--- While unplugged (not charging)
+cs debug --> gather debugging data & save it to /sdcard/cs_debug.zip
 
 
 Tips
@@ -226,38 +222,37 @@ elif [ -z "$1" ]; then
 
 # Debugging
 elif [ "$1" = "debug" ]; then
-	mkdir /data/_cs
-	mkdir /data/_cs_debug 2>/dev/null
-	cd /sys/class/power_supply/battery
-	for f in $(ls -1); do
-		[ -f $f ] && cp "$f" /data/_cs
-	done
-	cp /system/build.prop /data/_cs
-	cd /data/_cs
-
-	if [ -f /data/cs_debug.zip ]; then
-		zip -9 /data/cs_debug_2.zip *
-		echo
-		echo "(i) $(zip -T /data/cs_debug_2.zip)"
-		rm -rf /data/_cs
-		run_step="2/3"
-	elif [ -f /data/cs_debug_2.zip ]; then
-		zip -9 /data/cs_debug_3.zip *
-		echo
-		echo "(i) $(zip -T /data/cs_debug_3.zip)"
-		rm -rf /data/_cs
-		run_step="3/3"
-	else
-		zip -9 /data/cs_debug.zip *
-		echo
-		echo "(i) $(zip -T /data/cs_debug.zip)"
-		rm -rf /data/_cs
-		run_step="1/3"
-	fi
-
+	echo "(i) Gathering data..."
 	echo
-	[ "$run_step" = "3/3" ] && echo Done \
-		|| echo "Step $run_step"
+	
+	findf() { find /sys -type f -name $1 2>/dev/null; }
+	rm -rf /sdcard/cs_debug* 2>/dev/null
+	
+	mkdir /sdcard/cs_debug
+	cd /sdcard/cs_debug
+	
+	getprop | grep product > cs_debug.txt
+	echo >> cs_debug.txt
+	
+	findf *batt* >> cs_debug.txt
+	echo >> cs_debug.txt
+	
+	findf *charg* >> cs_debug.txt
+	echo >> cs_debug.txt
+	
+	cp $(findf *batt*) $(findf *charg*) $PWD
+	zip -9 "cs_debug.zip" * 2>/dev/null
+	
+	echo
+	echo "(i) Archive integrity $(zip -T *.zip)"
+	
+	echo
+	mv cs_debug.zip /sdcard
+	
+	rm -rf /sdcard/cs_debug 2>/dev/null
+	echo Done
+	
+	echo
  	exit 0
  
 

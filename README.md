@@ -17,12 +17,7 @@
 - cs -e [timeout (optional)] --> enable charging
 - just "cs" --> run cs with previous settings
 - cs --help --> self-explanatory
-
-- cs debug --> generate 3 debugging zips in /data/_cs_debug (one per run). Upload these (manually) to the official XDA thread (link -- README)
--  Run
--   While charging (USB)
--   While charging (AC)
--   While unplugged (not charging)
+- cs debug --> gather debugging data & save it to `/sdcard/cs_debug.zip`
 
 
 **Tips**
@@ -42,5 +37,3 @@
 - [Battery University](http://batteryuniversity.com/learn/article/how_to_prolong_lithium_based_batteries)
 - [GitHub Repo](https://github.com/Magisk-Modules-Repo/Magic-Charging-Switch)
 - [XDA Thread](https://forum.xda-developers.com/apps/magisk/module-magic-charging-switch-cs-v2017-9-t3668427)
-
-
