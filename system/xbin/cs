@@ -24,11 +24,11 @@ c_loop() { echo
 	rm -f $st
 	echo $c_OFF > $s
 	if echo "$p0" | grep -q [0-9]; then
-		echo "- Maintaining $p0 - $p%..."
+		echo "- Maintaining $p0-$p%..."
 		. $i
 		until [ "$POWER_SUPPLY_CAPACITY" -lt "$p0" ]; do
 			. $i
-			sleep 1800
+			sleep 900
 		done
 		cs
 		exit 0
@@ -40,8 +40,31 @@ c_loop() { echo
 	fi
 }
 
+ctrl_file() {
+	if model 'Pixel|HTC'; then switch charger_control 0 1
+	elif model 'Galaxy Note'; then switch store_mode 0 1
+	elif ! model 'Galaxy Note' && model Samsung; then switch batt_slate_mode 0 1
+	elif model Huawei; then switch s=/sys/class/hw_power/charger/charge_data/enable_charger
+	elif model 'Amazon Fire'; then switch "/device/Charging_Enable"
+	elif model 'Nexus 4'; then switch s=/sys/module/pm8921_charger/parameters/disabled 0 1
+	elif model 'Nexus 10'; then switch "s=/sys/devices/virtual/power_supply/manta-battery/charge_enabled"
+	elif model 'Nvidia Shield'; then switch "s=/sys/devices/platform/7000c400.i2c/i2c-1/1-006b/charging_state" enabled disabled
+	elif model 'Xiaomi Mi6'; then switch input_suspend 0 1
+	elif model 'Xiaomi MiPad 2'; then switch s=/sys/class/power_supply/bq2589x_charger/enable_charging
+	elif model 'Nexus 5'; then switch s=/sys/class/power_supply/ac/charging_enabled
+	elif model 'Teclast X98 Air III'; then switch s=/sys/class/power_supply/dollar_cove_charger/present
+	elif model 'Nexus 9'; then switch "s=/sys/devices/platform/tegra12-i2c.0/i2c-0/0-006b/charging_state" enabled disabled
+	elif model 'Galaxy Nexus'; then switch charge_enabled
+	elif model 'Xiaomi Redmi Note 2'; then switch s=/sys/devices/platform/battery/ChargerEnable
+	fi
+
+	[ ! -f "$s" ] && switch battery_charging_enabled
+	[ ! -f "$s" ] && switch charging_enabled
+	if [ ! -f "$s" ]; then echo "(!) cs: Unsupported device"; exit 1; fi
+}
+
 exxit() {
-	echo '(!) cs: Invalid option/argument'
+	echo "(!) cs: Invalid option/argument"
 	cs --help
 	exit 1
 }
@@ -63,34 +86,7 @@ switch() { echo "$1" | grep -q 's=' && "$1" \
 
 
 # Environment
-
 i=/sys/class/power_supply/battery/uevent
-
-if model 'Moto|Nexus|Pixel' && ! model 'Nexus 4' \
-&& ! model 'Nexus 10' && ! model 'Nexus 5' \
-&& ! model 'Galaxy Nexus' && ! model 'Nexus 9'
-then switch battery_charging_enabled
-
-elif model 'Galaxy Note'; then switch store_mode 0 1
-elif ! model 'Galaxy Note' && model Samsung; then switch batt_slate_mode 0 1
-elif model Huawei; then switch s=/sys/class/hw_power/charger/charge_data/enable_charger
-elif model 'Amazon Fire'; then switch "/device/Charging_Enable"
-elif model 'Nexus 4'; then switch s=/sys/module/pm8921_charger/parameters/disabled 0 1
-elif model 'Nexus 10'; then switch "s=/sys/devices/virtual/power_supply/manta-battery/charge_enabled"
-elif model 'Nvidia Shield'; then switch "s=/sys/devices/platform/7000c400.i2c/i2c-1/1-006b/charging_state" enabled disabled
-elif model 'Xiaomi Mi6'; then switch input_suspend 0 1
-elif model 'Xiaomi MiPad 2'; then switch s=/sys/class/power_supply/bq2589x_charger/enable_charging
-elif model 'Nexus 5'; then switch s=/sys/class/power_supply/ac/charging_enabled
-elif model 'Teclast X98 Air III'; then switch s=/sys/class/power_supply/dollar_cove_charger/present
-elif model 'Nexus 9'; then switch "s=/sys/devices/platform/tegra12-i2c.0/i2c-0/0-006b/charging_state" enabled disabled
-elif model 'Galaxy Nexus'; then switch charge_enabled
-elif model 'Xiaomi Redmi Note 2'; then switch s=/sys/devices/platform/battery/ChargerEnable
-
-else switch charging_enabled
-fi
-
-if [ ! -f "$s" ]; then echo "(!) cs: Unsupported device"; exit 1; fi
-
 h=/data/.cs_settings
 st=/data/.cs_sON
 sON > $st
@@ -142,7 +138,9 @@ echo
 exit 0
 
 
+# Disable charging
 elif [ "$1" = '-d' ]; then
+	ctrl_file
 	echo $c_OFF > $s
 	if [ "$2" ]; then 
 		if echo "$2" | grep -Eq '[a-z]{1}'; then
@@ -164,8 +162,10 @@ elif [ "$1" = '-d' ]; then
 	echo
 	exit 0
 	
-	
+
+# Enable charging	
 elif [ "$1" = '-e' ]; then
+	ctrl_file
 	echo $c_ON > $s
 	if [ "$2" ]; then 
 		if echo "$2" | grep -Eq '[a-z]{1}'; then
@@ -188,6 +188,7 @@ elif [ "$1" = '-e' ]; then
 	exit 0
 
 
+# Battery info
 elif [ "$1" = '-i' ]; then
 	echo 'Battery Info'
 	echo "$(echo "$i" | cut -d/ -f6)	$(cat "$i")" \
@@ -201,7 +202,9 @@ elif [ "$1" = '-i' ]; then
 	exit 0
 
 
+# Run with previous settings
 elif [ -z "$1" ]; then
+	ctrl_file
 	echo $c_ON > $s
 	if [ ! -f "$h" ]; then clear; cs --help; exit 0; fi
 	. $h
@@ -216,13 +219,14 @@ elif [ -z "$1" ]; then
 		c_info
 		echo
 		echo "(i) Press CTRL+C to abort"
-		sleep 90
+		sleep 60
 	done
 	c_loop
 
 
- elif [ "$1" = "debug" ]; then
- 	mkdir /data/_cs
+# Debugging
+elif [ "$1" = "debug" ]; then
+	mkdir /data/_cs
 	mkdir /data/_cs_debug 2>/dev/null
 	cd /sys/class/power_supply/battery
 	for f in $(ls -1); do
@@ -261,6 +265,8 @@ elif echo "$1" | grep -q [0-9]; then :
 else exxit; fi
 
 
+# Run with all parameters (initial setup)
+ctrl_file
 echo $c_ON > $s
 . $i
 while [ "$POWER_SUPPLY_CAPACITY" -lt "$1" ]; do
@@ -272,7 +278,7 @@ while [ "$POWER_SUPPLY_CAPACITY" -lt "$1" ]; do
 	c_info
 	echo
 	echo "(i) Press CTRL+C to abort"
-	sleep 90
+	sleep 60
 done
 
 echo "p=$1" > $h

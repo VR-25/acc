@@ -1,3 +1,7 @@
+# v2017.10.9 (201710900)
+- Additional devices support
+- Bug fixes & optimizations
+
 # v2017.10.8.1 (201710810)
 * Additional devices support
 * Added missing "clear battery stats" flag
