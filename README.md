@@ -17,7 +17,7 @@
 - cs -e [timeout (optional)] --> enable charging
 - just "cs" --> run cs with previous settings
 - cs --help --> self-explanatory
-- cs debug --> gather debugging data & save it to `/sdcard/cs_debug.zip`
+- cs debug --> gather debugging data & save it to /sdcard (`cs_debug.log & cs_debug.zip`)
 
 
 **Tips**

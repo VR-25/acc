@@ -8,16 +8,17 @@ echo
 
 # Toolbox
 
-c_info() { echo "$(echo "$i" | cut -d/ -f6)	$(cat "$i")" \
-	| grep -vE 'NAME|STATUS|PRESENT|HEALTH|COUNTER' \
-	| grep -vEo 'uevent| |POWER_SUPPLY_' \
-	| sed s/CAPACITY/'LEVEL'/ \
-	| sed /'LEVEL='/s/$/'%'/ \
-	| sed s/'_NOW'/''/ \
-	| sed s/RGE/RGING/
+c_info() {
+	cat "$i" | grep -vE 'NAME|STATUS|PRESENT|HEALTH|COUNTER' \
+		| sed 's/POWER_SUPPLY_//' \
+		| sed 's/CAPACITY/LEVEL/' \
+		| sed '/LEVEL=/s/$/%/' \
+		| sed 's/_NOW//' \
+		| sed 's/RGE/RGING/'
 }
 
-c_loop() { echo
+c_loop() {
+	echo
 	echo "(i) Desired charge % reached"
 	sOFF
 	rm -f /data/system/batterystats.bin 2>/dev/null
@@ -25,9 +26,9 @@ c_loop() { echo
 	echo $c_OFF > $s
 	if echo "$p0" | grep -q [0-9]; then
 		echo "- Maintaining $p0-$p%..."
-		. $i
+		. "$i"
 		until [ "$POWER_SUPPLY_CAPACITY" -lt "$p0" ]; do
-			. $i
+			. "$i"
 			sleep 900
 		done
 		cs
@@ -52,6 +53,7 @@ ctrl_file() {
 	elif model 'Xiaomi Mi6'; then switch input_suspend 0 1
 	elif model 'Xiaomi MiPad 2'; then switch s=/sys/class/power_supply/bq2589x_charger/enable_charging
 	elif model 'Nexus 5'; then switch s=/sys/class/power_supply/ac/charging_enabled
+		[ ! -f "$s" ] && switch "/sys/devices/f9923000.i2c/i2c-84/84-006b/power_supply/ac/charging_enabled"
 	elif model 'Teclast X98 Air III'; then switch s=/sys/class/power_supply/dollar_cove_charger/present
 	elif model 'Nexus 9'; then switch "s=/sys/devices/platform/tegra12-i2c.0/i2c-0/0-006b/charging_state" enabled disabled
 	elif model 'Galaxy Nexus'; then switch charge_enabled
@@ -60,7 +62,8 @@ ctrl_file() {
 
 	[ ! -f "$s" ] && switch battery_charging_enabled
 	[ ! -f "$s" ] && switch charging_enabled
-	if [ ! -f "$s" ]; then echo "(!) cs: Unsupported device"; exit 1; fi
+	if [ ! -f "$s" ]; then echo "(!) cs: Unsupported device"; echo; exit 1; fi
+	i="$(dirname "$s")/uevent"
 }
 
 exxit() {
@@ -73,7 +76,8 @@ model() { getprop | grep -Eiq "$1"; }
 sON() { echo "- S/ON --> $(date)"; }
 sOFF() { echo "- S/OFF --> $(date)"; }
 
-switch() { echo "$1" | grep -q 's=' && "$1" \
+switch() {
+	echo "$1" | grep -q 's=' && "$1" \
 	|| s=/sys/class/power_supply/battery/"$1"
 	if [ "$2" ]; then
 		c_ON=$2
@@ -86,7 +90,6 @@ switch() { echo "$1" | grep -q 's=' && "$1" \
 
 
 # Environment
-i=/sys/class/power_supply/battery/uevent
 h=/data/.cs_settings
 st=/data/.cs_sON
 sON > $st
@@ -115,7 +118,7 @@ just "cs" --> run cs with previous settings
 
 cs --help --> self-explanatory
 
-cs debug --> gather debugging data & save it to /sdcard/cs_debug.zip
+cs debug --> gather debugging data & save it to /sdcard (cs_debug.log & cs_debug.zip)
 
 
 Tips
@@ -186,14 +189,14 @@ elif [ "$1" = '-e' ]; then
 
 # Battery info
 elif [ "$1" = '-i' ]; then
+	ctrl_file
 	echo 'Battery Info'
-	echo "$(echo "$i" | cut -d/ -f6)	$(cat "$i")" \
-		| grep -Ev 'NAME|PRESENT' \
-		| grep -vEo 'uevent| |POWER_SUPPLY_' \
-		| sed s/CAPACITY/LEVEL/ \
-		| sed /'LEVEL='/s/$/'%'/ \
-		| sed s/'_NOW'/''/ \
-		| sed s/RGE/RGING/
+	cat "$i" | grep -Ev 'NAME|PRESENT' \
+		| sed 's/POWER_SUPPLY_//' \
+		| sed 's/CAPACITY/LEVEL/' \
+		| sed '/LEVEL=/s/$/%/' \
+		| sed 's/_NOW//' \
+		| sed 's/RGE/RGING/'
 	echo
 	exit 0
 
@@ -204,11 +207,11 @@ elif [ -z "$1" ]; then
 	echo $c_ON > $s
 	if [ ! -f "$h" ]; then clear; cs --help; exit 0; fi
 	. $h
-	. $i
+	. "$i"
 	
 	while [ "$POWER_SUPPLY_CAPACITY" -lt "$p" ]; do
 		clear
-		. $i
+		. "$i"
 		echo "Charging to $p%..."
 		cat $st
 		echo
@@ -224,36 +227,32 @@ elif [ -z "$1" ]; then
 elif [ "$1" = "debug" ]; then
 	echo "(i) Gathering data..."
 	echo
+	rm -rf /data/cs_debug* /sdcard/cs_debug* 2>/dev/null
+	mkdir /data/cs_debug
+	cd /data/cs_debug
+	getprop | grep product > cs_debug.log
+	echo >> cs_debug.log
+	zip -9u cs_debug.zip cs_debug.log
 	
-	findf() { find /sys -type f -name $1 2>/dev/null; }
-	rm -rf /sdcard/cs_debug* 2>/dev/null
-	
-	mkdir /sdcard/cs_debug
-	cd /sdcard/cs_debug
-	
-	getprop | grep product > cs_debug.txt
-	echo >> cs_debug.txt
-	
-	findf *batt* >> cs_debug.txt
-	echo >> cs_debug.txt
-	
-	findf *charg* >> cs_debug.txt
-	echo >> cs_debug.txt
-	
-	cp $(findf *batt*) $(findf *charg*) $PWD
-	zip -9 "cs_debug.zip" * 2>/dev/null
+	for f in $(find /sys 2>/dev/null \
+		| grep -Ev 'sys/kernel|sys/bus|sys/firmware' \
+		| grep -Ei 'batt|charg'); do
+		if [ -f "$f" ]; then
+			echo "$f" >> cs_debug.log
+			zip -9u cs_debug.zip "$f" 2>/dev/null
+		fi
+	done
 	
 	echo
 	echo "(i) Archive integrity $(zip -T *.zip)"
-	
 	echo
 	mv cs_debug.zip /sdcard
-	
-	rm -rf /sdcard/cs_debug 2>/dev/null
+	mv cs_debug.log /sdcard
+	chmod 777 /sdcard/cs_debug*
+	rm -rf /data/cs_debug 2>/dev/null
 	echo Done
-	
 	echo
- 	exit 0
+	exit 0
  
 
 elif echo "$1" | grep -q [0-9]; then :
@@ -263,10 +262,10 @@ else exxit; fi
 # Run with all parameters (initial setup)
 ctrl_file
 echo $c_ON > $s
-. $i
+. "$i"
 while [ "$POWER_SUPPLY_CAPACITY" -lt "$1" ]; do
 	clear
-	. $i
+	. "$i"
 	echo "Charging to $1%..."
 	cat $st
 	echo

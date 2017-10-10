@@ -1,3 +1,8 @@
+# v2017.10.10 (201710100)
+- Additional devices support
+- Enhanced debugging tool (cs debug).
+- Fixed cs -i not displaying actual battery info.
+
 # v2017.10.9-1 (201710910)
 * Enhanced debugging option (cs debug).
 -- It can now gather much better data to hopefully support an even wider range of devices.
