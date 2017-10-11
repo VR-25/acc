@@ -3,6 +3,11 @@
 # Magic Charging Switch (cs)
 # VR25 @ XDA Developers
 
+
+# Environment
+h=/data/.cs_settings
+st=/data/.cs_sON
+export PATH=/dev/magisk/bin:$PATH
 echo
 
 
@@ -44,7 +49,9 @@ c_loop() {
 ctrl_file() {
 	if model 'Pixel|HTC'; then switch charger_control 0 1
 	elif model 'Galaxy Note'; then switch store_mode 0 1
-	elif ! model 'Galaxy Note' && model Samsung; then switch batt_slate_mode 0 1
+		[ -f "$s" ] || s=/sys/devices/platform/battery/power_supply/battery/store_mode
+	elif ! model 'Galaxy Note' && model Samsung; then switch /batt_slate_mode 0 1
+		[ -f "$s" ] || s=/sys/devices/platform/battery/power_supply/battery/batt_slate_mode
 	elif model Huawei; then switch s=/sys/class/hw_power/charger/charge_data/enable_charger
 	elif model 'Amazon Fire'; then switch "/device/Charging_Enable"
 	elif model 'Nexus 4'; then switch s=/sys/module/pm8921_charger/parameters/disabled 0 1
@@ -52,18 +59,54 @@ ctrl_file() {
 	elif model 'Nvidia Shield'; then switch "s=/sys/devices/platform/7000c400.i2c/i2c-1/1-006b/charging_state" enabled disabled
 	elif model 'Xiaomi Mi6'; then switch input_suspend 0 1
 	elif model 'Xiaomi MiPad 2'; then switch s=/sys/class/power_supply/bq2589x_charger/enable_charging
-	elif model 'Nexus 5'; then switch s=/sys/class/power_supply/ac/charging_enabled
-		[ ! -f "$s" ] && switch "/sys/devices/f9923000.i2c/i2c-84/84-006b/power_supply/ac/charging_enabled"
+	elif model 'hammerhead|Nexus 5'; then switch s=/sys/class/power_supply/ac/charging_enabled
+		[ -f "$s" ] || switch "/sys/devices/f9923000.i2c/i2c-84/84-006b/power_supply/ac/charging_enabled"
 	elif model 'Teclast X98 Air III'; then switch s=/sys/class/power_supply/dollar_cove_charger/present
 	elif model 'Nexus 9'; then switch "s=/sys/devices/platform/tegra12-i2c.0/i2c-0/0-006b/charging_state" enabled disabled
 	elif model 'Galaxy Nexus'; then switch charge_enabled
 	elif model 'Xiaomi Redmi Note 2'; then switch s=/sys/devices/platform/battery/ChargerEnable
 	fi
 
-	[ ! -f "$s" ] && switch battery_charging_enabled
-	[ ! -f "$s" ] && switch charging_enabled
-	if [ ! -f "$s" ]; then echo "(!) cs: Unsupported device"; echo; exit 1; fi
+	[ -f "$s" ] || switch battery_charging_enabled
+	[ -f "$s" ] || switch charging_enabled
+	
+	if [ ! -f "$s" ]; then echo "(!) cs: Unsupported device"
+		echo
+		debug
+	fi
+	
 	i="$(dirname "$s")/uevent"
+}
+
+debug() {
+	echo "(i) Gathering debugging data..."
+	echo
+	rm -rf /data/cs_debug* /sdcard/cs_debug* 2>/dev/null
+	mkdir /data/cs_debug
+	cd /data/cs_debug
+	getprop | grep product > cs_debug.log
+	echo >> cs_debug.log
+	zip -9u cs_debug.zip cs_debug.log
+	
+	for f in $(find /sys 2>/dev/null \
+		| grep -Ev 'sys/kernel|sys/bus|sys/firmware|/sys/fs' \
+		| grep -Ei 'batt|charg'); do
+		if [ -f "$f" ]; then
+			echo "$f" >> cs_debug.log
+			zip -9u cs_debug.zip "$f" 2>/dev/null
+		fi
+	done
+
+	echo
+	mv cs_debug.zip /sdcard
+	mv cs_debug.log /sdcard
+	chmod 777 /sdcard/cs_debug*
+	rm -rf /data/cs_debug 2>/dev/null
+	echo Done
+	echo
+	echo "(i) Please upload /sdcard/cs_debug* files to the official XDA thread"
+	echo
+	exit 0
 }
 
 exxit() {
@@ -74,6 +117,7 @@ exxit() {
 
 model() { getprop | grep -Eiq "$1"; }
 sON() { echo "- S/ON --> $(date)"; }
+sON > $st
 sOFF() { echo "- S/OFF --> $(date)"; }
 
 switch() {
@@ -87,12 +131,6 @@ switch() {
 		c_OFF=0
 	fi
 }
-
-
-# Environment
-h=/data/.cs_settings
-st=/data/.cs_sON
-sON > $st
 
 
 if [ "$1" = '--help' ]; then
@@ -110,15 +148,15 @@ cs -i --> show battery info
 
 cs % % --> pause charging at first %; resume charging if battery drops below second % (optional)
 
-cs -d [timeout (optional)] --> disable charging
-
-cs -e [timeout (optional)] --> enable charging
-
-just "cs" --> run cs with previous settings
+cs debug --> gather debugging data & save it to /sdcard as cs_debug*
 
 cs --help --> self-explanatory
 
-cs debug --> gather debugging data & save it to /sdcard (cs_debug.log & cs_debug.zip)
+just "cs" --> run cs with previous settings
+
+cs -d [timeout (optional)] --> disable charging
+
+cs -e [timeout (optional)] --> enable charging
 
 
 Tips
@@ -135,6 +173,9 @@ Tips
 eot
 echo
 exit 0
+
+
+elif [ "$1" = 'debug' ]; then debug
 
 
 # Disable charging
@@ -222,38 +263,6 @@ elif [ -z "$1" ]; then
 	done
 	c_loop
 
-
-# Debugging
-elif [ "$1" = "debug" ]; then
-	echo "(i) Gathering data..."
-	echo
-	rm -rf /data/cs_debug* /sdcard/cs_debug* 2>/dev/null
-	mkdir /data/cs_debug
-	cd /data/cs_debug
-	getprop | grep product > cs_debug.log
-	echo >> cs_debug.log
-	zip -9u cs_debug.zip cs_debug.log
-	
-	for f in $(find /sys 2>/dev/null \
-		| grep -Ev 'sys/kernel|sys/bus|sys/firmware' \
-		| grep -Ei 'batt|charg'); do
-		if [ -f "$f" ]; then
-			echo "$f" >> cs_debug.log
-			zip -9u cs_debug.zip "$f" 2>/dev/null
-		fi
-	done
-	
-	echo
-	echo "(i) Archive integrity $(zip -T *.zip)"
-	echo
-	mv cs_debug.zip /sdcard
-	mv cs_debug.log /sdcard
-	chmod 777 /sdcard/cs_debug*
-	rm -rf /data/cs_debug 2>/dev/null
-	echo Done
-	echo
-	exit 0
- 
 
 elif echo "$1" | grep -q [0-9]; then :
 else exxit; fi

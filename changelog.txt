@@ -1,7 +1,12 @@
+# v2017.10.11 (201710110)
+- Additional devices support
+- Added Magisk's internal busybox to PATH.
+- Auto gather debugging data for unsupported devices.
+
 # v2017.10.10 (201710100)
 - Additional devices support
 - Enhanced debugging tool (cs debug).
-- Fixed cs -i not displaying actual battery info.
+- Fixed "cs -i" not displaying actual battery info.
 
 # v2017.10.9-1 (201710910)
 * Enhanced debugging option (cs debug).

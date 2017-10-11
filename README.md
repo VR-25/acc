@@ -11,13 +11,13 @@
 
 
 **Usage**
-- cs -i --> show battery info
 - cs % % --> pause charging at first %; resume charging if battery drops below second % (optional)
+- cs --help --> self-explanatory
 - cs -d [timeout (optional)] --> disable charging
 - cs -e [timeout (optional)] --> enable charging
+- cs -i --> show battery info
+- cs debug --> gather debugging data & save it to /sdcard as cs_debug*
 - just "cs" --> run cs with previous settings
-- cs --help --> self-explanatory
-- cs debug --> gather debugging data & save it to /sdcard (`cs_debug.log & cs_debug.zip`)
 
 
 **Tips**
