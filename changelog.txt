@@ -1,3 +1,8 @@
+# v2017.10.13-1 (201710131)
+- Additional devices support
+- General optimizations
+- Updated reference & debugging info.
+
 # v2017.10.13 (201710130)
 - Additional devices support
 

@@ -19,7 +19,7 @@ c_info() {
 		| sed 's/CAPACITY/LEVEL/' \
 		| sed '/LEVEL=/s/$/%/' \
 		| sed 's/_NOW//' \
-		| sed 's/RGE/RGING/'
+		| sed '/RGE_R/s/GE/GING/'
 }
 
 c_loop() {
@@ -32,7 +32,7 @@ c_loop() {
 	if echo "$p0" | grep -q [0-9]; then
 		echo "- Maintaining $p0-$p%..."
 		. "$i"
-		until [ "$POWER_SUPPLY_CAPACITY" -lt "$p0" ]; do
+		until [ "$POWER_SUPPLY_CAPACITY" -le "$p0" ]; do
 			. "$i"
 			sleep 900
 		done
@@ -66,9 +66,12 @@ ctrl_file() {
 	elif model 'Galaxy Nexus'; then switch charge_enabled
 	elif model 'Xiaomi Redmi Note 2'; then switch s=/sys/devices/platform/battery/ChargerEnable
 	fi
-
+	
+	# Working with standard/generic control file
+	# OnePlus 3, Moto Z Play, Sony Xperia Z5 Premium
+	
+	[ -f "$s" ] || switch charging_enabled # It appears this one is the most common among devices running near-stock Android.
 	[ -f "$s" ] || switch battery_charging_enabled
-	[ -f "$s" ] || switch charging_enabled
 	
 	if [ ! -f "$s" ]; then echo "(!) cs: Unsupported device"
 		echo
@@ -237,7 +240,7 @@ elif [ "$1" = '-i' ]; then
 		| sed 's/CAPACITY/LEVEL/' \
 		| sed '/LEVEL=/s/$/%/' \
 		| sed 's/_NOW//' \
-		| sed 's/RGE/RGING/'
+		| sed '/RGE_R/s/GE/GING/'
 	echo
 	exit 0
 
@@ -250,7 +253,7 @@ elif [ -z "$1" ]; then
 	. $h
 	. "$i"
 	
-	while [ "$POWER_SUPPLY_CAPACITY" -lt "$p" ]; do
+	until [ "$POWER_SUPPLY_CAPACITY" -ge "$p" ]; do
 		clear
 		. "$i"
 		echo "Charging to $p%..."
@@ -272,7 +275,7 @@ else exxit; fi
 ctrl_file
 echo $c_ON > $s
 . "$i"
-while [ "$POWER_SUPPLY_CAPACITY" -lt "$1" ]; do
+until [ "$POWER_SUPPLY_CAPACITY" -ge "$1" ]; do
 	clear
 	. "$i"
 	echo "Charging to $1%..."
