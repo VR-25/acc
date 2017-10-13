@@ -34,7 +34,7 @@ c_loop() {
 		. "$i"
 		until [ "$POWER_SUPPLY_CAPACITY" -le "$p0" ]; do
 			. "$i"
-			sleep 900
+			[ "$POWER_SUPPLY_CAPACITY" -le "25" ] && sleep 450 || sleep 900
 		done
 		cs
 		exit 0
@@ -262,7 +262,7 @@ elif [ -z "$1" ]; then
 		c_info
 		echo
 		echo "(i) Press CTRL+C to abort"
-		sleep 60
+		[ "$POWER_SUPPLY_CAPACITY" -ge "75" ] && sleep 20 || sleep 60
 	done
 	c_loop
 
@@ -284,7 +284,7 @@ until [ "$POWER_SUPPLY_CAPACITY" -ge "$1" ]; do
 	c_info
 	echo
 	echo "(i) Press CTRL+C to abort"
-	sleep 60
+	[ "$POWER_SUPPLY_CAPACITY" -ge "75" ] && sleep 20 || sleep 60
 done
 
 echo "p=$1" > $h
