@@ -1,3 +1,6 @@
+# v2017.10.13-2 (201710132)
+- [TEST-FIX] Nexus 5 compatibility
+
 # v2017.10.13-1 (201710131)
 - Additional devices support
 - General optimizations
