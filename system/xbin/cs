@@ -49,9 +49,9 @@ c_loop() {
 ctrl_file() {
 	if model 'Pixel|HTC'; then switch charger_control 0 1
 	elif model 'Galaxy Note'; then switch store_mode 0 1
-		[ -f "$s" ] || s=/sys/devices/platform/battery/power_supply/battery/store_mode
+		[ -f "$s" ] || switch s=/sys/devices/platform/battery/power_supply/battery/store_mode
 	elif ! model 'Galaxy Note' && model Samsung; then switch /batt_slate_mode 0 1
-		[ -f "$s" ] || s=/sys/devices/platform/battery/power_supply/battery/batt_slate_mode
+		[ -f "$s" ] || switch s=/sys/devices/platform/battery/power_supply/battery/batt_slate_mode
 	elif model Huawei; then switch s=/sys/class/hw_power/charger/charge_data/enable_charger
 	elif model 'Amazon Fire'; then switch "/device/Charging_Enable"
 	elif model 'Nexus 4'; then switch s=/sys/module/pm8921_charger/parameters/disabled 0 1
@@ -182,7 +182,7 @@ elif [ "$1" = 'debug' ]; then debug
 elif [ "$1" = '-d' ]; then
 	ctrl_file
 	echo $c_OFF > $s
-	if [ "$2" ]; then 
+	if [ "$2" ]; then
 		if echo "$2" | grep -Eq '[a-z]{1}'; then
 			echo "(i) Charging disabled for $2"
 			sOFF

@@ -4,7 +4,7 @@
 
 **Description**
 - Stop charging at a set % level below 100 to extend battery lifespan. Battery stats are cleared automatically.
-- Note: your terminal emulator must be excluded from battery optimization &/or Doze for cs to work properly.
+- Notes: this is a terminal program & your terminal emulator app must be excluded from battery optimization &/or Doze for cs to work properly. You don't need to keep your screen ON, nor the terminal running in foreground.
 
 **Disclaimer**
 - Don't quote me on the above. Do your own research on lithium-ion batteries! This module tweaks low level Android settings -- I shall not be held responsible for any nuclear disaster potentially triggered by the use/misuse of it.

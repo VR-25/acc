@@ -1,3 +1,6 @@
+# v2017.10.13 (201710130)
+- Additional devices support
+
 # v2017.10.11 (201710110)
 - Additional devices support
 - Added Magisk's internal busybox to PATH.
