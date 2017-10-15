@@ -1,3 +1,6 @@
+# v2017.10.15-2 (201710152)
+- Additional devices support
+
 # v2017.10.15-1 (201710151)
 - Additional devices support
 - Fixed cs_ctrl error.
