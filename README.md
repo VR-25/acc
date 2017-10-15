@@ -39,7 +39,7 @@ Examples:
 
 switch s=/sys/module/pm8921_charger/parameters/disabled 0 1
 
-switch "s=/sys/devices/platform/7000c400.i2c/i2c-1/1-006b/charging_state" enabled disabled
+switch s="/sys/devices/platform/7000c400.i2c/i2c-1/1-006b/charging_state" enabled disabled
 
 
 **Online Support**

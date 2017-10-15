@@ -56,12 +56,12 @@ ctrl_file() {
 		[ -f "$s" ] || switch s=/sys/devices/platform/huawei_charger/enable_charger
 	elif model 'Amazon Fire'; then switch "/device/Charging_Enable"
 	elif model 'Nexus 4'; then switch s=/sys/module/pm8921_charger/parameters/disabled 0 1
-	elif model 'Nexus 10'; then switch "s=/sys/devices/virtual/power_supply/manta-battery/charge_enabled"
-	elif model 'Nvidia Shield'; then switch "s=/sys/devices/platform/7000c400.i2c/i2c-1/1-006b/charging_state" enabled disabled
+	elif model 'Nexus 10'; then switch s="/sys/devices/virtual/power_supply/manta-battery/charge_enabled"
+	elif model 'Nvidia Shield'; then switch s="/sys/devices/platform/7000c400.i2c/i2c-1/1-006b/charging_state" enabled disabled
 	elif model 'Xiaomi Mi6'; then switch input_suspend 0 1
 	elif model 'Xiaomi MiPad 2'; then switch s=/sys/class/power_supply/bq2589x_charger/enable_charging
 	elif model 'hammerhead|Nexus 5'; then switch s=/sys/class/power_supply/ac/charging_enabled
-		[ -f "$s" ] || switch "s=/sys/devices/f9923000.i2c/i2c-84/84-006b/power_supply/ac/charging_enabled"
+		[ -f "$s" ] || switch s="/sys/devices/f9923000.i2c/i2c-84/84-006b/power_supply/ac/charging_enabled"
 	elif model 'Teclast X98 Air III'; then switch s=/sys/class/power_supply/dollar_cove_charger/present
 	elif model 'Nexus 9'; then switch "s=/sys/devices/platform/tegra12-i2c.0/i2c-0/0-006b/charging_state" enabled disabled
 	elif model 'Galaxy Nexus'; then switch charge_enabled
@@ -77,7 +77,7 @@ ctrl_file() {
 	# User setup
 	if [ -f /sdcard/cs_ctrl.txt ]; then
 		. /sdcard/cs_ctrl.txt
-		if [ ! -f "s" ]; then
+		if [ ! -f "$s" ]; then
 			echo "(!) cs: The specified control file doesn't exist"
 			echo
 			exit 1
@@ -135,7 +135,7 @@ sON > $st
 sOFF() { echo "- S/OFF --> $(date)"; }
 
 switch() {
-	echo "$1" | grep -q 's=' && "$1" \
+	echo "$1" | grep -q 's=' && $1 \
 	|| s=/sys/class/power_supply/battery/"$1"
 	if [ "$2" ]; then
 		c_ON=$2

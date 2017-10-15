@@ -1,3 +1,7 @@
+# v2017.10.15-1 (201710151)
+- Additional devices support
+- Fixed cs_ctrl error.
+
 # v2017.10.15 (201710150)
 - Additional devices support.
 - Built-in zip binary to pack debugging data.
