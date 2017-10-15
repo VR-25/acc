@@ -80,8 +80,8 @@ $BOOTMODE && boot_actions || recovery_actions
 # Preparation
 ##########################################################################################
 
-# Extract common files
-unzip -o "$ZIP" module.prop config.sh 'common/*' -d $INSTALLER &>/dev/null ###
+# Extract module files ###
+unzip -oqq "$ZIP" -d $INSTALLER
 
 [ ! -f $INSTALLER/config.sh ] && abort "! Unable to extract zip file!"
 # Load configurations
@@ -127,10 +127,14 @@ is_mounted $MOUNTPATH || abort "! $IMG mount failed..."
 
 # Create mod paths
 rm -rf $MODPATH 2>/dev/null
-mkdir -p $MODPATH
+mkdir -p $MODPATH/bin
 
-ui_print "- Extracting module files"
-unzip -o "$ZIP" 'system/*' -d $MODPATH 2>/dev/null
+# Copy files ###
+ui_print "- Copying files"
+{ mv $INSTALLER/system $MODPATH
+echo $ARCH | grep -q x && \
+	mv $INSTALLER/bin/zip_x86 $MODPATH/bin/zip \
+	|| mv $INSTALLER/bin/zip_arm $MODPATH/bin/zip; } 2>/dev/null
 
 # Handle replace folders
 for TARGET in $REPLACE; do

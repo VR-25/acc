@@ -3,7 +3,7 @@
 
 
 **Description**
-- Stop charging at a set % level below 100 to extend battery lifespan. Battery stats are cleared automatically.
+- Stop charging at a set % level below 100 to extend battery lifespan.
 - Notes: this is a terminal program & your terminal emulator app must be excluded from battery optimization &/or Doze for cs to work properly. You don't need to keep your screen ON, nor the terminal running in foreground. Due to a shell limitation, the "stop charging mechanism" may be late by at least 1% battery level -- it's not a big deal, though.
 
 **Disclaimer**
@@ -20,7 +20,7 @@
 - just "cs" --> run cs with previous settings
 
 
-**Tips**
+**Tips/Notes**
 
 "cs 80" --> stop charging at 80%.
 
@@ -31,6 +31,15 @@
 "cs -e 120 && cs -d 30m && cs -e 1h" --> charge for 120 seconds, pause for 30 minutes, then charge again for 1h.
 
 "cs -e 30m && cs -d 30m && cs 90" --> charge for 30 minutes, pause for 30 minutes, then charge again, but this time until battery level is greater or equal to 90%.
+
+
+Charging control file and its parameters can be specified in /sdcard/cs_ctrl.txt (you have to create the file). The format is "switch /path/to/ctrl/file ON OFF" -- where ON OFF may be 1 0, enable disable, enabled disabled, etc. (device-dependent).
+
+Examples:
+
+switch s=/sys/module/pm8921_charger/parameters/disabled 0 1
+
+switch "s=/sys/devices/platform/7000c400.i2c/i2c-1/1-006b/charging_state" enabled disabled
 
 
 **Online Support**

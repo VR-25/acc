@@ -1,3 +1,8 @@
+# v2017.10.15 (201710150)
+- Additional devices support.
+- Built-in zip binary to pack debugging data.
+- Users can now specify the charging control file for cs to work with. Check the README for additional info.
+
 # v2017.10.13-3 (201710133)
 * Charging control mechanism enhancements for better accuracy:
 -- Battery charging info refresh rate increases by ~66.7% if battery level is greater or equal to 75%.
