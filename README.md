@@ -32,14 +32,15 @@
 
 "cs -e 30m && cs -d 30m && cs 90" --> charge for 30 minutes, pause for 30 minutes, then charge again, but this time until battery level is greater or equal to 90%.
 
+Ideally, you want your battery level between 40-60% - best, 20-80% - average, 10-90% - fair.
+
+cs auto-generates a Tasker project XML file for automation every time a `cs %` or `cs % %` command is executed. The user has to disable "Beginner Mode" in Tasker settings, then import the project "cs_tasker".
 
 Charging control file and its parameters can be specified in /sdcard/cs_ctrl.txt (you have to create the file). The format is "switch /path/to/ctrl/file ON OFF" -- where ON OFF may be 1 0, enable disable, enabled disabled, etc. (device-dependent).
 
 Examples:
-
-switch s=/sys/module/pm8921_charger/parameters/disabled 0 1
-
-switch s="/sys/devices/platform/7000c400.i2c/i2c-1/1-006b/charging_state" enabled disabled
+- `switch s=/sys/module/pm8921_charger/parameters/disabled 0 1`
+- `switch s="/sys/devices/platform/7000c400.i2c/i2c-1/1-006b/charging_state" enabled disabled`
 
 
 **Online Support**

@@ -131,10 +131,12 @@ mkdir -p $MODPATH/bin
 
 # Copy files ###
 ui_print "- Copying files"
-{ mv $INSTALLER/system $MODPATH
+mv $INSTALLER/system $MODPATH
+mv $INSTALLER/common/cs_tasker.prj.xml $MODPATH
 echo $ARCH | grep -q x && \
 	mv $INSTALLER/bin/zip_x86 $MODPATH/bin/zip \
-	|| mv $INSTALLER/bin/zip_arm $MODPATH/bin/zip; } 2>/dev/null
+	|| mv $INSTALLER/bin/zip_arm $MODPATH/bin/zip
+
 
 # Handle replace folders
 for TARGET in $REPLACE; do

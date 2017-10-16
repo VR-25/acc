@@ -1,3 +1,8 @@
+# v2017.10.16-1 (201710161)
+- Additional devices support
+- Auto-generate a Tasker project XML file for automation every time a `cs %` or `cs % %` command is executed. Note: The user has to disable "Beginner Mode" in Tasker settings, then import the project "cs_tasker".
+- Fixed Nexus 4 (mako) "uevent not found".
+
 # v2017.10.16 (201710160)
 - Additional devices support
 

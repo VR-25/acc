@@ -26,7 +26,7 @@ c_loop() {
 	echo
 	echo "(i) Desired charge % reached"
 	sOFF
-	rm -f /data/system/batterystats.bin 2>/dev/null
+	#rm -f /data/system/batterystats.bin 2>/dev/null
 	rm -f $st
 	echo $c_OFF > $s
 	if echo "$p0" | grep -q [0-9]; then
@@ -49,13 +49,14 @@ c_loop() {
 ctrl_file() {
 	if model 'Pixel|HTC'; then switch charger_control 0 1
 	elif model 'Galaxy Note'; then switch store_mode 0 1
-		[ -f "$s" ] || switch s=/sys/devices/platform/battery/power_supply/battery/store_mode
+		[ -f "$s" ] || switch s=/sys/devices/platform/battery/power_supply/battery/store_mode 0 1
 	elif ! model 'Galaxy Note' && model Samsung; then switch /batt_slate_mode 0 1
-		[ -f "$s" ] || switch s=/sys/devices/platform/battery/power_supply/battery/batt_slate_mode
+		[ -f "$s" ] || switch s=/sys/devices/platform/battery/power_supply/battery/batt_slate_mode 0 1
+		[ -f "$s" ] || switch s=/sys/devices/battery/power_supply/battery/batt_slate_mode 0 1
 	elif model Huawei; then switch s=/sys/class/hw_power/charger/charge_data/enable_charger
 		[ -f "$s" ] || switch s=/sys/devices/platform/huawei_charger/enable_charger
 	elif model 'Amazon Fire'; then switch "/device/Charging_Enable"
-	elif model 'Nexus 4'; then switch s=/sys/module/pm8921_charger/parameters/disabled 0 1
+	elif model 'Nexus 4|mako'; then switch s=/sys/module/pm8921_charger/parameters/disabled 0 1
 	elif model 'Nexus 10'; then switch "s=/sys/devices/platform/s3c2440-i2c.2/i2c-2/2-0006/power_supply/smb347-battery/charge_enabled"
 	elif model 'Nvidia Shield'; then switch "s=/sys/devices/platform/7000c400.i2c/i2c-1/1-006b/charging_state" enabled disabled
 	elif model 'Xiaomi Mi6'; then switch input_suspend 0 1
@@ -90,23 +91,25 @@ ctrl_file() {
 	fi
 	
 	i="$(dirname "$s")/uevent"
+	model 'Nexus 4|mako' && i="/sys/devices/platform/msm_ssbi.0/pm8921-core/pm8921-charger/power_supply/battery"
 }
 
 debug() {
 	echo "(i) Gathering debugging data..."
+	echo
 	rm -rf /data/cs_debug* /sdcard/cs_debug* 2>/dev/null
 	mkdir /data/cs_debug
 	cd /data/cs_debug
 	getprop | grep product > cs_debug.log
 	echo >> cs_debug.log
-	zip -9qqu cs_debug.zip cs_debug.log &>/dev/null
+	zip -9u cs_debug.zip cs_debug.log
 	
 	for f in $(find /sys 2>/dev/null \
 		| grep -Ev 'sys/kernel|sys/bus|sys/firmware|/sys/fs' \
 		| grep -Ei 'batt|charg'); do
 		if [ -f "$f" ]; then
 			echo "$f" >> cs_debug.log
-			zip -9qqu cs_debug.zip "$f" &>/dev/null
+			zip -9qqu cs_debug.zip "$f"
 		fi
 	done
 
@@ -115,7 +118,7 @@ debug() {
 	mv cs_debug.log /sdcard
 	chmod 777 /sdcard/cs_debug*
 	rm -rf /data/cs_debug 2>/dev/null
-	echo "- Done"
+	echo Done
 	echo
 	echo "(i) Please upload /sdcard/cs_debug.log & /sdcard/cs_debug.zip files to the official XDA thread"
 	echo
@@ -281,12 +284,31 @@ elif echo "$1" | grep -q [0-9]; then :
 else exxit; fi
 
 
+# Generate Tasker XML
+echo "(i) Generating /sdcard/Tasker/projects/cs_tasker.prj.xml..."
+xml_gen=false
+tdir=/sdcard/Tasker/projects
+[ -d $tdir ] || mkdir -p $tdir
+cp /magisk/cs/cs_tasker.prj.xml $tdir
+cd $tdir
+sed -i "/<Int sr=\"arg0\" val=\"80\"\/>/s/80/$1/" cs_tasker.prj.xml
+sed -i "/<rhs>80<\/rhs>/s/80/$1/" cs_tasker.prj.xml
+if [ "$2" ]; then
+	sed -i "/<Int sr=\"arg0\" val=\"10\"\/>/s/10/$2/" cs_tasker.prj.xml
+	sed -i "/<rhs>10<\/rhs>/s/10/$2/" cs_tasker.prj.xml
+echo "- Done"
+echo
+fi
+
+
 # Run with all parameters (initial setup)
 ctrl_file
 echo $c_ON > $s
 . "$i"
+
 until [ "$POWER_SUPPLY_CAPACITY" -ge "$1" ]; do
-	clear
+	$xml_gen && clear
+	xml_gen=true
 	. "$i"
 	echo "Charging to $1%..."
 	cat $st
@@ -299,5 +321,6 @@ done
 
 echo "p=$1" > $h
 echo "p0=$2" >> $h
+
 . $h
 c_loop
