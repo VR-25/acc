@@ -294,7 +294,7 @@ cd $tdir
 sed -i "/<Int sr=\"arg0\" val=\"80\"\/>/s/80/$1/" cs_tasker.prj.xml
 sed -i "/<rhs>80<\/rhs>/s/80/$1/" cs_tasker.prj.xml
 if [ "$2" ]; then
-	sed -i "/<Int sr=\"arg0\" val=\"10\"\/>/s/10/$2/" cs_tasker.prj.xml
+	sed -i "/<Int sr=\"arg1\" val=\"10\"\/>/s/10/$2/" cs_tasker.prj.xml
 	sed -i "/<rhs>10<\/rhs>/s/10/$2/" cs_tasker.prj.xml
 echo "- Done"
 echo
