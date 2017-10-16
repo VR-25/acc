@@ -1,3 +1,6 @@
+# v2017.10.16-4 (201710164)
+- Fixed Nexus 4 (mako) battery info not being displayed (wrong uevent path).
+
 # v2017.10.16-3 (201710163)
 - More accurate Tasker integration.
 

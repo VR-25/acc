@@ -91,7 +91,7 @@ ctrl_file() {
 	fi
 	
 	i="$(dirname "$s")/uevent"
-	model 'Nexus 4|mako' && i="/sys/devices/platform/msm_ssbi.0/pm8921-core/pm8921-charger/power_supply/battery"
+	model 'Nexus 4|mako' && i="/sys/devices/platform/msm_ssbi.0/pm8921-core/pm8921-charger/power_supply/battery/uevent"
 }
 
 debug() {
