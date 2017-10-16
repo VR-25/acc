@@ -1,3 +1,6 @@
+# v2017.10.16-3 (201710163)
+- More accurate Tasker integration.
+
 # v2017.10.16-2 (201710162)
 - Fixed minor Tasker XML generation error (faulty cs second % value).
 
