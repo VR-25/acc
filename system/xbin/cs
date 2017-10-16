@@ -56,7 +56,7 @@ ctrl_file() {
 		[ -f "$s" ] || switch s=/sys/devices/platform/huawei_charger/enable_charger
 	elif model 'Amazon Fire'; then switch "/device/Charging_Enable"
 	elif model 'Nexus 4'; then switch s=/sys/module/pm8921_charger/parameters/disabled 0 1
-	elif model 'Nexus 10'; then switch "s=/sys/devices/virtual/power_supply/manta-battery/charge_enabled"
+	elif model 'Nexus 10'; then switch "s=/sys/devices/platform/s3c2440-i2c.2/i2c-2/2-0006/power_supply/smb347-battery/charge_enabled"
 	elif model 'Nvidia Shield'; then switch "s=/sys/devices/platform/7000c400.i2c/i2c-1/1-006b/charging_state" enabled disabled
 	elif model 'Xiaomi Mi6'; then switch input_suspend 0 1
 	elif model 'Xiaomi MiPad 2'; then switch s=/sys/class/power_supply/bq2589x_charger/enable_charging
@@ -68,7 +68,7 @@ ctrl_file() {
 	elif model 'Xiaomi Redmi Note 2'; then switch s=/sys/devices/platform/battery/ChargerEnable
 	fi
 	
-	# Devices confimed working with standard/generic control file
+	# Devices confirmed working with standard/generic control file
 	# OnePlus 3, Moto Z Play, Sony Xperia Z5 Premium
 	
 	[ -f "$s" ] || switch charging_enabled # It appears this one is the most common among devices running near-stock Android.
@@ -80,7 +80,7 @@ ctrl_file() {
 		if [ ! -f "$s" ]; then
 			echo "(!) cs: The specified control file doesn't exist"
 			echo
-			exit 1
+			debug
 		fi
 	fi
 	
@@ -94,20 +94,19 @@ ctrl_file() {
 
 debug() {
 	echo "(i) Gathering debugging data..."
-	echo
 	rm -rf /data/cs_debug* /sdcard/cs_debug* 2>/dev/null
 	mkdir /data/cs_debug
 	cd /data/cs_debug
 	getprop | grep product > cs_debug.log
 	echo >> cs_debug.log
-	zip -9u cs_debug.zip cs_debug.log
+	zip -9qqu cs_debug.zip cs_debug.log &>/dev/null
 	
 	for f in $(find /sys 2>/dev/null \
 		| grep -Ev 'sys/kernel|sys/bus|sys/firmware|/sys/fs' \
 		| grep -Ei 'batt|charg'); do
 		if [ -f "$f" ]; then
 			echo "$f" >> cs_debug.log
-			zip -9u cs_debug.zip "$f" 2>/dev/null
+			zip -9qqu cs_debug.zip "$f" &>/dev/null
 		fi
 	done
 
@@ -116,9 +115,9 @@ debug() {
 	mv cs_debug.log /sdcard
 	chmod 777 /sdcard/cs_debug*
 	rm -rf /data/cs_debug 2>/dev/null
-	echo Done
+	echo "- Done"
 	echo
-	echo "(i) Please upload /sdcard/cs_debug* files to the official XDA thread"
+	echo "(i) Please upload /sdcard/cs_debug.log & /sdcard/cs_debug.zip files to the official XDA thread"
 	echo
 	exit 0
 }
@@ -135,7 +134,7 @@ sON > $st
 sOFF() { echo "- S/OFF --> $(date)"; }
 
 switch() {
-	echo "$1" | grep -q 's=' && s="$(echo "$1" | cut -d= f2)" \
+	echo "$1" | grep -q 's=' && s="$(echo "$1" | cut -d= -f2)" \
 	|| s=/sys/class/power_supply/battery/"$1"
 	if [ "$2" ]; then
 		c_ON=$2
