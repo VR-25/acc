@@ -1,5 +1,4 @@
 #!/system/bin/sh
-
 # Magic Charging Switch (cs)
 # VR25 @ XDA Developers
 
@@ -7,6 +6,7 @@
 # Environment
 h=/data/.cs_settings
 st=/data/.cs_sON
+invert_OFF=false
 export PATH=/dev/magisk/bin:/magisk/cs/bin:$PATH
 echo
 
@@ -50,14 +50,15 @@ ctrl_file() {
 	if model 'Pixel|HTC'; then switch charger_control 0 1
 	elif model 'Galaxy Note'; then switch store_mode 0 1
 		[ -f "$s" ] || switch s=/sys/devices/platform/battery/power_supply/battery/store_mode 0 1
-	elif ! model 'Galaxy Note' && model Samsung; then switch /batt_slate_mode 0 1
+	elif ! model 'Galaxy Note' && model Samsung; then switch s=/sys/devices/battery/power_supply/battery/batt_slate_mode 0 1
 		[ -f "$s" ] || switch s=/sys/devices/platform/battery/power_supply/battery/batt_slate_mode 0 1
-		[ -f "$s" ] || switch s=/sys/devices/battery/power_supply/battery/batt_slate_mode 0 1
+		[ -f "$s" ] || switch /batt_slate_mode 0 1
 	elif model Huawei; then switch s=/sys/class/hw_power/charger/charge_data/enable_charger
 		[ -f "$s" ] || switch s=/sys/devices/platform/huawei_charger/enable_charger
 	elif model 'Amazon Fire'; then switch "/device/Charging_Enable"
-	elif model 'Nexus 4|mako'; then switch s=/sys/module/pm8921_charger/parameters/disabled 0 1
-	elif model 'Nexus 10'; then switch "s=/sys/devices/platform/s3c2440-i2c.2/i2c-2/2-0006/power_supply/smb347-battery/charge_enabled"
+	elif model 'mako|Nexus 4'; then switch s=/sys/module/pm8921_charger/parameters/disabled 0 1
+	elif model 'mantaray|Nexus 10'; then switch "s=/sys/devices/virtual/power_supply/manta-battery/charge_enabled"
+		[ -f "$s" ] || switch "s=/sys/devices/platform/s3c2440-i2c.2/i2c-2/2-0006/power_supply/smb347-battery/charge_enabled"
 	elif model 'Nvidia Shield'; then switch "s=/sys/devices/platform/7000c400.i2c/i2c-1/1-006b/charging_state" enabled disabled
 	elif model 'Xiaomi Mi6'; then switch input_suspend 0 1
 	elif model 'Xiaomi MiPad 2'; then switch s=/sys/class/power_supply/bq2589x_charger/enable_charging
@@ -67,12 +68,14 @@ ctrl_file() {
 	elif model 'Nexus 9'; then switch "s=/sys/devices/platform/tegra12-i2c.0/i2c-0/0-006b/charging_state" enabled disabled
 	elif model 'Galaxy Nexus'; then switch charge_enabled
 	elif model 'Xiaomi Redmi Note 2'; then switch s=/sys/devices/platform/battery/ChargerEnable
+	elif model 'mt6795'; then switch s=/sys/devices/platform/mt-battery/disable_charger 0 1
+	elif model 'piranha'; then switch s=/sys/devices/platform/battery_manager/power_supply/battery/online
 	fi
 	
 	# Devices confirmed working with standard/generic control file
 	# OnePlus 3, Moto Z Play, Sony Xperia Z5 Premium
 	
-	[ -f "$s" ] || switch charging_enabled # It appears this one is the most common among devices running near-stock Android.
+	[ -f "$s" ] || switch charging_enabled # It appears this one is the most common among devices running stock/near-stock Android.
 	[ -f "$s" ] || switch battery_charging_enabled
 	
 	# User setup
@@ -90,8 +93,12 @@ ctrl_file() {
 		debug
 	fi
 	
+	# Battery info
 	i="$(dirname "$s")/uevent"
-	model 'Nexus 4|mako' && i="/sys/devices/platform/msm_ssbi.0/pm8921-core/pm8921-charger/power_supply/battery/uevent"
+	model 'mako|Nexus 4' && i="/sys/devices/platform/msm_ssbi.0/pm8921-core/pm8921-charger/power_supply/battery/uevent"
+	model 'mantaray|Nexus 10' && i="s=/sys/devices/platform/s3c2440-i2c.2/i2c-2/2-0006/power_supply/smb347-battery/uevent"
+	model 'mt6795' && i=/sys/devices/platform/battery/power_suppply/battery/uevent
+	model Huawei && i=/sys/devices/platform/battery/power_supply/Battery/uevent
 }
 
 debug() {
@@ -149,30 +156,91 @@ switch() {
 }
 
 
+OFF() {
+	ctrl_file
+	$invert_OFF && echo $c_ON > $s || echo $c_OFF > $s
+	if [ "$1" ]; then
+		if echo "$1" | grep -q '[a-z]'; then
+		
+			if $invert_OFF; then
+				echo "(i) Charging enabled for $1"
+				sON
+			else
+				echo "(i) Charging disabled for $1"
+				sOFF
+			fi
+			
+			if echo "$1" | grep -q 'm'; then
+				sleep $(( 60 * $(echo $1 | sed 's/m//') ))
+			elif echo "$1" | grep -q 'h'; then
+				sleep $(( 3600 * $(echo $1 | sed 's/h//') ))
+			else exxit
+			fi
+		elif ! echo "$1" | grep -q '[a-z]' \
+			&& echo "$1" | grep -q '[0-9]'; then
+			
+			if $invert_OFF; then
+				echo "(i) Charging enabled for $1s"
+				sON
+			else
+				echo "(i) Charging disabled for $1s"
+				sOFF
+			fi
+			sleep $1
+		fi
+		echo
+		echo '(i) Timeount reached'
+		
+		if $invert_OFF; then
+			echo $c_OFF > $s
+			echo '- Charging disabled'
+			sOFF
+		else
+			echo $c_ON > $s
+			echo '- Charging re-enabled'
+			sON
+		fi
+		
+	else
+		if $invert_OFF; then
+			echo '(i) Charging enabled'; sON
+		else
+			echo '(i) Charging disabled'; sOFF
+		fi
+	fi
+	echo
+	exit 0
+}
+
+
 if [ "$1" = '--help' ]; then
-	cat <<eot
+	cat <<EOD
 Magic Charging Switch (cs)
 
-Stops charging at a set % level below 100 to extend battery lifespan. Battery stats are cleared automatically.
+Stops charging at a set % level below 100 to extend battery lifespan.
 
 Note: your terminal emulator must be excluded from battery optimization &/or Doze for cs to work properly.
 
 
 Usage:
 
-cs -i --> show battery info
+cs [PAUSE% RESUME%] [PAUSE%] [debug] [-m PAUSE% RESUME%] [-t PAUSE% RESUME%] [-d TIMEOUT] [-e TIMEOUT] [--help]
 
-cs % % --> pause charging at first %; resume charging if battery drops below second % (optional)
+-i --> show battery info
 
-cs debug --> gather debugging data & save it to /sdcard as cs_debug*
+debug --> gather debugging data & save it to /sdcard as cs_debug*
 
-cs --help --> self-explanatory
+--help --> self-explanatory
 
 just "cs" --> run cs with previous settings
 
-cs -d [timeout (optional)] --> disable charging
+PAUSE% RESUME% --> pause charging at PAUSE% value; resume charging if battery drops below RESUME%
 
-cs -e [timeout (optional)] --> enable charging
+-m/-t PAUSE% RESUME% --> generate automation config (-m for MacroDroid; -t for Tasker -- pick one)
+
+-d [TIMEOUT (optional)] --> disable charging
+
+-e [TIMEOUT (optional)] --> enable charging
 
 
 Tips
@@ -186,7 +254,9 @@ Tips
 "cs -e 120 && cs -d 30m && cs -e 1h" --> charge for 120 seconds, pause for 30 minutes, then charge again for 1h.
 
 "cs -e 30m && cs -d 30m && cs 90" --> charge for 30 minutes, pause for 30 minutes, then charge again, but this time until battery level is greater or equal to 90%.
-eot
+
+Ideally, you want your battery level between 40-60% - best, 20-80% - average, 10-90% - fair.
+EOD
 echo
 exit 0
 
@@ -196,52 +266,13 @@ elif [ "$1" = 'debug' ]; then debug
 
 # Disable charging
 elif [ "$1" = '-d' ]; then
-	ctrl_file
-	echo $c_OFF > $s
-	if [ "$2" ]; then
-		if echo "$2" | grep -Eq '[a-z]{1}'; then
-			echo "(i) Charging disabled for $2"
-			sOFF
-			if echo "$2" | grep -q 'm'; then sleep $(( 60 * $(echo $2 | grep -ov 'm') ))
-			elif echo "$2" | grep -q 'h'; then sleep $(( 3600 * $(echo $2 | grep -ov 'h') ))
-			else exxit; fi
-		else
-			echo "(i) Charging disabled for $2s"
-			sOFF
-			sleep $2; fi
-		echo
-		echo '(i) Timeount reached'
-		echo $c_ON > $s
-		echo '- Charging re-enabled'
-		sON
-	else echo '(i) Charging disabled'; sOFF; fi
-	echo
-	exit 0
-	
+	[ "$2" ] && OFF $2 || OFF
+
 
 # Enable charging	
 elif [ "$1" = '-e' ]; then
-	ctrl_file
-	echo $c_ON > $s
-	if [ "$2" ]; then 
-		if echo "$2" | grep -Eq '[a-z]{1}'; then
-			echo "(i) Charging enabled for $2"
-			sON
-			if echo "$2" | grep -q 'm'; then sleep $(( 60 * $(echo $2 | grep -ov 'm') ))
-			elif echo "$2" | grep -q 'h'; then sleep $(( 3600 * $(echo $2 | grep -ov 'h') ))
-			else exxit; fi
-		else
-			echo "(i) Charging enabled for $2s"
-			sON
-			sleep $2; fi
-		echo
-		echo '(i) Timeount reached'
-		echo $c_OFF > $s
-		echo '- Charging disabled'
-		sOFF
-	else echo '(i) Charging enabled'; sON; fi
-	echo
-	exit 0
+	invert_OFF=true
+	[ "$2" ] && OFF $2 || OFF
 
 
 # Battery info
@@ -280,47 +311,57 @@ elif [ -z "$1" ]; then
 	c_loop
 
 
-elif echo "$1" | grep -q [0-9]; then :
-else exxit; fi
-
-
-# Generate Tasker XML
-echo "(i) Generating /sdcard/Tasker/projects/cs_tasker.prj.xml..."
-xml_gen=false
-tdir=/sdcard/Tasker/projects
-[ -d $tdir ] || mkdir -p $tdir
-cp /magisk/cs/cs_tasker.prj.xml $tdir
-cd $tdir
-sed -i "/<Int sr=\"arg0\" val=\"80\"\/>/s/80/$1/" cs_tasker.prj.xml
-sed -i "/<rhs>80<\/rhs>/s/80/$1/" cs_tasker.prj.xml
-if [ "$2" ]; then
-	sed -i "/<Int sr=\"arg1\" val=\"10\"\/>/s/10/$2/" cs_tasker.prj.xml
-	sed -i "/<rhs>10<\/rhs>/s/10/$2/" cs_tasker.prj.xml
-echo "- Done"
-echo
-fi
+# Generate MacroDroid & Tasker automation configs
+elif [ "$1" = "-m" ] || [ "$1" = "-t" ]; then
+	if echo "$1" | grep -q 'm'; then
+		echo "(i) Generating /sdcard/MacroDroid/cs.category"
+		mdir=/sdcard/MacroDroid
+		[ -d $mdir ] || mkdir -p $mdir
+		cp /magisk/cs/.automation/cs.category $mdir
+		cd $mdir
+		sed -i "s/:80/:$2/" cs.category
+		sed -i "s/:20/:$3/" cs.category
+	elif echo "$1" | grep -q 't'; then
+		echo "(i) Generating /sdcard/Tasker/projects/cs.prj.xml"
+		tdir=/sdcard/Tasker/projects
+		[ -d $tdir ] || mkdir -p $tdir
+		cp /magisk/cs/.automation/cs.prj.xml $tdir
+		cd $tdir
+		sed -i "/<Int sr=\"arg0\" val=\"80\"\/>/s/80/$2/" cs.prj.xml
+		sed -i "/<rhs>80<\/rhs>/s/80/$2/" cs.prj.xml
+		sed -i "/<Int sr=\"arg1\" val=\"20\"\/>/s/20/$3/" cs.prj.xml
+		sed -i "/<rhs>20<\/rhs>/s/20/$3/" cs.prj.xml
+	else exxit
+	fi
+	echo "- Done"
+	echo
+	exit 0
 
 
 # Run with all parameters (initial setup)
-ctrl_file
-echo $c_ON > $s
-. "$i"
-
-until [ "$POWER_SUPPLY_CAPACITY" -ge "$1" ]; do
-	$xml_gen && clear
-	xml_gen=true
+elif echo "$1" | grep -q '[0-9]'; then
+	ctrl_file
+	echo $c_ON > $s
 	. "$i"
-	echo "Charging to $1%..."
-	cat $st
-	echo
-	c_info
-	echo
-	echo "(i) Press CTRL (Vol. Down) + C to abort"
-	[ "$POWER_SUPPLY_CAPACITY" -ge "75" ] && sleep 20 || sleep 60
-done
 
-echo "p=$1" > $h
-echo "p0=$2" >> $h
+	until [ "$POWER_SUPPLY_CAPACITY" -ge "$1" ]; do
+		clear
+		. "$i"
+		echo "Charging to $1%..."
+		cat $st
+		echo
+		c_info
+		echo
+		echo "(i) Press CTRL (Vol. Down) + C to abort"
+		[ "$POWER_SUPPLY_CAPACITY" -ge "75" ] && sleep 20 || sleep 60
+	done
 
-. $h
-c_loop
+	echo "p=$1" > $h
+	echo "p0=$2" >> $h
+
+	. $h
+	c_loop
+
+
+else exxit
+fi

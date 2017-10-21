@@ -132,7 +132,7 @@ mkdir -p $MODPATH/bin
 # Copy files ###
 ui_print "- Copying files"
 mv $INSTALLER/system $MODPATH
-mv $INSTALLER/common/cs_tasker.prj.xml $MODPATH
+mv $INSTALLER/common/automation $MODPATH/.automation
 echo $ARCH | grep -q x && \
 	mv $INSTALLER/bin/zip_x86 $MODPATH/bin/zip \
 	|| mv $INSTALLER/bin/zip_arm $MODPATH/bin/zip

@@ -1,3 +1,9 @@
+# 2017.10.21 (201710210)
+- Additional devices support
+- Automation configs are now generated manually by running `cs -m/-t PAUSE% RESUME%`. -m is for MacroDroid; -t for Tasker -- pick one.
+- Major optimizations
+- Updated reference.
+
 # v2017.10.16-4 (201710164)
 - Fixed Nexus 4 (mako) battery info not being displayed (wrong uevent path).
 

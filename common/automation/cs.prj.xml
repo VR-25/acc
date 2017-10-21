@@ -8,7 +8,7 @@
 		<State sr="con0" ve="2">
 			<code>140</code>
 			<Int sr="arg0" val="0"/>
-			<Int sr="arg1" val="10"/>
+			<Int sr="arg1" val="20"/>
 		</State>
 	</Profile>
 	<Profile sr="prof4" ve="2">
@@ -79,12 +79,12 @@
 				<Condition sr="c0" ve="3">
 					<lhs>%BATT</lhs>
 					<op>6</op>
-					<rhs>10</rhs>
+					<rhs>20</rhs>
 				</Condition>
 				<Condition sr="c1" ve="3">
 					<lhs>%BATT</lhs>
 					<op>0</op>
-					<rhs>10</rhs>
+					<rhs>20</rhs>
 				</Condition>
 			</ConditionList>
 		</Action>
