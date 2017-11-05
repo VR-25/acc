@@ -1,3 +1,11 @@
+# 2017.11.5 (201711050)
+- Additional devices support
+- Control files caching for better performance
+- Fixed MacroDroid config
+- Massive optimizations
+- Updated Tasker config
+- Work in progress -- automation without apps (cs service)
+
 # 2017.10.21 (201710210)
 - Additional devices support
 - Automation configs are now generated manually by running `cs -m/-t PAUSE% RESUME%`. -m is for MacroDroid; -t for Tasker -- pick one.

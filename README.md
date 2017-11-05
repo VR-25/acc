@@ -3,47 +3,53 @@
 
 
 **Description**
-- Stop charging at a set % level below 100 to extend battery lifespan.
+- Automatically pause/resume charging at set % levels to extend battery lifespan.
 
 
 **Disclaimer**
-- Don't quote me on the above. Do your own research on lithium-ion batteries! This module tweaks low level Android settings -- I shall not be held responsible for any nuclear disaster potentially triggered by the use/misuse of it.
+- Don't quote me on the above. Do your own research on lithium-ion batteries.
+- This module changes low level Android settings -- I shall not be held responsible for any cat harm, hair loss and/or nuclear disaster potentially triggered by the use/misuse of it.
 
 
 **Usage**
-- `cs -i` --> show battery info
+- [WIP]`cs -a` --> toggle auto-run (default: ON)[/WIP]
+- `cs -i` --> battery info
 - `cs debug` --> gather debugging data & save it to /sdcard as cs_debug*
 - just `cs` --> run cs with previous settings
-- `cs --help` --> self-explanatory
-- `cs PAUSE% RESUME%` --> pause charging at PAUSE% value; resume charging if battery drops below RESUME% (optional)
-- `cs -d [TIMEOUT (optional)]` --> disable charging
-- `cs -e [TIMEOUT (optional)]` --> enable charging
+- `cs --help` --> module usage info
+- `cs PAUSE% RESUME%` --> pause charging at PAUSE% value; resume charging if battery drops below RESUME% (optional). This is the initial setup command. [WIP]If auto-run is OFF, the command works as is; else, new settings are saved and automatically recognized by cs service.[/WIP]
+- -m/-t PAUSE% RESUME% --> generate automation config (-m for MacroDroid; -t for Tasker -- pick one)
+- `cs -d [TIMEOUT (optional)]` --> disable charging on demand
+- `cs -e [TIMEOUT (optional)]` --> enable charging on demand
 
 
-**Tips**
+**Examples**
 
-`cs 80` --> stop charging at 80%.
+"cs 80" --> stop charging at 80%.
 
-`cs 80 20` --> pause charging at 80%; resume if battery drops below 20%.
+"cs 80 20" --> pause charging at 80%; resume if battery drops below 20%.
 
-`-d` & `-e` options can take a "timeout" argument to automatically enable & disable charging, respectively (i.e., `cs -d 30m` --> keep charging disabled for 30 minutes, `cs -e 1h` --> charge for 1 hour).
+"cs -d 30m" --> keep charging disabled for 30 minutes.
 
-`cs -e 120 && cs -d 30m && cs -e 1h` --> charge for 120 seconds, pause for 30 minutes, then charge again for 1h.
+"cs -e 1h" --> charge for 1 hour.
 
-`cs -e 30m && cs -d 30m && cs 90` --> charge for 30 minutes, pause for 30 minutes, then charge again, but this time until battery level is greater or equal to 90%.
+"cs -e 120 && cs -d 30m && cs -e 1h" --> charge for 120 seconds, pause for 30 minutes, then charge again for 1h.
 
-Ideally, you want your battery level between 40-60% - best, 20-80% - average, 10-90% - fair.
+"cs -e 30m && cs -d 30m && cs 90" --> charge for 30 minutes, pause for 30 minutes, then charge again, but this time until battery level is greater or equal to 90%.
 
 
 **Notes**
 
-This is a terminal program & your terminal emulator app must be excluded from battery optimization &/or Doze for cs to work properly. You don't need to keep your screen ON, nor the terminal running in foreground. Due to a shell limitation, the "stop charging mechanism" may be late by at least 1% battery level -- it's not a big deal, though.
+- If you're not relying on the automation service, then your terminal emulator app must be excluded from battery optimization(s) &/or Doze for cs to work properly. You don't need to keep the screen ON, nor the terminal running in foreground.
+- The automation service is paused whenever a cs command is executed on demand. Run `cs -a` to resume it.
 
-Charging control file and its parameters can be specified in `/sdcard/cs_ctrl.txt` (you have to create the file). The syntax is `switch /path/to/ctrl/file ON OFF` -- where ON OFF may be 1 0, enable disable, enabled disabled, etc. (device-dependent).
 
-Examples:
-- `switch s=/sys/module/pm8921_charger/parameters/disabled 0 1`
+**Debugging**
+
+Charging control file and its parameters can be specified in /sdcard/cs_ctrl.txt (you have to create the file). The syntax is `switch "s=/path/to/file" ON OFF` -- where ON OFF may be 1 0, enable disable, enabled disabled, etc. (device-dependent). The battery info file (uevent) is i="$/path/to/file" (mandatory). Example:
+
 - `switch "s=/sys/devices/platform/7000c400.i2c/i2c-1/1-006b/charging_state" enabled disabled`
+- `i="/sys/class/power_supply/battery/uevent"`
 
 
 **Online Support**

@@ -126,14 +126,17 @@ MAGISKLOOP=`$MAGISKBIN/magisk --mountimg $IMG $MOUNTPATH`
 is_mounted $MOUNTPATH || abort "! $IMG mount failed..."
 
 # Create mod paths
-rm -rf $MODPATH 2>/dev/null
+{ cp /magisk/cs/.config/cs $INSTALLER/cs_cfg
+rm -rf $MODPATH
 mkdir -p $MODPATH/bin
+mkdir $MODPATH/.config
+mv $INSTALLER/cs_cfg $MODPATH/.config/cs; } 2>/dev/null
 
 # Copy files ###
 ui_print "- Copying files"
 mv $INSTALLER/system $MODPATH
-mv $INSTALLER/common/automation $MODPATH/.automation
-echo $ARCH | grep -q x && \
+mv $INSTALLER/common/config/* $MODPATH/.config
+echo $ARCH | grep -iq x && \
 	mv $INSTALLER/bin/zip_x86 $MODPATH/bin/zip \
 	|| mv $INSTALLER/bin/zip_arm $MODPATH/bin/zip
 

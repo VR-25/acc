@@ -1,54 +1,58 @@
 <TaskerData sr="" dvi="1" tv="5.0u6m">
-	<Profile sr="prof3" ve="2">
-		<cdate>1508174360846</cdate>
+	<Profile sr="prof35" ve="2">
+		<cdate>1508776997070</cdate>
 		<clp>true</clp>
 		<edate>1508163445548</edate>
-		<id>3</id>
-		<mid0>2</mid0>
+		<id>35</id>
+		<mid0>34</mid0>
 		<State sr="con0" ve="2">
 			<code>140</code>
 			<Int sr="arg0" val="0"/>
-			<Int sr="arg1" val="20"/>
+			<Int sr="arg1" val="10"/>
 		</State>
 	</Profile>
-	<Profile sr="prof4" ve="2">
-		<cdate>1508174360846</cdate>
+	<Profile sr="prof36" ve="2">
+		<cdate>1508776997076</cdate>
+		<clp>true</clp>
 		<edate>1508141193862</edate>
-		<id>4</id>
-		<mid0>2</mid0>
+		<id>36</id>
+		<mid0>34</mid0>
 		<State sr="con0" ve="2">
 			<code>140</code>
-			<Int sr="arg0" val="80"/>
+			<Int sr="arg0" val="90"/>
 			<Int sr="arg1" val="100"/>
 		</State>
 	</Profile>
 	<Project sr="proj0" ve="2">
-		<cdate>1508146170084</cdate>
-		<name>cs_tasker</name>
-		<pids>4,3</pids>
-		<tids>2</tids>
+		<cdate>1508743655167</cdate>
+		<name>Charging Switch</name>
+		<pids>35,36</pids>
+		<tids>34</tids>
 		<Kid sr="Kid">
-			<launchID>10</launchID>
-			<pkg>ao.vr25.magiccs</pkg>
-			<vnme>1.0</vnme>
-			<vnum>2</vnum>
+			<launchID>2</launchID>
+			<pkg>com.vr25.magic_cs</pkg>
+			<vnme>2017.10.25</vnme>
 		</Kid>
+		<Img sr="icon" ve="2">
+			<nme>hl_aaa_nixx_bolt</nme>
+		</Img>
 	</Project>
-	<Task sr="task2">
+	<Task sr="task34">
 		<cdate>1508140305787</cdate>
-		<edate>1508176093451</edate>
-		<id>2</id>
-		<nme>cs</nme>
+		<edate>1508777027469</edate>
+		<id>34</id>
+		<nme>Charging Switch</nme>
 		<Kid sr="Kid">
 			<launchID>10</launchID>
-			<pkg>ao.vr25.cs</pkg>
-			<vnme>1.0</vnme>
+			<pkg>com.vr25.magic_cs</pkg>
+			<vnme>2017.10.25</vnme>
 		</Kid>
 		<Action sr="act0" ve="7">
 			<code>123</code>
+			<label>OFF</label>
 			<Str sr="arg0" ve="3">su -c cs -d</Str>
 			<Int sr="arg1" val="5"/>
-			<Int sr="arg2" val="0"/>
+			<Int sr="arg2" val="1"/>
 			<Str sr="arg3" ve="3"/>
 			<Str sr="arg4" ve="3"/>
 			<Str sr="arg5" ve="3"/>
@@ -57,20 +61,21 @@
 				<Condition sr="c0" ve="3">
 					<lhs>%BATT</lhs>
 					<op>7</op>
-					<rhs>80</rhs>
+					<rhs>90</rhs>
 				</Condition>
 				<Condition sr="c1" ve="3">
 					<lhs>%BATT</lhs>
 					<op>0</op>
-					<rhs>80</rhs>
+					<rhs>90</rhs>
 				</Condition>
 			</ConditionList>
 		</Action>
 		<Action sr="act1" ve="7">
 			<code>123</code>
+			<label>ON</label>
 			<Str sr="arg0" ve="3">su -c cs -e</Str>
 			<Int sr="arg1" val="5"/>
-			<Int sr="arg2" val="0"/>
+			<Int sr="arg2" val="1"/>
 			<Str sr="arg3" ve="3"/>
 			<Str sr="arg4" ve="3"/>
 			<Str sr="arg5" ve="3"/>
@@ -79,12 +84,12 @@
 				<Condition sr="c0" ve="3">
 					<lhs>%BATT</lhs>
 					<op>6</op>
-					<rhs>20</rhs>
+					<rhs>10</rhs>
 				</Condition>
 				<Condition sr="c1" ve="3">
 					<lhs>%BATT</lhs>
 					<op>0</op>
-					<rhs>20</rhs>
+					<rhs>10</rhs>
 				</Condition>
 			</ConditionList>
 		</Action>
