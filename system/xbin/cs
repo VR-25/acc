@@ -404,11 +404,11 @@ elif [ "$1" = '-i' ]; then
 
 # Run with previous settings
 elif [ -z "$1" ]; then
-	if $auto_run; then
-		echo "(i) cs service is already running"
-		echo
-		exit 0
-	fi
+	#if $auto_run; then
+		#echo "(i) cs service is already running"
+		#echo
+		#exit 0
+	#fi
 	echo $c_ON > $s
 	
 	until [ "$POWER_SUPPLY_CAPACITY" -ge "$p" ]; do
@@ -461,22 +461,23 @@ elif echo "$1" | grep -q '[0-9]'; then
 	#$autorun && echo auto_run=true || echo auto_run=false
 	echo "i=$i"
 	echo "switch \"s=$s\" $c_ON $c_OFF"
-	#echo "#1st"; } > $config
+	#echo "#1st"; 
+	} > $config
 	. $config
 	. "$i"
 
 	echo "(i) New settings saved"
 	sleep 1
 
-	if $autorun && ! grep -q "#1st" $config; then
-		echo "- cs service is already running"
-		echo "-- Now working with the new values"
-		echo
-		exit 0
+	#if $autorun && ! grep -q "#1st" $config; then
+		#echo "- cs service is already running"
+		#echo "-- Now working with the new values"
+		#echo
+		#exit 0
 	#elif $autorun && grep -q "#1st" $config; then
 		#echo "- cs service will now run on every boot"
 		#sleep 2
-	fi
+	#fi
 	echo $c_ON > $s
 	
 	until [ "$POWER_SUPPLY_CAPACITY" -ge "$1" ]; do

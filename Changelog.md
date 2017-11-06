@@ -1,3 +1,6 @@
+# 2017.11.6 (201711060)
+- Fixed "else unexpected" error.
+
 # 2017.11.5 (201711050)
 - Additional devices support
 - Control files caching for better performance
