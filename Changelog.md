@@ -1,3 +1,8 @@
+# 2017.11.7 (201711070)
+- Additional devices support
+- Fixed "cs debug" errors
+- Redesigned "get_batt_level" mechanism ("charging not found" bug is gone)
+
 # 2017.11.6 (201711060)
 - Fixed "else unexpected" error.
 

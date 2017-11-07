@@ -7,7 +7,7 @@
 mod_dir=/magisk/cs
 config=$mod_dir/.config/cs
 tmp_dir=$mod_dir/.tmp
-sON_info=$tmp_dir/.cs_sON
+sON_info=$tmp_dir/sON_info
 invert_OFF=false
 export PATH=/dev/magisk/bin:/magisk/cs/bin:$PATH
 echo
@@ -17,7 +17,7 @@ echo
 # TOOLBOX
 
 c_info() {
-	cat "$i" | grep -vE 'NAME|STATUS|PRESENT|HEALTH|COUNTER' \
+	cat "$i" | grep -vE 'NAME|STATUS|PRESENT|HEALTH|COUNTER|CAPACITY_LEVEL' \
 		| sed 's/POWER_SUPPLY_//' \
 		| sed 's/CAPACITY/LEVEL/' \
 		| sed '/LEVEL=/s/$/%/' \
@@ -38,9 +38,9 @@ c_loop() {
 	echo $c_OFF > $s
 	if echo "$p0" | grep -q [0-9]; then
 		echo "- Maintaining $p0-$p%..."
-		until [ "$POWER_SUPPLY_CAPACITY" -le "$p0" ]; do
-			. "$i"
-			[ "$POWER_SUPPLY_CAPACITY" -le "25" ] && sleep 300 || sleep 600
+		until [ "$batt_level" -le "$p0" ]; do
+			get_batt_level
+			[ "$batt_level" -le "25" ] && sleep 300 || sleep 600
 		done
 		cs
 	else
@@ -101,6 +101,7 @@ get_ctrl_files() {
 			elif model 'Galaxy Nexus'; then switch charge_enabled
 			elif model 'mt6795'; then switch s=/sys/devices/platform/mt-battery/disable_charger 0 1
 			elif model 'piranha'; then switch s=/sys/devices/platform/battery_manager/power_supply/battery/online
+			elif model klte; then switch "s=/sys/devices/battery.98/power_supply/battery/batt_slate_mode" 0 1
 			fi
 			
 			# Devices confirmed working with standard/generic control files:
@@ -143,31 +144,34 @@ get_ctrl_files() {
 }
 
 
+get_batt_level() { echo "batt_level=$(cat $(dirname "$i")/capacity)" > $tmp_dir/batt_level
+	. $tmp_dir/batt_level
+}
+
+
 debug() {
 	echo "(i) Gathering debugging data..."
-	echo
 	rm -rf /data/cs_debug* /sdcard/cs_debug* 2>/dev/null
 	mkdir /data/cs_debug
 	cd /data/cs_debug
-	getprop | grep product > cs_debug.log
+	grep -i product /system/build.prop > cs_debug.log
 	echo >> cs_debug.log
-	zip -9u cs_debug.zip cs_debug.log
+	zip -9qqu cs_debug.zip cs_debug.log 2>/dev/null
 	
 	for f in $(find /sys 2>/dev/null \
 		| grep -Ev 'sys/kernel|sys/bus|sys/firmware|/sys/fs' \
 		| grep -Ei 'batt|charg'); do
 		if [ -f "$f" ]; then
 			echo "$f" >> cs_debug.log
-			zip -9qqu cs_debug.zip "$f"
+			zip -9qqu cs_debug.zip "$f" 2>/dev/null
 		fi
 	done
 
-	echo
 	mv cs_debug.zip /sdcard
 	mv cs_debug.log /sdcard
 	chmod 777 /sdcard/cs_debug*
 	rm -rf /data/cs_debug 2>/dev/null
-	echo Done
+	echo "- Done."
 	echo
 	echo "(i) Please upload /sdcard/cs_debug.zip to the official XDA thread."
 	echo
@@ -183,6 +187,7 @@ exxit() {
 
 
 model() { getprop | grep -Eiq "$1"; }
+#model() { grep -iq product /system/build.prop; } ###
 sON() { echo "- S/ON --> $(date)"; }
 sOFF() { echo "- S/OFF --> $(date)"; }
 
@@ -260,7 +265,7 @@ OFF() {
 # Pre-ignition ###
 [ -d $tmp_dir ] || mkdir $tmp_dir
 [ ! -f $config ] && get_ctrl_files && auto_run=false || . $config
-. "$i"
+get_batt_level
 sON > $sON_info
 
 
@@ -292,21 +297,21 @@ elif [ "$1" = "auto" ]; then
 	grep -q '#1st' $config && sed -i '/#1st/d' $config
 	[ -f $tmp_dir/_ ] || echo $c_ON > $s
 
-	until grep -iq Discharging "$i" || [ "$POWER_SUPPLY_CAPACITY" -ge "$p" ]; do
+	until grep -Eiq 'Discharging|Not charging' "$i" || [ "$batt_level" -ge "$p" ]; do
 		$auto_run || exit 0
 		while [ -f $tmp_dir/_ ]; do sleep 25; done
 		. $config
-		. "$i"
-		[ "$POWER_SUPPLY_CAPACITY" -ge "70" ] && sleep 25 || sleep 240
+		get_batt_level
+		[ "$batt_level" -ge "70" ] && sleep 25 || sleep 240
 	done
 	[ -f $tmp_dir/_ ] || echo $c_OFF > $s
 	
-	until grep -iq Charging "$i" || [ "$POWER_SUPPLY_CAPACITY" -le "$p0" ]; do
+	until grep -iq Charging "$i" || [ "$batt_level" -le "$p0" ]; do
 		$auto_run || exit 0
 		while [ -f $tmp_dir/_ ]; do sleep 300; done
 		. $config
-		. "$i"
-		[ "$POWER_SUPPLY_CAPACITY" -le "25" ] && sleep 300 || sleep 600
+		get_batt_level
+		[ "$batt_level" -le "25" ] && sleep 300 || sleep 600
 	done
 	cs auto
 
@@ -346,9 +351,7 @@ PAUSE% RESUME% --> initial setup command -- pause charging at PAUSE% value; resu
 
 Tips
 
-"cs 80" --> stop charging at 80%.
-
-"cs 80 20" --> pause charging at 80%; resume if battery drops below 20%.
+"cs 80 20" --> pause charging at 80%; resume if battery level drops below 20%.
 
 "-d" & "-e" options can take a "timeout" argument to automatically enable & disable charging, respectively (i.e., "cs -d 30m" --> keep charging disabled for 30 minutes, "cs -e 1h" --> charge for 1 hour).
 
@@ -392,7 +395,7 @@ elif [ "$1" = '-e' ]; then
 # Battery info
 elif [ "$1" = '-i' ]; then
 	echo 'Battery Info'
-	cat "$i" | grep -Ev 'NAME|PRESENT' \
+	cat "$i" | grep -Ev 'NAME|PRESENT|CAPACITY_LEVEL' \
 		| sed 's/POWER_SUPPLY_//' \
 		| sed 's/CAPACITY/LEVEL/' \
 		| sed '/LEVEL=/s/$/%/' \
@@ -411,16 +414,16 @@ elif [ -z "$1" ]; then
 	#fi
 	echo $c_ON > $s
 	
-	until [ "$POWER_SUPPLY_CAPACITY" -ge "$p" ]; do
+	until [ "$batt_level" -ge "$p" ]; do
 		clear
-		. "$i"
+		get_batt_level
 		echo "Charging to $p%..."
 		cat $sON_info
 		echo
 		c_info
 		echo
 		echo "(i) Press CTRL (Vol. Down) + C to abort"
-		[ "$POWER_SUPPLY_CAPACITY" -ge "75" ] && sleep 20 || sleep 60
+		[ "$batt_level" -ge "75" ] && sleep 20 || sleep 60
 	done
 	c_loop
 
@@ -464,7 +467,7 @@ elif echo "$1" | grep -q '[0-9]'; then
 	#echo "#1st"; 
 	} > $config
 	. $config
-	. "$i"
+	get_batt_level
 
 	echo "(i) New settings saved"
 	sleep 1
@@ -480,16 +483,16 @@ elif echo "$1" | grep -q '[0-9]'; then
 	#fi
 	echo $c_ON > $s
 	
-	until [ "$POWER_SUPPLY_CAPACITY" -ge "$1" ]; do
+	until [ "$batt_level" -ge "$1" ]; do
 		clear
-		. "$i"
+		get_batt_level
 		echo "Charging to $1%..."
 		cat $sON_info
 		echo
 		c_info
 		echo
 		echo "(i) Press CTRL (Vol. Down) + C to abort"
-		[ "$POWER_SUPPLY_CAPACITY" -ge "75" ] && sleep 20 || sleep 60
+		[ "$batt_level" -ge "75" ] && sleep 20 || sleep 60
 	done
 
 	. $config

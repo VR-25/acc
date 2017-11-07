@@ -17,7 +17,7 @@
 - `cs debug` --> gather debugging data & save it to /sdcard as cs_debug*
 - just `cs` --> run cs with previous settings
 - `cs --help` --> module usage info
-- `cs PAUSE% RESUME%` --> pause charging at PAUSE% value; resume charging if battery drops below RESUME% (optional). This is the initial setup command. [WIP]If auto-run is OFF, the command works as is; else, new settings are saved and automatically recognized by cs service.[/WIP]
+- `cs PAUSE% RESUME%` --> pause charging at PAUSE% value; resume charging if battery drops below RESUME% (default 10). This is the initial setup command. [WIP]If auto-run is OFF, the command works as is; else, new settings are saved and automatically recognized by cs service.[/WIP]
 - -m/-t PAUSE% RESUME% --> generate automation config (-m for MacroDroid; -t for Tasker -- pick one)
 - `cs -d [TIMEOUT (optional)]` --> disable charging on demand
 - `cs -e [TIMEOUT (optional)]` --> enable charging on demand
@@ -25,9 +25,7 @@
 
 **Examples**
 
-"cs 80" --> stop charging at 80%.
-
-"cs 80 20" --> pause charging at 80%; resume if battery drops below 20%.
+"cs 80 20" --> pause charging at 80%; resume if battery level drops below 20%.
 
 "cs -d 30m" --> keep charging disabled for 30 minutes.
 
