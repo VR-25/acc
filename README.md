@@ -15,7 +15,7 @@
 
 **Usage**
 - `cs -a` --> toggle auto-run (default: ON); resume cs service.
-- `cs -c` --> manually set the control files -- useful when the user knows which those are and doesn't want to wait for the next build to use cs. The config should be pasted directly on terminal.
+- `cs -c` --> manually set charging control & battery uevent configs -- useful when the user knows which those are and doesn't want to wait for the next build to use cs. The configs have to be pasted or typed directly on terminal -- a wizard guides you.
 - `cs -i` --> display battery info.
 - `cs debug` --> gather debugging data & save it to /sdcard/cs_debug.zip.
 - just `cs` --> run cs with default (90 10) or saved settings.
@@ -51,10 +51,11 @@
 
 In case of device incompatibility, cs auto-generates a zip file with debugging data & asks the user to upload it to the official XDA thread.
 
-Control file syntaxes for cs -c: charging switch `switch "s=/path/to/file" ON OFF` -- where ON OFF may be 1 0, enable disable, enabled disabled, etc. (device-dependent). The battery info file (uevent) is i="/path/to/file" (mandatory). Example:
+Syntaxes for cs -c:
+- Charging control: `/path/to/file ON OFF` -- where ON OFF, depending on the device, can be 1 0, enable disable, enabled disabled, etc.. Example: `/sys/devices/platform/7000c400.i2c/i2c-1/1-006b/charging_state enabled disabled`
+- Battery uevent: `/path/to/file` -- i.e., `/sys/class/power_supply/battery/uevent`
 
-- `switch "s=/sys/devices/platform/7000c400.i2c/i2c-1/1-006b/charging_state" enabled disabled`
-- `i="/sys/class/power_supply/battery/uevent"`
+If uevent is in the same directory as the charging control file, then it doesn't need to be specified -- simply hit ENTER when prompted for its path.
 
 
 **Online Support**

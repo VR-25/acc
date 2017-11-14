@@ -1,3 +1,7 @@
+# 2017.11.14-1 (201711141)
+- Better Pixel/HTC devices support.
+- Refined "cs -c" for simplicity & reliability.
+
 # 2017.11.14 (201711140)
 - Added option to manually set the control files (from terminal) -- useful when the user knows which those are and doesn't want to wait for the next build to use cs. The config should be pasted directly on terminal.
 - Decreased "cs auto" timeout values for better charging control accuracy (cs service).

@@ -86,7 +86,7 @@ get_ctrl_files() {
 	else
 		if [ -f $config ]; then . $config
 		else
-			if device 'Pixel|HTC' && ! device klte; then switch charger_control 1 0 ###
+			if device 'Pixel|HTC' && ! device klte; then switch "s=/sys/devices/soc/qpnp-smbcharger-16/power_supply/battery/charging_enabled"
 				[ -f "$s" ] || switch s=/sys/devices/platform/htc_battery/power_supply/battery/charging_enabled
 			elif device Samsung; then switch store_mode 0 1
 				[ -f "$s" ] || switch s=/sys/devices/platform/battery/power_supply/battery/store_mode 0 1
@@ -320,14 +320,16 @@ if [ "$1" = "-a" ]; then
 
 # Manually set ctrl files
 elif [ "$1" = "-c" ]; then
-	echo "Type/paste your control files info as stated in the README & press the ENTER key."
-	echo
-	echo "Syntax:"
-	echo "  switch \"s=/path/to/file\" ON OFF"
-	echo "  i=\"/path/to/file\""
+	exit_null () { echo "$1"; echo; exit 0; }
+	echo "Paste/type your charging control config & hit ENTER (/path/to/file ON OFF):"
 	read INPUT
-	[ "$INPUT" ] && echo "$INPUT" > $mod_dir/.config/ctrl \
-		|| echo "(i) Operation aborted (null input)."
+	[ "$INPUT" ] && echo "switch \"s=$(echo "$INPUT" | cut -d' ' -f1)\" $(echo "$INPUT" | cut -d' ' -f2) $(echo "$INPUT" | cut -d' ' -f3)" > $mod_dir/.config/ctrl \
+		|| exit_null "(i) Operation aborted (null input)."
+	echo
+	echo "Now paste/type your battery uevent path & hit ENTER (/path/to/file)..."
+	echo "- If it's in the same directory as the charging control  file, skip the paste/type part -- simply hit ENTER:"
+	read INPUT
+	[ "$INPUT" ] && echo "i=\"$INPUT\"" >> $mod_dir/.config/ctrl
 	echo
 	exit 0
 
@@ -374,7 +376,7 @@ cs [-a] [-c] [-i] [PAUSE% RESUME%] [PAUSE%] [debug] [-m PAUSE% RESUME%] [-t PAUS
 
 -a --> toggle auto-run; resume cs service
 
--c --> manually set the control files
+-c --> manually set charging control & battery uevent configs
 
 -i --> display battery info
 
