@@ -1,3 +1,15 @@
+# 2017.11.14 (201711140)
+- Added option to manually set the control files (from terminal) -- useful when the user knows which those are and doesn't want to wait for the next build to use cs. The config should be pasted directly on terminal.
+- Decreased "cs auto" timeout values for better charging control accuracy (cs service).
+- Samsung specific changes -- to address charging control inconsistencies.
+
+# 2017.11.13-Beta (201711130)
+- Additional devices support
+- Automation without apps -- install, configure (cs % %) and forget (please, read/re-read README.md).
+- cs default settings -- 90 10
+- Fixed "broken pipe" errors.
+- Overall optimizations
+
 # 2017.11.7 (201711070)
 - Additional devices support
 - Fixed "cs debug" errors
