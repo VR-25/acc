@@ -31,8 +31,9 @@ c_loop() {
 	echo "(i) Desired charge % reached."
 	sOFF
 	
-	### Gotta find a working way of clearing battery stats on Nougat
+	# Reset battery stats
 	#rm -f /data/system/batterystats.bin 2>/dev/null
+	dumpsys batterystats --reset
 	
 	rm -f $sON_info
 	echo $c_OFF > $s
@@ -318,7 +319,14 @@ if [ "$1" = "-a" ]; then
 	exit 0
 
 
-# Manually set ctrl files
+# Reset battery stats on demand
+elif [ "$1" = "-r" ]; then
+	dumpsys batterystats --reset
+	echo
+	exit 0
+
+
+# Manually set ctrl file & uevent paths
 elif [ "$1" = "-c" ]; then
 	exit_null () { echo "$1"; echo; exit 0; }
 	echo "Paste/type your charging control config & hit ENTER (/path/to/file ON OFF):"
@@ -347,7 +355,7 @@ elif [ "$1" = "auto" ]; then
 		get_batt_level
 		[ "$batt_level" -ge "70" ] && sleep 25 || sleep 60
 	done
-	[ -f $tmp_dir/_ ] || echo $c_OFF > $s
+	[ ! -f $tmp_dir/_ ] && echo $c_OFF > $s && dumpsys batterystats --reset
 	
 	until [ "$batt_level" -le "$p0" ]; do
 		$auto_run || exit 0
@@ -372,13 +380,15 @@ Note: your terminal emulator must be excluded from battery optimization &/or Doz
 
 Usage:
 
-cs [-a] [-c] [-i] [PAUSE% RESUME%] [PAUSE%] [debug] [-m PAUSE% RESUME%] [-t PAUSE% RESUME%] [-d TIMEOUT] [-e TIMEOUT] [--help]
+cs [-a] [-c] [-i] [-r] [PAUSE% RESUME%] [PAUSE%] [debug] [-m PAUSE% RESUME%] [-t PAUSE% RESUME%] [-d TIMEOUT] [-e TIMEOUT] [--help]
 
 -a --> toggle auto-run; resume cs service
 
 -c --> manually set charging control & battery uevent configs
 
 -i --> display battery info
+
+-r --> reset battery stats on demand
 
 debug --> gather debugging data & save it to /sdcard/cs_debug.zip
 
@@ -423,20 +433,9 @@ elif [ "$1" = '-d' ]; then
 		echo "(i) cs service paused."
 		echo
 	fi
+	
 	[ "$2" ] && OFF $2 || OFF
-	
-	#if $auto_run; then
-		#if [ "$2" ]; then
-			#rm $tmp_dir/_
-			#echo "(i) cs service resumed."
-			#echo
-		#else
-			#echo "Resume cs service? (Y/n)"
-			#read $INPUT
-			#! echo $INPUT | grep -iq n && rm rm $tmp_dir/_ && echo "- Done."		
-		#fi
-	#fi
-	
+
 	if $auto_run && [ -f $tmp_dir/_ ]; then
 		echo "(i) Resume cs service with \"cs -a\" command."
 		echo "- A reboot also does the trick."
@@ -452,20 +451,9 @@ elif [ "$1" = '-e' ]; then
 		echo "(i) cs service paused."
 		echo
 	fi
+	
 	invert_OFF=true
 	[ "$2" ] && OFF $2 || OFF
-	
-	#if $auto_run; then
-		#if [ "$2" ]; then
-			#rm $tmp_dir/_
-			#echo "(i) cs service resumed."
-			#echo
-		#else
-			#echo "Resume cs service? (Y/n)"
-			#read $INPUT
-			#! echo $INPUT | grep -iq n && rm rm $tmp_dir/_ && echo "- Done."		
-		#fi
-	#fi
 	
 	if $auto_run && [ -f $tmp_dir/_ ]; then
 		echo "(i) Resume cs service with \"cs -a\" command."

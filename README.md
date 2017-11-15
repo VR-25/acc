@@ -4,6 +4,7 @@
 
 **Description**
 - Automatically pause/resume charging at set % levels to extend battery lifespan.
+- Battery stats are reset on pause.
 - This is a terminal program.
 - Install, reboot, configure and forget -- or simply install, reboot and forget if you're fine with the default settings (more details about that below). 
 
@@ -17,6 +18,7 @@
 - `cs -a` --> toggle auto-run (default: ON); resume cs service.
 - `cs -c` --> manually set charging control & battery uevent configs -- useful when the user knows which those are and doesn't want to wait for the next build to use cs. The configs have to be pasted or typed directly on terminal -- a wizard guides you.
 - `cs -i` --> display battery info.
+- `cs -r` --> reset battery stats on demand.
 - `cs debug` --> gather debugging data & save it to /sdcard/cs_debug.zip.
 - just `cs` --> run cs with default (90 10) or saved settings.
 - `cs --help` --> display cs usage instructions.

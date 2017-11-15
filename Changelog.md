@@ -1,3 +1,7 @@
+# 2017.11.15 (201711150)
+- Reset battery stats automatically on charging pause (or manually with "cs -r"). Thanks, @post-morterm for pointing out "dumpsys" method.
+- Preserve user-defined control & uevent files config across updates.
+
 # 2017.11.14-1 (201711141)
 - Better Pixel/HTC devices support.
 - Refined "cs -c" for simplicity & reliability.

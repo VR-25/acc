@@ -127,9 +127,11 @@ is_mounted $MOUNTPATH || abort "! $IMG mount failed..."
 
 # Create mod paths
 { cp /magisk/cs/.config/cs $INSTALLER/cs_cfg
+cp /magisk/cs/.config/ctrl $INSTALLER
 rm -rf $MODPATH
 mkdir -p $MODPATH/bin
 mkdir $MODPATH/.config
+mv $INSTALLER/ctrl $MODPATH/.config
 mv $INSTALLER/cs_cfg $MODPATH/.config/cs; } 2>/dev/null
 
 # Copy files ###
