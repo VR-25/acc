@@ -1,3 +1,8 @@
+# 2017.11.18 (201711180)
+- cs data moved to /data/media/cs
+- cs service script moved to /magisk/zzz-cs-service folder to be the last in execution priority (else, Magisk daemon gets stuck on cs infinite loops).
+- General optimizations
+
 # 2017.11.15 (201711150)
 - Reset battery stats automatically on charging pause (or manually with "cs -r"). Thanks, @post-morterm for pointing out "dumpsys" method.
 - Preserve user-defined control & uevent files config across updates.

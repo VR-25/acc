@@ -125,23 +125,24 @@ ui_print "- Mounting $IMG to $MOUNTPATH"
 MAGISKLOOP=`$MAGISKBIN/magisk --mountimg $IMG $MOUNTPATH`
 is_mounted $MOUNTPATH || abort "! $IMG mount failed..."
 
+# Migrate config cache ###
+persist_dir=/data/media/cs
+{ mkdir -p $persist_dir
+cp $MODPATH/cs/.config/cs $persist_dir/cache; } 2>/dev/null
+
 # Create mod paths
-{ cp /magisk/cs/.config/cs $INSTALLER/cs_cfg
-cp /magisk/cs/.config/ctrl $INSTALLER
-rm -rf $MODPATH
+{ rm -rf $MODPATH
+rm -rf /magisk/zzz-cs-service; } 2>/dev/null
 mkdir -p $MODPATH/bin
-mkdir $MODPATH/.config
-mv $INSTALLER/ctrl $MODPATH/.config
-mv $INSTALLER/cs_cfg $MODPATH/.config/cs; } 2>/dev/null
 
 # Copy files ###
 ui_print "- Copying files"
+mv $INSTALLER/common/zzz-cs-service /magisk
 mv $INSTALLER/system $MODPATH
-mv $INSTALLER/common/config/* $MODPATH/.config
+mv $INSTALLER/common/config $MODPATH
 echo $ARCH | grep -iq x && \
 	mv $INSTALLER/bin/zip_x86 $MODPATH/bin/zip \
 	|| mv $INSTALLER/bin/zip_arm $MODPATH/bin/zip
-
 
 # Handle replace folders
 for TARGET in $REPLACE; do

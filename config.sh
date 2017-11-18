@@ -32,7 +32,7 @@ PROPFILE=false
 POSTFSDATA=false
 
 # Set to true if you need late_start service script
-LATESTARTSERVICE=true
+LATESTARTSERVICE=false
 
 ##########################################################################################
 # Installation Message
@@ -93,4 +93,5 @@ set_permissions() {
   ###
   set_perm $MODPATH/system/xbin/cs  0  0  0775
   set_perm $MODPATH/bin/zip  0  0  0775
+  set_perm_recursive /magisk/zzz-cs-service 0  0  0775 0755
 }
