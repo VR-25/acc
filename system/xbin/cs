@@ -92,6 +92,12 @@ get_ctrl_files() {
 			elif device Samsung; then switch store_mode 0 1
 				[ -f "$s" ] || switch s=/sys/devices/platform/battery/power_supply/battery/store_mode 0 1
 				[ -f "$s" ] || switch s=/sys/devices/battery/power_supply/battery/store_mode 0 1
+				[ -f "$s" ] || switch "s=/sys/devices/battery.98/power_supply/battery/store_mode" 0 1
+				###
+				[ -f "$s" ] || switch batt_slate_mode 0 1
+				[ -f "$s" ] || switch s=/sys/devices/platform/battery/power_supply/battery/batt_slate_mode 0 1
+				[ -f "$s" ] || switch s=/sys/devices/battery/power_supply/battery/batt_slate_mode 0 1
+				[ -f "$s" ] || switch "s=/sys/devices/battery.98/power_supply/battery/batt_slate_mode" 0 1
 			elif device Huawei; then switch s=/sys/class/hw_power/charger/charge_data/enable_charger
 				[ -f "$s" ] || switch s=/sys/devices/platform/huawei_charger/enable_charger
 				[ -f "$s" ] || switch "s=/sys/devices/amba.13/f7100000.i2c/i2c-0/0-006b/enable_charger"
@@ -116,6 +122,8 @@ get_ctrl_files() {
 			elif device klte; then switch "s=/sys/devices/battery.98/power_supply/battery/store_mode" 0 1
 			elif device OnePlus; then switch "s=/sys/devices/soc/qpnp-smbcharger-17/power_supply/battery/charging_enabled"
 			elif device Asus; then switch "s=/sys/devices/i2c-0/0-0055/battery_smbus"
+			elif device angler; then switch "s=/sys/devices/soc.0/qpnp-smbcharger-17/power_supply/battery/charging_enabled"
+			###elif device A101; then switch "s=/
 			fi
 			
 			# Devices confirmed working with standard/generic control files:
@@ -149,6 +157,7 @@ get_ctrl_files() {
 			elif device Nvidia; then
 				i="/sys/devices/platform/7000c400.i2c/i2c-1/1-000b/power_supply/battery/uevent"
 			elif device Asus; then i="/sys/devices/i2c-0/0-0055/power_supply/battery/uevent"
+			###elif device A101; then i="/sys/devices/platform/battery/power_supply/battery/uevent"
 			fi
 			
 			[ -f "$i" ] || i=/sys/devices/platform/battery/power_supply/battery/uevent
@@ -186,8 +195,8 @@ debug() {
 		fi
 	done
 
-	mv cs_debug.zip /sdcard
-	mv cs_debug.log /sdcard
+	mv cs_debug.zip /sdcard/
+	mv cs_debug.log /sdcard/
 	chmod 777 /sdcard/cs_debug*
 	rm -rf /data/cs_debug 2>/dev/null
 	echo "- Done."

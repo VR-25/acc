@@ -1,3 +1,8 @@
+# 2017.11.18-1 (201711181)
+- Additional devices support
+- Auto-cleanup after cs uninstall
+- "cs debug" optimizations
+
 # 2017.11.18 (201711180)
 - cs data moved to /data/media/cs
 - cs service script moved to /magisk/zzz-cs-service folder to be the last in execution priority (else, Magisk daemon gets stuck on cs infinite loops).
