@@ -7,7 +7,7 @@
 mod_dir=/magisk/cs
 persist_dir=/data/media/cs
 cache=$persist_dir/cache
-sON_time=$persist_dir/sON_time
+cs_run_log=$persist_dir/cs_run.log
 invert_OFF=false
 export PATH=/dev/magisk/bin:/magisk/cs/bin:$PATH
 echo
@@ -35,7 +35,7 @@ c_loop() {
 	#rm -f /data/system/batterystats.bin 2>/dev/null
 	dumpsys batterystats --reset
 	
-	rm -f $sON_time
+	rm -f $cs_run_log
 	echo $c_OFF > $s
 	if echo "$p0" | grep -q [0-9]; then
 		echo "- Maintaining $p0-$p%..."
@@ -123,7 +123,7 @@ get_ctrl_files() {
 			elif device OnePlus; then switch "s=/sys/devices/soc/qpnp-smbcharger-17/power_supply/battery/charging_enabled"
 			elif device Asus; then switch "s=/sys/devices/i2c-0/0-0055/battery_smbus"
 			elif device angler; then switch "s=/sys/devices/soc.0/qpnp-smbcharger-17/power_supply/battery/charging_enabled"
-			###elif device A101; then switch "s=/
+			###elif device A101; then switch "s=/"
 			fi
 			
 			# Devices confirmed working with standard/generic control files:
@@ -286,11 +286,15 @@ OFF() {
 }
 
 
+auto_run() { [ -f $persist_dir/auto_run ]; }
+pause_service() { [ -f $persist_dir/pause_service ]; } 
+
+
 # Update config
 update_cfg() {
+	[ -f $cache ] || touch $persist_dir/auto_run
 	{ [ "$2" ] && echo p0=$2 || echo p0=10
 	echo p=$1
-	$autorun && echo auto_run=true || echo auto_run=false
 	echo "i=\"$i\""
 	echo "switch \"s=$s\" $c_ON $c_OFF"; } > $cache
 	. $cache
@@ -302,24 +306,24 @@ update_cfg() {
 # ENGINE
 
 # Pre-ignition
-auto_run=false
 [ -d $persist_dir ] || mkdir $persist_dir
-[ ! -f $cache ] && get_ctrl_files && auto_run=true || . $cache
+[ -f $cache ] && . $cache || get_ctrl_files
 get_batt_level
-sON > $sON_time
+sON > $cs_run_log
 
 
 # Toggle Auto-run
 if [ "$1" = "-a" ]; then
-	if [ -f $persist_dir/pause_service ]; then
-		rm [ -f $persist_dir/pause_service ]
+	if pause_service; then
+		rm $persist_dir/pause_service
+		echo $c_ON > $s
 		echo "(i) cs service resumed."
 	else
-		if grep -q true $cache; then
-			sed -i "s/=true/=false/" $cache
+		if auto_run; then
+			rm $persist_dir/auto_run
 			echo "(i) cs service OFF"
 		else
-			sed -i "s/=false/=true/" $cache
+			touch $persist_dir/auto_run
 			echo "(i) cs service ON"
 			echo "- Reboot to apply change."
 		fi
@@ -353,23 +357,23 @@ elif [ "$1" = "-c" ]; then
 
 # cs service
 elif [ "$1" = "auto" ]; then
-	$auto_run || exit 0
+	auto_run || exit 0
 	[ -f $cache ] || update_cfg 90
-	[ -f $persist_dir/pause_service ] || echo $c_ON > $s
+	pause_service || echo $c_ON > $s
 
 	until [ "$batt_level" -ge "$p" ]; do
-		$auto_run || exit 0
-		while [ -f $persist_dir/pause_service ]; do sleep 25; done
+		auto_run || exit 0
+		while pause_service; do sleep 25; done
 		. $cache
 		get_batt_level
 		[ "$batt_level" -ge "70" ] && sleep 25 || sleep 60
 	done
-	[ ! -f $persist_dir/pause_service ] && echo $c_OFF > $s && dumpsys batterystats --reset
+	! pause_service && echo $c_OFF > $s && dumpsys batterystats --reset
 	
 	until [ "$batt_level" -le "$p0" ]; do
-		$auto_run || exit 0
+		auto_run || exit 0
 		grep -iq '=Charging' "$i" && break
-		while [ -f $persist_dir/pause_service ]; do sleep 300; done
+		while pause_service; do sleep 300; done
 		. $cache
 		get_batt_level
 		[ "$batt_level" -le "25" ] && sleep 150 || sleep 300
@@ -437,7 +441,7 @@ elif [ "$1" = 'debug' ]; then debug
 
 # Disable charging on demand
 elif [ "$1" = '-d' ]; then
-	if $auto_run && [ ! -f $persist_dir/pause_service ]; then
+	if auto_run && ! pause_service; then
 		touch $persist_dir/pause_service
 		echo "(i) cs service paused."
 		echo
@@ -445,7 +449,7 @@ elif [ "$1" = '-d' ]; then
 	
 	[ "$2" ] && OFF $2 || OFF
 
-	if $auto_run && [ -f $persist_dir/pause_service ]; then
+	if auto_run && pause_service; then
 		echo "(i) Resume cs service with \"cs -a\" command."
 		echo "- A reboot also does the trick."
 		echo
@@ -455,7 +459,7 @@ elif [ "$1" = '-d' ]; then
 
 # Enable charging on demand
 elif [ "$1" = '-e' ]; then
-	if $auto_run && [ ! -f $persist_dir/pause_service ]; then
+	if auto_run && ! pause_service; then
 		touch $persist_dir/pause_service
 		echo "(i) cs service paused."
 		echo
@@ -464,7 +468,7 @@ elif [ "$1" = '-e' ]; then
 	invert_OFF=true
 	[ "$2" ] && OFF $2 || OFF
 	
-	if $auto_run && [ -f $persist_dir/pause_service ]; then
+	if auto_run && pause_service; then
 		echo "(i) Resume cs service with \"cs -a\" command."
 		echo "- A reboot also does the trick."
 		echo
@@ -494,7 +498,7 @@ elif [ -z "$1" ]; then
 		echo
 		sleep 2
 	fi
-	if $auto_run; then
+	if auto_run; then
 		echo "(i) cs service is already running."
 		echo
 		exit 0
@@ -505,7 +509,7 @@ elif [ -z "$1" ]; then
 		clear
 		get_batt_level
 		echo "Charging to $p%..."
-		cat $sON_time
+		cat $cs_run_log
 		echo
 		c_info
 		echo
@@ -537,7 +541,7 @@ elif [ "$1" = "-m" ] || [ "$1" = "-t" ]; then
 		sed -i "/<rhs>10<\/rhs>/s/10/$3/" charging_switch.prj.xml
 	else exxit
 	fi
-	echo "- Done"
+	echo "- Done."
 	echo
 	exit 0
 
@@ -550,9 +554,9 @@ elif echo "$1" | grep -q '[0-9]'; then
 	echo "(i) New settings saved."
 	sleep 1.5
 
-	if $autorun; then
-		echo "- cs service is already running"
-		echo "-- Now working with the new values"
+	if auto_run; then
+		echo "- cs service is already running."
+		echo "-- Now working with the new values."
 		echo
 		exit 0
 	fi
@@ -562,7 +566,7 @@ elif echo "$1" | grep -q '[0-9]'; then
 		clear
 		get_batt_level
 		echo "Charging to $1%..."
-		cat $sON_time
+		cat $cs_run_log
 		echo
 		c_info
 		echo

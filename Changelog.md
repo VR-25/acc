@@ -1,3 +1,7 @@
+# 2017.11.19 (201711190)
+- "cs -a" --> re-enable charging on service resume for better performance
+- Fixed cs service not running
+
 # 2017.11.18-1 (201711181)
 - Additional devices support
 - Auto-cleanup after cs uninstall

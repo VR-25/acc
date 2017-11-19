@@ -125,10 +125,11 @@ ui_print "- Mounting $IMG to $MOUNTPATH"
 MAGISKLOOP=`$MAGISKBIN/magisk --mountimg $IMG $MOUNTPATH`
 is_mounted $MOUNTPATH || abort "! $IMG mount failed..."
 
-# Migrate config cache ###
+# Migrate config cache && remove obsolete files###
 persist_dir=/data/media/cs
 { mkdir -p $persist_dir
-cp $MODPATH/cs/.config/cs $persist_dir/cache; } 2>/dev/null
+cp $MODPATH/cs/.config/cs $persist_dir/cache
+rm $persist_dir/sON*; } 2>/dev/null
 
 # Create mod paths
 { rm -rf $MODPATH
