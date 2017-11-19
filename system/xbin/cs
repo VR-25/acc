@@ -185,17 +185,13 @@ debug() {
 	cd /data/cs_debug
 	grep -i product /system/build.prop > cs_debug.log
 	echo >> cs_debug.log
-	zip -9qqu cs_debug.zip cs_debug.log 2>/dev/null
 	
-	for f in $(find /sys 2>/dev/null \
-		| grep -Ev 'sys/kernel|sys/bus|sys/firmware|/sys/fs' \
-		| grep -Ei 'batt|charg'); do
-		if [ -f "$f" ]; then
-			echo "$f" >> cs_debug.log
-			zip -9qqu cs_debug.zip "$f" 2>/dev/null
-		fi
+	for TARGET in $(find /sys 2>/dev/null | grep -iv log | grep -Ei 'batt|charg'); do
+		echo "$TARGET" >> cs_debug.log
+		zip -9qqu cs_debug.zip "$TARGET" 2>/dev/null
 	done
-
+	
+	zip -9qqu cs_debug.zip cs_debug.log 2>/dev/null
 	mv cs_debug.zip /sdcard/
 	mv cs_debug.log /sdcard/
 	chmod 777 /sdcard/cs_debug*
@@ -333,6 +329,41 @@ if [ "$1" = "-a" ]; then
 	exit 0
 
 
+# Keep/maintain battery power at a constant level
+elif [ "$1" = '-k' ]; then
+	if auto_run && ! pause_service; then
+		touch $persist_dir/pause_service
+		echo "(i) cs service paused."
+		echo "- Reboot the system or simply run \"cs -a\" to resume."
+		echo
+	fi
+
+	[ "$first_run" = "false" ] || first_run=true
+	
+	if $first_run; then
+		echo "Maintaining $2%..."
+		echo "(i) Press CTRL (Vol. Down) + C to abort."
+		echo $c_ON > $s
+	fi
+	
+	until [ "$batt_level" -ge "$2" ]; do
+		sleep 25
+		get_batt_level
+	done
+	echo $c_OFF > $s
+	
+	until [ "$batt_level" -lt "$2" ]; do
+		grep -iq '=Charging' "$i" && break
+		sleep 60
+		get_batt_level
+	done
+	echo $c_ON > $s
+	
+	export first_run=false
+	cs -k $2
+	exit 0
+
+
 # Reset battery stats on demand
 elif [ "$1" = "-r" ]; then
 	dumpsys batterystats --reset
@@ -380,6 +411,7 @@ elif [ "$1" = "auto" ]; then
 		[ "$batt_level" -le "25" ] && sleep 150 || sleep 300
 	done
 	cs auto
+	exit 0
 
 
 # Usage instructions
@@ -387,20 +419,22 @@ elif [ "$1" = '--help' ]; then
 	cat <<EOD
 Magic Charging Switch (cs)
 
-Stops charging at a set % level below 100 to extend battery lifespan.
+Automatically pauses/resumes charging at set % levels to extend battery lifespan.
 
 Note: your terminal emulator must be excluded from battery optimization &/or Doze for cs to work properly.
 
 
 Usage:
 
-cs [-a] [-c] [-i] [-r] [PAUSE% RESUME%] [PAUSE%] [debug] [-m PAUSE% RESUME%] [-t PAUSE% RESUME%] [-d TIMEOUT] [-e TIMEOUT] [--help]
+cs [-a] [-c] [-i] [-k LEVEL] [-r] [PAUSE% RESUME%] [PAUSE%] [debug] [-m PAUSE% RESUME%] [-t PAUSE% RESUME%] [-d TIMEOUT] [-e TIMEOUT] [--help]
 
 -a --> toggle auto-run; resume cs service
 
 -c --> manually set charging control & battery uevent configs
 
 -i --> display battery info
+
+-k LEVEL --> keep/maintain battery power at a constant LEVEL
 
 -r --> reset battery stats on demand
 
@@ -451,8 +485,7 @@ elif [ "$1" = '-d' ]; then
 	[ "$2" ] && OFF $2 || OFF
 
 	if auto_run && pause_service; then
-		echo "(i) Resume cs service with \"cs -a\" command."
-		echo "- A reboot also does the trick."
+		echo "(i) Reboot the system or simply run \"cs -a\" to resume cs service."
 		echo
 	fi
 	exit 0
@@ -470,8 +503,7 @@ elif [ "$1" = '-e' ]; then
 	[ "$2" ] && OFF $2 || OFF
 	
 	if auto_run && pause_service; then
-		echo "(i) Resume cs service with \"cs -a\" command."
-		echo "- A reboot also does the trick."
+		echo "(i) Reboot the system or simply run \"cs -a\" to resume cs service."
 		echo
 	fi
 	exit 0

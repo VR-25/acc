@@ -1,3 +1,7 @@
+# 2017.11.19-2 (201711192)
+- Ability to keep/maintain battery power at a constant level (cs -k LEVEL)
+- Enhanced "auto" (cs service) & debug (cs debug) functions
+
 # 2017.11.19-1 (201711191)
 - Built-in support for "htc-branded" klte
 - Fixed wrong user_ctrl path
