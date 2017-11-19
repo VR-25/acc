@@ -1,3 +1,7 @@
+# 2017.11.19-1 (201711191)
+- Built-in support for "htc-branded" klte
+- Fixed wrong user_ctrl path
+
 # 2017.11.19 (201711190)
 - "cs -a" --> re-enable charging on service resume for better performance
 - Fixed cs service not running

@@ -54,7 +54,7 @@ c_loop() {
 
 
 get_ctrl_files() {
-	if [ -f $mod_dir/.config/ctrl ]; then . /$mod_dir/.config/ctrl
+	if [ -f $persist_dir/user_ctrl ]; then . $persist_dir/user_ctrl
 		if [ ! -f "$s" ]; then
 			echo "(!) cs: ctrl file $s not found"
 			if [ "$i" ]; then [ -f "$i" ] || echo "(!) cs: info file $i not found"; fi
@@ -82,7 +82,7 @@ get_ctrl_files() {
 			fi
 		fi
 		
-		if [ ! -f "$s" ] || [ ! -f "$i" ]; then rm $mod_dir/.config/ctrl; fi
+		if [ ! -f "$s" ] || [ ! -f "$i" ]; then rm $persist_dir/user_ctrl; fi
 		
 	else
 		if [ -f $cache ]; then . $cache
@@ -124,6 +124,7 @@ get_ctrl_files() {
 			elif device Asus; then switch "s=/sys/devices/i2c-0/0-0055/battery_smbus"
 			elif device angler; then switch "s=/sys/devices/soc.0/qpnp-smbcharger-17/power_supply/battery/charging_enabled"
 			###elif device A101; then switch "s=/"
+			elif device klte; then switch "s=/sys/devices/battery.98/power_supply/battery/store_mode" 0 1
 			fi
 			
 			# Devices confirmed working with standard/generic control files:
@@ -344,13 +345,13 @@ elif [ "$1" = "-c" ]; then
 	exit_null () { echo "$1"; echo; exit 0; }
 	echo "Paste/type your charging control config & hit ENTER (/path/to/file ON OFF):"
 	read INPUT
-	[ "$INPUT" ] && echo "switch \"s=$(echo "$INPUT" | cut -d' ' -f1)\" $(echo "$INPUT" | cut -d' ' -f2) $(echo "$INPUT" | cut -d' ' -f3)" > $mod_dir/.config/ctrl \
+	[ "$INPUT" ] && echo "switch \"s=$(echo "$INPUT" | cut -d' ' -f1)\" $(echo "$INPUT" | cut -d' ' -f2) $(echo "$INPUT" | cut -d' ' -f3)" > $persist_dir/user_ctrl \
 		|| exit_null "(i) Operation aborted (null input)."
 	echo
 	echo "Now paste/type your battery uevent path & hit ENTER (/path/to/file)..."
 	echo "- If it's in the same directory as the charging control  file, skip the paste/type part -- simply hit ENTER:"
 	read INPUT
-	[ "$INPUT" ] && echo "i=\"$INPUT\"" >> $mod_dir/.config/ctrl
+	[ "$INPUT" ] && echo "i=\"$INPUT\"" >> $persist_dir/user_ctrl
 	echo
 	exit 0
 
