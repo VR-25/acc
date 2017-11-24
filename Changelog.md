@@ -1,3 +1,9 @@
+# 2017.11.24 (201711240)
+- Added `cs -e/-d [value]%` commands -- check the README or run `cs -h` for details.
+- Advanced command chaining support (i.e., `cs -e 50% && cs -d 5h && cs -e 80% && cs -d 30m && cs -e 90%`)
+- Essential Phone & Pixel 2/2XL compatible
+- Updated reference
+
 # 2017.11.19-2 (201711192)
 - Ability to keep/maintain battery power at a constant level (cs -k LEVEL)
 - Enhanced "auto" (cs service) & debug (cs debug) functions

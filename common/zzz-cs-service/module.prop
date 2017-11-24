@@ -1,0 +1,7 @@
+id=zzz-cs-service
+name=cs service
+version=add-on 
+versionCode=0
+author=VR25 @ XDA Developers
+description=Lets cs auto-run without an automation app such as MacroDroid or Tasker.
+template=1400

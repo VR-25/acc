@@ -8,7 +8,6 @@ mod_dir=/magisk/cs
 persist_dir=/data/media/cs
 cache=$persist_dir/cache
 cs_run_log=$persist_dir/cs_run.log
-invert_OFF=false
 export PATH=/dev/magisk/bin:/magisk/cs/bin:$PATH
 echo
 
@@ -41,7 +40,7 @@ c_loop() {
 		echo "- Maintaining $p0-$p%..."
 		until [ "$batt_level" -le "$p0" ]; do
 			get_batt_level
-			[ "$batt_level" -le "25" ] && sleep 300 || sleep 600
+			[ "$batt_level" -le "25" ] && sleep 150 || sleep 300
 		done
 		cs
 	else
@@ -87,8 +86,9 @@ get_ctrl_files() {
 	else
 		if [ -f $cache ]; then . $cache
 		else
-			if device 'Pixel|HTC' && ! device klte; then switch "s=/sys/devices/soc/qpnp-smbcharger-16/power_supply/battery/charging_enabled"
+			if device 'Pixel|HTC|Essential' && ! device klte; then switch "s=/sys/devices/soc/qpnp-smbcharger-16/power_supply/battery/charging_enabled"
 				[ -f "$s" ] || switch s=/sys/devices/platform/htc_battery/power_supply/battery/charging_enabled
+				[ -f "$s" ] || switch "s=/sys/devices/soc/800f000.qcom,spmi/spmi-0/spmi0-02/800f000.qcom,spmi:qcom,pmi8998@2:qcom,qpnp-smb2/power_supply/battery/input_suspend" 0 1
 			elif device Samsung; then switch store_mode 0 1
 				[ -f "$s" ] || switch s=/sys/devices/platform/battery/power_supply/battery/store_mode 0 1
 				[ -f "$s" ] || switch s=/sys/devices/battery/power_supply/battery/store_mode 0 1
@@ -186,7 +186,7 @@ debug() {
 	grep -i product /system/build.prop > cs_debug.log
 	echo >> cs_debug.log
 	
-	for TARGET in $(find /sys 2>/dev/null | grep -iv log | grep -Ei 'batt|charg'); do
+	for TARGET in $(find /sys 2>/dev/null | grep -iv log | grep -Ei 'batt|charg|input_suspend'); do
 		echo "$TARGET" >> cs_debug.log
 		zip -9qqu cs_debug.zip "$TARGET" 2>/dev/null
 	done
@@ -207,7 +207,7 @@ debug() {
 exxit() {
 	echo "(!) cs: Invalid option/argument"
 	sleep 2
-	cs --help
+	cs -h
 }
 
 
@@ -229,14 +229,15 @@ switch() {
 
 
 OFF() {
-	$invert_OFF && echo $c_ON > $s || echo $c_OFF > $s
 	if [ "$1" ]; then
 		if echo "$1" | grep -q '[a-z]'; then
 		
 			if $invert_OFF; then
+				echo $c_ON > $s
 				echo "(i) Charging enabled for $1."
 				sON
 			else
+				echo $c_OFF > $s
 				echo "(i) Charging disabled for $1."
 				sOFF
 			fi
@@ -274,10 +275,43 @@ OFF() {
 		
 	else
 		if $invert_OFF; then
-			echo '(i) Charging enabled.'; sON
+			echo '(i) Charging enabled.'
+			sON
 		else
-			echo '(i) Charging disabled.'; sOFF
+			echo '(i) Charging disabled.'
+			sOFF
 		fi
+	fi
+	echo
+}
+
+
+OFF_percent() {
+	if $invert_OFF; then
+		echo $c_ON > $s
+		echo "(i) Charging enabled until $1."
+		sON
+	else
+		echo $c_OFF > $s
+		echo "(i) Charging disabled until $1."
+		sOFF
+	fi
+
+	echo
+	until [ "$batt_level" -eq "$(echo $1 | sed 's/%//')" ]; do
+		get_batt_level
+		sleep 10
+	done
+	echo '(i) Desired % reached.'
+		
+	if $invert_OFF; then
+		echo $c_OFF > $s
+		echo '- Charging disabled.'
+		sOFF
+	else
+		echo $c_ON > $s
+		echo '- Charging re-enabled'
+		sON
 	fi
 	echo
 }
@@ -307,6 +341,7 @@ update_cfg() {
 [ -f $cache ] && . $cache || get_ctrl_files
 get_batt_level
 sON > $cs_run_log
+invert_OFF=false
 
 
 # Toggle Auto-run
@@ -388,7 +423,7 @@ elif [ "$1" = "-c" ]; then
 
 
 # cs service
-elif [ "$1" = "auto" ]; then
+elif [ "$1" = "service" ]; then
 	auto_run || exit 0
 	[ -f $cache ] || update_cfg 90
 	pause_service || echo $c_ON > $s
@@ -405,28 +440,26 @@ elif [ "$1" = "auto" ]; then
 	until [ "$batt_level" -le "$p0" ]; do
 		auto_run || exit 0
 		grep -iq '=Charging' "$i" && break
-		while pause_service; do sleep 300; done
+		while pause_service; do sleep 150; done
 		. $cache
 		get_batt_level
 		[ "$batt_level" -le "25" ] && sleep 150 || sleep 300
 	done
-	cs auto
+	cs service
 	exit 0
 
 
 # Usage instructions
-elif [ "$1" = '--help' ]; then
+elif [ "$1" = "-h" ]; then
 	cat <<EOD
 Magic Charging Switch (cs)
 
-Automatically pauses/resumes charging at set % levels to extend battery lifespan.
-
-Note: your terminal emulator must be excluded from battery optimization &/or Doze for cs to work properly.
+Automatically pauses/resumes charging at set time intervals and/or % levels to extend battery lifespan.
 
 
 Usage:
 
-cs [-a] [-c] [-i] [-k LEVEL] [-r] [PAUSE% RESUME%] [PAUSE%] [debug] [-m PAUSE% RESUME%] [-t PAUSE% RESUME%] [-d TIMEOUT] [-e TIMEOUT] [--help]
+cs [-a] [-c] [-h] [-i] [-k LEVEL] [-r] [PAUSE% RESUME%] [PAUSE%] [debug] [-m PAUSE% RESUME%] [-t PAUSE% RESUME%] [-d %/TIMEOUT] [-e %/TIMEOUT]
 
 -a --> toggle auto-run; resume cs service
 
@@ -434,26 +467,26 @@ cs [-a] [-c] [-i] [-k LEVEL] [-r] [PAUSE% RESUME%] [PAUSE%] [debug] [-m PAUSE% R
 
 -i --> display battery info
 
--k LEVEL --> keep/maintain battery power at a constant LEVEL
+-k LEVEL --> keep/maintain battery power at a constant LEVEL (pauses cs service)
 
--r --> reset battery stats on demand
+-r --> reset battery stats on demand (doesn't work on all devices)
 
 debug --> gather debugging data & save it to /sdcard/cs_debug.zip
 
---help --> cs usage instructions
+-h --> cs usage instructions
 
 just "cs" --> run cs with default/saved settings
 
-PAUSE% RESUME% --> pause charging at PAUSE% value; resume if battery drops below RESUME% (default 10). This is the initial setup command. If auto-run is OFF, the command works as is; else, new settings are saved and automatically recognized by cs service.
+PAUSE% RESUME% --> pause charging at PAUSE% value; resume if battery drops below RESUME% (default 10). This is the initial setup command. If auto-run is OFF, the command works as is; else, new settings are saved and automatically picked up by cs service.
 
 -m/-t PAUSE% RESUME% --> generate automation config (-m for MacroDroid; -t for Tasker -- pick one)
 
--d [TIMEOUT (optional)] --> disable charging on demand (pauses cs service)
+-d [%/TIMEOUT (optional)] --> disable charging on demand (pauses cs service)
 
--e [TIMEOUT (optional)] --> enable charging on demand (pauses cs service)
+-e [%/TIMEOUT (optional)] --> enable charging on demand (pauses cs service)
 
 
-Usage Examples
+Usage Examples/Tips
 
 "cs 85" --> pause charging at 85%; resume if battery level drops below 10% (default).
 
@@ -461,9 +494,15 @@ Usage Examples
 
 "-d" & "-e" options can take a "timeout" argument to automatically enable & disable charging, respectively (i.e., "cs -d 30m" --> keep charging disabled for 30 minutes, "cs -e 1h" --> charge for 1 hour).
 
+"cs -e 80%" --> keep charging ON until 80%.
+
+"cs -d 40%" --> keep charging OFF until 40%.
+
 "cs -e 120 && cs -d 30m && cs -e 1h" --> charge for 120 seconds, pause for 30 minutes, then charge again for 1h.
 
-"cs -e 30m && cs -d 30m && cs 90" --> charge for 30 minutes, pause for 30 minutes, then charge again, but this time until battery level is greater or equal to 90%.
+"cs -e 30m && cs -d 30m && cs -e 90%" --> charge for 30 minutes, pause for 30 minutes, then charge again, but this time until battery level is greater or equal to 90%.
+
+"cs -e 50% && cs -d 5h && cs -e 80% && cs -d 30m && cs -e 90%" --> change until 50%, wait 5 hours, charge until 80%, wait 30 minutes, charge until 90%.
 
 Ideally, you want your battery level between 40-60% - best, 20-80% - average, 10-90% - fair.
 EOD
@@ -482,7 +521,8 @@ elif [ "$1" = '-d' ]; then
 		echo
 	fi
 	
-	[ "$2" ] && OFF $2 || OFF
+	if [ "$2" ]; then echo "$2" | grep -q '%' && OFF_percent $2 || OFF $2
+	else OFF; fi
 
 	if auto_run && pause_service; then
 		echo "(i) Reboot the system or simply run \"cs -a\" to resume cs service."
@@ -500,7 +540,8 @@ elif [ "$1" = '-e' ]; then
 	fi
 	
 	invert_OFF=true
-	[ "$2" ] && OFF $2 || OFF
+	if [ "$2" ]; then echo "$2" | grep -q '%' && OFF_percent $2 || OFF $2
+	else OFF; fi
 	
 	if auto_run && pause_service; then
 		echo "(i) Reboot the system or simply run \"cs -a\" to resume cs service."
@@ -547,7 +588,7 @@ elif [ -z "$1" ]; then
 		c_info
 		echo
 		echo "(i) Press CTRL (Vol. Down) + C to abort."
-		[ "$batt_level" -ge "75" ] && sleep 20 || sleep 60
+		[ "$batt_level" -ge "75" ] && sleep 25 || sleep 60
 	done
 	c_loop
 
@@ -558,7 +599,7 @@ elif [ "$1" = "-m" ] || [ "$1" = "-t" ]; then
 		echo "(i) Generating /sdcard/MacroDroid/charging_switch.category..."
 		mdir=/sdcard/MacroDroid
 		[ -d $mdir ] || mkdir -p $mdir
-		cp /magisk/cs/.config/macrodroid $mdir/charging_switch.category
+		cp /magisk/cs/config/macrodroid $mdir/charging_switch.category
 		cd $mdir
 		sed -i "s/:90/:$2/" charging_switch.category
 		sed -i "s/:11/:$3/" charging_switch.category
@@ -566,7 +607,7 @@ elif [ "$1" = "-m" ] || [ "$1" = "-t" ]; then
 		echo "(i) Generating /sdcard/Tasker/projects/charging_switch.prj.xml..."
 		tdir=/sdcard/Tasker/projects
 		[ -d $tdir ] || mkdir -p $tdir
-		cp /magisk/cs/.config/tasker $tdir/charging_switch.prj.xml
+		cp /magisk/cs/config/tasker $tdir/charging_switch.prj.xml
 		cd $tdir
 		sed -i "/<Int sr=\"arg0\" val=\"90\"\/>/s/90/$2/" charging_switch.prj.xml
 		sed -i "/<rhs>90<\/rhs>/s/90/$2/" charging_switch.prj.xml
@@ -604,7 +645,7 @@ elif echo "$1" | grep -q '[0-9]'; then
 		c_info
 		echo
 		echo "(i) Press CTRL (Vol. Down) + C to abort."
-		[ "$batt_level" -ge "75" ] && sleep 20 || sleep 60
+		[ "$batt_level" -ge "75" ] && sleep 25 || sleep 60
 	done
 
 	. $cache

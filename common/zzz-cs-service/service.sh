@@ -12,4 +12,4 @@ fi
 rm $persist_dir/pause_service 2>/dev/null
 [ -d $persist_dir ] || mkdir $persist_dir
 echo "$(date)" > $persist_dir/service_run.log
-cs auto
+cs service
