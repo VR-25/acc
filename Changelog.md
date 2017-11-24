@@ -1,3 +1,9 @@
+# 2017.11.24-1 (201711241)
+- Additional devices support
+- Fixed `cs -d/-e` not working.
+- Fixed `cs` & `cs % %` misreporting cs service as `running` even when it's paused.
+- General optimizations
+
 # 2017.11.24 (201711240)
 - Added `cs -e/-d [value]%` commands -- check the README or run `cs -h` for details.
 - Advanced command chaining support (i.e., `cs -e 50% && cs -d 5h && cs -e 80% && cs -d 30m && cs -e 90%`)

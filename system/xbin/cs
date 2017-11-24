@@ -46,6 +46,11 @@ c_loop() {
 	else
 		echo "- Press RETURN to re-enable charging & exit"
 		read INPUT
+		if auto_run && pause_service; then
+			echo "(i) cs service is enabled, but paused."
+			echo "- Reboot the system or simply run \"cs -a\" to resume it."
+			echo
+		fi
 		echo $c_ON > $s
 		exit 0
 	fi
@@ -57,7 +62,7 @@ get_ctrl_files() {
 		if [ ! -f "$s" ]; then
 			echo "(!) cs: ctrl file $s not found"
 			if [ "$i" ]; then [ -f "$i" ] || echo "(!) cs: info file $i not found"; fi
-			sleep 2
+			sleep 1.5
 			echo
 			debug
 		fi
@@ -65,7 +70,7 @@ get_ctrl_files() {
 		if [ "$i" ]; then
 			if [ ! -f "$i" ]; then
 				echo "(!) cs: info file $i not found"
-				sleep 2
+				sleep 1.5
 				echo
 				debug
 			fi
@@ -75,7 +80,7 @@ get_ctrl_files() {
 			[ -f "$i" ] || i="$(dirname "$s")/uevent"
 			if [ ! -f "$i" ]; then
 				echo "(!) cs: info file not specified"
-				sleep 2
+				sleep 1.5
 				echo
 				debug
 			fi
@@ -112,6 +117,7 @@ get_ctrl_files() {
 				[ -f "$s" ] || switch s=/sys/devices/platform/battery/ChargerEnable
 				[ -f "$s" ] || switch "s=/sys/devices/platform/7000c400.i2c/i2c-1/1-006b/charging_state" enabled disabled
 			elif device Sony; then switch s=/sys/class/qns/charging_state
+				[ -f "$s" ] || switch "s=/sys/devices/soc/800f000.qcom,spmi/spmi-0/spmi0-02/800f000.qcom,spmi:qcom,pmi8998@2:qcom,qpnp-smb2/power_supply/battery/charging_enabled"
 			elif device hammerhead; then switch s=/sys/class/power_supply/ac/charging_enabled
 				[ -f "$s" ] || switch "s=/sys/devices/f9923000.i2c/i2c-84/84-006b/power_supply/ac/charging_enabled"
 			elif device 'Teclast X98 Air III'; then switch s=/sys/class/power_supply/dollar_cove_charger/present
@@ -135,7 +141,7 @@ get_ctrl_files() {
 			
 			[ -f "$s" ] || switch battery_charging_enabled
 			if [ ! -f "$s" ]; then echo "(!) cs: Unsupported device"
-				sleep 2
+				sleep 1.5
 				echo
 				debug
 			fi
@@ -146,6 +152,8 @@ get_ctrl_files() {
 				i="/sys/devices/platform/msm_ssbi.0/pm8921-core/pm8921-charger/power_supply/battery/uevent"
 			elif device mantaray; then
 				i="s=/sys/devices/platform/s3c2440-i2c.2/i2c-2/2-0006/power_supply/smb347-battery/uevent"
+			elif device Sony; then
+				i="/sys/devices/soc/800f000.qcom,spmi/spmi-0/spmi0-02/800f000.qcom,spmi:qcom,pmi8998@2:qcom,qpnp-smb2/power_supply/battery/uevent"
 			elif device Huawei; then
 				i=/sys/devices/platform/battery/power_supply/Battery/uevent
 				[ -f "$i" ] || i="/sys/devices/battery.0/power_supply/Battery/uevent"
@@ -164,7 +172,7 @@ get_ctrl_files() {
 			[ -f "$i" ] || i=/sys/devices/platform/battery/power_supply/battery/uevent
 			[ -f "$i" ] || i="$(dirname "$s")/uevent"
 			if [ ! -f "$i" ]; then echo "(!) cs: Unsupported device"
-				sleep 2
+				sleep 1.5
 				echo
 				debug
 			fi
@@ -206,7 +214,7 @@ debug() {
 
 exxit() {
 	echo "(!) cs: Invalid option/argument"
-	sleep 2
+	sleep 1.5
 	cs -h
 }
 
@@ -229,15 +237,14 @@ switch() {
 
 
 OFF() {
+	$invert_OFF && echo $c_ON > $s || echo $c_OFF > $s
 	if [ "$1" ]; then
 		if echo "$1" | grep -q '[a-z]'; then
 		
 			if $invert_OFF; then
-				echo $c_ON > $s
 				echo "(i) Charging enabled for $1."
 				sON
 			else
-				echo $c_OFF > $s
 				echo "(i) Charging disabled for $1."
 				sOFF
 			fi
@@ -382,6 +389,7 @@ elif [ "$1" = '-k' ]; then
 	fi
 	
 	until [ "$batt_level" -ge "$2" ]; do
+		grep -iq '=Charging' "$i" || break
 		sleep 25
 		get_batt_level
 	done
@@ -430,6 +438,7 @@ elif [ "$1" = "service" ]; then
 
 	until [ "$batt_level" -ge "$p" ]; do
 		auto_run || exit 0
+		grep -iq '=Charging' "$i" || break
 		while pause_service; do sleep 25; done
 		. $cache
 		get_batt_level
@@ -570,9 +579,9 @@ elif [ -z "$1" ]; then
 		echo "- Applying defaults -- cs 90 10..."
 		update_cfg 90
 		echo
-		sleep 2
+		sleep 1.5
 	fi
-	if auto_run; then
+	if auto_run && ! pause_service; then
 		echo "(i) cs service is already running."
 		echo
 		exit 0
@@ -628,7 +637,7 @@ elif echo "$1" | grep -q '[0-9]'; then
 	echo "(i) New settings saved."
 	sleep 1.5
 
-	if auto_run; then
+	if auto_run && ! pause_service; then
 		echo "- cs service is already running."
 		echo "-- Now working with the new values."
 		echo
