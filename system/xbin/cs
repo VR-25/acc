@@ -35,12 +35,12 @@ c_loop() {
 	dumpsys batterystats --reset
 	
 	rm -f $cs_run_log
-	echo $c_OFF > $s
+	echo $c_OFF > "$s"
 	if echo "$p0" | grep -q [0-9]; then
 		echo "- Maintaining $p0-$p%..."
 		until [ "$batt_level" -le "$p0" ]; do
 			get_batt_level
-			[ "$batt_level" -le "25" ] && sleep 150 || sleep 300
+			[ "$batt_level" -le "25" ] && sleep 25 || sleep 60
 		done
 		cs
 	else
@@ -51,7 +51,7 @@ c_loop() {
 			echo "- Reboot the system or simply run \"cs -a\" to resume it."
 			echo
 		fi
-		echo $c_ON > $s
+		echo $c_ON > "$s"
 		exit 0
 	fi
 }
@@ -237,7 +237,7 @@ switch() {
 
 
 OFF() {
-	$invert_OFF && echo $c_ON > $s || echo $c_OFF > $s
+	$invert_OFF && echo $c_ON > "$s" || echo $c_OFF > "$s"
 	if [ "$1" ]; then
 		if echo "$1" | grep -q '[a-z]'; then
 		
@@ -271,11 +271,11 @@ OFF() {
 		echo '(i) Timeount reached.'
 		
 		if $invert_OFF; then
-			echo $c_OFF > $s
+			echo $c_OFF > "$s"
 			echo '- Charging disabled.'
 			sOFF
 		else
-			echo $c_ON > $s
+			echo $c_ON > "$s"
 			echo '- Charging re-enabled'
 			sON
 		fi
@@ -295,11 +295,11 @@ OFF() {
 
 OFF_percent() {
 	if $invert_OFF; then
-		echo $c_ON > $s
+		echo $c_ON > "$s"
 		echo "(i) Charging enabled until $1."
 		sON
 	else
-		echo $c_OFF > $s
+		echo $c_OFF > "$s"
 		echo "(i) Charging disabled until $1."
 		sOFF
 	fi
@@ -312,11 +312,11 @@ OFF_percent() {
 	echo '(i) Desired % reached.'
 		
 	if $invert_OFF; then
-		echo $c_OFF > $s
+		echo $c_OFF > "$s"
 		echo '- Charging disabled.'
 		sOFF
 	else
-		echo $c_ON > $s
+		echo $c_ON > "$s"
 		echo '- Charging re-enabled'
 		sON
 	fi
@@ -355,7 +355,7 @@ invert_OFF=false
 if [ "$1" = "-a" ]; then
 	if pause_service; then
 		rm $persist_dir/pause_service
-		echo $c_ON > $s
+		echo $c_ON > "$s"
 		echo "(i) cs service resumed."
 	else
 		if auto_run; then
@@ -385,22 +385,22 @@ elif [ "$1" = '-k' ]; then
 	if $first_run; then
 		echo "Maintaining $2%..."
 		echo "(i) Press CTRL (Vol. Down) + C to abort."
-		echo $c_ON > $s
+		echo $c_ON > "$s"
 	fi
 	
 	until [ "$batt_level" -ge "$2" ]; do
-		grep -iq '=Charging' "$i" || break
+		#grep -iq '=Charging' "$i" || break
 		sleep 25
 		get_batt_level
 	done
-	echo $c_OFF > $s
+	echo $c_OFF > "$s"
 	
 	until [ "$batt_level" -lt "$2" ]; do
 		grep -iq '=Charging' "$i" && break
 		sleep 60
 		get_batt_level
 	done
-	echo $c_ON > $s
+	echo $c_ON > "$s"
 	
 	export first_run=false
 	cs -k $2
@@ -434,25 +434,25 @@ elif [ "$1" = "-c" ]; then
 elif [ "$1" = "service" ]; then
 	auto_run || exit 0
 	[ -f $cache ] || update_cfg 90
-	pause_service || echo $c_ON > $s
+	pause_service || echo $c_ON > "$s"
 
 	until [ "$batt_level" -ge "$p" ]; do
 		auto_run || exit 0
-		grep -iq '=Charging' "$i" || break
+		#grep -iq '=Charging' "$i" || break
 		while pause_service; do sleep 25; done
 		. $cache
 		get_batt_level
-		[ "$batt_level" -ge "70" ] && sleep 25 || sleep 60
+		[ "$batt_level" -ge "75" ] && sleep 25 || sleep 60
 	done
-	! pause_service && echo $c_OFF > $s && dumpsys batterystats --reset
+	! pause_service && echo $c_OFF > "$s" && dumpsys batterystats --reset
 	
 	until [ "$batt_level" -le "$p0" ]; do
 		auto_run || exit 0
 		grep -iq '=Charging' "$i" && break
-		while pause_service; do sleep 150; done
+		while pause_service; do sleep 25; done
 		. $cache
 		get_batt_level
-		[ "$batt_level" -le "25" ] && sleep 150 || sleep 300
+		[ "$batt_level" -le "25" ] && sleep 25 || sleep 60
 	done
 	cs service
 	exit 0
@@ -586,7 +586,7 @@ elif [ -z "$1" ]; then
 		echo
 		exit 0
 	fi
-	echo $c_ON > $s
+	echo $c_ON > "$s"
 	
 	until [ "$batt_level" -ge "$p" ]; do
 		clear
@@ -643,7 +643,7 @@ elif echo "$1" | grep -q '[0-9]'; then
 		echo
 		exit 0
 	fi
-	echo $c_ON > $s
+	echo $c_ON > "$s"
 	
 	until [ "$batt_level" -ge "$1" ]; do
 		clear

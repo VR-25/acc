@@ -1,3 +1,8 @@
+# 2017.11.24-2 (201711242)
+- Decreased discharging timeout values for better charging control accuracy
+- Fixed `cs -k` higher % loop
+- Misc optimizations
+
 # 2017.11.24-1 (201711241)
 - Additional devices support
 - Fixed `cs -d/-e` not working.
