@@ -129,7 +129,7 @@ is_mounted $MOUNTPATH || abort "! $IMG mount failed..."
 persist_dir=/data/media/cs
 { mkdir -p $persist_dir
 cp $MODPATH/cs/.config/cs $persist_dir/cache
-rm -rf $persist_dir/sON* /magisk/zzz-cs-*; } 2>/dev/null
+rm -rf $persist_dir/sON* $persist_dir/cs_run.log /magisk/zzz-cs-*; } 2>/dev/null ###
 
 # Create mod paths
 rm -rf $MODPATH 2>/dev/null

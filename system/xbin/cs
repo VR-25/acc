@@ -7,7 +7,7 @@
 mod_dir=/magisk/cs
 persist_dir=/data/media/cs
 cache=$persist_dir/cache
-cs_run_log=$persist_dir/cs_run.log
+cs_run_log=$persist_dir/cs_last_run.log
 export PATH=/dev/magisk/bin:/magisk/cs/bin:$PATH
 echo
 
@@ -432,8 +432,9 @@ elif [ "$1" = "-c" ]; then
 
 # cs service
 elif [ "$1" = "service" ]; then
-	auto_run || exit 0
+	echo "$(date)" > $persist_dir/service_last_run.log
 	[ -f $cache ] || update_cfg 90
+	auto_run || exit 0
 	pause_service || echo $c_ON > "$s"
 
 	until [ "$batt_level" -ge "$p" ]; do

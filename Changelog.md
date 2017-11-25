@@ -1,3 +1,8 @@
+# 2017.11.25 (201711250)
+- Fixed cs service exiting instead of applying default settings on first run
+- Minor optimizations
+- Updated service add-on info
+
 # 2017.11.24-2 (201711242)
 - Decreased discharging timeout values for better charging control accuracy
 - Fixed `cs -k` higher % loop
