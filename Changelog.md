@@ -1,3 +1,7 @@
+# 2017.11.25-1 (201711251)
+- General optimizations
+- Enhanced `debug` & `service` functions
+
 # 2017.11.25 (201711250)
 - Fixed cs service exiting instead of applying default settings on first run
 - Minor optimizations

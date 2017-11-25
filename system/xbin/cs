@@ -62,7 +62,7 @@ get_ctrl_files() {
 		if [ ! -f "$s" ]; then
 			echo "(!) cs: ctrl file $s not found"
 			if [ "$i" ]; then [ -f "$i" ] || echo "(!) cs: info file $i not found"; fi
-			sleep 1.5
+			sleep 1
 			echo
 			debug
 		fi
@@ -70,7 +70,7 @@ get_ctrl_files() {
 		if [ "$i" ]; then
 			if [ ! -f "$i" ]; then
 				echo "(!) cs: info file $i not found"
-				sleep 1.5
+				sleep 1
 				echo
 				debug
 			fi
@@ -80,7 +80,7 @@ get_ctrl_files() {
 			[ -f "$i" ] || i="$(dirname "$s")/uevent"
 			if [ ! -f "$i" ]; then
 				echo "(!) cs: info file not specified"
-				sleep 1.5
+				sleep 1
 				echo
 				debug
 			fi
@@ -141,7 +141,7 @@ get_ctrl_files() {
 			
 			[ -f "$s" ] || switch battery_charging_enabled
 			if [ ! -f "$s" ]; then echo "(!) cs: Unsupported device"
-				sleep 1.5
+				sleep 1
 				echo
 				debug
 			fi
@@ -172,7 +172,7 @@ get_ctrl_files() {
 			[ -f "$i" ] || i=/sys/devices/platform/battery/power_supply/battery/uevent
 			[ -f "$i" ] || i="$(dirname "$s")/uevent"
 			if [ ! -f "$i" ]; then echo "(!) cs: Unsupported device"
-				sleep 1.5
+				sleep 1
 				echo
 				debug
 			fi
@@ -201,12 +201,12 @@ debug() {
 	
 	zip -9qqu cs_debug.zip cs_debug.log 2>/dev/null
 	mv cs_debug.zip /sdcard/
-	mv cs_debug.log /sdcard/
+	[ -f /sdcard/cs_debug.zip ] || mv cs_debug.log /sdcard/
 	chmod 777 /sdcard/cs_debug*
 	rm -rf /data/cs_debug 2>/dev/null
 	echo "- Done."
 	echo
-	echo "(i) Please upload /sdcard/cs_debug.zip to the official XDA thread."
+	echo "(i) Please upload /sdcard/cs_debug log or zip file to the official XDA thread."
 	echo
 	exit 0
 }
@@ -214,7 +214,7 @@ debug() {
 
 exxit() {
 	echo "(!) cs: Invalid option/argument"
-	sleep 1.5
+	sleep 1
 	cs -h
 }
 
@@ -435,17 +435,22 @@ elif [ "$1" = "service" ]; then
 	echo "$(date)" > $persist_dir/service_last_run.log
 	[ -f $cache ] || update_cfg 90
 	auto_run || exit 0
-	pause_service || echo $c_ON > "$s"
+	if [ "$batt_level" -le "$p0" ] && ! pause_service; then
+		echo $c_ON > "$s"
+	fi
 
 	until [ "$batt_level" -ge "$p" ]; do
 		auto_run || exit 0
-		#grep -iq '=Charging' "$i" || break
+		grep -iq '=Charging' "$i" || break
 		while pause_service; do sleep 25; done
 		. $cache
 		get_batt_level
 		[ "$batt_level" -ge "75" ] && sleep 25 || sleep 60
 	done
-	! pause_service && echo $c_OFF > "$s" && dumpsys batterystats --reset
+	if [ "$batt_level" -ge "$p" ] && ! pause_service; then
+		echo $c_OFF > "$s"
+		dumpsys batterystats --reset &>/dev/null
+	fi
 	
 	until [ "$batt_level" -le "$p0" ]; do
 		auto_run || exit 0
@@ -479,7 +484,7 @@ cs [-a] [-c] [-h] [-i] [-k LEVEL] [-r] [PAUSE% RESUME%] [PAUSE%] [debug] [-m PAU
 
 -k LEVEL --> keep/maintain battery power at a constant LEVEL (pauses cs service)
 
--r --> reset battery stats on demand (doesn't work on all devices)
+-r --> reset battery stats on demand (does not work on all devices)
 
 debug --> gather debugging data & save it to /sdcard/cs_debug.zip
 
@@ -580,7 +585,7 @@ elif [ -z "$1" ]; then
 		echo "- Applying defaults -- cs 90 10..."
 		update_cfg 90
 		echo
-		sleep 1.5
+		sleep 1
 	fi
 	if auto_run && ! pause_service; then
 		echo "(i) cs service is already running."
@@ -632,11 +637,12 @@ elif [ "$1" = "-m" ] || [ "$1" = "-t" ]; then
 
 # Run with all parameters (initial setup)
 elif echo "$1" | grep -q '[0-9]'; then
-
+	
+	[ "$1" -ge "$p" ] && echo $c_ON > "$s"
 	[ "$2" ] && update_cfg "$1" "$2" || update_cfg "$1"
 
 	echo "(i) New settings saved."
-	sleep 1.5
+	sleep 1
 
 	if auto_run && ! pause_service; then
 		echo "- cs service is already running."
@@ -644,7 +650,6 @@ elif echo "$1" | grep -q '[0-9]'; then
 		echo
 		exit 0
 	fi
-	echo $c_ON > "$s"
 	
 	until [ "$batt_level" -ge "$1" ]; do
 		clear
