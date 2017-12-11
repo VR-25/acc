@@ -14,57 +14,75 @@
 
 
 **Usage**
-- Run `su` first, ALWAYS -- or make sure `su -c` goes before "cs" (i.e., `su -c cs -e 30m`).
 
-- `cs -a` --> toggle auto-run (default: ON); resume cs service.
-- `cs -c` --> manually set charging control & battery uevent configs -- useful when the user knows which those are and doesn't want to wait for the next build to use cs. The configs have to be pasted or typed directly on terminal -- a wizard guides you.
-- `cs -i` --> display battery info.
-- `cs -k LEVEL` --> keep/maintain battery power at a constant LEVEL (pauses cs service).
-- `cs -r` --> reset battery stats on demand.
-- `cs debug` --> gather debugging data & save it to /sdcard/cs_debug.zip.
-- just `cs` --> run cs with default (90 10) or saved settings.
-- `cs -h` --> display cs usage instructions.
-- `cs PAUSE% RESUME%` --> pause charging at PAUSE% value; resume charging if battery level drops below RESUME% (default 10). This is the initial setup command. If cs service is OFF, the command works as is; else, new settings are saved and automatically picked up by the service.
-- -m/-t PAUSE% RESUME% --> generate automation config (-m for MacroDroid; -t for Tasker -- pick one).
-- `cs -d [PERCENTAGE/TIMEOUT (optional)]` --> disable charging on demand (pauses cs service).
-- `cs -e [PERCENTAGE/TIMEOUT (optional)]` --> enable charging on demand (pauses cs service).
+- Run `su` first, ALWAYS -- or make sure `su -c` goes before `cs` (i.e., `su -c cs -e 30m`).
+
+cs [-c] [-h] [-i] [-r] [-s] [-v] [debug] [-k LEVEL] [PAUSE% RESUME%] [PAUSE%] [-m PAUSE% RESUME%] [-t PAUSE% RESUME%] [-d %/TIMEOUT] [-e %/TIMEOUT]
+
+`-c` --> manually set charging control file config (/path/to/ctrl/file ON OFF)
+
+`-h` --> cs usage instructions
+
+`-i` --> display battery info
+
+`-r` --> reset battery stats on demand (does not work on all devices)
+
+`-s` --> toggle auto-run; resume CS service
+
+`-v` --> toggle verbose (extensive log -- debugging)
+
+`debug` --> gather debugging data & save it to /sdcard/cs_debug.zip
+
+just `cs` --> run CS with default/saved settings
+
+`-k` LEVEL --> keep/maintain battery power at a constant LEVEL (pauses CS service)
+
+`PAUSE% RESUME%` --> pause charging at PAUSE% value; resume if battery drops below RESUME% (default 10). This is the `initial setup command`. If auto-run is OFF, the command works as is; else, new settings are saved and automatically picked up by CS service.
+
+`-m/-t PAUSE% RESUME%` --> generate automation config (-m for MacroDroid; -t for Tasker -- pick one)
+
+`-d [%/TIMEOUT (optional)]` --> disable charging on demand (pauses CS service)
+
+`-e [%/TIMEOUT (optional)]` --> enable charging on demand (pauses CS service)
 
 
 **Usage Examples/Tips**
 
-`cs 85` --> pause charging at 85%; resume if battery level drops below 10% (default).
+`cs 85` --> pause charging at 85%; resume when battery level is less or equal to 10% (default).
 
-`cs 80 20` --> pause charging at 80%; resume if battery level drops below 20%.
+`cs 80 20` --> pause charging at 80%; resume when battery level is less or equal to 20%.
 
-`cs -d 30m` --> keep charging disabled for 30 minutes.
+`cs -d` --> disable charging.
 
-`cs -e 1h` --> charge for 1 hour.
+`cs -e` --> enable charging.
 
-`cs -e 80%` --> keep charging ON until 80%.
+`cs -d 30m` --> keep charging disabled for 30 minutes
 
-`cs -d 40%` --> keep charging OFF until 40%.
+`cs -e 1h` --> keep charging enabled for 1 hour).
+
+`cs -e 80%` --> Charge until battery level equals 80%.
+
+`cs -d 40%` --> Charge until battery level equals 40%.
 
 `cs -e 120 && cs -d 30m && cs -e 1h` --> charge for 120 seconds, pause for 30 minutes, then charge again for 1h.
 
 `cs -e 30m && cs -d 30m && cs -e 90%` --> charge for 30 minutes, pause for 30 minutes, then charge again, but this time until battery level is greater or equal to 90%.
 
-`cs -e 50% && cs -d 5h && cs -e 80% && cs -d 30m && cs -e 90%` --> change until 50%, wait 5 hours, charge until 80%, wait 30 minutes, charge until 90%.
+`cs -e 50% && cs -d 5h && cs -e 80% && cs -d 30m && cs -e 90%` --> charge until 50%, pause for 5 hours, charge until 80%, pause for 30 minutes, charge until 90%.
 
-Ideally, you want your battery level between 40-60% - best, 20-80% - average, 10-90% - fair.
+Ideally, you want your battery level between 40-60% - best, `20-80% - average`, 10-90% - fair.
+
+Another perspective: 40-60% - extremely light users, `20-80% - average users`, 10-90% - power users
 
 
 **Debugging**
 
-In case of device incompatibility, cs auto-generates a zip file with debugging data & asks the user to upload it to the official XDA thread.
+- In case of device incompatibility, cs auto-generates a log or zip file with debugging data & asks the user to upload it to the official XDA thread.
 
-Syntaxes for `cs -c`:
-- Charging control: `/path/to/file ON OFF` -- where ON OFF, depending on the device, can be 1 0, enable disable, enabled disabled, etc.. Example: `/sys/devices/platform/7000c400.i2c/i2c-1/1-006b/charging_state enabled disabled`
-- Battery uevent: `/path/to/file` -- i.e., `/sys/class/power_supply/battery/uevent`
-
-If `uevent` is in the same directory as the charging control file, then it doesn't need to be specified -- simply hit ENTER when prompted for its path.
+- `cs -c` syntax: `cs -c /path/to/ctrl/file ON OFF` -- where ON OFF, depending on the device, can be 1 0, enable disable, enabled disabled, etc.. Example: `/sys/devices/platform/7000c400.i2c/i2c-1/1-006b/charging_state enabled disabled`
 
 
-**Online Support**
+**Online Info/Support**
 - [Battery University](http://batteryuniversity.com/learn/article/how_to_prolong_lithium_based_batteries)
 - [Git Repository](https://github.com/Magisk-Modules-Repo/Magic-Charging-Switch)
 - [XDA Thread](https://forum.xda-developers.com/apps/magisk/module-magic-charging-switch-cs-v2017-9-t3668427)

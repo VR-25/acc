@@ -33,7 +33,7 @@ mkdir -p $INSTALLER
 ##########################################################################################
 
 OUTFD=$2
-ZIP=$3
+ZIP="$3"
 
 ui_print() {
   if $BOOTMODE; then
@@ -43,6 +43,8 @@ ui_print() {
     echo -n -e "ui_print\n" >> /proc/self/fd/$OUTFD
   fi
 }
+
+ui_print " "
 
 require_new_magisk() {
   ui_print "***********************************"
@@ -125,21 +127,23 @@ ui_print "- Mounting $IMG to $MOUNTPATH"
 MAGISKLOOP=`$MAGISKBIN/magisk --mountimg $IMG $MOUNTPATH`
 is_mounted $MOUNTPATH || abort "! $IMG mount failed..."
 
-# Migrate config cache & remove obsolete files
-persist_dir=/data/media/cs
-{ mkdir -p $persist_dir
-cp $MODPATH/cs/.config/cs $persist_dir/cache
-rm -rf $persist_dir/sON* $persist_dir/cs_run.log /magisk/zzz-cs-*; } 2>/dev/null ###
+# Migrate data and/or remove obsolete files ###
+ModPath=$(grep loop /proc/mounts | cut -d' ' -f2 | grep -Ev 'system|dev')/$MODID
+persist_dir=/data/media/$MODID
+{ [ -f $ModPath/module.prop ] && CurVersionCode=$(grep 'versionCode' $ModPath/module.prop | cut -d= -f2) \
+	|| CurVersionCode=0
+[ "$CurVersionCode" -lt '201712110' ] && rm -rf $persist_dir
+mkdir -p $persist_dir/info; } 2>/dev/null
 
-# Create mod paths
+# Create mod paths ###
 rm -rf $MODPATH 2>/dev/null
 mkdir -p $MODPATH/bin
 
 # Copy files ###
 ui_print "- Copying files"
-mv $INSTALLER/common/zzz-cs-service /magisk
-mv $INSTALLER/system $MODPATH
-mv $INSTALLER/common/config $MODPATH
+mv $INSTALLER/system $MODPATH/
+mv $INSTALLER/common/config $MODPATH/
+mv $INSTALLER/README.md $INSTALLER/Changelog.md $persist_dir/info/
 echo $ARCH | grep -iq x && \
 	mv $INSTALLER/bin/zip_x86 $MODPATH/bin/zip \
 	|| mv $INSTALLER/bin/zip_arm $MODPATH/bin/zip
@@ -153,21 +157,22 @@ done
 $AUTOMOUNT && touch $MODPATH/auto_mount
 
 # prop files
-$PROPFILE && cp -af $INSTALLER/common/system.prop $MODPATH/system.prop
+$PROPFILE && cp -af $INSTALLER/common/system.prop $MODPATH/
 
-# Module info
-cp -af $INSTALLER/module.prop $MODPATH/module.prop
+# Module info ###
+cp -af $INSTALLER/module.prop $MODPATH/
+
 if $BOOTMODE; then
   # Update info for Magisk Manager
-  mktouch /magisk/$MODID/update
-  cp -af $INSTALLER/module.prop /magisk/$MODID/module.prop
+  mktouch $ModPath/update
+  cp -af $INSTALLER/module.prop $ModPath/
 fi
 
 # post-fs-data mode scripts
-$POSTFSDATA && cp -af $INSTALLER/common/post-fs-data.sh $MODPATH/post-fs-data.sh
+$POSTFSDATA && cp -af $INSTALLER/common/post-fs-data.sh $MODPATH/
 
 # service mode scripts
-$LATESTARTSERVICE && cp -af $INSTALLER/common/service.sh $MODPATH/service.sh
+$LATESTARTSERVICE && cp -af $INSTALLER/common/service.sh $MODPATH/
 
 ui_print "- Setting permissions"
 set_permissions
@@ -191,4 +196,5 @@ $BOOTMODE || recovery_cleanup
 rm -rf $TMPDIR
 
 ui_print "- Done"
+ui_print " "
 exit 0

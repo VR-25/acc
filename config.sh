@@ -32,7 +32,7 @@ PROPFILE=false
 POSTFSDATA=false
 
 # Set to true if you need late_start service script
-LATESTARTSERVICE=false
+LATESTARTSERVICE=true
 
 ##########################################################################################
 # Installation Message
@@ -41,10 +41,10 @@ LATESTARTSERVICE=false
 # Set what you want to show when installing your mod
 
 print_modname() {
-  ui_print "****************************"
-  ui_print "Magic Charging Switch (cs)"
-  ui_print "  VR25 @ XDA Developers   "
-  ui_print "****************************"
+  ui_print "**************************************"
+  ui_print "Magic Charging Switch (cs) $(grep 'version=' $INSTALLER/module.prop | cut -d= -f2) "
+  ui_print "         VR25 @ XDA Developers             "
+  ui_print "**************************************"
 }
 
 ##########################################################################################
@@ -93,5 +93,4 @@ set_permissions() {
   ###
   set_perm $MODPATH/system/xbin/cs  0  0  0775
   set_perm $MODPATH/bin/zip  0  0  0775
-  set_perm_recursive /magisk/zzz-cs-service 0  0  0775 0755
 }

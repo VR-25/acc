@@ -4,19 +4,52 @@
 
 
 # ENVIRONMENT
-mod_dir=/magisk/cs
+export PATH=$PATH:/sbin/.core/busybox:/dev/magisk/bin
+ModPath=$(grep loop /proc/mounts | cut -d' ' -f2 | grep -Ev 'system|dev')/cs
 persist_dir=/data/media/cs
-cache=$persist_dir/cache
-cs_run_log=$persist_dir/cs_last_run.log
-export PATH=/dev/magisk/bin:/magisk/cs/bin:$PATH
-echo
+config=$persist_dir/config
+DeviceName=$(grep -i product.name /system/build.prop | cut -d= -f2 | sed 's/ /_/g')
+csVersion=$(grep -i versionCode $ModPath/module.prop | cut -d= -f2)
+verbose_log=$persist_dir/cs_verbose-$DeviceName.log
+last_verbose_log=$persist_dir/last_cs_verbose-$DeviceName.log
+[ "$service_is_running" ] || service_is_running=false
 
+
+# ROOT CHECK
+echo
+whoami | grep -q root || exec echo -e "(!) cs must be run as root.\n"
+
+
+# VERBOSE LOGGER
+[ -f $verbose_log ] && mv -f $verbose_log $last_verbose_log
+if [ -f $persist_dir/enable_verbose ]; then
+
+	if ! $service_is_running && [ "$1" -ne "-v" ]; then
+		echo "(!) WARNING: verbose is enabled."
+		echo "- Don't forget to disable it after finishing debugging."
+		echo "- Else, in the long run, your device's internal storage will be filled up and system will eventually crash or freeze!"
+		echo
+		sleep 7
+	fi
+
+	grep -i product /system/build.prop > $verbose_log
+	echo >> $verbose_log
+	echo "csVersion=$csVersion" >> $verbose_log
+	echo >> $verbose_log
+	set -x 2>>$verbose_log
+fi
 
 
 # TOOLBOX
 
+# I'm the lazy type
+is() { [ -$1 "$2" ]; }
+n() { [ "$1" ]; }
+z() { [ -z "$1" ]; }
+
+# Charging info
 c_info() {
-	cat "$i" | grep -vE 'NAME|STATUS|PRESENT|HEALTH|COUNTER|CAPACITY_LEVEL' \
+	cat "$uevent" | grep -vE 'NAME|STATUS|PRESENT|HEALTH|COUNTER|CAPACITY_LEVEL' \
 		| sed 's/POWER_SUPPLY_//' \
 		| sed 's/CAPACITY/LEVEL/' \
 		| sed '/LEVEL=/s/$/%/' \
@@ -25,207 +58,134 @@ c_info() {
 }
 
 
+# Charging loop
 c_loop() {
-	echo
-	echo "(i) Desired charge % reached."
-	sOFF
-	
-	# Reset battery stats
-	#rm -f /data/system/batterystats.bin 2>/dev/null
-	dumpsys batterystats --reset
-	
-	rm -f $cs_run_log
-	echo $c_OFF > "$s"
-	if echo "$p0" | grep -q [0-9]; then
-		echo "- Maintaining $p0-$p%..."
-		until [ "$batt_level" -le "$p0" ]; do
+	switch_ON
+	until auto_run && ! pause_svc; do
+		until [ "$batt_level" -ge "$1" ]; do
+			clear
+			get_batt_level
+			echo "Charging to $1%..."
+			echo "$start_time"
+			echo
+			c_info
+			echo
+			echo "(i) Press CTRL (Vol. Down) + C to abort."
+			[ "$batt_level" -ge "75" ] && sleep 25 || sleep 60
+		done
+
+		switch_OFF
+		echo
+		echo "(i) Desired charge % reached."
+		end_time
+		echo "- Charging paused; battery stats cleared."
+		# Reset battery stats
+		dumpsys batterystats --reset &>/dev/null
+		echo
+
+		echo "(i) Waiting until $lower_limit% to restart the cycle..."
+		echo "- Press CTRL (Vol. Down) + C to abort."
+		until [ "$batt_level" -le "$lower_limit" ]; do
 			get_batt_level
 			[ "$batt_level" -le "25" ] && sleep 25 || sleep 60
 		done
-		cs
-	else
-		echo "- Press RETURN to re-enable charging & exit"
-		read INPUT
-		if auto_run && pause_service; then
-			echo "(i) cs service is enabled, but paused."
-			echo "- Reboot the system or simply run \"cs -a\" to resume it."
-			echo
-		fi
-		echo $c_ON > "$s"
-		exit 0
-	fi
+		switch_ON
+	done
+	exit 0
 }
 
 
 get_ctrl_files() {
-	if [ -f $persist_dir/user_ctrl ]; then . $persist_dir/user_ctrl
-		if [ ! -f "$s" ]; then
-			echo "(!) cs: ctrl file $s not found"
-			if [ "$i" ]; then [ -f "$i" ] || echo "(!) cs: info file $i not found"; fi
-			sleep 1
+	if [ -f $persist_dir/manual_ctrl ]; then . $persist_dir/manual_ctrl
+
+	else
+		echo "(i) Checking compatibility..."
+		is f $persist_dir/sys_cache || find /sys 2>/dev/null | grep -iv log | grep -Ei 'batt|charg' > $persist_dir/sys_cache
+		
+		for uevent_file in $(cat $persist_dir/sys_cache | grep -i "battery/uevent"); do
+			if grep -qs POWER_SUPPLY_CAPACITY "$uevent_file"; then
+				uevent="$uevent_file"
+				break
+			fi
+		done
+		
+		if [ ! -f "$uevent" ]; then
+			echo
+			echo "(!) Unsupported device."
 			echo
 			debug
 		fi
 		
-		if [ "$i" ]; then
-			if [ ! -f "$i" ]; then
-				echo "(!) cs: info file $i not found"
-				sleep 1
-				echo
-				debug
+		for ctrl_file in $(grep -v '#' $ModPath/config/ctrl_files_db | sed 's/ /+/'); do
+			if grep -Eiq "$(echo "$ctrl_file" | cut -d'+' -f1)" $persist_dir/sys_cache; then
+				echo "$ctrl_file" | sed 's/+/ /' | grep -q ' ' \
+					&& SWITCH "$(grep -Ei "$(echo "$ctrl_file" | cut -d'+' -f1)" $persist_dir/sys_cache)" $(echo "$ctrl_file" | cut -d'+' -f2,3 | sed 's/+/ /') \
+					|| SWITCH "$(grep -Ei "$(echo "$ctrl_file" | cut -d'+' -f1)" $persist_dir/sys_cache)"
+				break
 			fi
-
-		else
-			i=/sys/devices/platform/battery/power_supply/battery/uevent
-			[ -f "$i" ] || i="$(dirname "$s")/uevent"
-			if [ ! -f "$i" ]; then
-				echo "(!) cs: info file not specified"
-				sleep 1
-				echo
-				debug
-			fi
-		fi
+		done
 		
-		if [ ! -f "$s" ] || [ ! -f "$i" ]; then rm $persist_dir/user_ctrl; fi
-		
-	else
-		if [ -f $cache ]; then . $cache
-		else
-			if device 'Pixel|HTC|Essential' && ! device klte; then switch "s=/sys/devices/soc/qpnp-smbcharger-16/power_supply/battery/charging_enabled"
-				[ -f "$s" ] || switch s=/sys/devices/platform/htc_battery/power_supply/battery/charging_enabled
-				[ -f "$s" ] || switch "s=/sys/devices/soc/800f000.qcom,spmi/spmi-0/spmi0-02/800f000.qcom,spmi:qcom,pmi8998@2:qcom,qpnp-smb2/power_supply/battery/input_suspend" 0 1
-			elif device Samsung; then switch store_mode 0 1
-				[ -f "$s" ] || switch s=/sys/devices/platform/battery/power_supply/battery/store_mode 0 1
-				[ -f "$s" ] || switch s=/sys/devices/battery/power_supply/battery/store_mode 0 1
-				[ -f "$s" ] || switch "s=/sys/devices/battery.98/power_supply/battery/store_mode" 0 1
-				###
-				[ -f "$s" ] || switch batt_slate_mode 0 1
-				[ -f "$s" ] || switch s=/sys/devices/platform/battery/power_supply/battery/batt_slate_mode 0 1
-				[ -f "$s" ] || switch s=/sys/devices/battery/power_supply/battery/batt_slate_mode 0 1
-				[ -f "$s" ] || switch "s=/sys/devices/battery.98/power_supply/battery/batt_slate_mode" 0 1
-			elif device Huawei; then switch s=/sys/class/hw_power/charger/charge_data/enable_charger
-				[ -f "$s" ] || switch s=/sys/devices/platform/huawei_charger/enable_charger
-				[ -f "$s" ] || switch "s=/sys/devices/amba.13/f7100000.i2c/i2c-0/0-006b/enable_charger"
-				[ -f "$s" ] || switch "s=/sys/devices/soc.0/qpnp-smbcharger-17/power_supply/battery/charging_enabled"
-			elif device 'Amazon Fire'; then switch "device/Charging_Enable"
-			elif device mako; then switch s=/sys/module/pm8921_charger/parameters/disabled 0 1
-			elif device mantaray; then switch "s=/sys/devices/virtual/power_supply/manta-battery/charge_enabled"
-				[ -f "$s" ] || switch "s=/sys/devices/platform/s3c2440-i2c.2/i2c-2/2-0006/power_supply/smb347-battery/charge_enabled"
-			elif device Nvidia; then switch "s=/sys/devices/platform/7000c400.i2c/i2c-1/1-006b/charging_state" enabled disabled
-			elif device Xiaomi; then switch input_suspend 0 1
-				[ -f "$s" ] || switch s=/sys/class/power_supply/bq2589x_charger/enable_charging
-				[ -f "$s" ] || switch s=/sys/devices/platform/battery/ChargerEnable
-				[ -f "$s" ] || switch "s=/sys/devices/platform/7000c400.i2c/i2c-1/1-006b/charging_state" enabled disabled
-			elif device Sony; then switch s=/sys/class/qns/charging_state
-				[ -f "$s" ] || switch "s=/sys/devices/soc/800f000.qcom,spmi/spmi-0/spmi0-02/800f000.qcom,spmi:qcom,pmi8998@2:qcom,qpnp-smb2/power_supply/battery/charging_enabled"
-			elif device hammerhead; then switch s=/sys/class/power_supply/ac/charging_enabled
-				[ -f "$s" ] || switch "s=/sys/devices/f9923000.i2c/i2c-84/84-006b/power_supply/ac/charging_enabled"
-			elif device 'Teclast X98 Air III'; then switch s=/sys/class/power_supply/dollar_cove_charger/present
-			elif device 'Nexus 9'; then switch "s=/sys/devices/platform/tegra12-i2c.0/i2c-0/0-006b/charging_state" enabled disabled
-			elif device 'Galaxy Nexus'; then switch charge_enabled
-			elif device LeEco; then switch s=/sys/devices/platform/mt-battery/disable_charger 0 1
-			elif device piranha; then switch s=/sys/devices/platform/battery_manager/power_supply/battery/online
-			elif device klte; then switch "s=/sys/devices/battery.98/power_supply/battery/store_mode" 0 1
-			elif device OnePlus; then switch "s=/sys/devices/soc/qpnp-smbcharger-17/power_supply/battery/charging_enabled"
-			elif device Asus; then switch "s=/sys/devices/i2c-0/0-0055/battery_smbus"
-			elif device angler; then switch "s=/sys/devices/soc.0/qpnp-smbcharger-17/power_supply/battery/charging_enabled"
-			###elif device A101; then switch "s=/"
-			elif device klte; then switch "s=/sys/devices/battery.98/power_supply/battery/store_mode" 0 1
-			fi
-			
-			# Devices confirmed working with standard/generic control files:
-			# - Some OnePlus phones, Moto Z Play, Sony Xperia Z5 Premium
-			
-			# It seems this ctrl file is the most common among devices running stock/near-stock Android.
-			[ -f "$s" ] || switch charging_enabled
-			
-			[ -f "$s" ] || switch battery_charging_enabled
-			if [ ! -f "$s" ]; then echo "(!) cs: Unsupported device"
-				sleep 1
-				echo
-				debug
-			fi
-			
-			
-			# Battery info
-			if device mako; then
-				i="/sys/devices/platform/msm_ssbi.0/pm8921-core/pm8921-charger/power_supply/battery/uevent"
-			elif device mantaray; then
-				i="s=/sys/devices/platform/s3c2440-i2c.2/i2c-2/2-0006/power_supply/smb347-battery/uevent"
-			elif device Sony; then
-				i="/sys/devices/soc/800f000.qcom,spmi/spmi-0/spmi0-02/800f000.qcom,spmi:qcom,pmi8998@2:qcom,qpnp-smb2/power_supply/battery/uevent"
-			elif device Huawei; then
-				i=/sys/devices/platform/battery/power_supply/Battery/uevent
-				[ -f "$i" ] || i="/sys/devices/battery.0/power_supply/Battery/uevent"
-			elif device 'mantaray|Nexus 10'; then
-				i"=/sys/devices/platform/s3c2440-i2c.2/i2c-2/2-0006/power_supply/smb347-battery/uevent"
-			elif device Xiaomi; then
-				i="/sys/devices/platform/7000c400.i2c/i2c-1/1-0055/power_supply/battery/uevent"
-			elif device LeEco; then
-				i=/sys/devices/platform/battery/power_supply/battery/uevent
-			elif device Nvidia; then
-				i="/sys/devices/platform/7000c400.i2c/i2c-1/1-000b/power_supply/battery/uevent"
-			elif device Asus; then i="/sys/devices/i2c-0/0-0055/power_supply/battery/uevent"
-			###elif device A101; then i="/sys/devices/platform/battery/power_supply/battery/uevent"
-			fi
-			
-			[ -f "$i" ] || i=/sys/devices/platform/battery/power_supply/battery/uevent
-			[ -f "$i" ] || i="$(dirname "$s")/uevent"
-			if [ ! -f "$i" ]; then echo "(!) cs: Unsupported device"
-				sleep 1
-				echo
-				debug
-			fi
+		if [ ! -f "$SWITCH" ]; then
+			echo
+			echo "(!) Unsupported device."
+			echo
+			debug
 		fi
+		echo "- OK"
+		echo
 	fi
 }
 
 
-get_batt_level() { echo "batt_level=$(cat $(dirname "$i")/capacity)" > $persist_dir/batt_level
-	. $persist_dir/batt_level
-}
-
 
 debug() {
 	echo "(i) Gathering debugging data..."
+	#sestatus | grep -qi enforcing && setenforce 0 && se_0=false || se_0=true
 	rm -rf /data/cs_debug* /sdcard/cs_debug* 2>/dev/null
 	mkdir /data/cs_debug
 	cd /data/cs_debug
 	grep -i product /system/build.prop > cs_debug.log
 	echo >> cs_debug.log
+	echo "csVersion=$csVersion" >> cs_debug.log
+	echo >> cs_debug.log
 	
-	for TARGET in $(find /sys 2>/dev/null | grep -iv log | grep -Ei 'batt|charg|input_suspend'); do
-		echo "$TARGET" >> cs_debug.log
+	is f $persist_dir/sys_cache || find /sys 2>/dev/null | grep -iv log | grep -Ei 'batt|charg' > $persist_dir/sys_cache
+	cat $persist_dir/sys_cache >> cs_debug.log
+	zip -9qq cs_debug.zip cs_debug.log 2>/dev/null
+	zip -9qqu cs_debug.zip $persist_dir/* -x $persist_dir/sys_cache 2>/dev/null
+	
+	for TARGET in $(cat $persist_dir/sys_cache); do
 		zip -9qqu cs_debug.zip "$TARGET" 2>/dev/null
 	done
 	
-	zip -9qqu cs_debug.zip cs_debug.log 2>/dev/null
-	mv cs_debug.zip /sdcard/
-	[ -f /sdcard/cs_debug.zip ] || mv cs_debug.log /sdcard/
+	mv cs_debug.zip /sdcard/cs_debug-$DeviceName.zip
+	[ -f /sdcard/cs_debug-$DeviceName.zip ] || mv cs_debug.log /sdcard/cs_debug-$DeviceName.log
 	chmod 777 /sdcard/cs_debug*
 	rm -rf /data/cs_debug 2>/dev/null
 	echo "- Done."
 	echo
-	echo "(i) Please upload /sdcard/cs_debug log or zip file to the official XDA thread."
+	file_type() { echo "(i) Please upload /sdcard/cs_debug-$DeviceName.$1 to the official XDA thread."; }
+	[ -f /sdcard/cs_debug-$DeviceName.zip ] && file_type zip || file_type log
+	#$se_0 || setenforce 1
 	echo
 	exit 0
 }
 
 
 exxit() {
-	echo "(!) cs: Invalid option/argument"
-	sleep 1
-	cs -h
+	echo "(!) Invalid option/argument"
+	echo "- Run \"cs -h\" for help"
+	echo
+	exit 1
 }
 
 
-device() { grep -Eiq "$1" /system/build.prop; }
-sON() { echo "- S/ON --> $(date)"; }
-sOFF() { echo "- S/OFF --> $(date)"; }
+start_time() { echo "- Start time: $(date +'%F %T')"; }
+end_time() { echo "- End time: $(date +'%F %T')"; }
 
-switch() {
-	echo "$1" | grep -q 's=' && s="$(echo "$1" | cut -d= -f2)" \
-	|| s=/sys/class/power_supply/battery/"$1"
+
+SWITCH() {
+	SWITCH="$1"
 	if [ "$2" ]; then
 		c_ON=$2
 		c_OFF=$3
@@ -237,16 +197,16 @@ switch() {
 
 
 OFF() {
-	$invert_OFF && echo $c_ON > "$s" || echo $c_OFF > "$s"
+	$invert_OFF && switch_ON || switch_OFF
 	if [ "$1" ]; then
 		if echo "$1" | grep -q '[a-z]'; then
 		
 			if $invert_OFF; then
 				echo "(i) Charging enabled for $1."
-				sON
+				start_time
 			else
 				echo "(i) Charging disabled for $1."
-				sOFF
+				end_time
 			fi
 			
 			if echo "$1" | grep -q 'm'; then
@@ -260,10 +220,10 @@ OFF() {
 			
 			if $invert_OFF; then
 				echo "(i) Charging enabled for $1s."
-				sON
+				start_time
 			else
 				echo "(i) Charging disabled for $1s."
-				sOFF
+				end_time
 			fi
 			sleep $1
 		fi
@@ -271,22 +231,22 @@ OFF() {
 		echo '(i) Timeount reached.'
 		
 		if $invert_OFF; then
-			echo $c_OFF > "$s"
+			switch_OFF
 			echo '- Charging disabled.'
-			sOFF
+			end_time
 		else
-			echo $c_ON > "$s"
+			switch_ON
 			echo '- Charging re-enabled'
-			sON
+			start_time
 		fi
 		
 	else
 		if $invert_OFF; then
 			echo '(i) Charging enabled.'
-			sON
+			start_time
 		else
 			echo '(i) Charging disabled.'
-			sOFF
+			end_time
 		fi
 	fi
 	echo
@@ -295,13 +255,13 @@ OFF() {
 
 OFF_percent() {
 	if $invert_OFF; then
-		echo $c_ON > "$s"
+		switch_ON
 		echo "(i) Charging enabled until $1."
-		sON
+		start_time
 	else
-		echo $c_OFF > "$s"
+		switch_OFF
 		echo "(i) Charging disabled until $1."
-		sOFF
+		end_time
 	fi
 
 	echo
@@ -312,30 +272,48 @@ OFF_percent() {
 	echo '(i) Desired % reached.'
 		
 	if $invert_OFF; then
-		echo $c_OFF > "$s"
+		switch_OFF
 		echo '- Charging disabled.'
-		sOFF
+		end_time
 	else
-		echo $c_ON > "$s"
+		switch_ON
 		echo '- Charging re-enabled'
-		sON
+		start_time
 	fi
 	echo
 }
 
 
 auto_run() { [ -f $persist_dir/auto_run ]; }
-pause_service() { [ -f $persist_dir/pause_service ]; } 
+pause_svc() { [ -f $persist_dir/pause_svc ]; }
+charging() { grep -iq "=charging" "$uevent"; }
+get_batt_level() { read batt_level <<< $(cat "$(dirname "$uevent")/capacity"); }
+
+switch_OFF() { echo $c_OFF > "$SWITCH"; }
+switch_ON() { echo $c_ON > "$SWITCH"; }
+
+get_limits() {
+	read higher_limit <<< $(grep higher_limit $config | cut -d= -f2)
+	read lower_limit <<< $(grep lower_limit $config | cut -d= -f2)
+}
 
 
 # Update config
 update_cfg() {
-	[ -f $cache ] || touch $persist_dir/auto_run
-	{ [ "$2" ] && echo p0=$2 || echo p0=10
-	echo p=$1
-	echo "i=\"$i\""
-	echo "switch \"s=$s\" $c_ON $c_OFF"; } > $cache
-	. $cache
+	[ -f $config ] && . $config
+	is f $persist_dir/manual_ctrl && . $persist_dir/manual_ctrl
+	
+	if is f $config && [ -z "$1" ]; then
+		{ echo higher_limit=$higher_limit
+		echo lower_limit=$lower_limit; } > $config
+	else
+		{ [ "$1" ] && echo higher_limit=$1 || echo higher_limit=90
+		[ "$2" ] && echo lower_limit=$2 || echo lower_limit=10; } > $config 
+	fi
+	
+	{ echo "uevent=\"$uevent\""
+	echo "SWITCH \"$SWITCH\" $c_ON $c_OFF"; } >> $config
+	. $config
 	get_batt_level
 }
 
@@ -345,25 +323,105 @@ update_cfg() {
 
 # Pre-ignition
 [ -d $persist_dir ] || mkdir $persist_dir
-[ -f $cache ] && . $cache || get_ctrl_files
-get_batt_level
-sON > $cs_run_log
-invert_OFF=false
+if ! echo "$1" | grep -Eq '\-c|\-v|debug'; then
+	[ -f $config ] && . $config || get_ctrl_files
+	get_batt_level
+	if ! auto_run || pause_svc; then read start_time <<< "$(start_time)"; fi
+	invert_OFF=false
+fi
+
+
+# Manually set charging ctrl config
+if [ "$1" = "-c" ]; then
+	if [ -z "$2" ]; then
+		echo "(!) Missing argument(s)."
+		echo "- Syntax: \"cs -c /path/to/ctrl/file ON OFF\""
+		echo "-- \"ON OFF\" defaults: 1 0"
+		echo
+		exit 1
+	fi
+		
+	echo "SWITCH \"$2\" $3 $4" > $persist_dir/manual_ctrl
+	echo "(i) Checking compatibility..."
+	is f $persist_dir/sys_cache || find /sys 2>/dev/null | grep -iv log | grep -Ei 'batt|charg' > $persist_dir/sys_cache
+	
+	for uevent_file in $(cat $persist_dir/sys_cache | grep -i "battery/uevent"); do
+		if grep -qs POWER_SUPPLY_CAPACITY "$uevent_file"; then
+			echo "uevent=\"$uevent_file\"" >> $persist_dir/manual_ctrl
+			break
+		fi
+	done
+	
+	. $persist_dir/manual_ctrl
+	if [ ! -f "$SWITCH" ]; then
+		echo
+		echo "(!) Control file not found."
+			
+		if [ ! -f "$uevent" ]; then
+			echo
+			echo "(!) Battery uevent file not found"
+			echo "- Unsupported device."
+			rm $persist_dir/manual_ctrl
+			echo
+			debug
+		fi
+			
+		rm $persist_dir/manual_ctrl
+		echo
+		exit 1
+	fi
+		
+	if [ ! -f "$uevent" ]; then
+		echo
+		echo "(!) Battery uevent file not found"
+		echo "- Unsupported device."
+		rm $persist_dir/manual_ctrl
+		echo
+		debug
+	fi
+	
+	update_cfg
+	echo "- All set."
+	echo
+	exit 0
+		
+
+elif [ "$1" = 'debug' ]; then debug
+
+
+# Toggle verbose
+elif [ "$1" = "-v" ]; then
+	if [ -f $persist_dir/enable_verbose ]; then
+		rm $persist_dir/enable_verbose
+		echo "(i) verbose OFF"
+		if auto_run && ! pause_svc; then
+			rm $persist_dir/auto_run
+			echo "- CS service stopped."
+		fi
+	else
+		touch $persist_dir/enable_verbose
+		echo "(i) verbose ON"
+		echo
+		echo "(!) WARNING: don't forget to disable this after finishing debugging."
+		echo "- Else, in the long run, your device's internal storage will be filled up and system will eventually crash or freeze!"
+	fi
+	echo
+	exit 0
 
 
 # Toggle Auto-run
-if [ "$1" = "-a" ]; then
-	if pause_service; then
-		rm $persist_dir/pause_service
-		echo $c_ON > "$s"
-		echo "(i) cs service resumed."
+elif [ "$1" = "-s" ]; then
+	if pause_svc; then
+		rm $persist_dir/pause_svc
+		switch_ON
+		echo "(i) CS service resumed."
 	else
 		if auto_run; then
 			rm $persist_dir/auto_run
-			echo "(i) cs service OFF"
+			echo "(i) CS service OFF"
 		else
 			touch $persist_dir/auto_run
-			echo "(i) cs service ON"
+			echo "(i) CS service ON"
 			echo "- Reboot to apply change."
 		fi
 	fi
@@ -373,37 +431,30 @@ if [ "$1" = "-a" ]; then
 
 # Keep/maintain battery power at a constant level
 elif [ "$1" = '-k' ]; then
-	if auto_run && ! pause_service; then
-		touch $persist_dir/pause_service
-		echo "(i) cs service paused."
-		echo "- Reboot the system or simply run \"cs -a\" to resume."
+	if auto_run && ! pause_svc; then
+		touch $persist_dir/pause_svc
+		echo "(i) CS service paused."
+		echo "- Reboot the system or simply run \"cs -s\" to resume."
 		echo
 	fi
+	
+	echo "Maintaining $2%..."
+	echo "(i) Press CTRL (Vol. Down) + C to abort."
+	switch_ON
 
-	[ "$first_run" = "false" ] || first_run=true
+	while :; do
+		until [ "$batt_level" -ge "$2" ] || ! charging; do
+			sleep 25
+			get_batt_level
+		done
+		[ "$batt_level" -ge "$2" ] && switch_OFF
 	
-	if $first_run; then
-		echo "Maintaining $2%..."
-		echo "(i) Press CTRL (Vol. Down) + C to abort."
-		echo $c_ON > "$s"
-	fi
-	
-	until [ "$batt_level" -ge "$2" ]; do
-		#grep -iq '=Charging' "$i" || break
-		sleep 25
-		get_batt_level
+		until [ "$batt_level" -le "$2" ] || charging; do
+			sleep 60
+			get_batt_level
+		done
+		[ "$batt_level" -le "$2" ] && switch_ON
 	done
-	echo $c_OFF > "$s"
-	
-	until [ "$batt_level" -lt "$2" ]; do
-		grep -iq '=Charging' "$i" && break
-		sleep 60
-		get_batt_level
-	done
-	echo $c_ON > "$s"
-	
-	export first_run=false
-	cs -k $2
 	exit 0
 
 
@@ -414,53 +465,35 @@ elif [ "$1" = "-r" ]; then
 	exit 0
 
 
-# Manually set ctrl file & uevent paths
-elif [ "$1" = "-c" ]; then
-	exit_null () { echo "$1"; echo; exit 0; }
-	echo "Paste/type your charging control config & hit ENTER (/path/to/file ON OFF):"
-	read INPUT
-	[ "$INPUT" ] && echo "switch \"s=$(echo "$INPUT" | cut -d' ' -f1)\" $(echo "$INPUT" | cut -d' ' -f2) $(echo "$INPUT" | cut -d' ' -f3)" > $persist_dir/user_ctrl \
-		|| exit_null "(i) Operation aborted (null input)."
-	echo
-	echo "Now paste/type your battery uevent path & hit ENTER (/path/to/file)..."
-	echo "- If it's in the same directory as the charging control  file, skip the paste/type part -- simply hit ENTER:"
-	read INPUT
-	[ "$INPUT" ] && echo "i=\"$INPUT\"" >> $persist_dir/user_ctrl
-	echo
-	exit 0
-
-
-# cs service
+# CS service
 elif [ "$1" = "service" ]; then
-	echo "$(date)" > $persist_dir/service_last_run.log
-	[ -f $cache ] || update_cfg 90
+	touch > $persist_dir/last_service_run
+	[ -f $config ] || update_cfg
 	auto_run || exit 0
-	if [ "$batt_level" -le "$p0" ] && ! pause_service; then
-		echo $c_ON > "$s"
-	fi
-
-	until [ "$batt_level" -ge "$p" ]; do
-		auto_run || exit 0
-		grep -iq '=Charging' "$i" || break
-		while pause_service; do sleep 25; done
-		. $cache
-		get_batt_level
-		[ "$batt_level" -ge "75" ] && sleep 25 || sleep 60
-	done
-	if [ "$batt_level" -ge "$p" ] && ! pause_service; then
-		echo $c_OFF > "$s"
-		dumpsys batterystats --reset &>/dev/null
-	fi
+	switch_ON
 	
-	until [ "$batt_level" -le "$p0" ]; do
-		auto_run || exit 0
-		grep -iq '=Charging' "$i" && break
-		while pause_service; do sleep 25; done
-		. $cache
-		get_batt_level
-		[ "$batt_level" -le "25" ] && sleep 25 || sleep 60
+	get_limits
+	echo "$higher_limit|$lower_limit"
+	while auto_run; do
+		until [ "$batt_level" -ge "$higher_limit" ] || ! charging; do
+			get_limits
+			get_batt_level
+			[ "$batt_level" -ge "75" ] && sleep 25 || sleep 60
+		done
+		if [ "$batt_level" -ge "$higher_limit" ] && ! pause_svc; then
+			switch_OFF
+			dumpsys batterystats --reset &>/dev/null
+		fi
+
+		until [ "$batt_level" -le "$lower_limit" ] || charging; do
+			get_limits
+			get_batt_level
+			[ "$batt_level" -le "25" ] && sleep 25 || sleep 60
+		done
+		if [ "$batt_level" -le "$lower_limit" ] && ! pause_svc; then
+			switch_ON
+		fi
 	done
-	cs service
 	exit 0
 
 
@@ -474,73 +507,80 @@ Automatically pauses/resumes charging at set time intervals and/or % levels to e
 
 Usage:
 
-cs [-a] [-c] [-h] [-i] [-k LEVEL] [-r] [PAUSE% RESUME%] [PAUSE%] [debug] [-m PAUSE% RESUME%] [-t PAUSE% RESUME%] [-d %/TIMEOUT] [-e %/TIMEOUT]
+cs [-c] [-h] [-i] [-r] [-s] [-v] [debug] [-k LEVEL] [PAUSE% RESUME%] [PAUSE%] [-m PAUSE% RESUME%] [-t PAUSE% RESUME%] [-d %/TIMEOUT] [-e %/TIMEOUT]
 
--a --> toggle auto-run; resume cs service
-
--c --> manually set charging control & battery uevent configs
-
--i --> display battery info
-
--k LEVEL --> keep/maintain battery power at a constant LEVEL (pauses cs service)
-
--r --> reset battery stats on demand (does not work on all devices)
-
-debug --> gather debugging data & save it to /sdcard/cs_debug.zip
+-c --> manually set charging control file config (/path/to/ctrl/file ON OFF)
 
 -h --> cs usage instructions
 
-just "cs" --> run cs with default/saved settings
+-i --> display battery info
 
-PAUSE% RESUME% --> pause charging at PAUSE% value; resume if battery drops below RESUME% (default 10). This is the initial setup command. If auto-run is OFF, the command works as is; else, new settings are saved and automatically picked up by cs service.
+-r --> reset battery stats on demand (does not work on all devices)
+
+-s --> toggle auto-run; resume CS service
+
+-v --> toggle verbose (extensive log -- debugging)
+
+debug --> gather debugging data & save it to /sdcard/cs_debug.zip
+
+just "cs" --> run CS with default/saved settings
+
+-k LEVEL --> keep/maintain battery power at a constant LEVEL (pauses CS service)
+
+PAUSE% RESUME% --> pause charging at PAUSE% value; resume if battery drops below RESUME% (default 10). This is the INITIAL SETUP COMMAND. If auto-run is OFF, the command works as is; else, new settings are saved and automatically picked up by CS service.
 
 -m/-t PAUSE% RESUME% --> generate automation config (-m for MacroDroid; -t for Tasker -- pick one)
 
--d [%/TIMEOUT (optional)] --> disable charging on demand (pauses cs service)
+-d [%/TIMEOUT (optional)] --> disable charging on demand (pauses CS service)
 
--e [%/TIMEOUT (optional)] --> enable charging on demand (pauses cs service)
+-e [%/TIMEOUT (optional)] --> enable charging on demand (pauses CS service)
 
 
 Usage Examples/Tips
 
-"cs 85" --> pause charging at 85%; resume if battery level drops below 10% (default).
+"cs 85" --> pause charging at 85%; resume when battery level is less or equal to 10% (default).
 
-"cs 80 20" --> pause charging at 80%; resume if battery level drops below 20%.
+"cs 80 20" --> pause charging at 80%; resume when battery level is less or equal to 20%.
 
-"-d" & "-e" options can take a "timeout" argument to automatically enable & disable charging, respectively (i.e., "cs -d 30m" --> keep charging disabled for 30 minutes, "cs -e 1h" --> charge for 1 hour).
+"cs -d" --> disable charging.
 
-"cs -e 80%" --> keep charging ON until 80%.
+"cs -d" --> enable charging. 
 
-"cs -d 40%" --> keep charging OFF until 40%.
+"cs -d 30m" --> keep charging disabled for 30 minutes.
+
+"cs -e 1h" --> keep charging enabled for 1 hour. 
+
+"cs -e 80%" --> Charge until battery level equals 80%.
+
+"cs -d 40%" --> Charge until battery level equals 40%.
 
 "cs -e 120 && cs -d 30m && cs -e 1h" --> charge for 120 seconds, pause for 30 minutes, then charge again for 1h.
 
 "cs -e 30m && cs -d 30m && cs -e 90%" --> charge for 30 minutes, pause for 30 minutes, then charge again, but this time until battery level is greater or equal to 90%.
 
-"cs -e 50% && cs -d 5h && cs -e 80% && cs -d 30m && cs -e 90%" --> change until 50%, wait 5 hours, charge until 80%, wait 30 minutes, charge until 90%.
+"cs -e 50% && cs -d 5h && cs -e 80% && cs -d 30m && cs -e 90%" --> charge until 50%, pause for 5 hours, charge until 80%, pause for 30 minutes, charge until 90%.
 
 Ideally, you want your battery level between 40-60% - best, 20-80% - average, 10-90% - fair.
+
+Another perspective: 40-60% - extremely light users, 20-80% - average users, 10-90% - power users
 EOD
 echo
 exit 0
 
 
-elif [ "$1" = 'debug' ]; then debug
-
-
 # Disable charging on demand
 elif [ "$1" = '-d' ]; then
-	if auto_run && ! pause_service; then
-		touch $persist_dir/pause_service
-		echo "(i) cs service paused."
+	if auto_run && ! pause_svc; then
+		touch $persist_dir/pause_svc
+		echo "(i) CS service paused."
 		echo
 	fi
 	
 	if [ "$2" ]; then echo "$2" | grep -q '%' && OFF_percent $2 || OFF $2
 	else OFF; fi
 
-	if auto_run && pause_service; then
-		echo "(i) Reboot the system or simply run \"cs -a\" to resume cs service."
+	if auto_run && pause_svc; then
+		echo "(i) Reboot the system or simply run \"cs -s\" to resume CS service."
 		echo
 	fi
 	exit 0
@@ -548,9 +588,9 @@ elif [ "$1" = '-d' ]; then
 
 # Enable charging on demand
 elif [ "$1" = '-e' ]; then
-	if auto_run && ! pause_service; then
-		touch $persist_dir/pause_service
-		echo "(i) cs service paused."
+	if auto_run && ! pause_svc; then
+		touch $persist_dir/pause_svc
+		echo "(i) CS service paused."
 		echo
 	fi
 	
@@ -558,8 +598,8 @@ elif [ "$1" = '-e' ]; then
 	if [ "$2" ]; then echo "$2" | grep -q '%' && OFF_percent $2 || OFF $2
 	else OFF; fi
 	
-	if auto_run && pause_service; then
-		echo "(i) Reboot the system or simply run \"cs -a\" to resume cs service."
+	if auto_run && pause_svc; then
+		echo "(i) Reboot the system or simply run \"cs -s\" to resume CS service."
 		echo
 	fi
 	exit 0
@@ -568,49 +608,43 @@ elif [ "$1" = '-e' ]; then
 # Battery info
 elif [ "$1" = '-i' ]; then
 	echo 'Battery Info'
-	cat "$i" | grep -Ev 'NAME|PRESENT|CAPACITY_LEVEL' \
+	cat "$uevent" | grep -Ev 'NAME|PRESENT|CAPACITY_LEVEL' \
 		| sed 's/POWER_SUPPLY_//' \
 		| sed 's/CAPACITY/LEVEL/' \
 		| sed '/LEVEL=/s/$/%/' \
 		| sed 's/_NOW//' \
 		| sed '/RGE_R/s/GE/GING/'
 	echo
+	echo "Current Settings"
+	cat $config
+	if auto_run; then pause_svc && echo "service status: paused" \
+		|| echo "service status: ON"
+	else echo "service status: OFF"; fi
+	echo
 	exit 0
 
 
 # Run with default/saved settings
 elif [ -z "$1" ]; then
-	if [ ! -f $cache ]; then
+	if [ ! -f $config ]; then
 		echo "(i) No settings found."
 		echo "- Applying defaults -- cs 90 10..."
-		update_cfg 90
+		update_cfg
 		echo
 		sleep 1
 	fi
-	if auto_run && ! pause_service; then
-		echo "(i) cs service is already running."
+	if auto_run && ! pause_svc; then
+		echo "(i) CS service is already running."
 		echo
 		exit 0
 	fi
-	echo $c_ON > "$s"
-	
-	until [ "$batt_level" -ge "$p" ]; do
-		clear
-		get_batt_level
-		echo "Charging to $p%..."
-		cat $cs_run_log
-		echo
-		c_info
-		echo
-		echo "(i) Press CTRL (Vol. Down) + C to abort."
-		[ "$batt_level" -ge "75" ] && sleep 25 || sleep 60
-	done
-	c_loop
+
+	c_loop $higher_limit
 
 
 # Generate MacroDroid & Tasker automation configs
 elif [ "$1" = "-m" ] || [ "$1" = "-t" ]; then
-	if echo "$1" | grep -q 'm'; then
+	if echo "$1" | grep -q '\-m'; then
 		echo "(i) Generating /sdcard/MacroDroid/charging_switch.category..."
 		mdir=/sdcard/MacroDroid
 		[ -d $mdir ] || mkdir -p $mdir
@@ -618,7 +652,7 @@ elif [ "$1" = "-m" ] || [ "$1" = "-t" ]; then
 		cd $mdir
 		sed -i "s/:90/:$2/" charging_switch.category
 		sed -i "s/:11/:$3/" charging_switch.category
-	elif echo "$1" | grep -q 't'; then
+	elif echo "$1" | grep -q '\-t'; then
 		echo "(i) Generating /sdcard/Tasker/projects/charging_switch.prj.xml..."
 		tdir=/sdcard/Tasker/projects
 		[ -d $tdir ] || mkdir -p $tdir
@@ -637,34 +671,18 @@ elif [ "$1" = "-m" ] || [ "$1" = "-t" ]; then
 
 # Run with all parameters (initial setup)
 elif echo "$1" | grep -q '[0-9]'; then
-	
-	[ "$1" -ge "$p" ] && echo $c_ON > "$s"
 	[ "$2" ] && update_cfg "$1" "$2" || update_cfg "$1"
-
 	echo "(i) New settings saved."
 	sleep 1
 
-	if auto_run && ! pause_service; then
-		echo "- cs service is already running."
+	if auto_run && ! pause_svc; then
+		echo "- CS service is already running."
 		echo "-- Now working with the new values."
 		echo
 		exit 0
 	fi
 	
-	until [ "$batt_level" -ge "$1" ]; do
-		clear
-		get_batt_level
-		echo "Charging to $1%..."
-		cat $cs_run_log
-		echo
-		c_info
-		echo
-		echo "(i) Press CTRL (Vol. Down) + C to abort."
-		[ "$batt_level" -ge "75" ] && sleep 25 || sleep 60
-	done
-
-	. $cache
-	c_loop
+	c_loop $1
 
 
 else exxit

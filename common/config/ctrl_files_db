@@ -1,0 +1,29 @@
+# CS Control Files Database
+# VersionCode=201712110
+# VR25 @ XDA DEVELOPERS 
+
+# Generic
+battery/charging_enabled
+battery/battery_charging_enabled
+battery/store_mode 0 1
+battery/batt_slate_mode 0 1
+battery/input_suspend 0 1
+battery/charge_enabled
+battery/ChargerEnable
+battery/disable_charger 0 1
+battery/charge_disable 0 1
+
+# Misc
+charge_data/enable_charger
+huawei_charger/enable_charger
+.-00../enable_charger
+.-00../charging_state enabled disabled
+.-00../battery_smbus
+pm8921_charger/parameters/disabled 0 1
+bq2589x_charger/enable_charging
+qns/charging_state
+ac/charging_enabled
+
+# Experimental
+dollar_cove_charger/present
+#battery/online
