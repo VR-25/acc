@@ -1,19 +1,20 @@
 # CS Control Files Database
-# VersionCode=201712110
+# VersionCode=201712120
 # VR25 @ XDA DEVELOPERS 
 
-# Generic
 battery/charging_enabled
 battery/battery_charging_enabled
 battery/store_mode 0 1
 battery/batt_slate_mode 0 1
 battery/input_suspend 0 1
+
+#manta-battery/charge_enabled
+
 battery/charge_enabled
 battery/ChargerEnable
 battery/disable_charger 0 1
 battery/charge_disable 0 1
 
-# Misc
 charge_data/enable_charger
 huawei_charger/enable_charger
 .-00../enable_charger

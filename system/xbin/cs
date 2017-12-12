@@ -5,11 +5,15 @@
 
 # ENVIRONMENT
 export PATH=$PATH:/sbin/.core/busybox:/dev/magisk/bin
-ModPath=$(grep loop /proc/mounts | cut -d' ' -f2 | grep -Ev 'system|dev')/cs
 persist_dir=/data/media/cs
 config=$persist_dir/config
-DeviceName=$(grep -i product.name /system/build.prop | cut -d= -f2 | sed 's/ /_/g')
+
+ModPath=$(grep loop /proc/mounts | cut -d' ' -f2 | grep -Ev 'system|dev')/cs
+
+DeviceName="$(echo "`grep -i product.brand /system/build.prop | cut -d= -f2`-`grep -i product.name /system/build.prop | cut -d= -f2`-`grep -i product.device= /system/build.prop | cut -d= -f2`" | sed 's/ /_/g')"
+
 csVersion=$(grep -i versionCode $ModPath/module.prop | cut -d= -f2)
+
 verbose_log=$persist_dir/cs_verbose-$DeviceName.log
 last_verbose_log=$persist_dir/last_cs_verbose-$DeviceName.log
 [ "$service_is_running" ] || service_is_running=false
@@ -116,15 +120,20 @@ get_ctrl_files() {
 			debug
 		fi
 		
-		for ctrl_file in $(grep -v '#' $ModPath/config/ctrl_files_db | sed 's/ /+/'); do
-			if grep -Eiq "$(echo "$ctrl_file" | cut -d'+' -f1)" $persist_dir/sys_cache; then
-				echo "$ctrl_file" | sed 's/+/ /' | grep -q ' ' \
-					&& SWITCH "$(grep -Ei "$(echo "$ctrl_file" | cut -d'+' -f1)" $persist_dir/sys_cache)" $(echo "$ctrl_file" | cut -d'+' -f2,3 | sed 's/+/ /') \
-					|| SWITCH "$(grep -Ei "$(echo "$ctrl_file" | cut -d'+' -f1)" $persist_dir/sys_cache)"
+		while read ctrl_file; do
+			if echo "$ctrl_file" | grep -q ' '; then
+				grep -Eiq "$(echo "$ctrl_file" | cut -d' ' -f1)" $persist_dir/sys_cache && ctrl_file_found=true || ctrl_file_found=false
+			else
+				grep -Eiq "$(echo "$ctrl_file")" $persist_dir/sys_cache && ctrl_file_found=true || ctrl_file_found=false
+			fi
+			if $ctrl_file_found; then
+				echo "$ctrl_file" | grep -q ' ' \
+					&& SWITCH $(grep -Ei "$(echo "$ctrl_file" | cut -d' ' -f1)" $persist_dir/sys_cache) $(echo "$ctrl_file" | cut -d' ' -f2,3) \
+					|| SWITCH $(grep -Ei "$(echo "$ctrl_file")" $persist_dir/sys_cache)
 				break
 			fi
-		done
-		
+		done <<< "$(grep -Ev '#|^$' $ModPath/config/ctrl_files_db)"
+
 		if [ ! -f "$SWITCH" ]; then
 			echo
 			echo "(!) Unsupported device."
@@ -139,7 +148,17 @@ get_ctrl_files() {
 
 
 debug() {
+	if ! is f $persist_dir/enable_verbose; then
+		is f $verbose_log && mv -f $verbose_log $last_verbose_log
+		grep -i product /system/build.prop > $verbose_log
+		echo >> $verbose_log
+		echo "csVersion=$csVersion" >> $verbose_log
+		echo >> $verbose_log
+		set -x 2>>$verbose_log
+	fi
+	
 	echo "(i) Gathering debugging data..."
+	PATH=$PATH:$ModPath/bin
 	#sestatus | grep -qi enforcing && setenforce 0 && se_0=false || se_0=true
 	rm -rf /data/cs_debug* /sdcard/cs_debug* 2>/dev/null
 	mkdir /data/cs_debug
@@ -467,15 +486,20 @@ elif [ "$1" = "-r" ]; then
 
 # CS service
 elif [ "$1" = "service" ]; then
+	auto_run || exit 0
 	touch > $persist_dir/last_service_run
 	[ -f $config ] || update_cfg
-	auto_run || exit 0
 	switch_ON
 	
-	get_limits
-	echo "$higher_limit|$lower_limit"
+	if is f $persist_dir/enable_verbose; then ###
+		get_limits
+		echo "higher_limit=$higher_limit"
+		echo "lower_limit=$lower_limit"
+	fi
+
 	while auto_run; do
 		until [ "$batt_level" -ge "$higher_limit" ] || ! charging; do
+		is f $persist_dir/enable_verbose && echo "Waiting until $higher_limit%..." ###
 			get_limits
 			get_batt_level
 			[ "$batt_level" -ge "75" ] && sleep 25 || sleep 60
@@ -486,6 +510,7 @@ elif [ "$1" = "service" ]; then
 		fi
 
 		until [ "$batt_level" -le "$lower_limit" ] || charging; do
+			is f $persist_dir/enable_verbose && echo "Waiting until $lower_limit%..." ###
 			get_limits
 			get_batt_level
 			[ "$batt_level" -le "25" ] && sleep 25 || sleep 60
@@ -678,6 +703,7 @@ elif echo "$1" | grep -q '[0-9]'; then
 	if auto_run && ! pause_svc; then
 		echo "- CS service is already running."
 		echo "-- Now working with the new values."
+		switch_ON
 		echo
 		exit 0
 	fi

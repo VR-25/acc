@@ -1,3 +1,9 @@
+# 2017.12.12 (201712120)
+- Fixed charging  not working properly after changing % limit values while CS service is running
+- Fixed control file ID engine not parsing its database entirely (limited to "battery/charging_enabled" control file) 
+- Fixed missing built-in zip binary path
+- Updated debugging tools
+ 
 # 2017.12.11 (201712110)
 - `cs -c` on steroids -- manually set control file config -- syntax: `cs -c /path/to/ctrl/file ON OFF`
 - CS service ignitor no longer in zzz-cs-service directory
