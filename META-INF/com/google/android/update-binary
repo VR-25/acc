@@ -127,13 +127,37 @@ ui_print "- Mounting $IMG to $MOUNTPATH"
 MAGISKLOOP=`$MAGISKBIN/magisk --mountimg $IMG $MOUNTPATH`
 is_mounted $MOUNTPATH || abort "! $IMG mount failed..."
 
+
+# Find IMG mount point ###
+for i in 0 1 2 3 4 5 6 7; do
+  losetup /dev/block/loop$i 2>/dev/null | grep -q '/data/magisk.img' \
+    && ModPath="`grep "/dev/block/loop$i" /proc/mounts | cut -d' ' -f2 | grep -v '^/system'`/$MODID" \
+    && break
+done
+[ -z "$ModPath" ] && abort "! $IMG mount point not found"
+
+
 # Migrate data and/or remove obsolete files ###
-ModPath=$(grep loop /proc/mounts | cut -d' ' -f2 | grep -Ev 'system|dev')/$MODID
 persist_dir=/data/media/$MODID
-{ [ -f $ModPath/module.prop ] && CurVersionCode=$(grep 'versionCode' $ModPath/module.prop | cut -d= -f2) \
+[ -f $ModPath/module.prop ] && CurVersionCode="`grep_prop versionCode $ModPath/module.prop`" \
 	|| CurVersionCode=0
-[ "$CurVersionCode" -lt '201712110' ] && rm -rf $persist_dir
-mkdir -p $persist_dir/info; } 2>/dev/null
+
+# Flash same version to uninstall ###
+if [ "`grep_prop versionCode $INSTALLER/module.prop`" -eq "$CurVersionCode" ]; then
+  rm -rf $persist_dir $TMPDIR
+  if $BOOTMODE; then
+    touch $ModPath/remove
+  else
+    rm -rf $ModPath
+    recovery_cleanup
+  fi
+  $BOOTMODE && exec echo -e "\n(i) Reboot to finish uninstall.\n" \
+		|| exec ui_print "\n(i) Module uninstalled.\n"
+fi
+
+[ "$CurVersionCode" -lt '201712150' ] && rm -rf $persist_dir
+mkdir -p $persist_dir/info 2>/dev/null
+
 
 # Create mod paths ###
 rm -rf $MODPATH 2>/dev/null
@@ -142,6 +166,7 @@ mkdir -p $MODPATH/bin
 # Copy files ###
 ui_print "- Copying files"
 mv $INSTALLER/system $MODPATH/
+[ -f /data/x ] && mv $MODPATH/system/bin $MODPATH/system/xbin ###
 mv $INSTALLER/common/config $MODPATH/
 mv $INSTALLER/README.md $INSTALLER/Changelog.md $persist_dir/info/
 echo $ARCH | grep -iq x && \

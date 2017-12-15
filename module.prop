@@ -1,7 +1,7 @@
 id=cs
 name=Magic Charging Switch (cs)
-version=2017.12.12
-versionCode=201712120
+version=2017.12.15
+versionCode=201712150
 author=VR25 @ XDA Developers
-description=Automatically pauses/resumes charging at set time intervals and/or % levels to extend battery lifespan.
+description=Automatically pauses/resumes charging at set time intervals and/or % levels to extend battery lifespan. Install, reboot, configure and forget.
 template=1400

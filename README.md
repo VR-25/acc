@@ -5,7 +5,7 @@
 **Description**
 - Automatically pauses/resumes charging at set time intervals and/or % levels to extend battery lifespan.
 - Battery stats are reset on pause (doesn't work on all devices).
-- Install, reboot, configure and forget -- or simply install, reboot and forget if you're fine with the default settings (pause at 90%; resume at 10%). 
+- Install, reboot, configure and forget.
 
 
 **Disclaimer**
@@ -78,6 +78,8 @@ Another perspective: 40-60% - extremely light users, `20-80% - average users`, 1
 **Debugging**
 
 - In case of device incompatibility, cs auto-generates a log or zip file with debugging data & asks the user to upload it to the official XDA thread.
+
+- If cs causes a bootloop or trips Google's SafetyNet, run `touch /data/x` before installing/updating.
 
 - `cs -c` syntax: `cs -c /path/to/ctrl/file ON OFF` -- where ON OFF, depending on the device, can be 1 0, enable disable, enabled disabled, etc.. Example: `/sys/devices/platform/7000c400.i2c/i2c-1/1-006b/charging_state enabled disabled`
 

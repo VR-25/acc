@@ -1,6 +1,6 @@
 # CS Control Files Database
-# VersionCode=201712120
-# VR25 @ XDA DEVELOPERS 
+# VersionCode=201712150
+# VR25 @ XDA Developers
 
 battery/charging_enabled
 battery/battery_charging_enabled
@@ -8,7 +8,7 @@ battery/store_mode 0 1
 battery/batt_slate_mode 0 1
 battery/input_suspend 0 1
 
-#manta-battery/charge_enabled
+manta-battery/charge_enabled
 
 battery/charge_enabled
 battery/ChargerEnable
@@ -27,4 +27,4 @@ ac/charging_enabled
 
 # Experimental
 dollar_cove_charger/present
-#battery/online
+battery/online
