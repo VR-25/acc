@@ -2,10 +2,11 @@
 # VR25 @ XDA Developers
 
 
-**Description**
+**Intro**
 - Automatically pauses/resumes charging at set time intervals and/or % levels to extend battery lifespan.
 - Battery stats are reset on pause (doesn't work on all devices).
-- Install, reboot, configure and forget.
+- Install, connect charger, reboot, configure (or leave defaults: 90 10) and forget.
+- If your device is incompatible, you'll find the file /sdcard/cs_debug-DEVICE.zip. Upload it to the official XDA thread (find the link below).
 
 
 **Disclaimer**

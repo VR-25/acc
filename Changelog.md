@@ -1,3 +1,8 @@
+# 2017.12.15-1 (201712151)
+- Initial setup improvement -- install, connect charger, reboot, configure (or leave defaults: 90 10) and forget
+- Updated reference
+
+
 # 2017.12.15 (201712150)
 - Fixed "cs not found", "charging not stopping", bootlooping, "syntax error" issues & more
 - Flash same version again to uninstall
