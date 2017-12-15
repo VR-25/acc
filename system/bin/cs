@@ -386,9 +386,10 @@ if [ "$1" = "-c" ]; then
 	done
 	
 	. $persist_dir/manual_ctrl
-	if ! is f "$SWITCH"; then
-		echo -e "\n(!) Control file not found.\n"
-			
+	switch_OFF
+	if ! is f "$SWITCH" || charging; then
+		echo -e "\n(!) Unsupported control file\n"
+	
 		if ! is f "$uevent"; then
 			echo -e "\n(!) Battery uevent file not found\n"
 			echo -e "- Unsupported device\n"
@@ -408,6 +409,7 @@ if [ "$1" = "-c" ]; then
 		debug
 	fi
 	
+	switch_ON
 	update_cfg
 	echo -e "- All set.\n"
 	exit 0

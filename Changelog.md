@@ -1,3 +1,9 @@
+# 2017.12.15-2 (201712152)
+- Auto-remove /data keys (r & x)
+- `touch /data/r` before flashing -- force reinstall
+- Updated `cs -c` (debugging tool)
+
+
 # 2017.12.15-1 (201712151)
 - Initial setup improvement -- install, connect charger, reboot, configure (or leave defaults: 90 10) and forget
 - Updated reference

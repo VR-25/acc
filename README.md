@@ -78,9 +78,13 @@ Another perspective: 40-60% - extremely light users, `20-80% - average users`, 1
 
 **Debugging**
 
+- Note: as stated previously, initial setup requires battery to be charging throughout the whole process.
+
 - In case of device incompatibility, cs auto-generates a log or zip file with debugging data & asks the user to upload it to the official XDA thread.
 
 - If cs causes a bootloop or trips Google's SafetyNet, run `touch /data/x` before installing/updating.
+
+- `touch /data/r` before flashing -- force reinstall.
 
 - `cs -c` syntax: `cs -c /path/to/ctrl/file ON OFF` -- where ON OFF, depending on the device, can be 1 0, enable disable, enabled disabled, etc.. Example: `/sys/devices/platform/7000c400.i2c/i2c-1/1-006b/charging_state enabled disabled`
 
