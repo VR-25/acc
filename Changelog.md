@@ -1,3 +1,10 @@
+# 2017.12.16 (201712160)
+- Default cs path reverted to /system/xbin -- change to bin with `touch /data/b`
+- Fixed ModPath searcher not filtering out '/vendor'
+- Portability & compatibility improvements
+- Updated control files database -- reverse engineering
+
+
 # 2017.12.15-2 (201712152)
 - Auto-remove /data keys (r & x)
 - `touch /data/r` before flashing -- force reinstall

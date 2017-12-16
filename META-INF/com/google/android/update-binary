@@ -128,13 +128,17 @@ MAGISKLOOP=`$MAGISKBIN/magisk --mountimg $IMG $MOUNTPATH`
 is_mounted $MOUNTPATH || abort "! $IMG mount failed..."
 
 
-# Find IMG mount point ###
+# Find CS path
 for i in 0 1 2 3 4 5 6 7; do
-  losetup /dev/block/loop$i 2>/dev/null | grep -q '/data/magisk.img' \
-    && ModPath="`grep "/dev/block/loop$i" /proc/mounts | cut -d' ' -f2 | grep -v '^/system'`/$MODID" \
-    && break
+	losetup /dev/block/loop$i 2>/dev/null | grep -q '/data/magisk.img' \
+		&& ModPath="`grep "/dev/block/loop$i" /proc/mounts | cut -d' ' -f2 | grep -Ev '/system|/vendor'`/cs" \
+		&& break
 done
-[ -z "$ModPath" ] && abort "! $IMG mount point not found"
+
+if ! echo "$ModPath" | grep -q '/cs$'; then
+	echo -e "\n(!) CS path not found\n"
+	exit 1
+fi
 
 
 # Migrate data and/or remove obsolete files ###
@@ -166,8 +170,8 @@ mkdir -p $MODPATH/bin
 # Copy files ###
 ui_print "- Copying files"
 mv $INSTALLER/system $MODPATH/
-[ -f /data/x ] && mv $MODPATH/system/bin $MODPATH/system/xbin
-rm /data/r /data/x 2>/dev/null
+[ -f /data/b ] && mv $MODPATH/system/xbin $MODPATH/system/bin
+rm /data/b /data/r 2>/dev/null
 mv $INSTALLER/common/config $MODPATH/
 mv $INSTALLER/README.md $INSTALLER/Changelog.md $persist_dir/info/
 echo $ARCH | grep -iq x && \

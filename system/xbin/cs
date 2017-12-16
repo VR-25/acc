@@ -7,7 +7,15 @@
 # ENVIRONMENT & TOOLBOX
 
 # Add Magisk built-in busybox to PATH
-export PATH="$PATH:/sbin/.core/busybox:/dev/magisk/bin"
+export PATH="/sbin/.core/busybox:/dev/magisk/bin:$PATH"
+
+# Root check
+if ! whoami | grep -q root; then
+	echo -e "\n(!) cs must be run as root.\n"
+	exit 1
+else
+	echo
+fi
 
 persist_dir="/data/media/cs"
 config="$persist_dir/config"
@@ -31,14 +39,17 @@ grep_prop() {
 }
 
 
-# Find Magisk mount point
+# Find CS path
 for i in 0 1 2 3 4 5 6 7; do
 	losetup /dev/block/loop$i 2>/dev/null | grep -q '/data/magisk.img' \
-		&& ModPath="`grep "/dev/block/loop$i" /proc/mounts | cut -d' ' -f2 | grep -v '^/system'`/cs" \
+		&& ModPath="`grep "/dev/block/loop$i" /proc/mounts | cut -d' ' -f2 | grep -Ev '/system|/vendor'`/cs" \
 		&& break
 done
 
-z "$ModPath" && exec echo -e "\n(!) Magisk mount point not found\n"
+if ! echo "$ModPath" | grep -q '/cs$'; then
+	echo -e "\n(!) CS path not found\n"
+	exit 1
+fi
 
 
 DEVICE="`grep_prop ro.product.brand`-`grep_prop ro.product.device`"
@@ -54,11 +65,7 @@ last_verbose_log="$persist_dir/last_cs_verbose-$DEVICE.log"
 z "$service_is_running" && service_is_running=false
 
 
-# ROOT CHECK
-whoami | grep -q root && echo || exec echo -e "\n(!) cs must be run as root.\n"
-
-
-# VERBOSE LOGGER
+# Verbose logger
 is f "$verbose_log" && mv -f "$verbose_log" "$last_verbose_log"
 if is f $persist_dir/enable_verbose; then
 
@@ -104,7 +111,7 @@ debug() {
 		zip -9qqu cs_debug.zip "$TARGET" 2>/dev/null
 	done
 	
-	mv cs_debug.zip "/sdcard/cs_debug-$DEVICE.zip"
+	mv cs_debug.zip "/sdcard/cs_debug-$DEVICE.zip" 2>/dev/null
 	is f "/sdcard/cs_debug-$DEVICE.zip" || mv cs_debug.log "/sdcard/cs_debug-$DEVICE.log"
 	chmod 777 /sdcard/cs_debug*
 	rm -rf /data/cs_debug 2>/dev/null

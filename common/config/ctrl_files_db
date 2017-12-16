@@ -1,5 +1,5 @@
 # CS Control Files Database
-# VersionCode=201712150
+# VersionCode=201712160
 # VR25 @ XDA Developers
 
 battery/charging_enabled
@@ -27,4 +27,13 @@ ac/charging_enabled
 
 # Experimental
 dollar_cove_charger/present
-battery/online
+battery/present_smb
+switch_charger/ncp1854_access 0 1
+battery/state
+batterylifeextender/charging_limit 100 3
+battery/Charging_CallState
+ac/online
+ac/present
+#battery/online
+#battery/present
+#battery/BN_TestMode
