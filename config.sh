@@ -42,7 +42,7 @@ LATESTARTSERVICE=true
 
 print_modname() {
   ui_print "**************************************"
-  ui_print "Magic Charging Switch (cs) $(grep 'version=' $INSTALLER/module.prop | cut -d= -f2) "
+  ui_print "Magic Charging Switch (cs) `grep 'version=' $INSTALLER/module.prop | cut -d= -f2`"
   ui_print "         VR25 @ XDA Developers             "
   ui_print "**************************************"
 }
@@ -90,8 +90,11 @@ set_permissions() {
   # The following is default permissions, DO NOT remove
   set_perm_recursive  $MODPATH  0  0  0755  0644
   
-  ###
-  [ -f $MODPATH/system/xbin/cs ] && set_perm $MODPATH/system/xbin/cs  0  0  0775 \
-    || set_perm $MODPATH/system/bin/cs  0  0  0775
-  set_perm $MODPATH/bin/zip  0  0  0775
+	###
+	if [ -f $MODPATH/system/xbin/cs ]; then
+		set_perm $MODPATH/system/xbin/cs  0  0  0775
+	else
+		set_perm $MODPATH/system/bin/cs  0  0  0775
+	fi
+	set_perm $MODPATH/bin/zip  0  0  0775
 }

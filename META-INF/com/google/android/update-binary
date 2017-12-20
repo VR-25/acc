@@ -6,9 +6,15 @@
 #
 ##########################################################################################
 
-# Detect whether in boot mode
-ps | grep zygote | grep -v grep >/dev/null && BOOTMODE=true || BOOTMODE=false
-$BOOTMODE || ps -A 2>/dev/null | grep zygote | grep -v grep >/dev/null && BOOTMODE=true
+# Detect whether in boot mode ###
+if pgrep zygote | grep -v grep >/dev/null; then
+	BOOTMODE=true
+else
+	BOOTMODE=false
+fi
+if ! $BOOTMODE; then
+	pgrep -A 2>/dev/null | grep zygote | grep -v grep >/dev/null && BOOTMODE=true
+fi
 
 # This path should work in any cases
 TMPDIR=/dev/tmp
@@ -128,39 +134,53 @@ MAGISKLOOP=`$MAGISKBIN/magisk --mountimg $IMG $MOUNTPATH`
 is_mounted $MOUNTPATH || abort "! $IMG mount failed..."
 
 
-# Find CS path
-for i in 0 1 2 3 4 5 6 7; do
-	losetup /dev/block/loop$i 2>/dev/null | grep -q '/data/magisk.img' \
-		&& ModPath="`grep "/dev/block/loop$i" /proc/mounts | cut -d' ' -f2 | grep -Ev '/system|/vendor'`/cs" \
-		&& break
-done
-
-if ! echo "$ModPath" | grep -q '/cs$'; then
-	echo -e "\n(!) CS path not found\n"
-	exit 1
+# Find ModPath
+if $BOOTMODE; then
+	for n in 0 1 2 3 4 5 6 7; do
+		if losetup /dev/block/loop$n 2>/dev/null | grep -q '/data/magisk.img'; then
+			for MountPoint in `grep /dev/block/loop$n /proc/mounts | cut -d' ' -f2 | grep -v '/system'`; do
+				if [ -d "$MountPoint/.core" ] || [ -d "$MountPoint/lost+found" ]; then
+					ModPath=$MountPoint/$MODID
+					mkdir -p $ModPath 2>/dev/null
+					break
+				fi
+			done
+		fi
+	done
+else
+	ModPath="$MODPATH"
 fi
 
 
 # Migrate data and/or remove obsolete files ###
-persist_dir=/data/media/$MODID
-[ -f $ModPath/module.prop ] && CurVersionCode="`grep_prop versionCode $ModPath/module.prop`" \
-	|| CurVersionCode=0
+PersistDir=/data/media/$MODID
+
+if [ -f $ModPath/module.prop ]; then
+	CurVersionCode="`grep_prop versionCode $ModPath/module.prop`"
+else
+	CurVersionCode=0
+fi
 
 # Flash same version to uninstall ###
 if [ ! -f /data/r ] && [ "`grep_prop versionCode $INSTALLER/module.prop`" -eq "$CurVersionCode" ]; then
-  rm -rf $persist_dir $TMPDIR
-  if $BOOTMODE; then
-    touch $ModPath/remove
-  else
-    rm -rf $ModPath
-    recovery_cleanup
-  fi
-  $BOOTMODE && exec echo -e "\n(i) Reboot to finish uninstall.\n" \
-		|| exec ui_print "\n(i) Module uninstalled.\n"
+	rm -rf $PersistDir $TMPDIR
+	if $BOOTMODE; then
+		touch $ModPath/remove
+		ui_print " "
+		ui_print "(i) Reboot to finish uninstall."
+		ui_print " "
+	else
+    	rm -rf $ModPath
+ 	   recovery_cleanup
+		ui_print " "
+		ui_print "(i) Module uninstalled."
+		ui_print " "
+	fi
+	exit 0
 fi
 
-[ "$CurVersionCode" -lt '201712150' ] && rm -rf $persist_dir
-mkdir -p $persist_dir/info 2>/dev/null
+[ "$CurVersionCode" -lt "201712200" ] && rm -rf $PersistDir
+mkdir -p $PersistDir/info 2>/dev/null
 
 
 # Create mod paths ###
@@ -173,10 +193,12 @@ mv $INSTALLER/system $MODPATH/
 [ -f /data/b ] && mv $MODPATH/system/xbin $MODPATH/system/bin
 rm /data/b /data/r 2>/dev/null
 mv $INSTALLER/common/config $MODPATH/
-mv $INSTALLER/README.md $INSTALLER/Changelog.md $persist_dir/info/
-echo $ARCH | grep -iq x && \
-	mv $INSTALLER/bin/zip_x86 $MODPATH/bin/zip \
-	|| mv $INSTALLER/bin/zip_arm $MODPATH/bin/zip
+mv $INSTALLER/README.md $INSTALLER/Changelog.md $PersistDir/info/
+if echo $ARCH | grep -iq x; then
+	mv $INSTALLER/bin/zip_x86 $MODPATH/bin/zip
+else
+	mv $INSTALLER/bin/zip_arm $MODPATH/bin/zip
+fi
 
 # Handle replace folders
 for TARGET in $REPLACE; do

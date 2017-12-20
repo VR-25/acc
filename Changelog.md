@@ -1,5 +1,23 @@
+# 2017.12.20 (201712200)
+- Core optimizations
+- `cs -b` -- clear battery stats on demand
+- `cs -r` -- reset cs to its initial state
+- `cs -x` -- toggle store_mode/batt_slate_mode (Samsung); charging_enabled/battery_charging_enabled (others)
+- Default settings are now 90 80 for best convenience
+- Fixed control files ID mechanism setting more than one switch in certain cases
+- Fixed `cs -h` (help) not working on unsupported devices
+- Updated reference
+
+**Release Notes**
+- Bootloop? "cs not found"? -- Run `touch /data/b /data/r` prior to installing.
+- Due to major incompatibilities between @MCMotherEffin''s work ethics & style and those of mine, he's no longer a collaborator.
+- Current settings will be wiped.
+- If charging control is inconsistent, try `cs -x`.
+- You may want to run `cs -h` or check the README for new/extra usage tips.
+
+
 # 2017.12.16 (201712160)
-- Default cs path reverted to /system/xbin -- change to bin with `touch /data/b`
+- Default cs path reverted to /system/xbin -- in case bootloop or "cs not found" issues occur, change to bin by running `su -c touch /data/b` prior to installing
 - Fixed ModPath searcher not filtering out '/vendor'
 - Portability & compatibility improvements
 - Updated control files database -- reverse engineering
