@@ -6,12 +6,16 @@
 
 # ENVIRONMENT & TOOLBOX
 
-# Add Magisk built-in busybox to PATH
+# Prepend Magisk built-in busybox to PATH
 export PATH="/sbin/.core/busybox:/dev/magisk/bin:$PATH"
+
+# Debugging switches (shell strict mode)
+#IFS=$'\n\t'
+#set -exuo pipefail
 
 # Root check
 if ! id | grep -qi 'uid=0(root)'; then
-	echo -e "\n(!) cs must be run as root.\n"
+	echo -e "\n(!) cs must run as root.\n"
 	exit 1
 else
 	echo
@@ -21,7 +25,6 @@ PersistDir="/data/media/cs"
 config="$PersistDir/config"
 
 
-# Laziness can be [very] friendly
 is() { [ -$1 "$2" ]; }
 n() { [ -n "$1" ]; }
 z() { [ -z "$1" ]; }
@@ -40,11 +43,12 @@ grep_prop() {
 
 
 # Find ModPath
+ModID=cs
 for n in 0 1 2 3 4 5 6 7; do
-	if losetup /dev/block/loop$n 2>/dev/null | grep -q '/data/magisk.img'; then
+	if losetup /dev/block/loop$n 2>/dev/null | grep -q '/magisk.img'; then
 		for MountPoint in `grep /dev/block/loop$n /proc/mounts | cut -d' ' -f2 | grep -v '/system'`; do
-			if is f $MountPoint/cs/module.prop; then
-				ModPath=$MountPoint/cs
+			if is f $MountPoint/$ModID/module.prop; then
+				ModPath=$MountPoint/$ModID
 				break
 			fi
 		done
@@ -52,12 +56,18 @@ for n in 0 1 2 3 4 5 6 7; do
 done
 
 if ! is f "$ModPath/module.prop"; then
-  echo -e "\n(!) cs path not found\n"
+  echo -e "\n(!) $ModID path not found"
+  echo -e "- Unsupported Magisk version\n"
   exit 1
 fi
 
 
-DEVICE="`grep_prop ro.product.brand`-`grep_prop ro.product.device`"
+# Device ID
+if grep -q 'ro.product.device' /system/build.prop; then
+	DEVICE="`grep_prop ro.product.brand`_`grep_prop ro.product.device`"
+else
+	DEVICE="`grep_prop ro.product.brand`_`grep_prop ro.build.product`"
+fi
 
 
 csVersion="`grep_prop versionCode $ModPath/module.prop`"
@@ -71,16 +81,15 @@ z "$service_is_running" && service_is_running=false
 
 
 # Verbose logger
-is f "$verbose_log" && mv "$verbose_log" "$last_verbose_log"
-if is f $PersistDir/enable_verbose; then
-
+if is f $PersistDir/enable_verbose && [ "$1" != "debug" ]; then
 	if ! $service_is_running && [ "$1" != "-v" ]; then
 		echo "(!) WARNING: verbose is enabled."
 		echo "- Don't forget to disable it after finishing debugging."
 		echo -e "- Else, in the long run, your device's internal storage will be filled up and system will eventually crash or freeze!\n"
 		sleep 7
 	fi
-
+	
+	is f "$verbose_log" && mv "$verbose_log" "$last_verbose_log"
 	grep -i product /system/build.prop > "$verbose_log"
 	echo >> "$verbose_log"
 	echo -e "csVersion=$csVersion\n" >> "$verbose_log"
@@ -88,33 +97,35 @@ if is f $PersistDir/enable_verbose; then
 fi
 
 
+gen_sys_cache() {
+	is f $PersistDir/sys_cache \
+		|| find /sys -type f 2>/dev/null \
+			| grep -Eiv '/fs|/dev/|/block|/ram|/storage|log' \
+			| grep -Ei 'batt|charg' > $PersistDir/sys_cache
+}
+
+
 debug() {
-	if ! is f $PersistDir/enable_verbose; then
-		is f "$verbose_log" && mv "$verbose_log" "$last_verbose_log"
-		grep -i product /system/build.prop > "$verbose_log"
-		echo >> "$verbose_log"
-		echo -e "csVersion=$csVersion\n" >> "$verbose_log"
-		set -x 2>>"$verbose_log"
-	fi
-	
+	is f $PersistDir/enable_verbose && set +x
 	echo "(i) Gathering debugging data..."
 	PATH="$PATH:$ModPath/bin"
 	#if sestatus | grep -qi enforcing; then setenforce 0; se_0=false; else se_0=true; fi
 	rm -rf /data/cs_debug* /sdcard/cs_debug* 2>/dev/null
 	mkdir /data/cs_debug
-	cd /data/cs_debug || { echo "(!) Couldn't cd /data/cd_debug"; exit 1; }
+	cd /data/cs_debug
 	grep -i product /system/build.prop > cs_debug.log
 	echo >> cs_debug.log
 	echo -e "csVersion=$csVersion\n" >> cs_debug.log
 	
-	is f $PersistDir/sys_cache || find /sys 2>/dev/null | grep -iv log | grep -Ei 'batt|charg' > $PersistDir/sys_cache
-	cat $PersistDir/sys_cache >> cs_debug.log
-	zip -9qq cs_debug.zip cs_debug.log 2>/dev/null
-	zip -9qqu cs_debug.zip $PersistDir/* -x $PersistDir/sys_cache 2>/dev/null
+	gen_sys_cache
+	find /sys -type f 2>/dev/null | grep -Eiv '/fs|/dev/|/block|/ram|/storage|log' >> cs_debug.log
 	
-	for TARGET in `cat $PersistDir/sys_cache`; do
-		zip -9qqu cs_debug.zip "$TARGET" 2>/dev/null
-	done
+	while read line; do
+		zip -9qqu cs_debug.zip "$line" 2>/dev/null
+	done <<< "`cat $PersistDir/sys_cache`"
+	
+	zip -9qqu cs_debug.zip cs_debug.log 2>/dev/null
+	zip -9qqu cs_debug.zip $PersistDir/* -x $PersistDir/sys_cache 2>/dev/null
 	
 	mv cs_debug.zip "/sdcard/cs_debug-$DEVICE.zip" 2>/dev/null
 	is f "/sdcard/cs_debug-$DEVICE.zip" || mv cs_debug.log "/sdcard/cs_debug-$DEVICE.log"
@@ -160,8 +171,10 @@ c_loop() {
 		switch_OFF
 		echo -e "\n(i) Desired charge % reached."
 		end_time
+		
 		# Reset battery stats
 		dumpsys batterystats --reset &>/dev/null
+		
 		echo -e "- Charging paused; battery stats cleared.\n"
 		echo "(i) Waiting until $lower_limit% to restart the cycle..."
 		echo "- Press CTRL (Vol. Down) + C to abort."
@@ -180,7 +193,7 @@ get_ctrl_files() {
 
 	else
 		echo "(i) Checking compatibility..."
-		is f $PersistDir/sys_cache || find /sys 2>/dev/null | grep -iv log | grep -Ei 'batt|charg' > $PersistDir/sys_cache
+		gen_sys_cache
 		
 		while read uevent_file; do
 			if grep -qs '^POWER_SUPPLY_CAPACITY=' "$uevent_file"; then
@@ -389,14 +402,14 @@ if [ "$1" = "-c" ]; then
 		
 	echo "SWITCH \"$2\" $3 $4" > $PersistDir/manual_ctrl
 	echo "(i) Checking compatibility..."
-	is f $PersistDir/sys_cache || find /sys 2>/dev/null | grep -iv log | grep -Ei 'batt|charg' > $PersistDir/sys_cache
+	gen_sys_cache
 	
-	for uevent_file in `cat $PersistDir/sys_cache | grep -i 'battery/uevent'`; do
+	while read uevent_file; do
 		if grep -qs '^POWER_SUPPLY_CAPACITY=' "$uevent_file"; then
 			echo "uevent=\"$uevent_file\"" >> $PersistDir/manual_ctrl
 			break
 		fi
-	done
+	done <<< "`cat $PersistDir/sys_cache | grep -i 'battery/uevent'`"
 	
 	. $PersistDir/manual_ctrl
 	is f "$SWITCH" && switch_OFF
@@ -437,11 +450,11 @@ elif [ "$1" = "-x" ]; then
 	elif grep -q 'batt_slate_mode' $config; then
 		sed -i 's/batt_slate_mode/store_mode/' $config
 		echo -e "batt_slate_mode --> store_mode\n"
-	elif grep -q '/charging_enabled' $config; then
-		sed -i 's/\/charging_enabled/\/battery_charging_enabled/' $config
+	elif grep -q 'battery/charging_enabled' $config; then
+		sed -i 's/battery\/charging_enabled/battery\/battery_charging_enabled/' $config
 		echo -e "charging_enabled --> battery_charging_enabled\n"
-	elif grep -q 'battery_charging_enabled' $config; then
-		sed -i 's/battery_charging_enabled/charging_enabled/' $config
+	elif grep -q 'battery/battery_charging_enabled' $config; then
+		sed -i 's/battery\/battery_charging_enabled/battery\/charging_enabled/' $config
 		echo -e "battery_charging_enabled --> charging_enabled\n"
 	else
 		echo -e "(i) This feature doesn't apply to your device.\n"
@@ -471,7 +484,7 @@ elif [ "$1" = "-v" ]; then
 	exit 0
 
 
-# Toggle Auto-run
+# Toggle auto-run
 elif [ "$1" = "-s" ]; then
 	if pause_svc; then
 		rm $PersistDir/pause_svc
@@ -541,7 +554,7 @@ elif [ "$1" = "service" ]; then
 	is f $config || update_cfg
 	switch_ON
 	
-	if is f $PersistDir/enable_verbose; then ###
+	if is f $PersistDir/enable_verbose; then
 		get_limits
 		echo "higher_limit=$higher_limit"
 		echo "lower_limit=$lower_limit"
@@ -549,7 +562,7 @@ elif [ "$1" = "service" ]; then
 
 	while auto_run; do
 		while auto_run && lt "$batt_level" "$higher_limit" && charging; do
-			is f $PersistDir/enable_verbose && echo "Waiting until $higher_limit%..." ###
+			is f $PersistDir/enable_verbose && echo "Waiting until $higher_limit%..."
 			get_limits
 			get_batt_level
 			if ge "$batt_level" 75; then sleep 25; else sleep 60; fi
@@ -560,7 +573,7 @@ elif [ "$1" = "service" ]; then
 		fi
 
 		while auto_run && gt "$batt_level" "$lower_limit" && ! charging; do
-			is f $PersistDir/enable_verbose && echo "Waiting until $lower_limit%..." ###
+			is f $PersistDir/enable_verbose && echo "Waiting until $lower_limit%..."
 			get_limits
 			get_batt_level
 			if le "$batt_level" 25; then sleep 25; else sleep 60; fi

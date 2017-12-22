@@ -1,6 +1,8 @@
 # CS Control Files Database
-# VersionCode=201712160
+# VersionCode=201712220
 # VR25 @ XDA Developers
+
+# In case you're wondering, blank lines below do have a purpose. ;)
 
 battery/charging_enabled
 battery/battery_charging_enabled
@@ -34,6 +36,7 @@ batterylifeextender/charging_limit 100 3
 battery/Charging_CallState
 ac/online
 ac/present
-#battery/online
-#battery/present
-#battery/BN_TestMode
+battery/online
+battery/present
+battery/BN_TestMode
+dc/charging_enabled

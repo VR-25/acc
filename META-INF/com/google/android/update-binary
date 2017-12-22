@@ -1,4 +1,4 @@
-#!/sbin/sh
+#!/sbin/sh -x
 ##########################################################################################
 #
 # Magisk Module Template Install Script
@@ -72,7 +72,6 @@ mount /cache 2>/dev/null
 . $MAGISKBIN/util_functions.sh
 get_outfd
 
-$BOOTMODE && ! is_mounted /magisk && abort "! Magisk is not activated!"
 [ ! -f /system/build.prop ] && abort "! /system could not be mounted!"
 
 # Detect version and architecture
@@ -82,16 +81,20 @@ api_level_arch_detect
 # Useful if you are creating Android version / platform dependent mods
 
 # We need busybox/binaries to be setup
-$BOOTMODE && boot_actions || recovery_actions
+if $BOOTMODE; then boot_actions; else recovery_actions; fi
 
 ##########################################################################################
 # Preparation
 ##########################################################################################
 
 # Extract module files ###
-unzip -oqq "$ZIP" -d $INSTALLER
+ui_print " "
+ui_print "- Extracting module files"
+unzip -o "$ZIP" -d $INSTALLER | grep -Eiv 'archive:|creating:' | sed 's/inf.*://'
+ui_print " "
 
 [ ! -f $INSTALLER/config.sh ] && abort "! Unable to extract zip file!"
+
 # Load configurations
 . $INSTALLER/config.sh
 
@@ -101,13 +104,37 @@ MIN_VER=`grep_prop template $INSTALLER/module.prop`
 MODID=`grep_prop id $INSTALLER/module.prop`
 MODPATH=$MOUNTPATH/$MODID
 
+
+# Find ModPath ###
+if $BOOTMODE; then
+	for n in 0 1 2 3 4 5 6 7; do
+		if losetup /dev/block/loop$n 2>/dev/null | grep -q '/magisk.img'; then
+			for MountPoint in `grep /dev/block/loop$n /proc/mounts | cut -d' ' -f2 | grep -v '/system'`; do
+				if [ -d "$MountPoint/.core" ] || [ -d "$MountPoint/lost+found" ]; then
+					MountPoint=$MountPoint
+					ModPath=$MountPoint/$MODID
+					mkdir $ModPath 2>/dev/null
+					break
+				fi
+			done
+		fi
+	done
+else
+	ModPath="$MODPATH"
+fi
+
+if $BOOTMODE && ! is_mounted $MountPoint; then abort "! Magisk is not activated!"; fi
+
+
 # Print mod name
+ui_print " "
 print_modname
 
 # Please leave this message in your flashable zip for credits :)
 ui_print "******************************"
 ui_print "Powered by Magisk (@topjohnwu)"
 ui_print "******************************"
+ui_print " "
 
 ##########################################################################################
 # Install
@@ -132,24 +159,6 @@ fi
 ui_print "- Mounting $IMG to $MOUNTPATH"
 MAGISKLOOP=`$MAGISKBIN/magisk --mountimg $IMG $MOUNTPATH`
 is_mounted $MOUNTPATH || abort "! $IMG mount failed..."
-
-
-# Find ModPath
-if $BOOTMODE; then
-	for n in 0 1 2 3 4 5 6 7; do
-		if losetup /dev/block/loop$n 2>/dev/null | grep -q '/data/magisk.img'; then
-			for MountPoint in `grep /dev/block/loop$n /proc/mounts | cut -d' ' -f2 | grep -v '/system'`; do
-				if [ -d "$MountPoint/.core" ] || [ -d "$MountPoint/lost+found" ]; then
-					ModPath=$MountPoint/$MODID
-					mkdir -p $ModPath 2>/dev/null
-					break
-				fi
-			done
-		fi
-	done
-else
-	ModPath="$MODPATH"
-fi
 
 
 # Migrate data and/or remove obsolete files ###
@@ -186,13 +195,15 @@ mkdir -p $PersistDir/info 2>/dev/null
 # Create mod paths ###
 rm -rf $MODPATH 2>/dev/null
 mkdir -p $MODPATH/bin
+mkdir $MODPATH/config ###
+mkdir -p $MODPATH/system/xbin ###
 
 # Copy files ###
 ui_print "- Copying files"
-mv $INSTALLER/system $MODPATH/
+mv $INSTALLER/system/xbin/* $MODPATH/system/xbin/ ###
 [ -f /data/b ] && mv $MODPATH/system/xbin $MODPATH/system/bin
 rm /data/b /data/r 2>/dev/null
-mv $INSTALLER/common/config $MODPATH/
+mv $INSTALLER/common/config/* $MODPATH/config/ ###
 mv $INSTALLER/README.md $INSTALLER/Changelog.md $PersistDir/info/
 if echo $ARCH | grep -iq x; then
 	mv $INSTALLER/bin/zip_x86 $MODPATH/bin/zip

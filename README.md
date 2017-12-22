@@ -89,7 +89,7 @@ For best convenience, stick with cs 90 80; cs 80 70 for a perfect balance betwee
 
 - `touch /data/r` before flashing -- force reinstall.
 
-- If charging control is inconsistent, try `cs -x`.
+- `cs -x` switches between available control files for supported devices. For instance, Samsung devices have `store_mode` & `batt_slate_mode`; stock/near-stock Android smartphones use `charging_enabled` & `battery_charging_enabled`. Use the command only in case of charging control inconsistencies.
 
 - `cs -c` syntax: `cs -c /path/to/ctrl/file ON OFF` -- where ON OFF, depending on the device, can be 1 0, enable disable, enabled disabled, etc.. Example: `cs -c /sys/devices/platform/7000c400.i2c/i2c-1/1-006b/charging_state enabled disabled`
 
