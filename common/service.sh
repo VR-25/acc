@@ -4,7 +4,7 @@
 
 ModPath=${0%/*}
 OLD_PATH=$PATH
-PATH=$PATH:/sbin/.core/busybox:/dev/magisk/bin
+PATH="/sbin/.core/busybox:/dev/magisk/bin:$PATH"
 PersistDir=/data/media/cs
 { rm $PersistDir/pause_service
 mkdir $PersistDir; } 2>/dev/null

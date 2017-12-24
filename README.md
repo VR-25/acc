@@ -17,7 +17,7 @@
 
 - Run `su` first, ALWAYS -- or make sure `su -c` goes before `cs` (i.e., `su -c cs -e 30m`).
 
-cs [-b] [-c] [-h] [-i] [-r] [-s] [-v] [-x] [debug] [-k LEVEL] [PAUSE% RESUME%] [PAUSE%] [-m PAUSE% RESUME%] [-t PAUSE% RESUME%] [-d %/TIMEOUT] [-e %/TIMEOUT]
+cs [-b] [-c] [-h] [-i] [-r] [-v] [debug] [-k LEVEL] [PAUSE% RESUME%] [PAUSE%] [-m PAUSE% RESUME%] [-s --enable/disable] [-t PAUSE% RESUME%] [-d %/TIMEOUT] [-e %/TIMEOUT]
 
 `-b` --> reset battery stats on demand (does not work on all devices)
 
@@ -29,11 +29,9 @@ cs [-b] [-c] [-h] [-i] [-r] [-s] [-v] [-x] [debug] [-k LEVEL] [PAUSE% RESUME%] [
 
 `-r` --> reset cs to its initial state
 
-`-s` --> toggle auto-run; resume CS service
+`-s` --> pause/resume, --enable/disable service
 
 `-v` --> toggle verbose (extensive log -- debugging)
-
-`-x` --> toggle store_mode/batt_slate_mode (Samsung); charging_enabled/battery_charging_enabled (others)
 
 `debug` --> gather debugging data & save it to /sdcard/cs_debug.zip
 
@@ -85,11 +83,9 @@ For best convenience, stick with cs 90 80; cs 80 70 for a perfect balance betwee
 
 - In case of device incompatibility, cs auto-generates a log or zip file with debugging data & asks the user to upload it to the official XDA thread.
 
-- If cs causes a bootloop or trips Google's SafetyNet, run `touch /data/b` before installing/updating.
+- If cs causes a bootloop or trips Google's SafetyNet, run `touch /data/b /data/r` before installing/updating.
 
 - `touch /data/r` before flashing -- force reinstall.
-
-- `cs -x` switches between available control files for supported devices. For instance, Samsung devices have `store_mode` & `batt_slate_mode`; stock/near-stock Android smartphones use `charging_enabled` & `battery_charging_enabled`. Use the command only in case of charging control inconsistencies.
 
 - `cs -c` syntax: `cs -c /path/to/ctrl/file ON OFF` -- where ON OFF, depending on the device, can be 1 0, enable disable, enabled disabled, etc.. Example: `cs -c /sys/devices/platform/7000c400.i2c/i2c-1/1-006b/charging_state enabled disabled`
 

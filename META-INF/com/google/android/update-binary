@@ -107,9 +107,9 @@ MODPATH=$MOUNTPATH/$MODID
 
 # Find ModPath ###
 if $BOOTMODE; then
-	for n in 0 1 2 3 4 5 6 7; do
-		if losetup /dev/block/loop$n 2>/dev/null | grep -q '/magisk.img'; then
-			for MountPoint in `grep /dev/block/loop$n /proc/mounts | cut -d' ' -f2 | grep -v '/system'`; do
+	for loop_device in /dev/block/loop*; do
+		if losetup $loop_device 2>/dev/null | grep -q '/magisk.img$'; then
+			for MountPoint in `grep $loop_device /proc/mounts | awk '{print $2}' | grep -v '/system'`; do
 				if [ -d "$MountPoint/.core" ] || [ -d "$MountPoint/lost+found" ]; then
 					MountPoint=$MountPoint
 					ModPath=$MountPoint/$MODID
@@ -188,7 +188,7 @@ if [ ! -f /data/r ] && [ "`grep_prop versionCode $INSTALLER/module.prop`" -eq "$
 	exit 0
 fi
 
-[ "$CurVersionCode" -lt "201712200" ] && rm -rf $PersistDir
+[ "$CurVersionCode" -lt "201712240" ] && rm -rf $PersistDir
 mkdir -p $PersistDir/info 2>/dev/null
 
 

@@ -44,9 +44,9 @@ grep_prop() {
 
 # Find ModPath
 ModID=cs
-for n in 0 1 2 3 4 5 6 7; do
-	if losetup /dev/block/loop$n 2>/dev/null | grep -q '/magisk.img'; then
-		for MountPoint in `grep /dev/block/loop$n /proc/mounts | cut -d' ' -f2 | grep -v '/system'`; do
+for loop_device in /dev/block/loop*; do
+	if losetup $loop_device 2>/dev/null | grep -q '/magisk.img$'; then
+		for MountPoint in `grep $loop_device /proc/mounts | awk '{print $2}' | grep -v '/system'`; do
 			if is f $MountPoint/$ModID/module.prop; then
 				ModPath=$MountPoint/$ModID
 				break
@@ -81,7 +81,7 @@ z "$service_is_running" && service_is_running=false
 
 
 # Verbose logger
-if is f $PersistDir/enable_verbose && [ "$1" != "debug" ]; then
+if is f $PersistDir/enable_verbose && ! grep -Eq '\-r|debug' <<< "$1"; then
 	if ! $service_is_running && [ "$1" != "-v" ]; then
 		echo "(!) WARNING: verbose is enabled."
 		echo "- Don't forget to disable it after finishing debugging."
@@ -97,7 +97,7 @@ if is f $PersistDir/enable_verbose && [ "$1" != "debug" ]; then
 fi
 
 
-gen_sys_cache() {
+generate_sys_cache() {
 	is f $PersistDir/sys_cache \
 		|| find /sys -type f 2>/dev/null \
 			| grep -Eiv '/fs|/dev/|/block|/ram|/storage|log' \
@@ -117,7 +117,7 @@ debug() {
 	echo >> cs_debug.log
 	echo -e "csVersion=$csVersion\n" >> cs_debug.log
 	
-	gen_sys_cache
+	generate_sys_cache
 	find /sys -type f 2>/dev/null | grep -Eiv '/fs|/dev/|/block|/ram|/storage|log' >> cs_debug.log
 	
 	while read line; do
@@ -156,8 +156,8 @@ c_info() {
 
 # Charging loop
 c_loop() {
-	switch_ON
-	until auto_run && ! pause_svc; do
+	SWITCH 1
+	while :; do
 		until ge "$batt_level" "$1"; do
 			clear
 			get_batt_level
@@ -168,7 +168,7 @@ c_loop() {
 			if ge "$batt_level" 75; then sleep 25; else sleep 60; fi
 		done
 
-		switch_OFF
+		SWITCH 0
 		echo -e "\n(i) Desired charge % reached."
 		end_time
 		
@@ -178,59 +178,79 @@ c_loop() {
 		echo -e "- Charging paused; battery stats cleared.\n"
 		echo "(i) Waiting until $lower_limit% to restart the cycle..."
 		echo "- Press CTRL (Vol. Down) + C to abort."
+		
 		until le "$batt_level" "$lower_limit"; do
 			get_batt_level
 			if le "$batt_level" 25; then sleep 25; else sleep 60; fi
 		done
-		switch_ON
+		
+		SWITCH 1
 	done
 	exit 0
 }
 
 
-get_ctrl_files() {
-	if is f $PersistDir/manual_ctrl; then . $PersistDir/manual_ctrl
-
-	else
-		echo "(i) Checking compatibility..."
-		gen_sys_cache
-		
-		while read uevent_file; do
-			if grep -qs '^POWER_SUPPLY_CAPACITY=' "$uevent_file"; then
-				uevent="$uevent_file"
-				break
-			fi
-		done <<< "`cat $PersistDir/sys_cache | grep -i 'battery/uevent'`"
-		
-		if ! is f "$uevent"; then
-			echo -e "\n(!) Unsupported device\n"
-			debug
+check_compatibility() {
+	echo "(i) Checking compatibility..."
+	echo "- REMINDER: battery must be charging -- or else, the assessment will fail."
+	generate_sys_cache
+	
+	while read uevent_file; do
+		if grep -qs '^POWER_SUPPLY_CAPACITY=' "$uevent_file"; then
+			uevent="$uevent_file"
+			break
 		fi
+	done <<< "`cat $PersistDir/sys_cache | grep -i 'battery/uevent'`"
 		
-		while read ctrl_file; do
-			if echo "$ctrl_file" | grep -q ' '; then
-				if grep -Eiq "`echo "$ctrl_file" | cut -d' ' -f1`" $PersistDir/sys_cache; then ctrl_file_found=true; else ctrl_file_found=false; fi
-			else
-				if grep -Eiq "$ctrl_file" $PersistDir/sys_cache; then ctrl_file_found=true; else ctrl_file_found=false; fi
-			fi
-			if $ctrl_file_found; then
-				if echo "$ctrl_file" | grep -q ' '; then
-					SWITCH `grep -Ei "\`echo "$ctrl_file" | cut -d' ' -f1\`" $PersistDir/sys_cache | head -n 1` `echo "$ctrl_file" | cut -d' ' -f2,3`
-				else
-					SWITCH `grep -Ei "$ctrl_file" $PersistDir/sys_cache | head -n 1`
-				fi
-				is f "$SWITCH" && switch_OFF
-				charging || break
-			fi
-		done <<< "`grep -Ev '#|^$' $ModPath/config/ctrl_files_db`"
-
+	if ! is f "$uevent"; then
+		echo -e "\n(!) Battery uevent file not found"
+		######
+		SWITCH 0
 		if ! is f "$SWITCH" || charging; then
-			echo -e "\n(!) Unsupported device\n"
+			if is f $PersistDir/manual_switch; then
+				echo -e "(!) Incompatible control file"
+			else
+				echo -e "(!) No compatible charging control file(s) found"
+			fi
+		fi
+		SWITCH 1
+		if ! is f "$SWITCH" || ! charging; then
+			if is f $PersistDir/manual_switch; then
+				echo -e "(!) Incompatible control file"
+			else
+				echo -e "(!) No compatible charging control file(s) found"
+			fi
+		fi
+		######
+		echo -e "\n(!) Unsupported device\n"
+		debug
+	fi
+		
+	SWITCH 0
+	if ! is f "$SWITCH" || charging; then
+		if is f $PersistDir/manual_switch; then
+			echo -e "\n(!) Incompatible control file\n"
+			exit 1
+		else
+			echo -e "\n(!) No compatible charging control file(s) found"
+			echo -e "- Unsupported device\n"
 			debug
 		fi
-		switch_ON
-		echo -e "- OK\n"
 	fi
+	SWITCH 1
+	if ! is f "$SWITCH" || ! charging; then
+		if is f $PersistDir/manual_switch; then
+			echo -e "\n(!) Incompatible control file\n"
+			exit 1
+		else
+			echo -e "\n(!) No compatible charging control file(s) found"
+			echo -e "- Unsupported device\n"
+			debug
+		fi
+	fi
+	
+	is f $config || update_cfg
+	echo -e "\n(i) Congratulations, your device is supported!\n"
 }
 
 
@@ -245,7 +265,7 @@ start_time() { echo "- Start time: `date +'%F %T'`"; }
 end_time() { echo "- End time: `date +'%F %T'`"; }
 
 
-SWITCH() {
+set_switch() {
 	SWITCH="$1"
 	if n "$2"; then
 		c_ON=$2
@@ -257,8 +277,54 @@ SWITCH() {
 }
 
 
+SWITCH() {
+	if is f $PersistDir/manual_switch; then
+		set_switch `cat $PersistDir/manual_switch`
+		if eq "$1" "0"; then
+			if is f "$SWITCH"; then
+				chmod 644 "$SWITCH"
+				chown 0:0 "$SWITCH"
+				echo $c_OFF > "$SWITCH"
+			fi
+		elif eq "$1" "1"; then
+			if is f "$SWITCH"; then
+				chmod 644 "$SWITCH"
+				chown 0:0 "$SWITCH"
+				echo $c_ON > "$SWITCH"
+			fi
+		fi
+	else
+		while read ctrl_file; do
+			if grep -Eiq "`awk '{print $1}' <<< "$ctrl_file"`" $PersistDir/sys_cache; then
+				ctrl_file_found=true
+			else
+				ctrl_file_found=false
+			fi
+			if $ctrl_file_found; then
+				set_switch `grep -Ei "\`awk '{print $1}' <<< "$ctrl_file"\`" $PersistDir/sys_cache | head -n 1` `awk '{print $2, $3}' <<< "$ctrl_file"`
+				if eq "$1" "0"; then
+					if is f "$SWITCH"; then
+						chmod 644 "$SWITCH"
+						chown 0:0 "$SWITCH"
+						echo $c_OFF > "$SWITCH"
+					fi
+					charging || break
+				elif eq "$1" "1"; then
+					if is f "$SWITCH"; then
+						chmod 644 "$SWITCH"
+						chown 0:0 "$SWITCH"
+						echo $c_ON > "$SWITCH"
+					fi
+					charging && break
+				fi
+			fi
+		done <<< "`grep -Ev '#|^$' $ModPath/config/ctrl_files_db`"
+	fi
+}
+
+
 OFF_time() {
-	if $invert_OFF; then switch_ON; else switch_OFF; fi
+	if $invert_OFF; then SWITCH 1; else SWITCH 0; fi
 	if n "$1"; then
 		if echo "$1" | grep -q '[a-z]'; then
 		
@@ -292,11 +358,11 @@ OFF_time() {
 		echo '(i) Timeount reached.'
 		
 		if $invert_OFF; then
-			switch_OFF
+			SWITCH 0
 			echo '- Charging disabled.'
 			end_time
 		else
-			switch_ON
+			SWITCH 1
 			echo '- Charging re-enabled'
 			start_time
 		fi
@@ -314,11 +380,11 @@ OFF_time() {
 
 OFF_percent() {
 	if $invert_OFF; then
-		switch_ON
+		SWITCH 1
 		echo "(i) Charging enabled until $1."
 		start_time
 	else
-		switch_OFF
+		SWITCH 0
 		echo "(i) Charging disabled until $1."
 		end_time
 	fi
@@ -331,11 +397,11 @@ OFF_percent() {
 	echo '(i) Desired % reached.'
 		
 	if $invert_OFF; then
-		switch_OFF
+		SWITCH 0
 		echo '- Charging disabled.'
 		end_time
 	else
-		switch_ON
+		SWITCH 1
 		echo '- Charging re-enabled'
 		start_time
 	fi
@@ -348,8 +414,6 @@ pause_svc() { is f $PersistDir/pause_svc; }
 charging() { grep -iq '=charging$' "$uevent"; }
 get_batt_level() { read batt_level <<< "`cat "\`dirname "$uevent"\`/capacity"`"; }
 
-switch_OFF() { echo $c_OFF > "$SWITCH"; }
-switch_ON() { echo $c_ON > "$SWITCH"; }
 
 get_limits() {
 	read higher_limit <<< "`grep_prop 'higher_limit' $config`"
@@ -357,22 +421,25 @@ get_limits() {
 }
 
 
-# Update config
 update_cfg() {
 	is f $config && . $config
-	is f $PersistDir/manual_ctrl && . $PersistDir/manual_ctrl
-	rm $config 2>/dev/null
-	
+
 	if is f $config && z "$1"; then
-		echo "higher_limit=$higher_limit" >> $config
+		echo "higher_limit=$higher_limit" > $config
 		echo "lower_limit=$lower_limit" >> $config
 	else
-		if n "$1"; then echo higher_limit=$1 >> $config; else echo higher_limit=90 >> $config; fi
+		if n "$1"; then echo higher_limit=$1 > $config; else echo higher_limit=90 > $config; fi
 		if n "$2"; then echo lower_limit=$2 >> $config; else echo lower_limit=80 >> $config; fi
 	fi
 	
+	if is f $PersistDir/manual_switch; then
+		echo "SWITCH=manual" >> $config
+	else
+		echo "SWITCH=auto" >> $config
+	fi
+	
 	echo "uevent=\"$uevent\"" >> $config
-	echo "SWITCH \"$SWITCH\" $c_ON $c_OFF" >> $config
+	
 	. $config
 	get_batt_level
 }
@@ -383,8 +450,8 @@ update_cfg() {
 
 # Pre-ignition
 is d $PersistDir || mkdir $PersistDir
-if ! echo "$1" | grep -Eq '\-c|\-h|\-r|\-v|debug'; then
-	is f $config && . $config || get_ctrl_files
+if ! grep -Eq '\-c|\-h|\-r|\-v|debug' <<< "$1"; then
+	if is f $config; then . $config; else check_compatibility; fi
 	get_batt_level
 	if ! auto_run || pause_svc; then read start_time <<< "`start_time`"; fi
 	invert_OFF=false
@@ -399,68 +466,10 @@ if [ "$1" = "-c" ]; then
 		echo -e "-- \"ON OFF\" defaults: 1 0\n"
 		exit 1
 	fi
-		
-	echo "SWITCH \"$2\" $3 $4" > $PersistDir/manual_ctrl
-	echo "(i) Checking compatibility..."
-	gen_sys_cache
-	
-	while read uevent_file; do
-		if grep -qs '^POWER_SUPPLY_CAPACITY=' "$uevent_file"; then
-			echo "uevent=\"$uevent_file\"" >> $PersistDir/manual_ctrl
-			break
-		fi
-	done <<< "`cat $PersistDir/sys_cache | grep -i 'battery/uevent'`"
-	
-	. $PersistDir/manual_ctrl
-	is f "$SWITCH" && switch_OFF
-	if ! is f "$SWITCH" || charging; then
-		echo -e "\n(!) Incompatible control file\n"
-	
-		if ! is f "$uevent"; then
-			echo -e "\n(!) Battery uevent file not found\n"
-			echo -e "- Unsupported device\n"
-			rm $PersistDir/manual_ctrl
-			debug
-		fi
-			
-		rm $PersistDir/manual_ctrl
-		echo
-		exit 1
-	fi
-		
-	if ! is f "$uevent"; then
-		echo -e "\n(!) Battery uevent file not found\n"
-		echo -e "- Unsupported device\n"
-		rm $PersistDir/manual_ctrl
-		debug
-	fi
-	
-	switch_ON
-	update_cfg
-	echo -e "- All set.\n"
+	echo "$2 $3 $4" > $PersistDir/manual_switch
+	check_compatibility
 	exit 0
 		
-
-# Toggle store_mode/batt_slate_mode (Samsung); charging_enabled/battery_charging_enabled (others)
-elif [ "$1" = "-x" ]; then
-	is f $config || update_cfg
-	if grep -q 'store_mode' $config; then
-		sed -i 's/store_mode/batt_slate_mode/' $config
-		echo -e "store_mode --> batt_slate_mode\n"
-	elif grep -q 'batt_slate_mode' $config; then
-		sed -i 's/batt_slate_mode/store_mode/' $config
-		echo -e "batt_slate_mode --> store_mode\n"
-	elif grep -q 'battery/charging_enabled' $config; then
-		sed -i 's/battery\/charging_enabled/battery\/battery_charging_enabled/' $config
-		echo -e "charging_enabled --> battery_charging_enabled\n"
-	elif grep -q 'battery/battery_charging_enabled' $config; then
-		sed -i 's/battery\/battery_charging_enabled/battery\/charging_enabled/' $config
-		echo -e "battery_charging_enabled --> charging_enabled\n"
-	else
-		echo -e "(i) This feature doesn't apply to your device.\n"
-	fi
-	exit 0
-
 
 elif [ "$1" = 'debug' ]; then debug
 
@@ -472,7 +481,7 @@ elif [ "$1" = "-v" ]; then
 		echo "(i) verbose OFF"
 		if auto_run && ! pause_svc; then
 			rm $PersistDir/auto_run
-			echo "- CS service stopped."
+			echo "- CS service stopped. Reboot to restart it."
 		fi
 	else
 		touch $PersistDir/enable_verbose
@@ -484,20 +493,24 @@ elif [ "$1" = "-v" ]; then
 	exit 0
 
 
-# Toggle auto-run
+# Toggle service state
 elif [ "$1" = "-s" ]; then
-	if pause_svc; then
-		rm $PersistDir/pause_svc
-		switch_ON
-		echo "(i) CS service resumed."
+	if [ "$2" = "--disable" ]; then
+		rm $PersistDir/auto_run $PersistDir/pause_svc 2>/dev/null
+		echo "(i) CS service disabled until next boot."
+	elif [ "$2" = "--enable" ]; then
+		touch $PersistDir/auto_run
+		rm $PersistDir/pause_svc 2>/dev/null
+		echo "(i) CS service enabled."
+		echo "- Reboot to apply change."
 	else
-		if auto_run; then
-			rm $PersistDir/auto_run
-			echo "(i) CS service OFF"
+		if pause_svc; then
+			rm $PersistDir/pause_svc
+			SWITCH 1
+			echo "(i) CS service resumed."
 		else
-			touch $PersistDir/auto_run
-			echo "(i) CS service ON"
-			echo "- Reboot to apply change."
+			touch $PersistDir/pause_svc
+			echo "(i) CS service paused."
 		fi
 	fi
 	echo
@@ -515,20 +528,20 @@ elif [ "$1" = '-k' ]; then
 	
 	echo "Maintaining $2%..."
 	echo "(i) Press CTRL (Vol. Down) + C to abort."
-	switch_ON
+	SWITCH 1
 
 	while :; do
 		until ge "$batt_level" "$2" || ! charging; do
 			sleep 25
 			get_batt_level
 		done
-		ge "$batt_level" "$2" && switch_OFF
+		ge "$batt_level" "$2" && SWITCH 0
 	
 		until le "$batt_level" "$2" || charging; do
 			sleep 60
 			get_batt_level
 		done
-		le "$batt_level" "$2" && switch_ON
+		le "$batt_level" "$2" && SWITCH 1
 	done
 	exit 0
 
@@ -550,9 +563,8 @@ elif [ "$1" = "-r" ]; then
 # CS service
 elif [ "$1" = "service" ]; then
 	auto_run || exit 0
-	touch > $PersistDir/last_service_run
-	is f $config || update_cfg
-	switch_ON
+	touch $PersistDir/last_service_run
+	SWITCH 1
 	
 	if is f $PersistDir/enable_verbose; then
 		get_limits
@@ -561,25 +573,29 @@ elif [ "$1" = "service" ]; then
 	fi
 
 	while auto_run; do
-		while auto_run && lt "$batt_level" "$higher_limit" && charging; do
+		while pause_svc; do sleep 10; done
+		
+		while auto_run && ! pause_svc && lt "$batt_level" "$higher_limit" && charging; do
 			is f $PersistDir/enable_verbose && echo "Waiting until $higher_limit%..."
 			get_limits
 			get_batt_level
 			if ge "$batt_level" 75; then sleep 25; else sleep 60; fi
 		done
 		if ge "$batt_level" "$higher_limit" && auto_run && ! pause_svc; then
-			switch_OFF
+			SWITCH 0
 			dumpsys batterystats --reset &>/dev/null
 		fi
-
-		while auto_run && gt "$batt_level" "$lower_limit" && ! charging; do
+		
+		while pause_svc; do sleep 10; done
+		
+		while auto_run && ! pause_svc && gt "$batt_level" "$lower_limit" && ! charging; do
 			is f $PersistDir/enable_verbose && echo "Waiting until $lower_limit%..."
 			get_limits
 			get_batt_level
 			if le "$batt_level" 25; then sleep 25; else sleep 60; fi
 		done
 		if le "$batt_level" "$lower_limit" && auto_run && ! pause_svc; then
-			switch_ON
+			SWITCH 1
 		fi
 	done
 	exit 0
@@ -595,7 +611,7 @@ Automatically pauses/resumes charging at set time intervals and/or % levels to e
 
 Usage:
 
-cs [b] [-c] [-h] [-i] [-r] [-s] [-v] [-x] [debug] [-k LEVEL] [PAUSE% RESUME%] [PAUSE%] [-m PAUSE% RESUME%] [-t PAUSE% RESUME%] [-d %/TIMEOUT] [-e %/TIMEOUT]
+cs [b] [-c] [-h] [-i] [-r] [-v] [debug] [-k LEVEL] [PAUSE% RESUME%] [PAUSE%] [-m PAUSE% RESUME%] [ -s --enable/disable] [-t PAUSE% RESUME%] [-d %/TIMEOUT] [-e %/TIMEOUT]
 
 -b --> reset battery stats on demand (does not work on all devices)
 
@@ -607,11 +623,9 @@ cs [b] [-c] [-h] [-i] [-r] [-s] [-v] [-x] [debug] [-k LEVEL] [PAUSE% RESUME%] [P
 
 -r --> reset cs to its initial state
 
--s --> toggle auto-run; resume CS service
+-s --> pause/resume, --enable/disable service
 
 -v --> toggle verbose (extensive log -- debugging)
-
--x --> toggle store_mode/batt_slate_mode (Samsung); charging_enabled/battery_charging_enabled (others)
 
 debug --> gather debugging data & save it to /sdcard/cs_debug.zip
 
@@ -697,7 +711,6 @@ elif [ "$1" = '-e' ]; then
 
 # Battery & settings info
 elif [ "$1" = '-i' ]; then
-	is f $config || update_cfg
 	echo 'Battery Info'
 	cat "$uevent" | grep -Ev 'NAME|PRESENT|CAPACITY_LEVEL' \
 		| sed 's/POWER_SUPPLY_//' \
@@ -709,21 +722,14 @@ elif [ "$1" = '-i' ]; then
 	cat $config
 	if auto_run; then
 		if pause_svc; then echo "service_status=PAUSED"
-		else echo "service_status=ON"; fi
-	else echo "service_status=OFF"; fi
+		else echo "service_status=enabled"; fi
+	else echo "service_status=\"disabled until next boot\""; fi
 	echo
 	exit 0
 
 
 # Run with default/saved settings
 elif z "$1"; then
-	if ! is f $config; then
-		echo "(i) No settings found."
-		echo "- Applying defaults -- cs 90 80..."
-		update_cfg
-		echo
-		sleep 1
-	fi
 	if auto_run && ! pause_svc; then
 		echo -e "(i) CS service is already running.\n"
 		exit 0
@@ -766,7 +772,7 @@ elif echo "$1" | grep -q '[0-9]'; then
 	if auto_run && ! pause_svc; then
 		echo "- CS service is already running."
 		echo -e "-- Now working with the new values.\n"
-		switch_ON
+		SWITCH 1
 		exit 0
 	fi
 	
