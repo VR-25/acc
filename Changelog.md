@@ -1,3 +1,17 @@
+# 2017.12.30 (201712300)
+- Better compatibility (devices & Magisk)
+- `cs -x` is back -- run it once if charging doesn't stop. Refer to the README for details.
+- General optimizations
+- New and enhanced debugging engine
+- Updated charging switches database
+- Wait for charger before initial setup instead of just reminding the user to plug it in.
+
+**Release notes**
+- 3rd call: owners of "still unsupported devices", please upload new debugging data. Reverse engineering this stuff can take a while. The sooner you provide me the data, the closer you'll be to having your devices supported.
+- Bootloop? Run `touch /data/.xcs` as root before installing. Unless you clear /data or I change the key, this flag is only needed once.
+- Previous settings will be wiped.
+
+
 # 2017.12.24 (201712240)
 - `cs -s` & `cs -s --enable/disable` -- toggle pause/resume & enable/disable service
 - Enhanced device compatibility assessment

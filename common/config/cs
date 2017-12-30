@@ -1,0 +1,17 @@
+# CS settings
+
+# Battery power
+higher_limit=90
+lower_limit=80
+
+# Battery info file (uevent)
+UEVENT=
+
+# Charging switch
+SWITCH=
+ON_key=
+OFF_key=
+
+# Service
+auto_run=true
+pause_svc=false
