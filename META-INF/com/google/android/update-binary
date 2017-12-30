@@ -134,7 +134,9 @@ if [ ! -f /data/r ] \
 fi
 
 # Remove obsolete data
-[ "$CurVersionCode" -lt "201712300" ] && rm -rf $PersistDir
+if [ "$CurVersionCode" -lt "201712300" ] || [ "$CurVersionCode" -eq "0" ]; then
+	[ -n "$CurVersionCode" ] && rm -rf $PersistDir
+fi
 mkdir -p $PersistDir/info 2>/dev/null
 
 # Create mod paths

@@ -41,10 +41,10 @@ LATESTARTSERVICE=true
 
 ModVersion="`grep_prop version $INSTALLER/module.prop`"
 print_modname() {
-  ui_print "**************************************"
+  ui_print "***************************************"
   ui_print "Magic Charging Switch (cs) $ModVersion"
   ui_print "         VR25 @ XDA Developers        "
-  ui_print "**************************************"
+  ui_print "***************************************"
 }
 
 ##########################################################################################

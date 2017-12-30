@@ -90,9 +90,10 @@ set -x 2>>"$verbose_log"
 debug() {
 	set +x
 	echo "(i) Gathering debugging data..."
+
 	{
 	grep -i product /system/build.prop
-	echo -e "\ncsVersion=$csVersion\n\n"
+	echo -e "\ncsVersion=$csVersion\n\n\n"
 	
 	for file in $PersistDir/*; do
 		if is f "$file"; then
@@ -104,26 +105,17 @@ debug() {
 		fi
 	done
 
-	###
 	echo "##############################"
-	echo "/sys/class/power_supply links"
+	echo "/sys/class/power_supply/*"
 	echo -e "##############################\n"
-	for i in /sys/class/power_supply/*; do
-		i="$(readlink -f "$i")"
-		ls -1 "$i"/*
-	done
-	echo -e "\n\n"
-	###
-
-	echo "##############################"
-	echo "Extensive /sys data"
-	echo -e "##############################\n"
-	find /sys -type f 2>/dev/null | grep -Eiv '/fs|/dev/|/block|/ram|/storage|log'
-
+	generate_sys_cache
+	cat $PersistDir/sys_cache
+	
 	} >/sdcard/cs_debug-$DEVICE.log
 
 	echo -e "- Done."
 	echo "- Generated file: /sdcard/cs_debug-$DEVICE.log\n"
+	rm $PersistDir/sys_cache
 	exit 0
 }
 
@@ -194,26 +186,22 @@ check_compatibility() {
 	echo "(i) Checking compatibility..."
 
 	# Preparation
-	is f $PersistDir/sys_cache \
-		|| find /sys -type f 2>/dev/null \
-			| grep -Eiv '/fs|/dev/|/block|/ram|/storage|log' >$PersistDir/sys_cache
+	generate_sys_cache no_val
 
 
 	# Test 1
 	while read uevent_file; do
-		chown 0:0 "$uevent_file"
-		chmod 644 "$uevent_file"
-		if grep -iq '^POWER_SUPPLY_NAME=battery$' "$uevent_file"; then
+		 chmod +rw "$uevent_file"
+		if grep -iqs '^POWER_SUPPLY_NAME=battery$' "$uevent_file"; then
 			set_prop UEVENT "$uevent_file"
 			break
 		fi
-	done <<< "$(grep -E 'batt|charg' $PersistDir/sys_cache | grep uevent)"
+	done <<< "$(grep uevent $PersistDir/sys_cache)"
 
 	if is f "$(UEVENT)"; then
 		while read uevent_file; do
-			chown 0:0 "$uevent_file"
-			chmod 644 "$uevent_file"
-			if grep -iq '^POWER_SUPPLY' "$uevent_file"; then
+			 chmod +rw "$uevent_file"
+			if grep -iqs '^POWER_SUPPLY' "$uevent_file"; then
 				if ! charging; then
 					echo "- Waiting for charger..."
 					until charging; do sleep 5; done
@@ -238,7 +226,7 @@ check_compatibility() {
 					fi
 				done
 			fi
-		done <<< "$(find /sys -type f -name uevent 2>/dev/null | grep -E 'batt|charg')"
+		done <<< "$(grep uevent $PersistDir/sys_cache)"
 	fi
 
 
@@ -271,11 +259,10 @@ check_compatibility() {
 	# Verdict
 	if ! is f "$(SWITCH)"; then
 		echo -e "- (!) Unsupported device\n"
-		rm $PersistDir/sys_cache 2>/dev/null
 		debug
 	else
 		echo -e "- Congratulations, your device is supported!\n"
-		rm $PersistDir/sys_cache 2>/dev/null
+		rm $PersistDir/sys_cache
 		sleep 2
 	fi
 }
@@ -328,8 +315,7 @@ SWITCH() {
 	if z "$1"; then
 		get_prop SWITCH
 	else
-		chown 0:0 "$(SWITCH)"
-		chmod 644 "$(SWITCH)"
+		chmod +rw "$(SWITCH)"
 		case $1 in
 			ON) echo "$(get_prop ON_key)" >"$(SWITCH)";;
 			OFF) echo "$(get_prop OFF_key)" >"$(SWITCH)";;
@@ -422,7 +408,7 @@ auto_run() { get_prop auto_run; }
 
 batt_level() { get_prop POWER_SUPPLY_CAPACITY "$(UEVENT)"; }
 
-charging() { grep -iq '=charging$' "$(UEVENT)"; }
+charging() { grep -iqs '=charging$' "$(UEVENT)"; }
 
 end_time() { echo "- End time: $(date +'%F %T')"; }
 
@@ -453,6 +439,20 @@ update_cfg() {
 }
 
 
+generate_sys_cache() {
+	for e in /sys/class/power_supply/*; do
+		while read file; do
+			chmod +rw "$file"
+			if z "$1"; then
+				echo "$file [$(cat "$file" 2>/dev/null | head -n1)]"
+			else
+				echo "$file"
+			fi
+		done <<< "$(find "$(readlink -f "$e")" -type f 2>/dev/null)"
+		echo
+	done >$PersistDir/sys_cache
+}
+
 
 # SELF-CHECK
 if ! grep -Eq '\-c|\-h|\-r|debug' <<< "$1"; then
@@ -479,10 +479,11 @@ case $1 in
 			exit 1
 		fi
 
+		generate_sys_cache
+
 		while read uevent_file; do
-			chown 0:0 "$uevent_file"
-			chmod 644 "$uevent_file"
-			if grep -iq '^POWER_SUPPLY_NAME=battery$' "$uevent_file"; then
+			 chmod +rw "$uevent_file"
+			if grep -iqs '^POWER_SUPPLY_NAME=battery$' "$uevent_file"; then
 				set_prop UEVENT "$uevent_file"
 				set_switch "$2"
 				if n "$4"; then
@@ -491,7 +492,9 @@ case $1 in
 				fi
 				break
 			fi
-		done <<< "$(find /sys -type f -name uevent 2>/dev/null | grep -E 'batt|charg')"
+		done <<< "$(grep uevent $PersistDir/sys_cache)"
+
+		rm $PersistDir/sys_cache
 
 		if ! is f "$(UEVENT)"; then
 			echo -e "(!) Unsupported device\n"
