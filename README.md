@@ -17,11 +17,9 @@
 
 - Run `su` first, ALWAYS -- or make sure `su -c` goes before `cs` (i.e., `su -c cs -e 30m`).
 
-cs [-b] [-c] [-h] [-i] [-r] [-x] [debug] [-k LEVEL] [PAUSE% RESUME%] [PAUSE%] [-m PAUSE% RESUME%] [-s --enable/disable] [-t PAUSE% RESUME%] [-d %/TIMEOUT] [-e %/TIMEOUT]
+cs [-b] [-h] [-i] [-r] [debug] [-k LEVEL] [PAUSE% RESUME%] [PAUSE%] [-m PAUSE% RESUME%] [-s --enable/disable] [-t PAUSE% RESUME%] [-d %/TIMEOUT] [-e %/TIMEOUT] [-x /path/to/switch ON_key OFF_key]
 
 `-b` --> reset battery stats on demand (does not work on all devices)
-
-`-c` --> manually set charging switch config (/path/to/ctrl/file ON OFF)
 
 `-h` --> cs usage instructions
 
@@ -31,7 +29,7 @@ cs [-b] [-c] [-h] [-i] [-r] [-x] [debug] [-k LEVEL] [PAUSE% RESUME%] [PAUSE%] [-
 
 `-s` --> pause/resume, --enable/disable service
 
-`x` --> toggle store_mode/batt_slate_mode (Samsung); charging_enabled/battery_charging_enabled (generic)
+`-x` --> pick a different charging switch from the database
 
 `debug` --> gather debugging data & save it to /sdcard/cs_debug-DEVICE.log
 
@@ -46,6 +44,8 @@ just `cs` --> run CS with default/saved settings
 `-d [%/TIMEOUT (optional)]` --> disable charging on demand (pauses CS service)
 
 `-e [%/TIMEOUT (optional)]` --> enable charging on demand (pauses CS service)
+
+`-x` /path/to/switch ON_key OFF_key -- > manually set a charging switch; if keys match one of the following as is or in reverse oder -- you don't have to specify them: 1/0, enable/disable, enabled/disabled, true/false, on/off, 100/3
 
 
 **Usage Examples/Tips**
@@ -74,7 +74,7 @@ just `cs` --> run CS with default/saved settings
 
 Ideally, you want your battery level between 40-60% - best, 20-80% - average, 10-90% - fair.
 
-For best convenience, stick with cs 90 80; cs 80 70 for a perfect balance between convenience & battery wear. If you want the longest battery lifespan, aim for cs 45 40 (best for prolonged usage -- i.e., navigation).
+For best convenience, stick with cs 90 80; cs 80 70 for a perfect balance between convenience & battery wear. If you want the longest battery lifespan, use cs 42 41 or cs -k 42 (best for prolonged usage -- i.e., navigation).
 
 
 **Debugging**
@@ -83,9 +83,7 @@ For best convenience, stick with cs 90 80; cs 80 70 for a perfect balance betwee
 
 - Before actions: `touch /data/r` -- force reinstall; `touch /data/.xcs` install cs to xbin dir instead of bin (bootloop workaround, only needed once).
 
-- `cs -x` switches between available control files for supported devices. For instance, Samsung devices have `store_mode` & `batt_slate_mode`; stock/near-stock Android smartphones have `charging_enabled` & `battery_charging_enabled`. Use this command only in case of charging control inconsistencies.
-
-- `cs -c` syntax: `cs -c /path/to/ctrl/file ON OFF` -- where ON OFF, depending on the device, can be 1 0, 0 1, enable disable, enabled disabled, etc.. Example: `cs -c /sys/devices/platform/7000c400.i2c/i2c-1/1-006b/charging_state enabled disabled`. The booleans 1/0, on/off, true/false, 100/3, enable/disable and enabled/disabled are automatically assigned -- so you don't need to specify any of them.
+- If charging control is inconsistent, run `cs -x` to pick a different switch from the database.
 
 
 **Online Info/Support**
@@ -96,6 +94,16 @@ For best convenience, stick with cs 90 80; cs 80 70 for a perfect balance betwee
 
 
 **Changelog**
+
+# 2017.12.31 (201712310)
+- General optimizations
+- `cs -x` -- pick a different charging switch from the database
+- `cs -x /path/to/switch` -- manually set the charging switch; refer to the README for additional info
+- Updated charging switches database
+
+Release Note
+- If charging control is inconsistent, run `cs -x` to pick a different switch from the database.
+
 
 # 2017.12.30-1 (201712301)
 - Fixed permission issues & unexpected reboot upon initial setup
@@ -118,16 +126,4 @@ For best convenience, stick with cs 90 80; cs 80 70 for a perfect balance betwee
 Release Notes
 - 3rd call: owners of "still unsupported devices", please upload new debugging data. Reverse engineering this stuff can take a while. The sooner you provide me the data, the closer you'll be to having your devices supported.
 - Bootloop? Run `touch /data/.xcs` as root before installing. Unless you clear /data or I change the key, this flag is only needed once.
-- Previous settings will be wiped.
-
-
-2017.12.24 (201712240)
-- `cs -s` & `cs -s --enable/disable` -- toggle pause/resume & enable/disable service
-- Enhanced device compatibility assessment
-- General optimizations
-- Minor cosmetic changes
-- New charging control algorithm (automatically cycles through available control files to make sure charging is enabled/disabled; `cs -x` is officially dead)
-
-Release Notes
-- 2nd call: owners of "still unsupported devices", please upload new debugging data. Reverse engineering this stuff can take a while. The sooner you provide me the data, the closer you'll be to having your devices supported.
 - Previous settings will be wiped.

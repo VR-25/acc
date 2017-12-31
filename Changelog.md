@@ -1,3 +1,13 @@
+# 2017.12.31 (201712310)
+- General optimizations
+- `cs -x` -- pick a different charging switch from the database
+- `cs -x /path/to/switch` -- manually set the charging switch; refer to the README for additional info
+- Updated charging switches database
+
+**Release Note**
+- If charging control is inconsistent, run `cs -x` to pick a different switch from the database.
+
+
 # 2017.12.30-1 (201712301)
 - Fixed permission issues & unexpected reboot upon initial setup
 - General optimizations

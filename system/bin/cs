@@ -170,18 +170,6 @@ c_loop() {
 }
 
 
-wait_timeout() {
-	while :; do
-		if charging; then sleep 0.2; else break; fi
-		if charging; then sleep 0.2; else break; fi
-		if charging; then sleep 0.2; else break; fi
-		if charging; then sleep 0.2; else break; fi
-		if charging; then sleep 0.2; else break; fi
-		break
-	done
-}
-
-
 check_compatibility() {
 	echo "(i) Checking compatibility..."
 
@@ -189,58 +177,41 @@ check_compatibility() {
 	generate_sys_cache no_val
 
 
-	# Test 1
+	# Test 1 -- uevent
 	while read uevent_file; do
-		 chmod +rw "$uevent_file"
+		chmod +rw "$uevent_file"
 		if grep -iqs '^POWER_SUPPLY_NAME=battery$' "$uevent_file"; then
 			set_prop UEVENT "$uevent_file"
 			break
 		fi
-	done <<< "$(grep uevent $PersistDir/sys_cache)"
+	done <<< "$(grep -i 'battery/uevent' $PersistDir/sys_cache)"
 
+
+	# Test 2 -- charging switch
 	if is f "$(UEVENT)"; then
-		while read uevent_file; do
-			 chmod +rw "$uevent_file"
-			if grep -iqs '^POWER_SUPPLY' "$uevent_file"; then
-				if ! charging; then
-					echo "- Waiting for charger..."
-					until charging; do sleep 5; done
-				fi
-				for ctrl_file in $(dirname "$uevent_file")/*; do
-					if is f "$ctrl_file"; then
-						set_switch "$ctrl_file"
-						[ "$?" = "3" ] && continue
 
-						if n "$(get_prop OFF_key)"; then
-							SWITCH OFF
-							wait_timeout
-						fi
+		if ! charging; then
+			echo "- Waiting for charger..."
+			until charging; do sleep 5; done
+		fi
 
-						if ! charging; then
-							SWITCH ON
-							break 2
-						else
-							n "$(get_prop ON_key)" && SWITCH ON
-							set_switch
-						fi
-					fi
-				done
-			fi
-		done <<< "$(grep uevent $PersistDir/sys_cache)"
-	fi
-
-
-	# Test 2
-	if is f "$(UEVENT)" && ! is f "$(SWITCH)"; then
 		while read ctrl_file; do
 			while read ctrl_file_; do
 				if is f "$ctrl_file_"; then
+					chmod +rw "$ctrl_file_"
 					set_switch "$ctrl_file_"
 					[ "$?" = "3" ] && continue
 
 					if n "$(get_prop OFF_key)"; then
 						SWITCH OFF
-						wait_timeout
+						while :; do
+							if charging; then sleep 0.2; else break; fi
+							if charging; then sleep 0.2; else break; fi
+							if charging; then sleep 0.2; else break; fi
+							if charging; then sleep 0.2; else break; fi
+							if charging; then sleep 0.2; else break; fi
+							break
+						done
 					fi
 
 					if ! charging; then
@@ -301,7 +272,7 @@ set_switch() {
 			enabled) set_prop ON_key enabled; set_prop OFF_key disabled;;
 			disabled) set_prop ON_key disabled; set_prop OFF_key enabled;;
 			*) return 3;;
-		esac
+		esac 2>/dev/null
 	else
 		# Reset values back to null
 		set_prop SWITCH
@@ -455,7 +426,7 @@ generate_sys_cache() {
 
 
 # SELF-CHECK
-if ! grep -Eq '\-c|\-h|\-r|debug' <<< "$1"; then
+if ! grep -Eq '\-x /|\-h|\-r|debug' <<< "$1 $2"; then
 	if ! is f "$(SWITCH)"; then
 		cp $DefaultConfig $config
 		check_compatibility
@@ -471,58 +442,63 @@ fi
 # OPTIONS MENU
 case $1 in
 
-	# Manually set charging switch config
-	-c)
-		if z "$2"; then
-			echo "(!) Missing argument(s)"
-			echo "- Syntax: \"cs -c /path/to/ctrl/file ON OFF\""
-			exit 1
-		fi
-
-		generate_sys_cache
-
-		while read uevent_file; do
-			 chmod +rw "$uevent_file"
-			if grep -iqs '^POWER_SUPPLY_NAME=battery$' "$uevent_file"; then
-				set_prop UEVENT "$uevent_file"
-				set_switch "$2"
-				if n "$4"; then
-					set_prop ON_key $3
-					set_prop OFF_key $4
-				fi
-				break
-			fi
-		done <<< "$(grep uevent $PersistDir/sys_cache)"
-
-		rm $PersistDir/sys_cache
-
-		if ! is f "$(UEVENT)"; then
-			echo -e "(!) Unsupported device\n"
-			debug
-		else
-			echo -e "All set.\n"
-		fi
-		exit 0
-		;;
-
-
-	# Toggle store_mode/batt_slate_mode (Samsung); charging_enabled/battery_charging_enabled (generic)
+	# Manually set a charging switch or pick one from the database
 	-x)
-		if grep -q 'store_mode' $config; then
-			sed -i 's/store_mode/batt_slate_mode/' $config
-			echo -e "store_mode --> batt_slate_mode\n"
-		elif grep -q 'batt_slate_mode' $config; then
-			sed -i 's/batt_slate_mode/store_mode/' $config
-			echo -e "batt_slate_mode --> store_mode\n"
-		elif grep -q 'battery/charging_enabled' $config; then
-			sed -i 's/battery\/charging_enabled/battery\/battery_charging_enabled/' $config
-			echo -e "charging_enabled --> battery_charging_enabled\n"
-		elif grep -q 'battery/battery_charging_enabled' $config; then
-			sed -i 's/battery\/battery_charging_enabled/battery\/charging_enabled/' $config
-			echo -e "battery_charging_enabled --> charging_enabled\n"
+		generate_sys_cache no_val
+		if n "$2"; then
+			while read uevent_file; do
+				chmod +rw "$uevent_file"
+				if grep -iqs '^POWER_SUPPLY_NAME=battery$' "$uevent_file"; then
+					set_prop UEVENT "$uevent_file"
+					set_switch "$2"
+					if n "$4"; then
+						set_prop ON_key $3
+						set_prop OFF_key $4
+					fi
+					break
+				fi
+			done <<< "$(grep -i 'battery/uevent' $PersistDir/sys_cache)"
+
+			if ! is f "$(UEVENT)"; then
+				echo -e "(!) Unsupported device\n"
+				debug
+			else
+				echo -e "(i) Charging switch set successfully.\n"
+			fi
+			
 		else
-			echo -e "(i) This feature doesn't apply to your device.\n"
+			echo "(i) Fetching available charging switches for $DEVICE..."
+			: >$PersistDir/csx
+			COUNT=0
+
+			if ! charging; then
+				echo "- Waiting for charger..."
+				until charging; do sleep 5; done
+			fi
+
+			echo
+
+			while read ctrl_file; do
+				while read ctrl_file_; do
+					if is f "$ctrl_file_"; then
+						COUNT=$(($COUNT+1))
+						echo -e "[$COUNT] $ctrl_file_\n" >>$PersistDir/csx
+					fi
+				done <<< "$(grep "$ctrl_file" $PersistDir/sys_cache | grep -v "$(SWITCH)")"
+			done <<< "$(grep -Ev '#|^$' $ModPath/config/switches)"
+		
+			if grep -q '[a-z]' $PersistDir/csx; then
+				cat $PersistDir/csx
+				echo -e "Pick a number or press CTRL (Vol. Down) + C to cancel..."
+				read INPUT
+				set_switch "$(grep "\[${INPUT}\] " $PersistDir/csx | awk '{print $2}')"
+				echo -e "\n(i) New switch set successfully.\n"
+			else
+				echo -e "\n(i) No additional switch(es) found\n"
+			fi
+			
 		fi
+		rm $PersistDir/csx $PersistDir/sys_cache 2>/dev/null
 		exit 0
 		;;
 
@@ -649,11 +625,9 @@ Automatically pauses/resumes charging at set time intervals and/or % levels to e
 
 Usage:
 
-cs [b] [-c] [-h] [-i] [-r] [-x] [debug] [-k LEVEL] [PAUSE% RESUME%] [PAUSE%] [-m PAUSE% RESUME%] [ -s --enable/disable] [-t PAUSE% RESUME%] [-d %/TIMEOUT] [-e %/TIMEOUT]
+cs [b] [-h] [-i] [-r] [debug] [-k LEVEL] [PAUSE% RESUME%] [PAUSE%] [-m PAUSE% RESUME%] [ -s --enable/disable] [-t PAUSE% RESUME%] [-d %/TIMEOUT] [-e %/TIMEOUT] [x /path/to/switch ON_key OFF_key]
 
 -b --> reset battery stats on demand (does not work on all devices)
-
--c --> manually set charging control file config (/path/to/ctrl/file ON OFF)
 
 -h --> cs usage instructions
 
@@ -663,7 +637,7 @@ cs [b] [-c] [-h] [-i] [-r] [-x] [debug] [-k LEVEL] [PAUSE% RESUME%] [PAUSE%] [-m
 
 -s --> pause/resume, --enable/disable service
 
--x --> toggle store_mode/batt_slate_mode (Samsung); charging_enabled/battery_charging_enabled (generic)
+-x --> pick a charging switch from the database
 
 debug --> gather debugging data & save it to /sdcard/cs_debug.zip
 
@@ -678,6 +652,8 @@ PAUSE% RESUME% --> pause charging at PAUSE% value (default 90); resume if batter
 -d [%/TIMEOUT (optional)] --> disable charging on demand (pauses CS service)
 
 -e [%/TIMEOUT (optional)] --> enable charging on demand (pauses CS service)
+
+-x /path/to/switch ON_key OFF_key -- > manually set a charging switch; if keys match one of the following as is or in reverse oder -- you don't have to specify them: 1/0, enable/disable, enabled/disabled, true/false, on/off, 100/3
 
 
 Usage Examples/Tips
@@ -706,7 +682,7 @@ Usage Examples/Tips
 
 Ideally, you want your battery level between 40-60% - best, 20-80% - average, 10-90% - fair.
 
-For best convenience, stick with cs 90 80; cs 80 70 for a perfect balance between convenience & battery wear. If you want the longest battery lifespan, aim for cs 45 40 (best for prolonged usage -- i.e., navigation).
+For best convenience, stick with cs 90 80; cs 80 70 for a perfect balance between convenience & battery wear. If you want the longest battery lifespan, use cs 42 41 or cs -k 42 (best for prolonged usage -- i.e., navigation).
 EOD
 	echo
 	exit 0
@@ -722,7 +698,7 @@ EOD
 		
 		if n "$2"; then
 			case $2 in
-				-q) OFF_percent $2;;
+				*[0-9]%) OFF_percent $2;;
 				*) OFF_time $2;;
 			esac
 		else OFF_time; fi
@@ -744,7 +720,7 @@ EOD
 		invert_OFF=true
 		if n "$2"; then
 			case $2 in
-				-q) OFF_percent $2;;
+				*[0-9]%) OFF_percent $2;;
 				*) OFF_time $2;;
 			esac
 		else OFF_time; fi
