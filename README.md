@@ -1,23 +1,26 @@
 # Magic Charging Switch (cs)
-# VR25 @ XDA Developers
+## VR25 @ XDA Developers
 
 
-**Intro**
+
+### Description
 - Automatically pauses/resumes charging at set time intervals and/or % levels to extend battery lifespan.
 - Battery stats are reset on pause (doesn't work on all devices).
 - Install, connect charger, reboot, configure (or leave defaults: 90 80) and forget.
 - If your device is incompatible, you'll find the file /sdcard/cs_debug-DEVICE.log. Upload it to the official XDA thread (find the link below).
 
 
-**Disclaimer**
+
+### Disclaimer
 - cs changes low level Android settings -- I shall not be held responsible for any cat harm, hair loss and/or nuclear disaster potentially triggered by the use/misuse of it.
 
 
-**Usage**
+
+### Usage
 
 - Run `su` first, ALWAYS -- or make sure `su -c` goes before `cs` (i.e., `su -c cs -e 30m`).
 
-cs [-b] [-h] [-i] [-r] [debug] [-k LEVEL] [PAUSE% RESUME%] [PAUSE%] [-m PAUSE% RESUME%] [-s --enable/disable] [-t PAUSE% RESUME%] [-d %/TIMEOUT] [-e %/TIMEOUT] [-x /path/to/switch ON_key OFF_key]
+cs [-b] [-h] [-i] [-r] [-v] [debug] [-k LEVEL] [PAUSE% RESUME%] [PAUSE%] [-m PAUSE% RESUME%] [-s --enable/disable] [-t PAUSE% RESUME%] [-d %/TIMEOUT] [-e %/TIMEOUT] [-x /path/to/switch ON_key OFF_key]
 
 `-b` --> reset battery stats on demand (does not work on all devices)
 
@@ -28,6 +31,8 @@ cs [-b] [-h] [-i] [-r] [debug] [-k LEVEL] [PAUSE% RESUME%] [PAUSE%] [-m PAUSE% R
 `-r` --> reset cs to its initial state
 
 `-s` --> pause/resume, --enable/disable service
+
+`-v` --> toggle extensive (loops) verbose
 
 `-x` --> pick a different charging switch from the database
 
@@ -48,7 +53,8 @@ just `cs` --> run CS with default/saved settings
 `-x` /path/to/switch ON_key OFF_key -- > manually set a charging switch; if keys match one of the following as is or in reverse oder -- you don't have to specify them: 1/0, enable/disable, enabled/disabled, true/false, on/off, 100/3
 
 
-**Usage Examples/Tips**
+
+### Usage Examples/Tips
 
 `cs 85` --> pause charging at 85%; resume when battery level is less or equal to 80% (default).
 
@@ -77,7 +83,8 @@ Ideally, you want your battery level between 40-60% - best, 20-80% - average, 10
 For best convenience, stick with cs 90 80; cs 80 70 for a perfect balance between convenience & battery wear. If you want the longest battery lifespan, use cs 42 41 or cs -k 42 (best for prolonged usage -- i.e., navigation).
 
 
-**Debugging**
+
+### Debugging
 
 - If your device is incompatible, cs auto-generates the file /sdcard/cs_debug-DEVICE.log.
 
@@ -86,44 +93,43 @@ For best convenience, stick with cs 90 80; cs 80 70 for a perfect balance betwee
 - If charging control is inconsistent, run `cs -x` to pick a different switch from the database.
 
 
-**Online Info/Support**
+
+### Online Info/Support
 - [Battery University](http://batteryuniversity.com/learn/article/how_to_prolong_lithium_based_batteries)
 - [Git Repository](https://github.com/Magisk-Modules-Repo/Magic-Charging-Switch)
 - [XDA Thread](https://forum.xda-developers.com/apps/magisk/module-magic-charging-switch-cs-v2017-9-t3668427)
 
 
 
-**Changelog**
+### Changelog
 
-# 2017.12.31 (201712310)
+**2017.1.13 (201801130)**
+- Extended (loops) verbose -- toggle: `cs -v`
+- Fixed hang/reboot upon charger connection
+- Fixed Nexus 10 compatibility issues
+- Major optimizations
+- Support for virtually all Magisk versions to date (special downgrading procedures no longer needed)
+
+*Release Note*
+- Current settings will be reverted to defaults.
+
+
+**2017.1.7 (201801070)**
+- Extended (loops) verbose -- toggle: `cs -v`
+- Fixed Nexus 10 compatibility issues
+- Improved compatibility with older Magisk versions
+- Major optimizations
+- Updated charging switches database -- hang/reboot upon charger connection possibly fixed
+
+*Release Note*
+- Current settings will be reverted to defaults.
+
+
+**2017.12.31 (201712310)**
 - General optimizations
 - `cs -x` -- pick a different charging switch from the database
 - `cs -x /path/to/switch` -- manually set the charging switch; refer to the README for additional info
 - Updated charging switches database
 
-Release Note
+*Release Note*
 - If charging control is inconsistent, run `cs -x` to pick a different switch from the database.
-
-
-# 2017.12.30-1 (201712301)
-- Fixed permission issues & unexpected reboot upon initial setup
-- General optimizations
-- Updated debugging engine & charging switches database
-
-**Release Notes**
-- Bootloop? Run `touch /data/.xcs` as root before installing. Unless you clear /data or I change the key, this flag is only needed once.
-- `cs -x` -- run it once if charging doesn't stop. Refer to the README for details.
-
-
-2017.12.30 (201712300)
-- Better compatibility (devices & Magisk)
-- `cs -x` is back -- run it once if charging doesn't stop. Refer to the README for details.
-- General optimizations
-- New and enhanced debugging engine
-- Updated charging switches database
-- Wait for charger before initial setup instead of just reminding the user to plug it in.
-
-Release Notes
-- 3rd call: owners of "still unsupported devices", please upload new debugging data. Reverse engineering this stuff can take a while. The sooner you provide me the data, the closer you'll be to having your devices supported.
-- Bootloop? Run `touch /data/.xcs` as root before installing. Unless you clear /data or I change the key, this flag is only needed once.
-- Previous settings will be wiped.

@@ -8,25 +8,21 @@
 
 # Prepend Magisk built-in busybox to PATH
 export PATH="/sbin/.core/busybox:/dev/magisk/bin:$PATH"
-
+ModID=cs
 
 # Debugging switches (shell strict mode)
-IFS=$'\n\t'
+#IFS=$'\n\t'
 #set -exuo pipefail
 #set -eo pipefail
 
 
 # Root check
-if ! id | grep -qi 'uid=0(root)'; then
-	echo -e "\n(!) cs must run as root.\n"
+if [ "$(whoami)" != "root" ]; then
+	echo -e "\n(!) $ModID must run as root.\n"
 	exit 1
 else
 	echo
 fi
-
-
-PersistDir="/data/media/cs"
-config="$PersistDir/config"
 
 
 is() { [ -$1 "$2" ]; }
@@ -34,6 +30,13 @@ is() { [ -$1 "$2" ]; }
 n() { [ -n "$1" ]; }
 
 z() { [ -z "$1" ]; }
+
+
+PersistDir="/data/media/cs"
+config="$PersistDir/config"
+
+
+is d $PersistDir || mkdir $PersistDir
 
 
 get_prop() {
@@ -47,7 +50,6 @@ set_prop() { sed -i "s|^$1=.*|$1=$2|g" "$config"; }
 
 
 # Find ModPath
-ModID=cs
 for loop_device in /dev/block/loop*; do
 	if losetup $loop_device 2>/dev/null | grep -q '\(/data/.*magisk.img\)'; then
 		while read MountPoint; do
@@ -61,7 +63,7 @@ for loop_device in /dev/block/loop*; do
 done
 
 if ! is f "$ModPath/module.prop"; then
-  echo -e "\n(!) $ModID path not found"
+  echo -e "(!) $ModID path not found"
   echo -e "- Unsupported Magisk version\n"
   exit 1
 fi
@@ -79,6 +81,7 @@ csVersion="$(get_prop versionCode $ModPath/module.prop)"
 
 
 # Verbose logger
+# If $PersistDir/v exists, the engine logs loops as well. This is for heavy debugging and advanced users only.
 verbose_log="$PersistDir/cs_verbose-$DEVICE.log"
 last_verbose_log="$PersistDir/last_cs_verbose-$DEVICE.log"
 is f "$verbose_log" && mv "$verbose_log" "$last_verbose_log"
@@ -96,7 +99,7 @@ debug() {
 	echo -e "\ncsVersion=$csVersion\n\n\n"
 	
 	for file in $PersistDir/*; do
-		if is f "$file"; then
+		if is f "$file" && ! echo "$file" | grep -q 'sys_cache'; then
 			echo "##############################"
 			echo "$file"
 			echo -e "##############################\n"
@@ -137,7 +140,7 @@ c_info() {
 
 # Charging loop
 c_loop() {
-	set +x
+	$(get_prop loop_verbose) || set +x
 	SWITCH ON
 	while :; do
 		until [ "$(batt_level)" -ge "$1" ]; do
@@ -180,7 +183,7 @@ check_compatibility() {
 	# Test 1 -- uevent
 	while read uevent_file; do
 		chmod +rw "$uevent_file"
-		if grep -iqs '^POWER_SUPPLY_NAME=battery$' "$uevent_file"; then
+		if grep -i '^POWER_SUPPLY_NAME=' "$uevent_file" | grep -Eiq 'battery$|smb.*\-battery$'; then
 			set_prop UEVENT "$uevent_file"
 			break
 		fi
@@ -248,11 +251,6 @@ exxit() {
 		echo -e "\n(!) Error at line $1\n"
 		exit 1
 	fi
-}
-
-
-exxit_1() {
-	: # cleanup after error -- to be implemented
 }
 
 
@@ -381,7 +379,7 @@ batt_level() { get_prop POWER_SUPPLY_CAPACITY "$(UEVENT)"; }
 
 charging() { grep -iqs '=charging$' "$(UEVENT)"; }
 
-end_time() { echo "- End time: $(date +'%F %T')"; }
+end_time() { echo "- End time: $(date)"; }
 
 higher_limit() { get_prop higher_limit; }
 
@@ -389,7 +387,7 @@ lower_limit() { get_prop lower_limit; }
 
 pause_svc() { get_prop pause_svc; }
 
-start_time() { echo "- Start time: $(date +'%F %T')"; }
+start_time() { echo "- Start time: $(date)"; }
 
 UEVENT() { get_prop UEVENT; }
 
@@ -448,7 +446,7 @@ case $1 in
 		if n "$2"; then
 			while read uevent_file; do
 				chmod +rw "$uevent_file"
-				if grep -iqs '^POWER_SUPPLY_NAME=battery$' "$uevent_file"; then
+				if grep -i '^POWER_SUPPLY_NAME=' "$uevent_file" | grep -Eiq 'battery$|smb.*\-battery$'; then
 					set_prop UEVENT "$uevent_file"
 					set_switch "$2"
 					if n "$4"; then
@@ -511,12 +509,12 @@ case $1 in
 		if [ "$2" = "--disable" ]; then
 			set_prop auto_run false
 			set_prop pause_svc false
-			echo "(i) CS service disabled until next boot."
+			echo "(i) CS service disabled."
 		elif [ "$2" = "--enable" ]; then
 			set_prop auto_run true
 			set_prop pause_svc false
 			echo "(i) CS service enabled."
-			echo "- Reboot to apply change."
+			echo "- Reboot to apply change if it's being ran by Magisk daemon."
 		else
 			if $(pause_svc); then
 				set_prop pause_svc false
@@ -532,8 +530,23 @@ case $1 in
 		;;
 
 
+	# Toggle extensive (loops) verbose
+		-v)
+		if $(get_prop loop_verbose); then
+			set_prop loop_verbose false
+			echo -e "(i) Loop verbose disabled"
+		else
+			set_prop loop_verbose true
+			echo -e "(i) Loop verbose enabled"
+		fi
+		echo
+		exit 0
+		;;
+
+
 	# Keep/maintain battery power at a constant level
 	-k)
+		$(get_prop loop_verbose) || set +x
 		if $(auto_run) && ! $(pause_svc); then
 			set_prop pause_svc true
 			echo "(i) CS service paused."
@@ -583,8 +596,13 @@ case $1 in
 
 	# CS service
 	service)
-		set +x
-		SWITCH ON
+		$(get_prop loop_verbose) || set +x
+		if $(auto_run); then
+			set_prop pause_svc false
+			SWITCH ON
+		else
+			exit 0
+		fi
 		
 		while $(auto_run); do
 
@@ -615,7 +633,7 @@ case $1 in
 
 
 	# Usage instructions
-	-h)
+	-h|--help)
 		set +x
 		cat <<EOD
 Magic Charging Switch (cs)
@@ -625,17 +643,19 @@ Automatically pauses/resumes charging at set time intervals and/or % levels to e
 
 Usage:
 
-cs [b] [-h] [-i] [-r] [debug] [-k LEVEL] [PAUSE% RESUME%] [PAUSE%] [-m PAUSE% RESUME%] [ -s --enable/disable] [-t PAUSE% RESUME%] [-d %/TIMEOUT] [-e %/TIMEOUT] [x /path/to/switch ON_key OFF_key]
+cs [b] [-h] [-i] [-r] [-v] [debug] [-k LEVEL] [PAUSE% RESUME%] [PAUSE%] [-m PAUSE% RESUME%] [ -s --enable/disable] [-t PAUSE% RESUME%] [-d %/TIMEOUT] [-e %/TIMEOUT] [x /path/to/switch ON_key OFF_key]
 
 -b --> reset battery stats on demand (does not work on all devices)
 
--h --> cs usage instructions
+-h/--help --> cs usage instructions
 
 -i --> display battery info
 
 -r --> reset cs settigs
 
 -s --> pause/resume, --enable/disable service
+
+-v --> toggle extensive (loops) verbose
 
 -x --> pick a charging switch from the database
 
@@ -810,5 +830,3 @@ EOD
 
 	*) exxit;;
 esac
-
-trap exxit_1 EXIT # Cleanup after error -- under construction

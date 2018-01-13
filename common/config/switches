@@ -1,6 +1,6 @@
 ###########################################
 # Charging Switches Database
-# VersionCode=201712310
+# VersionCode=201801130
 # VR25 @ XDA Developers
 ###########################################
 
@@ -78,9 +78,11 @@ battery/present_smb
 switch_charger/ncp1854_access
 battery/state
 battery/Charging_CallState
-ac/online
-ac/present
-battery/online
-battery/present
 battery/BN_TestMode
+
+# Cause forced reboot -- Nexus 7 (flo) & others
+#ac/online
+#ac/present
+#battery/online
+#battery/present
 ###########################################

@@ -15,3 +15,6 @@ OFF_key=
 # Service
 auto_run=true
 pause_svc=false
+
+# Debugging
+loop_verbose=false

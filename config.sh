@@ -86,10 +86,7 @@ set_permissions() {
   # set_perm  $MODPATH/system/lib/libart.so       0       0       0644
 
   # The following is default permissions, DO NOT remove
-  set_perm_recursive  $MODPATH  0  0  0755  0644
-
-  [ -f $MODPATH/system/bin/cs ] && set_perm $MODPATH/system/bin/cs  0  0  0775
-  [ -f $MODPATH/system/xbin/cs ] && set_perm $MODPATH/system/xbin/cs  0  0  0775
+  set_perm_recursive  $MODPATH  0  0  0755  0755
 }
 
 ##########################################################################################
