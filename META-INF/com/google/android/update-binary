@@ -219,28 +219,28 @@ ui_print "******************************"
 ui_print "Powered by Magisk (@topjohnwu)"
 ui_print "******************************"
 
-ui_print "- Mounting /system(ro), /vendor(ro), /data, /cache"
-mount -o ro /system 2>/dev/null
-mount -o ro /vendor 2>/dev/null
+ui_print "- Mounting partitions"
+# mount -o ro /system 2>/dev/null
+# mount -o ro /vendor 2>/dev/null
 mount /data 2>/dev/null
-mount /cache 2>/dev/null
+# mount /cache 2>/dev/null
 
-if [ ! -f '/system/build.prop' ]; then
-  ui_print "(!) Failed: /system could not be mounted!"
-  exit 1
-fi
+# if [ ! -f '/system/build.prop' ]; then
+#   ui_print "(!) Failed: /system could not be mounted!"
+#   exit 1
+# fi
 
-API=`grep_prop ro.build.version.sdk`
-ABI=`grep_prop ro.product.cpu.abi | cut -c-3`
-ABI2=`grep_prop ro.product.cpu.abi2 | cut -c-3`
-ABILONG=`grep_prop ro.product.cpu.abi`
+# API=`grep_prop ro.build.version.sdk`
+# ABI=`grep_prop ro.product.cpu.abi | cut -c-3`
+# ABI2=`grep_prop ro.product.cpu.abi2 | cut -c-3`
+# ABILONG=`grep_prop ro.product.cpu.abi`
 
-ARCH=arm
-IS64BIT=false
-if [ "$ABI" = "x86" ]; then ARCH=x86; fi;
-if [ "$ABI2" = "x86" ]; then ARCH=x86; fi;
-if [ "$ABILONG" = "arm64-v8a" ]; then ARCH=arm64; IS64BIT=true; fi;
-if [ "$ABILONG" = "x86_64" ]; then ARCH=x64; IS64BIT=true; fi;
+# ARCH=arm
+# IS64BIT=false
+# if [ "$ABI" = "x86" ]; then ARCH=x86; fi;
+# if [ "$ABI2" = "x86" ]; then ARCH=x86; fi;
+# if [ "$ABILONG" = "arm64-v8a" ]; then ARCH=arm64; IS64BIT=true; fi;
+# if [ "$ABILONG" = "x86_64" ]; then ARCH=x64; IS64BIT=true; fi;
 
 # You can get the Android API version from $API, the CPU architecture from $ARCH
 # Useful if you are creating Android version / platform dependent mods
@@ -266,7 +266,7 @@ if [ -f "$IMG" ]; then
   if [ "$reqSizeM" -gt "$curFreeM" ]; then
 	SIZE=$(((reqSizeM + curUsedM) / 32 * 32 + 64))
 	ui_print "- Resizing $IMG to ${SIZE}M..."
-	resize2fs $IMG ${SIZE}M
+	resize2fs $IMG ${SIZE}M >&2
   fi
 else
   SIZE=$((reqSizeM / 32 * 32 + 64));
@@ -392,15 +392,15 @@ image_size_check $IMG
 NEWDATASIZE=$((curUsedM / 32 * 32 + 32))
 if [ "$curSizeM" -gt "$NEWDATASIZE" ]; then
   ui_print "- Shrinking $IMG to ${NEWDATASIZE}M..."
-  resize2fs $IMG ${NEWDATASIZE}M
+  resize2fs $IMG ${NEWDATASIZE}M >&2
 fi
 
-if ! $BOOTMODE; then
-  umount /system
-  umount /vendor 2>/dev/null
-fi
+# if ! $BOOTMODE; then
+#   umount /system
+#   umount /vendor 2>/dev/null
+# fi
 
-[ "IMG" = /data/adb/$IMGNAME ] && ln -s "$IMG" /data
+[ "$IMG" = /data/adb/$IMGNAME ] && ln -s "$IMG" /data
 
 ui_print "- Done"
 exit 0

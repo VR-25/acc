@@ -1,3 +1,9 @@
+**2017.1.25 (201801250)**
+- Fixed installation error -- A/B partition devices
+- General optimizations
+- Updated control files database
+
+
 **2017.1.13 (201801130)**
 - Extended (loops) verbose -- toggle: `cs -v`
 - Fixed hang/reboot upon charger connection

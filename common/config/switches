@@ -1,6 +1,6 @@
 ###########################################
 # Charging Switches Database
-# VersionCode=201801130
+# VersionCode=201801250
 # VR25 @ XDA Developers
 ###########################################
 
@@ -68,6 +68,8 @@ dc/charging_enabled
 # Asus Zenfone 2
 batterylifeextender/charging_limit
 
+charger/charge_enabled
+
 # Pixel, HTC...
 parallel/charging_enabled
 battery/step_charging_enabled
@@ -79,6 +81,11 @@ switch_charger/ncp1854_access
 battery/state
 battery/Charging_CallState
 battery/BN_TestMode
+
+# Google Pixel C
+#charge_control_limit_max [0-100]
+
+#battery/status_smb [3]
 
 # Cause forced reboot -- Nexus 7 (flo) & others
 #ac/online

@@ -101,7 +101,13 @@ For best convenience, stick with cs 90 80; cs 80 70 for a perfect balance betwee
 
 
 
-### Changelog
+### Recent Changes
+
+**2017.1.25 (201801250)**
+- Fixed installation error -- A/B partition devices
+- General optimizations
+- Updated control files database
+
 
 **2017.1.13 (201801130)**
 - Extended (loops) verbose -- toggle: `cs -v`
@@ -109,17 +115,6 @@ For best convenience, stick with cs 90 80; cs 80 70 for a perfect balance betwee
 - Fixed Nexus 10 compatibility issues
 - Major optimizations
 - Support for virtually all Magisk versions to date (special downgrading procedures no longer needed)
-
-*Release Note*
-- Current settings will be reverted to defaults.
-
-
-**2017.1.7 (201801070)**
-- Extended (loops) verbose -- toggle: `cs -v`
-- Fixed Nexus 10 compatibility issues
-- Improved compatibility with older Magisk versions
-- Major optimizations
-- Updated charging switches database -- hang/reboot upon charger connection possibly fixed
 
 *Release Note*
 - Current settings will be reverted to defaults.

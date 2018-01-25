@@ -10,6 +10,7 @@
 export PATH="/sbin/.core/busybox:/dev/magisk/bin:$PATH"
 ModID=cs
 
+
 # Debugging switches (shell strict mode)
 #IFS=$'\n\t'
 #set -exuo pipefail
@@ -17,7 +18,7 @@ ModID=cs
 
 
 # Root check
-if [ "$(whoami)" != "root" ]; then
+if ! id 2>/dev/null | grep -iq 'root'; then
 	echo -e "\n(!) $ModID must run as root.\n"
 	exit 1
 else
@@ -26,14 +27,14 @@ fi
 
 
 is() { [ -$1 "$2" ]; }
-
 n() { [ -n "$1" ]; }
-
 z() { [ -z "$1" ]; }
 
 
 PersistDir="/data/media/cs"
 config="$PersistDir/config"
+SYSTEM=/system
+is d /system_root && SYSTEM=/system_root/system
 
 
 is d $PersistDir || mkdir $PersistDir
@@ -70,11 +71,12 @@ fi
 
 
 # Device ID
-if grep -q 'ro.product.device' /system/build.prop; then
-	DEVICE="$(get_prop ro.product.brand /system/build.prop)_$(get_prop ro.product.device /system/build.prop)"
-else
-	DEVICE="$(get_prop ro.product.brand /system/build.prop)_$(get_prop ro.build.product /system/build.prop)"
-fi
+TestGroup="ro.product.device ro.build.product"
+for i in $TestGroup; do
+	Model="$(get_prop $i $SYSTEM/build.prop)"
+	n "$Model" && break || Model="Generic"
+done
+DEVICE="$(get_prop ro.product.brand $SYSTEM/build.prop)_$Model"
 
 
 csVersion="$(get_prop versionCode $ModPath/module.prop)"
@@ -85,7 +87,7 @@ csVersion="$(get_prop versionCode $ModPath/module.prop)"
 verbose_log="$PersistDir/cs_verbose-$DEVICE.log"
 last_verbose_log="$PersistDir/last_cs_verbose-$DEVICE.log"
 is f "$verbose_log" && mv "$verbose_log" "$last_verbose_log"
-{ grep -i product /system/build.prop
+{ grep -i product $SYSTEM/build.prop
 echo -e "\ncsVersion=$csVersion\n"; } >"$verbose_log"
 set -x 2>>"$verbose_log"
 
@@ -95,9 +97,16 @@ debug() {
 	echo "(i) Gathering debugging data..."
 
 	{
-	grep -i product /system/build.prop
+	grep -i product $SYSTEM/build.prop
 	echo -e "\ncsVersion=$csVersion\n\n\n"
 	
+	echo "##############################"
+	echo "/sys/class/power_supply/*"
+	echo -e "##############################\n"
+	generate_sys_cache
+	cat $PersistDir/sys_cache
+	echo -e "\n\n\n"
+
 	for file in $PersistDir/*; do
 		if is f "$file" && ! echo "$file" | grep -q 'sys_cache'; then
 			echo "##############################"
@@ -107,12 +116,6 @@ debug() {
 			echo -e "\n\n"
 		fi
 	done
-
-	echo "##############################"
-	echo "/sys/class/power_supply/*"
-	echo -e "##############################\n"
-	generate_sys_cache
-	cat $PersistDir/sys_cache
 	
 	} >/sdcard/cs_debug-$DEVICE.log
 
