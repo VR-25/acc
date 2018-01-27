@@ -88,7 +88,7 @@ For best convenience, stick with cs 90 80; cs 80 70 for a perfect balance betwee
 
 - If your device is incompatible, cs auto-generates the file /sdcard/cs_debug-DEVICE.log.
 
-- Before actions: `touch /data/r` -- force reinstall; `touch /data/.xcs` install cs to xbin dir instead of bin (bootloop workaround, only needed once).
+- Before actions: `touch /data/r` -- force reinstall; `touch /data/.bcs` install cs to bin dir instead of xbin (bootloop workaround, only needed once).
 
 - If charging control is inconsistent, run `cs -x` to pick a different switch from the database.
 
@@ -102,6 +102,16 @@ For best convenience, stick with cs 90 80; cs 80 70 for a perfect balance betwee
 
 
 ### Recent Changes
+
+**2017.1.27 (201801270)**
+- General optimizations
+- Minor cosmetic changes
+- Stability improvements
+- Updated cs service function
+
+*Release Note*
+- Unsupported devices whose owners already provided a debug zip won't be supported anytime soon. Most, if not all of those lack advanced charging control functionality -- custom kernel [or proper hardware] required.
+
 
 **2017.1.25 (201801250)**
 - Fixed installation error -- A/B partition devices
@@ -118,13 +128,3 @@ For best convenience, stick with cs 90 80; cs 80 70 for a perfect balance betwee
 
 *Release Note*
 - Current settings will be reverted to defaults.
-
-
-**2017.12.31 (201712310)**
-- General optimizations
-- `cs -x` -- pick a different charging switch from the database
-- `cs -x /path/to/switch` -- manually set the charging switch; refer to the README for additional info
-- Updated charging switches database
-
-*Release Note*
-- If charging control is inconsistent, run `cs -x` to pick a different switch from the database.

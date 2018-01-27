@@ -1,3 +1,13 @@
+**2017.1.27 (201801270)**
+- General optimizations
+- Minor cosmetic changes
+- Stability improvements
+- Updated cs service function
+
+*Release Note*
+- Unsupported devices whose owners already provided a debug zip won't be supported anytime soon. Most, if not all of those lack advanced charging control functionality -- custom kernel [or proper hardware] required.
+
+
 **2017.1.25 (201801250)**
 - Fixed installation error -- A/B partition devices
 - General optimizations

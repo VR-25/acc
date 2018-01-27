@@ -11,19 +11,12 @@ export PATH="/sbin/.core/busybox:/dev/magisk/bin:$PATH"
 ModID=cs
 
 
-# Debugging switches (shell strict mode)
-#IFS=$'\n\t'
-#set -exuo pipefail
-#set -eo pipefail
-
-
 # Root check
-if ! id 2>/dev/null | grep -iq 'root'; then
-	echo -e "\n(!) $ModID must run as root.\n"
-	exit 1
-else
-	echo
-fi
+# if ! id 2>/dev/null | grep -iq 'root'; then
+# 	echo -e "\n(!) $ModID must run as root.\n"
+# 	exit 1
+#fi
+echo
 
 
 is() { [ -$1 "$2" ]; }
@@ -65,7 +58,7 @@ done
 
 if ! is f "$ModPath/module.prop"; then
   echo -e "(!) $ModID path not found"
-  echo -e "- Unsupported Magisk version\n"
+  echo -e "- Unsupported Magisk version or not running as root (su)\n"
   exit 1
 fi
 
@@ -83,7 +76,6 @@ csVersion="$(get_prop versionCode $ModPath/module.prop)"
 
 
 # Verbose logger
-# If $PersistDir/v exists, the engine logs loops as well. This is for heavy debugging and advanced users only.
 verbose_log="$PersistDir/cs_verbose-$DEVICE.log"
 last_verbose_log="$PersistDir/last_cs_verbose-$DEVICE.log"
 is f "$verbose_log" && mv "$verbose_log" "$last_verbose_log"
@@ -152,7 +144,7 @@ c_loop() {
 			echo -e "$start_time\n"
 			c_info
 			echo "(i) Press CTRL (Vol. Down) + C to abort."
-			if [ "$(batt_level)" -ge "75" ]; then sleep 25; else sleep 60; fi
+			sleep 25
 		done
 
 		SWITCH OFF
@@ -167,7 +159,7 @@ c_loop() {
 		echo "- Press CTRL (Vol. Down) + C to abort."
 		
 		until [ "$(batt_level)" -le "$(lower_limit)" ]; do
-			if [ "$(batt_level)" -le "25" ]; then sleep 25; else sleep 60; fi
+			sleep 25
 		done
 		
 		SWITCH ON
@@ -210,14 +202,14 @@ check_compatibility() {
 
 					if n "$(get_prop OFF_key)"; then
 						SWITCH OFF
-						while :; do
-							if charging; then sleep 0.2; else break; fi
-							if charging; then sleep 0.2; else break; fi
-							if charging; then sleep 0.2; else break; fi
-							if charging; then sleep 0.2; else break; fi
-							if charging; then sleep 0.2; else break; fi
-							break
+
+						Count=0
+						until [ "$Count" -ge "5" ]; do
+							Count=$(($Count+1))
+							charging && sleep 0.2 || break
 						done
+						unset Count
+
 					fi
 
 					if ! charging; then
@@ -569,7 +561,7 @@ case $1 in
 			[ "$(batt_level)" -ge "$2" ] && SWITCH OFF
 		
 			until [ "$(batt_level)" -le "$2" ] || charging; do
-				sleep 60
+				sleep 25
 			done
 
 			[ "$(batt_level)" -le "$2" ] && SWITCH ON
@@ -606,33 +598,25 @@ case $1 in
 		else
 			exit 0
 		fi
-		
 		while $(auto_run); do
-
-			while $(pause_svc); do sleep 10; done
-
-			while $(auto_run) && ! $(pause_svc) && [ "$(batt_level)" -lt "$(higher_limit)" ] && charging; do
-				if [ "$(batt_level)" -ge "75" ]; then sleep 25; else sleep 60; fi
+			$(pause_svc) && sleep 25
+			until $(pause_svc); do
+				if [ "$(batt_level)" -le "$(lower_limit)" ] \
+				&& [ "$(get_prop OFF_key)" = "$(cat "$(SWITCH)")" ]; then
+					SWITCH ON
+				fi
+				sleep 12
+				if [ "$(batt_level)" -ge "$(higher_limit)" ] \
+				&& [ "$(get_prop ON_key)" = "$(cat "$(SWITCH)")" ]; then
+					SWITCH OFF
+					dumpsys batterystats --reset &>/dev/null
+				fi
+				sleep 12
 			done
-
-			if [ "$(batt_level)" -ge "$(higher_limit)" ] && $(auto_run) && ! $(pause_svc) && charging; then
-				SWITCH OFF
-				dumpsys batterystats --reset &>/dev/null
-			fi
-			
-			while $(pause_svc); do sleep 10; done
-
-			while $(auto_run) && ! $(pause_svc) && [ "$(batt_level)" -gt "$(lower_limit)" ] && ! charging; do
-				if [ "$(batt_level)" -le "25" ]; then sleep 25; else sleep 60; fi
-			done
-
-			if [ "$(batt_level)" -le "$(lower_limit)" ] && $(auto_run) && ! $(pause_svc) && ! charging; then
-				SWITCH ON
-			fi
-
 		done
 		exit 0
 		;;
+
 
 
 	# Usage instructions

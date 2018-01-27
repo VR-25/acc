@@ -34,7 +34,22 @@ is_mounted() { mountpoint -q "$1"; }
 mount_image() {
   ui_print "- Mounting $1 to $2"
   [ -d "$2" ] || mkdir -p "$2"
-  mount "$1" "$2"
+  if (! is_mounted $2); then
+    LOOPDEVICE=
+    for LOOP in 0 1 2 3 4 5 6 7; do
+      if (! is_mounted $2); then
+        LOOPDEVICE=/dev/block/loop$LOOP
+        [ -f "$LOOPDEVICE" ] || mknod $LOOPDEVICE b 7 $LOOP 2>/dev/null
+        losetup $LOOPDEVICE $1
+        if [ "$?" -eq "0" ]; then
+          mount -t ext4 -o loop $LOOPDEVICE $2
+          is_mounted $2 || /system/bin/toolbox mount -t ext4 -o loop $LOOPDEVICE $2
+          is_mounted $2 || /system/bin/toybox mount -t ext4 -o loop $LOOPDEVICE $2
+        fi
+        is_mounted $2 && break
+      fi
+    done
+  fi
 }
 
 set_perm() {
@@ -99,9 +114,6 @@ if [ "$?" -eq "0" ]; then
 	fi
   done
 fi
-
-# Fix SuperSU.....
-#$BOOTMODE && $BINDIR/sepolicy-inject --live "allow fsck * * *"
 
 # This path should work in any cases
 TMPDIR=/dev/tmp
@@ -329,16 +341,13 @@ unzip -o "$ZIP" README.md Changelog.md -d $PersistDir/info >&2
 mv $INSTALLER/common/config $TMP_MODPATH
 
 # Bootlop workaround
-[ -f /data/.xcs ] && mv $TMP_MODPATH/system/bin $TMP_MODPATH/system/xbin
+[ -f /data/.bcs ] && mv $TMP_MODPATH/system/xbin $TMP_MODPATH/system/bin
 
 # Cleanup ###
 cd /data
-rm b r x 2>/dev/null
+rm b r x .xcs 2>/dev/null
 
 ##########################################################################################
-
-# Remove placeholder
-rm -f $TMP_MODPATH/system/placeholder 2>/dev/null
 
 # Handle replace folders
 for TARGET in $REPLACE; do
@@ -379,12 +388,7 @@ set_permissions
 ui_print "- Unmounting partitions"
 
 umount $MOUNTPATH
-for loop_device in /dev/block/loop*; do
-  if losetup $loop_device 2>/dev/null | grep -q "$IMG"; then
-	losetup -d $loop_device
-	break
-  fi
-done
+losetup -d $LOOPDEVICE
 rmdir $MOUNTPATH
 
 # Shrink the image if possible
@@ -400,7 +404,7 @@ fi
 #   umount /vendor 2>/dev/null
 # fi
 
-[ "$IMG" = /data/adb/$IMGNAME ] && ln -s "$IMG" /data
+[ "$IMG" = /data/adb/$IMGNAME ] && ln -s "$IMG" /data 2>/dev/null
 
 ui_print "- Done"
 exit 0
