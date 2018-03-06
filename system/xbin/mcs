@@ -1,21 +1,13 @@
 #!/system/bin/sh
-# Magic Charging Switch (cs)
-# VR25 @ XDA Developers
+# Magic Charging Switch (mcs)
+# VR25 @ xda-developers
 
 
 
 # ENVIRONMENT & TOOLBOX
 
-# Prepend Magisk built-in busybox to PATH
 export PATH="/sbin/.core/busybox:/dev/magisk/bin:$PATH"
 ModID=cs
-
-
-# Root check
-# if ! id 2>/dev/null | grep -iq 'root'; then
-# 	echo -e "\n(!) $ModID must run as root.\n"
-# 	exit 1
-#fi
 echo
 
 
@@ -24,7 +16,7 @@ n() { [ -n "$1" ]; }
 z() { [ -z "$1" ]; }
 
 
-PersistDir="/data/media/cs"
+PersistDir="/data/media/mcs"
 config="$PersistDir/config"
 SYSTEM=/system
 is d /system_root && SYSTEM=/system_root/system
@@ -46,13 +38,13 @@ set_prop() { sed -i "s|^$1=.*|$1=$2|g" "$config"; }
 # Find ModPath
 for loop_device in /dev/block/loop*; do
 	if losetup $loop_device 2>/dev/null | grep -q '\(/data/.*magisk.img\)'; then
-		while read MountPoint; do
+		for MountPoint in $(grep $loop_device /proc/mounts | awk '{print $2}' | grep -v '/system'); do
 			if is f $MountPoint/$ModID/module.prop; then
 				ModPath=$MountPoint/$ModID
-				DefaultConfig=$ModPath/config/cs
+				DefaultConfig=$ModPath/config/mcs
 				break 2
 			fi
-		done <<< "$(grep $loop_device /proc/mounts | awk '{print $2}' | grep -v '/system')"
+		done
 	fi
 done
 
@@ -72,25 +64,25 @@ done
 DEVICE="$(get_prop ro.product.brand $SYSTEM/build.prop)_$Model"
 
 
-csVersion="$(get_prop versionCode $ModPath/module.prop)"
+mcsVersion="$(get_prop versionCode $ModPath/module.prop)"
 
 
 # Verbose logger
-verbose_log="$PersistDir/cs_verbose-$DEVICE.log"
-last_verbose_log="$PersistDir/last_cs_verbose-$DEVICE.log"
+verbose_log="$PersistDir/mcs_verbose-${DEVICE}.log"
+last_verbose_log="$PersistDir/last-mcs_verbose-${DEVICE}.log"
 is f "$verbose_log" && mv "$verbose_log" "$last_verbose_log"
 { grep -i product $SYSTEM/build.prop
-echo -e "\ncsVersion=$csVersion\n"; } >"$verbose_log"
+echo -e "\nmcsVersion=$mcsVersion\n"; } >"$verbose_log"
 set -x 2>>"$verbose_log"
 
 
 debug() {
 	set +x
 	echo "(i) Gathering debugging data..."
-
-	{
-	grep -i product $SYSTEM/build.prop
-	echo -e "\ncsVersion=$csVersion\n\n\n"
+	rm /sdcard/mcs_debug*log 2>/dev/null
+	
+	{ grep -i product $SYSTEM/build.prop
+	echo -e "\nmcsVersion=$mcsVersion\n\n\n"
 	
 	echo "##############################"
 	echo "/sys/class/power_supply/*"
@@ -98,7 +90,21 @@ debug() {
 	generate_sys_cache
 	cat $PersistDir/sys_cache
 	echo -e "\n\n\n"
-
+	
+	echo "##############################"
+	echo "uevent"
+	echo -e "##############################\n"
+	generate_sys_cache no_val
+	for uevent_file in $(grep -i 'battery/uevent' $PersistDir/sys_cache); do
+		chmod +r "$uevent_file"
+		if grep -i '^POWER_SUPPLY_NAME=' "$uevent_file" | grep -Eiq 'battery$|smb.*\-battery$'; then
+			echo "[$uevent_file]"
+			cat "$uevent_file"
+			echo
+		fi
+	done
+	echo -e "\n\n"
+	
 	for file in $PersistDir/*; do
 		if is f "$file" && ! echo "$file" | grep -q 'sys_cache'; then
 			echo "##############################"
@@ -109,10 +115,10 @@ debug() {
 		fi
 	done
 	
-	} >/sdcard/cs_debug-$DEVICE.log
+	} >/sdcard/mcs_debug-${DEVICE}-${mcsVersion}-$(date +%Y%m%d%H%M%S).log
 
 	echo -e "- Done."
-	echo "- Generated file: /sdcard/cs_debug-$DEVICE.log\n"
+	echo "- Generated file: /sdcard/mcs_debug-${DEVICE}-${mcsVersion}-$(date +%Y%m%d%H%M%S).log\n"
 	rm $PersistDir/sys_cache
 	exit 0
 }
@@ -176,13 +182,13 @@ check_compatibility() {
 
 
 	# Test 1 -- uevent
-	while read uevent_file; do
-		chmod +rw "$uevent_file"
+	for uevent_file in $(grep -i 'battery/uevent' $PersistDir/sys_cache); do
+		chmod +r "$uevent_file"
 		if grep -i '^POWER_SUPPLY_NAME=' "$uevent_file" | grep -Eiq 'battery$|smb.*\-battery$'; then
 			set_prop UEVENT "$uevent_file"
 			break
 		fi
-	done <<< "$(grep -i 'battery/uevent' $PersistDir/sys_cache)"
+	done
 
 
 	# Test 2 -- charging switch
@@ -191,37 +197,32 @@ check_compatibility() {
 		if ! charging; then
 			echo "- Waiting for charger..."
 			until charging; do sleep 5; done
+			echo "-- Charger detected"
+			echo "- Please wait..."
 		fi
-
-		while read ctrl_file; do
-			while read ctrl_file_; do
+		
+		for ctrl_file in $(grep -Ev '#|^$' $ModPath/config/switches); do
+			for ctrl_file_ in $(grep "$ctrl_file" $PersistDir/sys_cache); do
 				if is f "$ctrl_file_"; then
-					chmod +rw "$ctrl_file_"
+					chmod +r "$ctrl_file_"
 					set_switch "$ctrl_file_"
 					[ "$?" = "3" ] && continue
-
 					if n "$(get_prop OFF_key)"; then
 						SWITCH OFF
-
-						Count=0
-						until [ "$Count" -ge "5" ]; do
-							Count=$(($Count+1))
-							charging && sleep 0.2 || break
-						done
-						unset Count
-
-					fi
-
-					if ! charging; then
-						SWITCH ON
-						break 2
-					else
-						n "$(get_prop ON_key)" && SWITCH ON
-						set_switch
+						sleep 2
+						charging || break
 					fi
 				fi
-			done <<< "$(grep "$ctrl_file" $PersistDir/sys_cache)"
-		done <<< "$(grep -Ev '#|^$' $ModPath/config/switches)"
+			done
+			if ! charging; then
+				SWITCH ON
+				sleep 2
+				charging && break || set_switch
+			else
+				n "$(get_prop ON_key)" && SWITCH ON
+				set_switch
+			fi
+		done
 	fi
 
 
@@ -240,7 +241,7 @@ check_compatibility() {
 exxit() {
 	if z "$1"; then
 		echo "(!) Invalid option/argument"
-		echo -e "- Run \"cs -h\" for help\n"
+		echo -e "- Run \"mcs -h\" for help\n"
 		exit 1
 	else
 		echo -e "\n(!) Error at line $1\n"
@@ -405,27 +406,27 @@ update_cfg() {
 
 generate_sys_cache() {
 	for e in /sys/class/power_supply/*; do
-		while read file; do
-			chmod +rw "$file"
+		for file in $(find "$(readlink -f "$e")" -type f 2>/dev/null); do
+			chmod +r "$file"
 			if z "$1"; then
 				echo "$file [$(cat "$file" 2>/dev/null | head -n1)]"
 			else
 				echo "$file"
 			fi
-		done <<< "$(find "$(readlink -f "$e")" -type f 2>/dev/null)"
+		done
 		echo
 	done >$PersistDir/sys_cache
 }
 
 
 # SELF-CHECK
-if ! grep -Eq '\-x /|\-h|\-r|debug' <<< "$1 $2"; then
-	if ! is f "$(SWITCH)"; then
+if ! echo "$1 $2" | grep -Eq '\-x|\-h|\-r|debug'; then
+	if ! is f "$(SWITCH)" || ! is f $config; then
 		cp $DefaultConfig $config
 		check_compatibility
 	fi
 	if ! $(auto_run) || $(pause_svc); then
-		read start_time <<< "$(start_time)"
+		start_time="$(start_time)"
 	fi
 	invert_OFF=false
 fi
@@ -437,61 +438,69 @@ case $1 in
 
 	# Manually set a charging switch or pick one from the database
 	-x)
+		echo "(i) Please wait..."
 		generate_sys_cache no_val
-		if n "$2"; then
-			while read uevent_file; do
-				chmod +rw "$uevent_file"
-				if grep -i '^POWER_SUPPLY_NAME=' "$uevent_file" | grep -Eiq 'battery$|smb.*\-battery$'; then
-					set_prop UEVENT "$uevent_file"
-					set_switch "$2"
-					if n "$4"; then
-						set_prop ON_key $3
-						set_prop OFF_key $4
-					fi
-					break
-				fi
-			done <<< "$(grep -i 'battery/uevent' $PersistDir/sys_cache)"
-
-			if ! is f "$(UEVENT)"; then
-				echo -e "(!) Unsupported device\n"
-				debug
-			else
-				echo -e "(i) Charging switch set successfully.\n"
+		for uevent_file in $(grep -i 'battery/uevent' $PersistDir/sys_cache); do
+			chmod +r "$uevent_file"
+			if grep -i '^POWER_SUPPLY_NAME=' "$uevent_file" | grep -Eiq 'battery$|smb.*\-battery$'; then
+				set_prop UEVENT "$uevent_file"
+				break
 			fi
-			
+		done
+
+		if ! is f "$(UEVENT)"; then
+			echo -e "(!) Unsupported device\n"
+			debug
+		fi
+		
+		if n "$2"; then
+			set_switch "$2"
+			if n "$4"; then
+				set_prop ON_key $3
+				set_prop OFF_key $4
+			fi
+			echo -e "- Charging switch set successfully.\n"
+		
 		else
-			echo "(i) Fetching available charging switches for $DEVICE..."
-			: >$PersistDir/csx
-			COUNT=0
+			echo "- Fetching known control files for ${DEVICE}..."
+			: >$PersistDir/.csx
+			Count=0
 
 			if ! charging; then
-				echo "- Waiting for charger..."
+				echo "-- Waiting for charger..."
 				until charging; do sleep 5; done
+				echo "--- Charger detected"
+				echo "-- Please wait..."
 			fi
 
 			echo
+			is f $(SWITCH) || set_switch dummy_switch
 
-			while read ctrl_file; do
-				while read ctrl_file_; do
+			for ctrl_file in $(grep -Ev '#|^$' $ModPath/config/switches); do
+				for ctrl_file_ in $(grep "$ctrl_file" $PersistDir/sys_cache | grep -v "$(SWITCH)"); do
 					if is f "$ctrl_file_"; then
-						COUNT=$(($COUNT+1))
-						echo -e "[$COUNT] $ctrl_file_\n" >>$PersistDir/csx
+						((Count++))
+						echo -e "[$Count] $ctrl_file_\n" >>$PersistDir/.csx
 					fi
-				done <<< "$(grep "$ctrl_file" $PersistDir/sys_cache | grep -v "$(SWITCH)")"
-			done <<< "$(grep -Ev '#|^$' $ModPath/config/switches)"
-		
-			if grep -q '[a-z]' $PersistDir/csx; then
-				cat $PersistDir/csx
-				echo -e "Pick a number or press CTRL (Vol. Down) + C to cancel..."
-				read INPUT
-				set_switch "$(grep "\[${INPUT}\] " $PersistDir/csx | awk '{print $2}')"
-				echo -e "\n(i) New switch set successfully.\n"
+				done
+			done
+
+			if grep -q '[a-z]' $PersistDir/.csx; then
+				cat $PersistDir/.csx
+				echo "(i) Pick a number..."
+				echo "- Input nothing or press CTRL (Vol. Down) + C to cancel"
+				read Input
+				if n "$Input"; then
+					set_switch "$(grep "\[${Input}\] " $PersistDir/.csx | awk '{print $2}')"
+					echo -e "\n(i) New switch set successfully.\n"
+				fi
 			else
 				echo -e "\n(i) No additional switch(es) found\n"
 			fi
-			
+
 		fi
-		rm $PersistDir/csx $PersistDir/sys_cache 2>/dev/null
+		rm $PersistDir/.csx $PersistDir/sys_cache 2>/dev/null
+		is f $(SWITCH) || set_switch
 		exit 0
 		;;
 
@@ -504,20 +513,20 @@ case $1 in
 		if [ "$2" = "--disable" ]; then
 			set_prop auto_run false
 			set_prop pause_svc false
-			echo "(i) CS service disabled."
+			echo "(i) MCS service disabled."
 		elif [ "$2" = "--enable" ]; then
 			set_prop auto_run true
 			set_prop pause_svc false
-			echo "(i) CS service enabled."
+			echo "(i) MCS service enabled."
 			echo "- Reboot to apply change if it's being ran by Magisk daemon."
 		else
 			if $(pause_svc); then
 				set_prop pause_svc false
 				SWITCH ON
-				echo "(i) CS service resumed."
+				echo "(i) MCS service resumed."
 			else
 				set_prop pause_svc true
-				echo "(i) CS service paused."
+				echo "(i) MCS service paused."
 			fi
 		fi
 		echo
@@ -544,8 +553,8 @@ case $1 in
 		$(get_prop loop_verbose) || set +x
 		if $(auto_run) && ! $(pause_svc); then
 			set_prop pause_svc true
-			echo "(i) CS service paused."
-			echo -e "- Reboot or run \"cs -s\" to resume.\n"
+			echo "(i) MCS service paused."
+			echo -e "- Reboot or run \"mcs -s\" to resume.\n"
 		fi
 		
 		echo "Maintaining $2%..."
@@ -580,16 +589,16 @@ case $1 in
 	
 
 
-	# Reset cs settings
+	# Reset MCS settings
 	-r)
 		cp $DefaultConfig $config \
-			&& { echo -e "(i) cs settings reset successfully.\n"; exit 0; } \
-			|| { echo -e "(!) cs settings reset failed.\n"; exit 1; }
+			&& { echo -e "(i) MCS settings reset successfully.\n"; exit 0; } \
+			|| { echo -e "(!) MCS settings reset failed.\n"; exit 1; }
 		;;
 
 
 
-	# CS service
+	# MCS service
 	service)
 		$(get_prop loop_verbose) || set +x
 		if $(auto_run); then
@@ -620,25 +629,23 @@ case $1 in
 
 
 	# Usage instructions
-	-h|--help)
+	--help|-h|help)
 		set +x
 		cat <<EOD
-Magic Charging Switch (cs)
+Magic Charging Switch (mcs)
 
 Automatically pauses/resumes charging at set time intervals and/or % levels to extend battery lifespan.
 
 
 Usage:
 
-cs [b] [-h] [-i] [-r] [-v] [debug] [-k LEVEL] [PAUSE% RESUME%] [PAUSE%] [-m PAUSE% RESUME%] [ -s --enable/disable] [-t PAUSE% RESUME%] [-d %/TIMEOUT] [-e %/TIMEOUT] [x /path/to/switch ON_key OFF_key]
+mcs [-b] [-h] [-i] [-r] [-v] [debug] [-k LEVEL] [PAUSE% RESUME%] [PAUSE%] [-m/t PAUSE% RESUME%] [-s --enable/disable] [-d/e %/TIMEOUT] [-x /path/to/switch ON_key OFF_key]
 
 -b --> reset battery stats on demand (does not work on all devices)
 
--h/--help --> cs usage instructions
-
 -i --> display battery info
 
--r --> reset cs settigs
+-r --> reset settings
 
 -s --> pause/resume, --enable/disable service
 
@@ -646,50 +653,50 @@ cs [b] [-h] [-i] [-r] [-v] [debug] [-k LEVEL] [PAUSE% RESUME%] [PAUSE%] [-m PAUS
 
 -x --> pick a charging switch from the database
 
-debug --> gather debugging data & save it to /sdcard/cs_debug.zip
+debug --> gather debugging data & save it to /sdcard/mcs_debug-\$DEVICE-\$csVER-\$DATE.log
 
-just "cs" --> run CS with default/saved settings
+-k LEVEL --> keep/maintain battery power at a constant LEVEL (pauses MCS service)
 
--k LEVEL --> keep/maintain battery power at a constant LEVEL (pauses CS service)
+[no args] --> run mcs with default/previous settings
 
-PAUSE% RESUME% --> pause charging at PAUSE% value (default 90); resume if battery drops below RESUME% (default 80). This is the INITIAL SETUP COMMAND. If auto-run is OFF, the command works as is; else, new settings are saved and automatically picked up by CS service.
+-h/--help/help --> usage instructions
+
+PAUSE% RESUME% --> pause charging at PAUSE% value (default 90); resume if battery drops below RESUME% (default 80). This is the INITIAL SETUP COMMAND. If auto-run is OFF, the command works as is; else, new settings are saved and automatically picked up by MCS service.
 
 -m/-t PAUSE% RESUME% --> generate automation config (-m for MacroDroid; -t for Tasker -- pick one)
 
--d [%/TIMEOUT (optional)] --> disable charging on demand (pauses CS service)
-
--e [%/TIMEOUT (optional)] --> enable charging on demand (pauses CS service)
+-d/e [%/TIMEOUT (optional)] --> disable/enable charging on demand (pauses MCS service)
 
 -x /path/to/switch ON_key OFF_key -- > manually set a charging switch; if keys match one of the following as is or in reverse oder -- you don't have to specify them: 1/0, enable/disable, enabled/disabled, true/false, on/off, 100/3
 
 
 Usage Examples/Tips
 
-"cs 85" --> pause charging at 85%; resume when battery level is less or equal to 80% (default).
+"mcs 85" --> pause charging at 85%; resume when battery level is less or equal to 80% (default).
 
-"cs 80 20" --> pause charging at 80%; resume when battery level is less or equal to 20%.
+"mcs 80 20" --> pause charging at 80%; resume when battery level is less or equal to 20%.
 
-"cs -d" --> disable charging.
+"mcs -d" --> disable charging.
 
-"cs -d" --> enable charging. 
+"mcs -d" --> enable charging. 
 
-"cs -d 30m" --> keep charging disabled for 30 minutes.
+"mcs -d 30m" --> keep charging disabled for 30 minutes.
 
-"cs -e 1h" --> keep charging enabled for 1 hour. 
+"mcs -e 1h" --> keep charging enabled for 1 hour. 
 
-"cs -e 80%" --> Charge until battery level equals 80%.
+"mcs -e 80%" --> Charge until battery level equals 80%.
 
-"cs -d 40%" --> Charge until battery level equals 40%.
+"mcs -d 40%" --> Charge until battery level equals 40%.
 
-"cs -e 120 && cs -d 30m && cs -e 1h" --> charge for 120 seconds, pause for 30 minutes, then charge again for 1h.
+"mcs -e 120 && mcs -d 30m && mcs -e 1h" --> charge for 120 seconds, pause for 30 minutes, then charge again for 1h.
 
-"cs -e 30m && cs -d 30m && cs -e 90%" --> charge for 30 minutes, pause for 30 minutes, then charge again, but this time until battery level is greater or equal to 90%.
+"mcs -e 30m && mcs -d 30m && mcs -e 90%" --> charge for 30 minutes, pause for 30 minutes, then charge again, but this time until battery level is greater or equal to 90%.
 
-"cs -e 50% && cs -d 5h && cs -e 80% && cs -d 30m && cs -e 90%" --> charge until 50%, pause for 5 hours, charge until 80%, pause for 30 minutes, charge until 90%.
+"mcs -e 50% && mcs -d 5h && mcs -e 80% && mcs -d 30m && mcs -e 90%" --> charge until 50%, pause for 5 hours, charge until 80%, pause for 30 minutes, charge until 90%.
 
 Ideally, you want your battery level between 40-60% - best, 20-80% - average, 10-90% - fair.
 
-For best convenience, stick with cs 90 80; cs 80 70 for a perfect balance between convenience & battery wear. If you want the longest battery lifespan, use cs 42 41 or cs -k 42 (best for prolonged usage -- i.e., navigation).
+For best convenience, stick with mcs 90 80; mcs 80 70 for a perfect balance between convenience & battery wear. If you want the longest battery lifespan, use mcs 42 41 or mcs -k 42 (best for prolonged usage -- i.e., navigation).
 EOD
 	echo
 	exit 0
@@ -700,7 +707,7 @@ EOD
 	-d)
 		if $(auto_run) && ! $(pause_svc); then
 			set_prop pause_svc true
-			echo -e "(i) CS service paused.\n"
+			echo -e "(i) MCS service paused.\n"
 		fi
 		
 		if n "$2"; then
@@ -711,7 +718,7 @@ EOD
 		else OFF_time; fi
 
 		if $(auto_run) && $(pause_svc); then
-			echo -e "(i) Reboot or run \"cs -s\" to resume CS service.\n"
+			echo -e "(i) Reboot or run \"mcs -s\" to resume MCS service.\n"
 		fi
 		exit 0
 		;;
@@ -721,7 +728,7 @@ EOD
 	-e)
 		if $(auto_run) && ! $(pause_svc); then
 			set_prop pause_svc true
-			echo "(i) CS service paused.\n"
+			echo "(i) MCS service paused.\n"
 		fi
 		
 		invert_OFF=true
@@ -733,7 +740,7 @@ EOD
 		else OFF_time; fi
 		
 		if $(auto_run) && $(pause_svc); then
-			echo -e "(i) Reboot or run \"cs -s\" to resume CS service.\n"
+			echo -e "(i) Reboot or run \"mcs -s\" to resume MCS service.\n"
 		fi
 		exit 0
 		;;
@@ -748,8 +755,8 @@ EOD
 			| sed '/LEVEL=/s/$/%/' \
 			| sed 's/_NOW//' \
 			| sed '/RGE_R/s/GE/GING/'
-		echo -e "\n\nCS Settings"
-		cat $config | grep -v CS
+		echo -e "\n\nMCS Settings"
+		cat $config | grep -v MCS
 		echo
 		exit 0
 		;;
@@ -758,7 +765,7 @@ EOD
 	# Run with default/saved settings (no args)
 	"")
 		if $(auto_run) && ! $(pause_svc); then
-			echo -e "(i) CS service is already running.\n"
+			echo -e "(i) MCS service is already running.\n"
 			exit 0
 		fi
 
@@ -805,7 +812,7 @@ EOD
 		sleep 1
 
 		if $(auto_run) && ! $(pause_svc); then
-			echo "- CS service is already running."
+			echo "- MCS service is already running."
 			echo -e "-- Now working with the new values.\n"
 			SWITCH ON
 			exit 0

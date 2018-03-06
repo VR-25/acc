@@ -1,4 +1,16 @@
-**2017.1.27 (201801270)**
+**2018.3.6 (201803060)**
+- Additional devices support
+- Major optimizations
+- Renamed executable to `mcs` (formerly `cs`)
+- Reworked control file testing logic
+- Upgraded debugging engine
+- Updated documentation
+
+*Release Note*
+- Current settings will be reverted to defaults.
+
+
+**2018.1.27 (201801270)**
 - General optimizations
 - Minor cosmetic changes
 - Stability improvements
@@ -8,13 +20,13 @@
 - Unsupported devices whose owners already provided a debug zip won't be supported anytime soon. Most, if not all of those lack advanced charging control functionality -- custom kernel [or proper hardware] required.
 
 
-**2017.1.25 (201801250)**
+**2018.1.25 (201801250)**
 - Fixed installation error -- A/B partition devices
 - General optimizations
 - Updated control files database
 
 
-**2017.1.13 (201801130)**
+**2018.1.13 (201801130)**
 - Extended (loops) verbose -- toggle: `cs -v`
 - Fixed hang/reboot upon charger connection
 - Fixed Nexus 10 compatibility issues

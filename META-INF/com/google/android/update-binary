@@ -1,6 +1,6 @@
 #!/sbin/sh -x
-# Magic Charging Switch (cs) Installer
-# VR25 @ XDA Developers
+# Magic Charging Switch (mcs) Installer
+# VR25 @ xda-developers
 
 # Detect whether in boot mode
 ps | grep zygote | grep -v grep >/dev/null && BOOTMODE=true || BOOTMODE=false
@@ -123,6 +123,13 @@ MOUNTPATH=$TMPDIR/magisk_img
 $BOOTMODE && IMGNAME=magisk_merge.img || IMGNAME=magisk.img
 [ -d /data/adb/magisk ] && IMG=/data/adb/$IMGNAME || IMG=/data/$IMGNAME
 
+if [ ! -d /data/adb/magisk ] && [ ! -d /data/magisk ]; then
+	ui_print " "
+	ui_print "(!) No Magisk installation found or installed version is not supported"
+	ui_print " "
+	exit 1
+fi
+
 # Initial cleanup
 rm -rf $TMPDIR 2>/dev/null
 mkdir -p $INSTALLER 2>/dev/null
@@ -180,8 +187,8 @@ LATESTARTSERVICE=true
 ModVersion="`grep_prop version $INSTALLER/module.prop`"
 print_modname() {
   ui_print "***************************************"
-  ui_print "Magic Charging Switch (cs) $ModVersion"
-  ui_print "         VR25 @ XDA Developers        "
+  ui_print "Magic Charging Switch (mcs) $ModVersion"
+  ui_print "          VR25 @ xda-developers        "
   ui_print "***************************************"
 }
 
@@ -231,7 +238,7 @@ ui_print "******************************"
 ui_print "Powered by Magisk (@topjohnwu)"
 ui_print "******************************"
 
-ui_print "- Mounting partitions"
+$BOOTMODE || ui_print "- Mounting partitions"
 # mount -o ro /system 2>/dev/null
 # mount -o ro /vendor 2>/dev/null
 mount /data 2>/dev/null
@@ -261,7 +268,7 @@ if ! is_mounted /data; then
   IMG=/cache/$IMGNAME
   ui_print " "
   ui_print "***********************************"
-  ui_print "*      !! Data unavailible !!     *"
+  ui_print "*      !! Data unavailable !!     *"
   ui_print "* Magisk detection is impossible  *"
   ui_print "* Installation will still proceed *"
   ui_print "*  But please make sure you have  *"
@@ -296,6 +303,9 @@ fi
 # Module space
 ##########################################################################################
 
+PersistDir=/data/media/mcs
+rm -rf /data/media/cs 2>/dev/null ###
+
 # Get current version info
 if [ -f $ModPath/module.prop ]; then
 	CurVersionCode="`grep_prop versionCode $ModPath/module.prop`"
@@ -325,9 +335,7 @@ if [ ! -f /data/r ] \
 fi
 
 # Remove obsolete data
-if [ "$CurVersionCode" -lt "201801130" ] || [ "$CurVersionCode" -eq "0" ]; then
-	rm -rf $PersistDir
-fi
+[ "$CurVersionCode" -lt "201803060" ] && rm -rf $PersistDir 2>/dev/null
 mkdir -p $PersistDir/info 2>/dev/null
 
 # Create mod paths
@@ -385,7 +393,7 @@ fi
 ui_print "- Setting permissions"
 set_permissions
 
-ui_print "- Unmounting partitions"
+$BOOTMODE || ui_print "- Unmounting partitions"
 
 umount $MOUNTPATH
 losetup -d $LOOPDEVICE
@@ -403,8 +411,6 @@ fi
 #   umount /system
 #   umount /vendor 2>/dev/null
 # fi
-
-[ "$IMG" = /data/adb/$IMGNAME ] && ln -s "$IMG" /data 2>/dev/null
 
 ui_print "- Done"
 exit 0

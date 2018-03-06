@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# CS Service Ignitor
-# VR25 @ XDA Developers
+# MCS Service Ignitor
+# VR25 @ xda-developers
 
-(cs service) &
+(mcs service) &
