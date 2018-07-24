@@ -50,7 +50,7 @@
 		<Action sr="act0" ve="7">
 			<code>123</code>
 			<label>OFF</label>
-			<Str sr="arg0" ve="3">su -c cs -d</Str>
+			<Str sr="arg0" ve="3">su -c mcs -d</Str>
 			<Int sr="arg1" val="5"/>
 			<Int sr="arg2" val="1"/>
 			<Str sr="arg3" ve="3"/>
@@ -73,7 +73,7 @@
 		<Action sr="act1" ve="7">
 			<code>123</code>
 			<label>ON</label>
-			<Str sr="arg0" ve="3">su -c cs -e</Str>
+			<Str sr="arg0" ve="3">su -c mcs -e</Str>
 			<Int sr="arg1" val="5"/>
 			<Int sr="arg2" val="1"/>
 			<Str sr="arg3" ve="3"/>

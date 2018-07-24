@@ -1,18 +1,8 @@
 ###########################################
 # Charging Switches Database
-# VersionCode=201801250
 # VR25 @ xda-developers
 ###########################################
 
-
-###########################################
-# The order of switches for a particular
-#	device or group of devices does have
-#	a purpose. The first are more common
-#	and more likely to work. This speeds
-#	up cs initial setup process
-#	significantly.
-###########################################
 
 ###########################################
 # Generic/Stock/Near-stock Android Devices
@@ -28,7 +18,7 @@ battery/store_mode
 ###########################################
 
 ###########################################
-# Pixel, Huawei, HTC...
+# Pixel, Huawei, HTC, Xiaomi...
 battery/input_suspend
 ###########################################
 
@@ -41,6 +31,11 @@ battery/charge_enabled
 ###########################################
 # Nexus 4 (mako)
 pm8921_charger/parameters/disabled
+###########################################
+
+###########################################
+# Amazon Fire
+battery/device/Charging_Enable
 ###########################################
 
 ###########################################
@@ -65,15 +60,21 @@ dc/charging_enabled
 ###########################################
 # EXPERIMENTAL
 
-# Asus Zenfone 2
-batterylifeextender/charging_limit
-
 charger/charge_enabled
+chargalg/disable_charging
+mt-battery/disable_charger
 
 # Pixel, HTC...
+battery/charger_control
 parallel/charging_enabled
 battery/step_charging_enabled
 parallel/input_suspend
+
+# Asus Zenfone 2
+batterylifeextender/charging_limit
+
+# Google Pixel C
+charge_control_limit_max
 
 dollar_cove_charger/present
 battery/present_smb
@@ -81,15 +82,6 @@ switch_charger/ncp1854_access
 battery/state
 battery/Charging_CallState
 battery/BN_TestMode
-
-# Google Pixel C
-#charge_control_limit_max [0-100]
-
+battery/status
 #battery/status_smb [3]
-
-# Cause forced reboot -- Nexus 7 (flo) & others
-#ac/online
-#ac/present
-#battery/online
-#battery/present
 ###########################################

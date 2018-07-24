@@ -36,16 +36,12 @@ set_prop() { sed -i "s|^$1=.*|$1=$2|g" "$config"; }
 
 
 # Find ModPath
-for loop_device in /dev/block/loop*; do
-	if losetup $loop_device 2>/dev/null | grep -q '\(/data/.*magisk.img\)'; then
-		for MountPoint in $(grep $loop_device /proc/mounts | awk '{print $2}' | grep -v '/system'); do
-			if is f $MountPoint/$ModID/module.prop; then
-				ModPath=$MountPoint/$ModID
-				DefaultConfig=$ModPath/config/mcs
-				break 2
-			fi
-		done
-	fi
+for dir in /sbin/.core/img/$ModID /magisk/$ModID; do
+  if [ -f "$dir/module.prop" ]; then
+    ModPath=$dir
+    DefaultConfig=$ModPath/config/mcs
+    break
+  fi
 done
 
 if ! is f "$ModPath/module.prop"; then
@@ -81,7 +77,10 @@ debug() {
 	echo "(i) Gathering debugging data..."
 	rm /sdcard/mcs_debug*log 2>/dev/null
 	
-	{ grep -i product $SYSTEM/build.prop
+	exec 3>&1
+	exec >/sdcard/mcs_debug-${DEVICE}-${mcsVersion}-$(date +%Y%m%d%H%M%S).log
+	
+	grep -i product $SYSTEM/build.prop
 	echo -e "\nmcsVersion=$mcsVersion\n\n\n"
 	
 	echo "##############################"
@@ -115,7 +114,7 @@ debug() {
 		fi
 	done
 	
-	} >/sdcard/mcs_debug-${DEVICE}-${mcsVersion}-$(date +%Y%m%d%H%M%S).log
+	exec 1>&3 3>&-
 
 	echo -e "- Done."
 	echo "- Generated file: /sdcard/mcs_debug-${DEVICE}-${mcsVersion}-$(date +%Y%m%d%H%M%S).log\n"
@@ -265,6 +264,7 @@ set_switch() {
 			disable) set_prop ON_key disable; set_prop OFF_key enable;;
 			enabled) set_prop ON_key enabled; set_prop OFF_key disabled;;
 			disabled) set_prop ON_key disabled; set_prop OFF_key enabled;;
+			Charging) set_prop ON_key Charging; set_prop OFF_key Discharging;;
 			*) return 3;;
 		esac 2>/dev/null
 	else
@@ -672,7 +672,7 @@ PAUSE% RESUME% --> pause charging at PAUSE% value (default 90); resume if batter
 
 Usage Examples/Tips
 
-"mcs 85" --> pause charging at 85%; resume when battery level is less or equal to 80% (default).
+"mcs 90" --> pause charging at 90%; resume when battery level is less or equal to 80% (default).
 
 "mcs 80 20" --> pause charging at 80%; resume when battery level is less or equal to 20%.
 

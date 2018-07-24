@@ -1,3 +1,12 @@
+**2018.7.24 (201807240)**
+- Enhanced debugging function.
+- Fixed "automation config still calling `cs` instead of `mcs`."
+- Fixed modPath detection & bad PATH variable issues (Magisk V16.6).
+- Updated charging switches database (more devices supported)
+- Reliability improvements
+- Updated documentation
+
+
 **2018.3.6 (201803060)**
 - Additional devices support
 - Major optimizations

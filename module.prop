@@ -1,7 +1,7 @@
 id=cs
 name=Magic Charging Switch (mcs)
-version=2018.3.6
-versionCode=201803060
+version=2018.7.24
+versionCode=201807240
 author=VR25 @ xda-developers
 description=Automatically pauses/resumes charging at set time intervals and/or % levels to extend battery lifespan. Install, connect charger, reboot, configure (or leave defaults: 90 80) and forget.
 minMagisk=1500

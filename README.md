@@ -4,7 +4,9 @@
 
 
 ### DISCLAIMER
-- mcs (formerly "cs") changes low level Android settings -- I shall not be held responsible for any cat harm, hair loss and/or nuclear disaster potentially triggered by the use/misuse of it.
+- This software is provided as is, in the hope that it will be useful, but without any warranty. Always read the reference prior to installing/updating it. While no cats have been harmed in any way, shape or form, I assume no responsibility under anything that might go wrong due to the use/misuse of it.
+- A copy of the GNU General Public License, version 3 or newer is included with every version. Please, read it prior to using, modifying and/or sharing any part of this work.
+- To avoid fraud, DO NOT mirror any link associated with the project.
 
 
 
@@ -13,6 +15,12 @@
 - Battery stats are reset on pause (doesn't work on all devices).
 - Install, connect charger, reboot, configure (or leave defaults: 90 80) and forget.
 - If your device is incompatible, you'll find the file /sdcard/cs_debug-$DEVICE-$mcsVER-$DATE.log. Upload it to the official XDA thread (find the link below).
+
+
+
+### DEPENDENCIES
+- Magisk
+- Terminal emulator app (optional)
 
 
 
@@ -54,7 +62,7 @@ mcs [-b] [-h] [-i] [-r] [-v] [debug] [-k LEVEL] [PAUSE% RESUME%] [PAUSE%] [-m/t 
 
 ### USAGE EXAMPLES/TIPS
 
-`mcs 85` --> pause charging at 85%; resume when battery level is less or equal to 80% (default).
+`mcs 90` --> pause charging at 90%; resume when battery level is less or equal to 80% (default).
 
 `mcs 80 20` --> pause charging at 80%; resume when battery level is less or equal to 20%.
 
@@ -84,9 +92,9 @@ For best convenience, stick with mcs 90 80; mcs 80 70 for a perfect balance betw
 
 ### DEBUGGING
 
-- If your device is incompatible, mcs auto-generates the file /sdcard/cs_debug-DEVICE.log.
+- If your device is incompatible, mcs auto-generates the file /sdcard/cs_debug-$DEVICE-$mcsVER-$DATE.log.
 
-- Before actions: `touch /data/r` -- force reinstall; `touch /data/.bcs` install mcs to bin dir instead of xbin (bootloop workaround, only needed once).
+- Before actions: `touch /data/r` -- force reinstall; `touch /data/.bcs` -- install mcs to bin dir instead of xbin (bootloop workaround, persistent accross updates).
 
 - If charging control is inconsistent, run `mcs -x` to pick a different switch from the database.
 
@@ -100,6 +108,14 @@ For best convenience, stick with mcs 90 80; mcs 80 70 for a perfect balance betw
 
 
 ### RECENT CHANGES
+
+**2018.7.24 (201807240)**
+- Enhanced debugging function.
+- Fixed "automation config still calling `cs` instead of `mcs`."
+- Fixed modPath detection & bad PATH variable issues (Magisk V16.6).
+- Updated charging switches database (more devices supported)
+- Reliability improvements
+- Updated documentation
 
 
 **2018.3.6 (201803060)**
@@ -122,9 +138,3 @@ For best convenience, stick with mcs 90 80; mcs 80 70 for a perfect balance betw
 
 *Release Note*
 - Unsupported devices whose owners already provided a debug zip won't be supported anytime soon. Most, if not all of those lack advanced charging control functionality -- custom kernel [or proper hardware] required.
-
-
-**2018.1.25 (201801250)**
-- Fixed installation error -- A/B partition devices
-- General optimizations
-- Updated control files database

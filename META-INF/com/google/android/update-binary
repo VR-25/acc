@@ -142,29 +142,24 @@ MODPATH=$TMP_MODPATH
 
 # Find MODPATH
 if $BOOTMODE; then
-	for loop_device in /dev/block/loop*; do
-		if losetup $loop_device 2>/dev/null | grep -q '\(/data/.*magisk.img\)'; then
-			for MountPoint in $(grep $loop_device /proc/mounts | awk '{print $2}' | grep -v '/system'); do
-				if [ -d "$MountPoint/.core" ] || [ -d "$MountPoint/lost+found" ]; then
-					MountPoint=$MountPoint
-					MODPATH=$MountPoint/$MODID
-					mkdir -p $MODPATH 2>/dev/null
-					break 2
-				fi
-			done
-		fi
-	done
+  for MountPoint in /sbin/.core/img /magisk; do
+    if [ -d "$MountPoint/.core" ] || [ -d "$MountPoint/lost+found" ]; then
+      MountPoint=$MountPoint
+      MODPATH=$MountPoint/$MODID
+      mkdir -p $MODPATH 2>/dev/null
+      break
+    fi
+  done
 
-	if [ ! -d "$MountPoint" ]; then
-	echo -e "(!) Magisk mount point not found"
-	  exit 1
-  fi
+	if [ ! -d "$MODPATH" ]; then
+		echo -e "(!) Magisk mount point not found"
+		exit 1
+	fi
 
   if ! is_mounted $MountPoint; then
-	ui_print "(!) Magisk is not activated!... abort"
-	exit 1
+    ui_print "(!) Magisk is not activated!... abort"
+    exit 1
   fi
-
 fi
 
 ##########################################################################################
