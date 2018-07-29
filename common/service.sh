@@ -1,7 +1,12 @@
 #!/system/bin/sh
-# MCS Service Ignitor
-# VR25 @ xda-developers
+# mcs daemon starter
+# (c) 2017-2018, VR25 @ xda-developers
+# License: GPL v3+
 
-export ModPath=${0%/*}
-export PATH="$ModPath/system/xbin:$ModPath/system/bin:/sbin/.core/busybox:/dev/magisk/bin:$PATH"
-(mcs service) &
+main() {
+  modPath=${0%/*}
+  PATH="$modPath/system/xbin:$modPath/system/bin"
+  mcs daemon
+}
+
+(main) &

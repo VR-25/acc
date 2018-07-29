@@ -1,20 +1,20 @@
-# MCS settings
+# CONFIG
 
-# Battery power
-higher_limit=90
-lower_limit=80
+# charging limits
+higherLimit=90
+lowerLimit=80
 
-# Battery info file (uevent)
-UEVENT=
+# power supply info
+uevent=
 
-# Charging switch
-SWITCH=
-ON_key=
-OFF_key=
+# charging switch
+switch=
+onKey=
+offKey=
 
-# Service
-auto_run=true
-pause_svc=false
+# daemon
+autoRun=true
+pauseDaemon=false
 
-# Debugging
-loop_verbose=false
+# debugging
+loopVerbose=false
