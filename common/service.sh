@@ -5,7 +5,7 @@
 
 main() {
   modPath=${0%/*}
-  PATH="$modPath/system/xbin:$modPath/system/bin"
+  PATH=$modPath/system/xbin:$modPath/system/bin
   mcs daemon
 }
 

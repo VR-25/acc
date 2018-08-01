@@ -3,8 +3,6 @@
 # (c) 2017-2018, VR25 @ xda-developers
 # License: GPL v3+
 
-
-
 # detect whether in bootmode
 ps | grep zygote | grep -v grep >/dev/null && bootMode=true || bootMode=false
 $bootMode || ps -A 2>/dev/null | grep zygote | grep -v grep >/dev/null && bootMode=true
@@ -63,12 +61,6 @@ set_perm_recursive() {
   done
 }
 
-mktouch() {
-  mkdir -p ${1%/*} 2>/dev/null
-  [ -z "$2" ] && touch "$1" || echo "$2" > "$1"
-  chmod 644 $1
-}
-
 request_size_check() {
   reqSizeM=`du -s $1 | cut -f1`
   reqSizeM=$((reqSizeM / 1024 + 1))
@@ -117,8 +109,6 @@ set_permissions() {
   # The following is default permissions, DO NOT remove
   set_perm_recursive  $tmpModPath  0  0  0755  0755
 }
-
-
 
 OUTFD=$2
 ZIP="$3"
@@ -176,8 +166,6 @@ if $bootMode; then
   is_mounted $mountPoint || { echo -e "\n(!) Magisk is not activated!... abort\n"; exit 1; }
 fi
 
-
-
 # Print mod name
 print_modname
 
@@ -211,8 +199,6 @@ if ! is_mounted $mountPath; then
   exit 1
 fi
 
-
-
 ##########################################################################################
 # module-specific code
 ##########################################################################################
@@ -227,8 +213,10 @@ mkdir -p $tmpModPath
 mkdir -p $modInfo 2>/dev/null
 
 # cleanup obsolete data
-[[ $(grep_prop versionCode $tmpModPath/module.prop) -lt 201807290 ]] && \
-  rm -rf $modData
+[[ $(grep_prop versionCode $modPath/module.prop) -lt 201807290 ]] && \
+  rm -rf $modData 2>/dev/null
+[[ $(grep_prop versionCode $modPath/module.prop) -lt 201807300 ]] && \
+  rm $modInfo/Change* 2>/dev/null
   
 # extract module files
 ui_print "- Extracting module files"
@@ -237,28 +225,24 @@ cd $INSTALLER
 mv common/* $tmpModPath/
 [[ ! -d /system/xbin && ! -d /system_root/system/xbin ]] && \
   mv $tmpModPath/system/xbin $tmpModPath/system/bin
-mv -f Changelog.md License.md README.md $modInfo/
-
-##########################################################################################
-
-
+mv -f License.md README.md $modInfo/
 
 # auto-mount
-mktouch $tmpModPath/auto_mount
+touch $tmpModPath/auto_mount
+
+##########################################################################################
 
 # module info
 cp $INSTALLER/module.prop $tmpModPath/
 
 # update info for Magisk Manager
 if $bootMode; then
-  mktouch $modPath/update
+  touch $modPath/update
   cp $INSTALLER/module.prop $modPath/
 fi
 
 ui_print "- Setting permissions"
 set_permissions
-
-
 
 $bootMode || ui_print "- Unmounting partitions"
 umount $mountPath

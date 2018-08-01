@@ -8,19 +8,21 @@
 
 - This software is provided as is, in the hope that it will be useful, but without any warranty. Always read the reference prior to installing/updating. While no cats have been harmed, I assume no responsibility under anything that might go wrong due to the use/misuse of it.
 - A copy of the GNU General Public License, version 3 or newer ships with every build. Please, read it prior to using, modifying and/or sharing any part of this work.
-- To avoid fraud, DO NOT mirror any link associated with the project.
+- To prevent fraud, DO NOT mirror any link associated with this project.
 
 
 
-### DESCRIPTION
-- Advanced battery charging controller which can be used to automatically pause/resume charging at set time intervals and/or % levels to extend battery lifespan.
+#### DESCRIPTION
+
+- Advanced battery charging controller for automatically pausing/resuming charging at set time intervals and/or % levels to extend battery lifespan.
 - Battery stats are reset on pause (doesn't work on all devices).
 
 
 
-### DEPENDENCIES
-- Kernel with advanced charging control support
+#### PRE-REQUISITES
+
 - Magisk
+- Kernel with advanced charging control support
 - Terminal emulator app for settings custom values (optional)
 
 
@@ -34,7 +36,7 @@
 
 
 
-### TEMINAL USAGE
+#### TEMINAL USAGE
 
 mcs [-b] [-h] [-i] [-r] [-v] [debug] [-k %LEVEL] [%PAUSE %RESUME] [%PAUSE] [-m/t %PAUSE %RESUME] [-s start/stop] [-d/e %/TIMEOUT] [-x /path/to/switch onValue offValue]
 
@@ -97,21 +99,29 @@ For best convenience, stick with mcs 90 80; mcs 80 70 for a perfect balance betw
 
 
 
-### DEBUGGING
+#### DEBUGGING
 
 - logsDir=/data/media/mcs/logs
 - If charging control is inconsistent or doesn't work with the current control file, run `mcs -x` to pick a different one from the database.
 
 
 
-### ONLINE INFO/SUPPORT
+#### ONLINE INFO/SUPPORT
+
 - [Battery University](http://batteryuniversity.com/learn/article/how_to_prolong_lithium_based_batteries)
 - [Git Repository](https://github.com/Magisk-Modules-Repo/Magic-Charging-Switch)
 - [XDA Thread](https://forum.xda-developers.com/apps/magisk/module-magic-charging-switch-cs-v2017-9-t3668427)
 
 
 
-### RECENT CHANGES
+#### RECENT CHANGES
+
+
+**2018.8.1 (201808010)**
+- General optimizations
+- Improved debug()
+- Striped down (removed unnecessary code & files)
+- Updated documentation
 
 
 **2018.7.29 (201807290)**
@@ -133,15 +143,3 @@ For best convenience, stick with mcs 90 80; mcs 80 70 for a perfect balance betw
 - Updated charging switches database (more devices supported)
 - Reliability improvements
 - Updated documentation
-
-
-**2018.3.6 (201803060)**
-- Additional devices support
-- Major optimizations
-- Renamed executable to `mcs` (formerly `cs`)
-- Reworked control file testing logic
-- Upgraded debugging engine
-- Updated documentation
-
-*Release Note*
-- Current settings will be reverted to defaults.
