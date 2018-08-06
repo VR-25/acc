@@ -7,18 +7,23 @@
 
 modID=mcs
 modData=/data/media/$modID
-PATH=/sbin/.core/busybox:/dev/magisk/bin
 config=$modData/config.txt
-system=/system
-[[ -d /system_root ]] && system=/system_root/system 
-
-
-
-# verbosity engine
 logsDir=$modData/logs
 newLog=$logsDir/${modID}_verbose_log.txt
 oldLog=$logsDir/${modID}_verbose_previous_log.txt
-[[ -d $logsDir ]] || mkdir -p $logsDir
+
+
+
+# use Magisk's busybox
+if [ "$2" != "dpath" ]; then
+  [ -d /sbin/.core/busybox ] && PATH=/sbin/.core/busybox:$PATH \
+    || PATH=/dev/magisk/bin:$PATH
+fi
+
+
+
+# verbose generator
+mkdir -p $logsDir 2>/dev/null
 if [[ $1 != debug ]]; then
   [[ -f $newLog ]] && mv $newLog $oldLog
   set -x 2>>$newLog
@@ -49,10 +54,10 @@ modVersion="$(get_prop versionCode $modPath/module.prop)"
 
 # device ID
 for i in ro.product.device ro.build.product; do
-	model="$(get_prop $i $system/build.prop)"
+	model="$(getprop $i )"
 	[ -n "$model" ] && break || model=generic
 done
-device="$(get_prop ro.product.brand $system/build.prop)_$model"
+device="$(getprop ro.product.brand)_$model"
 
 
 
@@ -67,7 +72,7 @@ debug() {
 	echo -e "$(date)\n${modID}Version=$modVersion\n\n\n"
  
 	echo -e "### PROPS ###\n"
-  $system/bin/getprop | grep -Ei 'product|version'
+  getprop | grep -Ei 'product|version'
   echo -e "\n\n"
 
 	echo -e "### /sys/class/power_supply/* ###\n"
@@ -715,10 +720,10 @@ EOD
 
 	# battery & settings info
 	-i)
-		echo -e "POWER INFO\n"
+		echo -e "POWER SUPPLY INFO\n"
 		cat "$(uevent)"
-    echo
-    echo
+       echo
+       echo
 		cat $config | sed 's/# //'
 		echo
 		exit 0

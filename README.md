@@ -117,6 +117,14 @@ For best convenience, stick with mcs 90 80; mcs 80 70 for a perfect balance betw
 #### RECENT CHANGES
 
 
+**2018.8.6 (201808060)**
+- General optimizations
+- Minor cosmetic changes
+
+*Release Note*
+- Settings will be reverted to defaults.
+
+
 **2018.8.1 (201808010)**
 - General optimizations
 - Improved debug()
@@ -133,13 +141,4 @@ For best convenience, stick with mcs 90 80; mcs 80 70 for a perfect balance betw
 - Updated documentation
 
 *Release Note*
-- Current settings will be reverted to defaults.
-
-
-**2018.7.24 (201807240)**
-- Enhanced debugging function.
-- Fixed "automation config still calling `cs` instead of `mcs`."
-- Fixed modPath detection & bad PATH variable issues (Magisk V16.6).
-- Updated charging switches database (more devices supported)
-- Reliability improvements
-- Updated documentation
+- Settings will be reverted to defaults.

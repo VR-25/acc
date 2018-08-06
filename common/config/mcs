@@ -1,20 +1,20 @@
-# CONFIG
+# MCS CONFIG
 
-# charging limits
+# <charging limits>
 higherLimit=90
 lowerLimit=80
 
-# power supply info
+# <power supply info>
 uevent=
 
-# charging switch
+# <charging switch>
 switch=
 onKey=
 offKey=
 
-# daemon
+# <daemon>
 autoRun=true
 pauseDaemon=false
 
-# debugging
+# <debugging>
 loopVerbose=false

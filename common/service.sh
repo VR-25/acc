@@ -5,8 +5,8 @@
 
 main() {
   modPath=${0%/*}
-  PATH=$modPath/system/xbin:$modPath/system/bin
-  mcs daemon
+  [ -d $modPath/system/xbin ] && execDir=xbin || execDir=bin
+  $modPath/system/$execDir/mcs daemon dpath
 }
 
 (main) &

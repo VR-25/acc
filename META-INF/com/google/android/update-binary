@@ -4,9 +4,7 @@
 # License: GPL v3+
 
 # detect whether in bootmode
-ps | grep zygote | grep -v grep >/dev/null && bootMode=true || bootMode=false
-$bootMode || ps -A 2>/dev/null | grep zygote | grep -v grep >/dev/null && bootMode=true
-$bootMode || id | grep -q 'uid=0' || bootMode=true
+getprop | grep zygote | grep -q running && bootMode=true || bootMode=false
 
 # default perms
 umask 022
@@ -23,7 +21,7 @@ grep_prop() {
   sed -n "$REGEX" $FILES 2>/dev/null | head -n 1
 }
 
-is_mounted() { mountpoint -q "$1"; }
+is_mounted() { mountpoint -q "$1" 2>/dev/null; }
 
 mount_image() {
 	ui_print "- Mounting $1 to $2"
@@ -44,6 +42,12 @@ mount_image() {
 			fi
 		done
 	fi
+	if ! is_mounted $2; then
+    ui_print " "
+    ui_print "(!) Failed to mount $IMG"
+    ui_print " "
+    exit 1
+  fi
 }
 
 set_perm() {
@@ -106,8 +110,12 @@ set_permissions() {
   # set_perm  $modPath/system/bin/dex2oat         0       2000    0755         u:object_r:dex2oat_exec:s0
   # set_perm  $modPath/system/lib/libart.so       0       0       0644
 
-  # The following is default permissions, DO NOT remove
-  set_perm_recursive  $tmpModPath  0  0  0755  0755
+  # The following are default permissions, DO NOT remove
+  set_perm_recursive  $tmpModPath  0  0  0755  0644
+
+  for f in $tmpModPath/bin/* $(find $tmpModPath -type f -name $modID) $(find $tmpModPath -type f -name *.sh); do
+    [ -f "$f" ] && set_perm $f 0 0 0755
+  done
 }
 
 OUTFD=$2
@@ -158,12 +166,11 @@ if $bootMode; then
     if [ -d "$mountPoint/.core" ] || [ -d "$mountPoint/lost+found" ]; then
       mountPoint=$mountPoint
       modPath=$mountPoint/$modID
-      mkdir -p $modPath 2>/dev/null
       break
     fi
   done
-  [[ -d $modPath ]] || { echo -e "\n(!) Magisk mount point not found\n"; exit 1; }
-  is_mounted $mountPoint || { echo -e "\n(!) Magisk is not activated!... abort\n"; exit 1; }
+  is_mounted $mountPoint && mkdir -p $modPath 2>/dev/null \
+    || { echo -e "\n(!) $IMG mount point not found\n"; exit 1; }
 fi
 
 # Print mod name
@@ -192,12 +199,6 @@ else
 fi
 
 mount_image $IMG $mountPath
-if ! is_mounted $mountPath; then
-  ui_print " "
-  ui_print "(!) $IMG mount failed... abort"
-  ui_print " "
-  exit 1
-fi
 
 ##########################################################################################
 # module-specific code
@@ -207,24 +208,24 @@ fi
 modData=/data/media/$modID
 modInfo=$modData/info
 
+# cleanup obsolete data
+[ "$(grep_prop versionCode $modPath/module.prop)" -lt "201808060" ] \
+  && rm -rf $modData 2>/dev/null
+[ "$(grep_prop versionCode $modPath/module.prop)" -lt "201807300" ] \
+  && rm $modInfo/Change* 2>/dev/null
+
 # create module paths
 rm -rf $tmpModPath 2>/dev/null
 mkdir -p $tmpModPath
 mkdir -p $modInfo 2>/dev/null
 
-# cleanup obsolete data
-[[ $(grep_prop versionCode $modPath/module.prop) -lt 201807290 ]] && \
-  rm -rf $modData 2>/dev/null
-[[ $(grep_prop versionCode $modPath/module.prop) -lt 201807300 ]] && \
-  rm $modInfo/Change* 2>/dev/null
-  
 # extract module files
 ui_print "- Extracting module files"
 unzip -o "$ZIP" -d $INSTALLER >&2
 cd $INSTALLER
 mv common/* $tmpModPath/
-[[ ! -d /system/xbin && ! -d /system_root/system/xbin ]] && \
-  mv $tmpModPath/system/xbin $tmpModPath/system/bin
+[[ ! -d /system/xbin && ! -d /system_root/system/xbin ]] \
+  && mv $tmpModPath/system/xbin $tmpModPath/system/bin
 mv -f License.md README.md $modInfo/
 
 # auto-mount

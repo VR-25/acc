@@ -1,7 +1,7 @@
 id=mcs
 name=Magic Charging Switch
-version=2018.8.1
-versionCode=201808010
+version=2018.8.6
+versionCode=201808060
 author=VR25 @ xda-developers
 description=Advanced battery charging controller for automatically pausing/resuming charging at set time intervals and/or % levels to extend battery lifespan.
 minMagisk=1500
