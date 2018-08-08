@@ -1,5 +1,5 @@
 # Magic Charging Switch (mcs)
-## (c) 2017-2018, VR25 @ xda-developers
+## Copyright (C) 2017-2018, VR25 @ xda-developers
 ### License: GPL v3+
 
 
@@ -36,13 +36,13 @@
 
 
 
-#### TEMINAL USAGE
+#### TERMINAL USAGE
 
 mcs [-b] [-h] [-i] [-r] [-v] [debug] [-k %LEVEL] [%PAUSE %RESUME] [%PAUSE] [-m/t %PAUSE %RESUME] [-s start/stop] [-d/e %/TIMEOUT] [-x /path/to/switch onValue offValue]
 
 -b --> reset battery stats on demand (does not work on all devices)
 
--i --> display power info
+-i --> display config and debugging & power info
 
 -r --> reset settings
 
@@ -103,6 +103,7 @@ For best convenience, stick with mcs 90 80; mcs 80 70 for a perfect balance betw
 
 - logsDir=/data/media/mcs/logs
 - If charging control is inconsistent or doesn't work with the current control file, run `mcs -x` to pick a different one from the database.
+- Daemon can also be stoped by removing the file `/data/media/mcs/.daemon`.
 
 
 
@@ -117,11 +118,18 @@ For best convenience, stick with mcs 90 80; mcs 80 70 for a perfect balance betw
 #### RECENT CHANGES
 
 
+**2018.8.8 (201808080)**
+- General optimizations
+- Improved daemon state management
+- Updated debugging tools
+- Updated documentation
+
+
 **2018.8.6 (201808060)**
 - General optimizations
 - Minor cosmetic changes
 
-*Release Note*
+  *Release Note*
 - Settings will be reverted to defaults.
 
 
@@ -130,15 +138,3 @@ For best convenience, stick with mcs 90 80; mcs 80 70 for a perfect balance betw
 - Improved debug()
 - Striped down (removed unnecessary code & files)
 - Updated documentation
-
-
-**2018.7.29 (201807290)**
-- Auto-detect whether mcs should go to bin or xbin dir to avoid bootloops
-- Fixed automation config generator
-- New and simplified installer
-- New debugging engine
-- Top to bottom optimizations
-- Updated documentation
-
-*Release Note*
-- Settings will be reverted to defaults.
