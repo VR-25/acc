@@ -1,7 +1,7 @@
-id=mcs
-name=Magic Charging Switch
-version=2018.8.8
-versionCode=201808080
+id=acc
+name=Advanced Charging Controller (acc)
+version=2018.12.10
+versionCode=201812100
 author=VR25 @ xda-developers
-description=Advanced battery charging controller for automatically pausing/resuming charging at set time intervals and/or % levels to extend battery lifespan.
-minMagisk=1500
+description=This is primarily intended for extending battery lifespan (or service life). On the flip side, it is a general purpose /sys interface manipulation utility (i.e., for setting CPU Governor, scaling frequencies and pretty much anything else). It works with any root solution. Magisk 17.0+ is preferred. Versions below that are not supported. Refer to README.md for details.
+minMagisk=17000

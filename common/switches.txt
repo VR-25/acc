@@ -1,0 +1,32 @@
+# ACC Charging Switches Database
+# Copyright (C) 2017-2018, VR25 @ xda-developers
+# License: GPL V3+
+# Default lookup path: /sys/class/power_supply/
+# Last updated on Sun, Dec 9, 2018
+
+./battery/charging_enabled 1 0
+./battery/battery_charging_enabled 1 0
+./battery/store_mode 0 1
+./battery/batt_slate_mode 0 1
+./battery/input_suspend 0 1
+./manta-battery/charge_enabled 1 0
+./battery/charge_enabled 1 0
+./pm8921_charger/parameters/disabled 0 1
+./battery/device/Charging_Enable 1 0
+./battery/ChargerEnable 1 0
+./battery/disable_charger 0 1
+./battery/charge_disable 0 1
+./charge_data/enable_charger 1 0
+./huawei_charger/enable_charger 1 0
+./?-00??/enable_charger 1 0
+./?-00??/charging_state enabled disabled
+./bq2589x_charger/enable_charging 1 2
+./ac/charging_enabled 1 0
+./dc/charging_enabled 1 0
+./charger/charge_enabled 1 0
+./chargalg/disable_charging 0 1
+./mt-battery/disable_charger 0 1
+./parallel/charging_enabled 1 0
+./parallel/input_suspend 0 1
+./dollar_cove_charger/present 1 0
+/proc/smb1357_disable_chrg 0 1

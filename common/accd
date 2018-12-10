@@ -1,0 +1,232 @@
+#!/system/bin/sh
+# Advanced Charging Controller Daemon (accd) 
+# Copyright (C) 2017-2018, VR25 @ xda-developers
+# License: GPL V3+
+
+
+main() {
+
+  umask 000
+  set -euo pipefail
+
+  modId=acc
+  resetUnplugged=false
+  lockFile=/dev/$modId/running
+  config=/data/media/0/$modId/config.txt
+
+  modPath=/system/etc/$modId
+  [ -e $modPath/module.prop ] || modPath=/sbin/.core/img/$modId
+  [ -e $modPath/module.prop ] || modPath=/sbin/.magisk/img/$modId
+  log=${config%/*}/logs/acc-daemon-$(getprop ro.product.device | grep . || getprop ro.build.product).log
+
+  mkdir -p ${lockFile%/*} ${config%/*}/logs
+  [ -f $config ] || cp $modPath/default_config.txt $config
+  echo $$ >$lockFile
+  cd /sys/class/power_supply/
+
+  # diagnostics and cleanup
+  echo "###$(date)###" >>$log
+  exec 1>>$log 2>&1
+  { grep -q beta $modPath/module.prop || eval $(get_value verbose); } && set -x || :
+  trap debug_exit EXIT
+
+  [ -e $modPath ] || exit 1
+  unset modId
+  misc
+  check_compatibility
+  ctrl_charging
+}
+
+
+debug_exit() {
+  local exitCode=$?
+  echo -e "\n***EXIT $exitCode***\n"
+  set +euxo pipefail
+  getprop | grep -Ei 'product|version'
+  echo
+  set
+  echo
+  echo "SELinux status: $(getenforce 2>/dev/null || sestatus 2>/dev/null)" \
+    | sed 's/En/en/;s/Pe/pe/'
+  enable_charging
+  rm $lockFile 2>/dev/null
+  log_splitter
+  exit $exitCode
+}
+
+
+get_value() { sed -n "s:^$1=::p" $config | sed 's/#.*//'; }
+
+
+is_charging() {
+  local is_charging=true
+  grep -Eiq 'dis|not' ./battery/status && is_charging=false
+  if $is_charging; then
+    resetUnplugged=true
+  else
+    if $resetUnplugged && eval $(get_value resetUnplugged); then
+      dumpsys batterystats --reset 1>/dev/null 2>&1 || :
+      resetUnplugged=false
+    fi
+  fi
+  $is_charging && return 0 || return 1
+}
+
+
+disable_charging() {
+  local s="" off=""
+  if is_charging; then
+    if get_value switch | grep -q /; then
+      s=$(get_value switch | awk '{print $1}')
+      off=$(get_value switch | awk '{print $3}')
+      if [ -e $s ]; then
+        if eval $(get_value alwaysOverwrite); then
+          chmod +w $s && echo $off >$s || :
+        else
+          ! grep -q $off $s && chmod +w $s && echo $off >$s || :
+        fi
+      else
+        exit 1
+      fi
+    else
+      exit 1
+    fi
+  fi
+  # cool down
+  [ $(cat ./battery/temp 2>/dev/null || cat battery/batt_temp) -ge $(get_value temp | cut -d- -f2 | cut -d_ -f1) ] \
+    && sleep $(get_value temp | cut -d- -f2 | cut -d_ -f2) || :
+}
+
+
+enable_charging() {
+  local s="" on=""
+  if ! is_charging; then
+    if get_value switch | grep -q /; then
+      s=$(get_value switch | awk '{print $1}')
+      on=$(get_value switch | awk '{print $2}')
+      if [ -e $s ]; then
+        if eval $(get_value alwaysOverwrite); then
+          chmod +w $s && echo $on >$s || :
+        else
+          ! grep -q $on $s && chmod +w $s && echo $on >$s || :
+        fi
+      else
+        exit 1
+      fi
+    else
+      exit 1
+    fi
+  fi
+}
+
+
+ctrl_charging() {
+  local s=""
+  while [ -f $lockFile ]; do
+
+    if is_charging; then
+      # disable charging & clear battery stats if conditions apply
+      if [ $(cat ./battery/temp 2>/dev/null || cat battery/batt_temp) -ge $(get_value temp | cut -d- -f2 | cut -d_ -f1) ] \
+        || [ $(cat ./battery/capacity) -ge $(get_value capacity | cut -d, -f3 | cut -d- -f2) ]
+      then
+        disable_charging
+        dumpsys batterystats --reset 1>/dev/null 2>&1 || :
+        log_splitter
+      fi
+
+      # cool down
+      while [ -f $lockFile ] && get_value coolDown | grep -q / && is_charging \
+        && [ $(cat ./battery/capacity) -lt $(get_value capacity | cut -d, -f3 | cut -d- -f2) ] \
+        && [ $(cat ./battery/temp 2>/dev/null || cat battery/batt_temp) -lt $(get_value temp | cut -d- -f2 | cut -d_ -f1) ]
+      do
+          if { [ -n "$(get_value temp | cut -d- -f1)" ] \
+              && [ $(cat ./battery/temp 2>/dev/null || cat battery/batt_temp) -ge $(get_value temp | cut -d- -f1) ]; } \
+            || { [ -n "$(get_value capacity | cut -d, -f2)" ] \
+              && [ $(cat ./battery/capacity) -ge $(get_value capacity | cut -d, -f2) ]; }
+          then
+            disable_charging
+            sleep $(get_value coolDown | cut -d/ -f2)
+            enable_charging
+            sleep $(get_value coolDown | cut -d/ -f1)
+          else
+            break
+          fi
+          log_splitter
+      done
+
+    else
+      # enable charging if conditions apply
+      if [ $(cat ./battery/capacity) -le $(get_value capacity | cut -d, -f3 | cut -d- -f1) ] \
+        && [ $(cat ./battery/temp 2>/dev/null || cat battery/batt_temp) -lt $(get_value temp | cut -d- -f2 | cut -d_ -f1) ]
+      then
+        enable_charging
+      fi
+      # auto-shutdown if battery is not charging and capacity is too low
+      if ! is_charging && [ $(cat ./battery/capacity) -le $(get_value capacity | cut -d, -f1) ]; then
+        am start -n android/com.android.internal.app.ShutdownActivity
+      fi
+    fi
+
+    sleep $(get_value loopDelay)
+    log_splitter
+  done
+}
+
+
+set_switch() {
+  if grep -q "^switch=" $config; then
+    sed -i "s|^switch=[^#]*|switch=$1 |" $config
+  else
+    sed -i "s|^#switch=[^#]*|switch=$1 |" $config
+  fi
+}
+
+
+check_compatibility() {
+  local s="" on="" off=""
+  if ! get_value switch | grep -q /; then
+    while read s; do
+      if [ -e $(echo $s | awk '{print $1}') ]; then
+        on=$(echo $s | awk '{print $2}')
+        off=$(echo $s | awk '{print $3}')
+        s=$(echo $s | awk '{print $1}')
+
+        until is_charging; do sleep $(get_value loopDelay); done
+
+        chmod +w $s && echo $off >$s && sleep 5 || : # switch off
+        if is_charging; then
+          echo $on >$s && sleep 5 || : # restore original value if test failed
+        else
+          set_switch "$s $on $off" # else, save the working parameters
+          break # ...and return to main()
+        fi
+      fi
+    done <<SWITCHES
+$(grep -v '#' $modPath/switches.txt)
+SWITCHES
+  fi
+  unset -f set_switch check_compatibility
+}
+
+
+log_splitter() {
+  [ $(du -m $log | awk '{print $1}') -gt $(get_value maxLogSize) ] \
+    && cp -f $log $log.old && : >$log || :
+}
+
+
+# apply miscellaneous settings
+misc() {
+  local l="" t="" v=""
+  for l in $(get_value misc); do
+    t=$(echo $l | cut -d: -f1)
+    v=$(echo $l | cut -d: -f2)
+    [ -e $t ] && chmod +w $t && echo $v >$t || :
+  done
+  eval $(get_value exitMisc) && exit 0 || :
+  unset -f misc
+}
+
+
+# run the actual thing
+main

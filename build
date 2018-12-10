@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+echo
+cd ${0%/*} 2>/dev/null
+mkdir -p .releases
+get_prop() { sed -n "s/^$1=//p" module.prop; }
+zip -r9u .releases/$(get_prop id)-$(get_prop version).zip * .gitattributes .gitignore | grep . && echo

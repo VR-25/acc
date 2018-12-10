@@ -1,0 +1,36 @@
+# Advanced Charging Controller (acc) Configuration
+# /data/media/0/acc/config.txt
+
+
+capacity=5,60,70-80 # <shutdown,coolDown,resume-pause> -- ideally, <resume> shouldn't be more than 10 units below <pause>. <shutdown> and <coolDown> can be null/disabled (i.e., capacity=,,70-80).
+
+coolDown=50/10 # Charge/pause ratio (in seconds) -- reduces battery temperature and voltage induced stress. This can be disabled with a null value or a preceding hashtag.
+
+temp=400-450_90 # coolDown-pauseCharging_wait -- <wait> is interpreted in seconds and it allows battery temperature to drop below <pauseCharging>. By default, temperature values are interpreted in <degrees Celsius times 10>. If <coolDown> is null (i.e., temp=-450_90), the cooling engine works with coolDown capacity only.
+
+verbose=false # Alpha and Beta versions will generate verbose, whether or not this is enabled.
+
+resetUnplugged=false # Reset battery stats every time charger is unplugged, as opposed to only when max battery capacity is reached.
+
+loopDelay=10 # Time interval between loops, in seconds -- do not change this unless you know exactly what you're doing!
+
+maxLogSize=10 # Log size limit in Megabytes -- when exceeded, $log becomes $log.old. This prevents storage space hijacking.
+
+switch= # Charging switch parameters (<path> <onValue> <offValue>), example: switch=/sys/class/power_supply/battery/charging_enabled 1 0, pro tip: <./> can be used in place of </sys/class/power_supply/> (i.e., switch=./battery/charging_enabled 1 0). NOTE: if acc's database contains a working charging switch for your device, it is set automatically when charger is connected for the first time after installing and rebooting.
+
+alwaysOverwrite=false # Overwrite switch file regardless of its value. Only enable this if you're experiencing inconsistent charging control.
+
+misc=./usb/device/razer_charge_limit_enable:1 ./usb/device/razer_charge_limit_max:80 ./usb/device/razer_charge_limit_dropdown:70 # This can even be used for setting ./battery/voltage_max (max battery voltage), CPU Governor, CPU scaling frequencies and pretty much anything else tweakable through the /sys interface. Note that the default working path is </sys/class/power_supply/> -- hence, <./> is also valid. These settings are applied on boot, after main() and before other function are called.
+
+exitMisc=false # Exit after applying misc settings from above. Enabling this is particularly useful if voltage_max or similar is being set -- since keeping accd running in such cases is pointless.
+
+
+# EDITING ON TERMINAL
+#
+#  acc -c/--config <editor [opts]>   Edit config w/ <editor [opts]> (default: vim/vi)
+#
+#  acc -s/--set <var> <value>   Set config parameters
+#
+#  acc -s/--set <resume-stop preset>   Can be 4041/endurance+, 5960/endurance, 7080/default, 8090/lite 9095/travel
+#               <s/switch>             Pick a charging switch from a list
+#               <no args>              Show current config

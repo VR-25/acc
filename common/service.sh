@@ -1,12 +1,12 @@
 #!/system/bin/sh
-# mcs daemon starter
-# (c) 2017-2018, VR25 @ xda-developers
-# License: GPL v3+
+# Advanced Charging Controller Daemon (accd) Starter
+# Copyright (C) 2017-2018, VR25 @ xda-developers
+# License: GPL V3+
 
-main() {
-  modPath=${0%/*}
-  [ -d $modPath/system/xbin ] && execDir=xbin || execDir=bin
-  $modPath/system/$execDir/mcs daemon dpath
-}
+modId=acc
+modPath=/system/etc/$modId
+[ -e $modPath/module.prop ] || modPath=/sbin/.magisk/img/$modId
+[ -e $modPath/module.prop ] || modPath=/sbin/.core/img/$modId
+unset modId
 
-(main) &
+(sh $modPath/accd &) &
