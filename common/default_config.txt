@@ -18,8 +18,6 @@ maxLogSize=10 # Log size limit in Megabytes -- when exceeded, $log becomes $log.
 
 switch= # Charging switch parameters (<path> <onValue> <offValue>), example: switch=/sys/class/power_supply/battery/charging_enabled 1 0, pro tip: <./> can be used in place of </sys/class/power_supply/> (i.e., switch=./battery/charging_enabled 1 0). NOTE: if acc's database contains a working charging switch for your device, it is set automatically when charger is connected for the first time after installing and rebooting.
 
-alwaysOverwrite=false # Overwrite switch file regardless of its value. Only enable this if you're experiencing inconsistent charging control.
-
 misc=./usb/device/razer_charge_limit_enable:1 ./usb/device/razer_charge_limit_max:80 ./usb/device/razer_charge_limit_dropdown:70 # This can even be used for setting ./battery/voltage_max (max battery voltage), CPU Governor, CPU scaling frequencies and pretty much anything else tweakable through the /sys interface. Note that the default working path is </sys/class/power_supply/> -- hence, <./> is also valid. These settings are applied on boot, after main() and before other function are called.
 
 exitMisc=false # Exit after applying misc settings from above. Enabling this is particularly useful if voltage_max or similar is being set -- since keeping accd running in such cases is pointless.

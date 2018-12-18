@@ -23,11 +23,6 @@ main() {
     fi
   fi
 
-  exxit() {
-    local exitCode=$?
-    echo
-    exit $exitCode
-  }
   trap exxit EXIT
 
   # root check
@@ -82,8 +77,6 @@ daemon() {
     ;;
     restart)
       if [ -f $lockFile ] && ps | grep -q $(sed -n 1p $lockFile); then
-        kill $(cat $lockFile) 2>/dev/null || :
-        rm $lockFile
         echo "(i) accd restarted"
       else
         echo "- accd started"
@@ -192,11 +185,11 @@ $(grep -v '#' $modPath/switches.txt)
 SWITCHES
 
   local IFS=$'\n'
-  select i in $l; do
-    IFS=$oIFS
-    set_value switch "$i"
-    break
-  done
+  eval 'select i in $l; do \
+    IFS=$oIFS; \
+    set_value switch "$i"; \
+    break; \
+  done'
 }
 
 
@@ -287,6 +280,13 @@ enable_charging() {
 
 
 get_value() { sed -n "s:^$1=::p" $config | sed 's/#.*//'; }
+
+
+exxit() {
+  local exitCode=$?
+  echo
+  exit $exitCode
+}
 
 
 main $@

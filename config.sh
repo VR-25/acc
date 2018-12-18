@@ -144,6 +144,10 @@ install_module() {
 
   # cleanup & create module paths
   rm -rf $MODPATH 2>/dev/null || :
+  if [ $curVer -lt 201812180 ]; then
+      sed -i /alwaysOverwrite/d $config 2>/dev/null || :
+      sed -i "s|^switch=[^#]*|switch= |" $config 2>/dev/null || :
+  fi
   if [ $curVer -lt 201812100 ] || [ $curVer -gt $(i versionCode) ]; then
     rm -rf /data/media/0/$MODID 2>/dev/null || :
   fi
@@ -161,6 +165,7 @@ install_module() {
   unzip -o "$ZIP" -x common/addon.d.sh -d ./ >&2
   mv common/$MODID $MODPATH/system/*bin/
   mv common/* $MODPATH/
+  rm $MODPATH/addon.d.sh
   cp -f $MODPATH/service.sh $(echo -n $MODPATH/system/*bin)/accd
   $LATESTARTSERVICE && LATESTARTSERVICE=false \
     || rm $MODPATH/service.sh
@@ -227,6 +232,10 @@ install_system() {
 
     # cleanup & create paths
     mkdir -p $modPath
+    if [ $curVer -lt 201812180 ]; then
+      sed -i /alwaysOverwrite/d $config 2>/dev/null || :
+      sed -i "s|^switch=[^#]*|switch= |" $config 2>/dev/null || :
+    fi
     if [ $curVer -lt 201812100 ] || [ $curVer -gt $(i versionCode) ]; then
       rm -rf /data/media/0/$modId 2>/dev/null || :
     fi
@@ -322,10 +331,23 @@ i() {
 
 version_info() {
 
-  local c="" whatsNew="- Almost everything
-- Refer to README.md for details"
+  local c="" whatsNew="- [acc] Non-interactive shell support
+- [accd] Always overwrite charging switch.
+- [accd] Higher coolDown sensitivity
+- [accd] Make sure the number of running instances is at most one.
+- [accd] More efficient log size watchdog
+- [accd] Pause execution until data is decrypted.
+- [General] Rearranged charging switches to accommodate newer devices, such as the OnePlus 6/6T. Reports suggest that these don't work correctly with .../battery/charging_enabled.
+- [Installer] When updating config.txt, try patching relevant lines only, instead of overwriting the whole file."
 
   set -euo pipefail
+
+  # a note on untested Magisk versions
+  if [ ${MAGISK_VER/.} -gt 180 ]; then
+    ui_print " "
+    ui_print "  (i) NOTE: this Magisk version hasn't been tested by @VR25!"
+    ui_print "    - If you come across any issue, please report."
+  fi
 
   ui_print " "
   ui_print "  WHAT'S NEW"
@@ -335,15 +357,7 @@ version_info() {
     done
   ui_print " "
 
-  # a note on untested Magisk versions
-  if [ ${MAGISK_VER/.} -gt 173 ]; then
-    ui_print " "
-    ui_print "(i) This Magisk version hasn't been tested by @VR25!"
-    ui_print "- If you come across any issue, please report."
-    ui_print " "
-  fi
-
-  ui_print "  SUPPORT"
+  ui_print "  LINKS"
   ui_print "    - Battery University: batteryuniversity.com/learn/article/how_to_prolong_lithium_based_batteries/"
   ui_print "    - Facebook page: facebook.com/VR25-at-xda-developers-258150974794782/"
   ui_print "    - Git repository: github.com/Magisk-Modules-Repo/acc/"

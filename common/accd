@@ -19,6 +19,14 @@ main() {
   [ -e $modPath/module.prop ] || modPath=/sbin/.magisk/img/$modId
   log=${config%/*}/logs/acc-daemon-$(getprop ro.product.device | grep . || getprop ro.build.product).log
 
+  # wait until data is decrypted
+  until [ -e $config ]; do
+    sleep 10
+  done
+
+  # make sure the number of running instances is at most one
+  sh $modPath/system/*bin/acc -D stop 1>/dev/null
+
   mkdir -p ${lockFile%/*} ${config%/*}/logs
   [ -f $config ] || cp $modPath/default_config.txt $config
   echo $$ >$lockFile
@@ -50,7 +58,6 @@ debug_exit() {
     | sed 's/En/en/;s/Pe/pe/'
   enable_charging
   rm $lockFile 2>/dev/null
-  log_splitter
   exit $exitCode
 }
 
@@ -69,6 +76,8 @@ is_charging() {
       resetUnplugged=false
     fi
   fi
+  [ $(du -m $log | awk '{print $1}') -gt $(get_value maxLogSize) ] \
+    && cp -f $log $log.old && : >$log || :
   $is_charging && return 0 || return 1
 }
 
@@ -80,11 +89,7 @@ disable_charging() {
       s=$(get_value switch | awk '{print $1}')
       off=$(get_value switch | awk '{print $3}')
       if [ -e $s ]; then
-        if eval $(get_value alwaysOverwrite); then
-          chmod +w $s && echo $off >$s || :
-        else
-          ! grep -q $off $s && chmod +w $s && echo $off >$s || :
-        fi
+        chmod +w $s && echo $off >$s || :
       else
         exit 1
       fi
@@ -93,7 +98,7 @@ disable_charging() {
     fi
   fi
   # cool down
-  [ $(cat ./battery/temp 2>/dev/null || cat battery/batt_temp) -ge $(get_value temp | cut -d- -f2 | cut -d_ -f1) ] \
+  [ $(cat ./battery/temp 2>/dev/null || cat ./battery/batt_temp) -ge $(get_value temp | cut -d- -f2 | cut -d_ -f1) ] \
     && sleep $(get_value temp | cut -d- -f2 | cut -d_ -f2) || :
 }
 
@@ -105,11 +110,7 @@ enable_charging() {
       s=$(get_value switch | awk '{print $1}')
       on=$(get_value switch | awk '{print $2}')
       if [ -e $s ]; then
-        if eval $(get_value alwaysOverwrite); then
-          chmod +w $s && echo $on >$s || :
-        else
-          ! grep -q $on $s && chmod +w $s && echo $on >$s || :
-        fi
+        chmod +w $s && echo $on >$s || :
       else
         exit 1
       fi
@@ -121,7 +122,7 @@ enable_charging() {
 
 
 ctrl_charging() {
-  local s=""
+  local c=0 s=""
   while [ -f $lockFile ]; do
 
     if is_charging; then
@@ -131,27 +132,30 @@ ctrl_charging() {
       then
         disable_charging
         dumpsys batterystats --reset 1>/dev/null 2>&1 || :
-        log_splitter
       fi
 
       # cool down
       while [ -f $lockFile ] && get_value coolDown | grep -q / && is_charging \
         && [ $(cat ./battery/capacity) -lt $(get_value capacity | cut -d, -f3 | cut -d- -f2) ] \
-        && [ $(cat ./battery/temp 2>/dev/null || cat battery/batt_temp) -lt $(get_value temp | cut -d- -f2 | cut -d_ -f1) ]
+        && [ $(cat ./battery/temp 2>/dev/null || cat ./battery/batt_temp) -lt $(get_value temp | cut -d- -f2 | cut -d_ -f1) ]
       do
-          if { [ -n "$(get_value temp | cut -d- -f1)" ] \
-              && [ $(cat ./battery/temp 2>/dev/null || cat battery/batt_temp) -ge $(get_value temp | cut -d- -f1) ]; } \
-            || { [ -n "$(get_value capacity | cut -d, -f2)" ] \
-              && [ $(cat ./battery/capacity) -ge $(get_value capacity | cut -d, -f2) ]; }
-          then
-            disable_charging
-            sleep $(get_value coolDown | cut -d/ -f2)
-            enable_charging
-            sleep $(get_value coolDown | cut -d/ -f1)
-          else
-            break
-          fi
-          log_splitter
+        if { [ -n "$(get_value temp | cut -d- -f1)" ] \
+            && [ $(cat ./battery/temp 2>/dev/null || cat battery/batt_temp) -ge $(get_value temp | cut -d- -f1) ]; } \
+          || { [ -n "$(get_value capacity | cut -d, -f2)" ] \
+            && [ $(cat ./battery/capacity) -ge $(get_value capacity | cut -d, -f2) ]; }
+        then
+          disable_charging
+          sleep $(get_value coolDown | cut -d/ -f2)
+          enable_charging
+          c=0
+          while [ $c -lt $(get_value coolDown | cut -d/ -f1) ]; do
+            sleep $(get_value loopDelay)
+            [ $(cat ./battery/capacity) -ge $(get_value capacity | cut -d, -f3 | cut -d- -f2) ] && break \
+              || c=$((c + $(get_value loopDelay)))
+          done
+        else
+          break
+        fi
       done
 
     else
@@ -168,7 +172,6 @@ ctrl_charging() {
     fi
 
     sleep $(get_value loopDelay)
-    log_splitter
   done
 }
 
@@ -195,7 +198,7 @@ check_compatibility() {
 
         chmod +w $s && echo $off >$s && sleep 5 || : # switch off
         if is_charging; then
-          echo $on >$s && sleep 5 || : # restore original value if test failed
+          echo $on >$s && sleep 5 || : # if test fails, restore original value
         else
           set_switch "$s $on $off" # else, save the working parameters
           break # ...and return to main()
@@ -206,12 +209,6 @@ $(grep -v '#' $modPath/switches.txt)
 SWITCHES
   fi
   unset -f set_switch check_compatibility
-}
-
-
-log_splitter() {
-  [ $(du -m $log | awk '{print $1}') -gt $(get_value maxLogSize) ] \
-    && cp -f $log $log.old && : >$log || :
 }
 
 
