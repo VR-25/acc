@@ -1,7 +1,7 @@
 id=acc
 name=Advanced Charging Controller (acc)
-version=2018.12.18
-versionCode=201812180
+version=2018.12.22
+versionCode=201812220
 author=VR25 @ xda-developers
-description=This is primarily intended for extending battery lifespan (or service life). On the flip side, it is a general purpose /sys interface manipulation utility (i.e., for setting CPU Governor, scaling frequencies and pretty much anything else). It works with any root solution. Magisk 17.0+ is preferred. Versions below that are not supported. Refer to README.md for details.
+description=This is primarily intended for extending battery lifespan (or service life). On the flip side, it is a general purpose /sys interface manipulation utility (i.e., for setting voltage_max, CPU Governor, CPU scaling frequencies and more). It works with any root solution. Magisk 17.0+ is preferred. Versions below that are not supported. Refer to README.md for details.
 minMagisk=17000

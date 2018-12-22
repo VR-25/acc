@@ -144,7 +144,7 @@ install_module() {
 
   # cleanup & create module paths
   rm -rf $MODPATH 2>/dev/null || :
-  if [ $curVer -lt 201812180 ]; then
+  if [ $curVer -lt 201812180 ] && [ $curVer -ge 201812100 ]; then
       sed -i /alwaysOverwrite/d $config 2>/dev/null || :
       sed -i "s|^switch=[^#]*|switch= |" $config 2>/dev/null || :
   fi
@@ -154,7 +154,7 @@ install_module() {
   mkdir -p ${config%/*}/info ${config%/*}/logs
   [ -d /system/xbin ] && mkdir -p $MODPATH/system/xbin \
     || mkdir -p $MODPATH/system/bin
-    
+
   # remove legacy (mcs)
   rm -rf /data/media/mcs 2>/dev/null || :
   touch $MOUNTPATH0/mcs/remove 2>/dev/null || :
@@ -232,7 +232,7 @@ install_system() {
 
     # cleanup & create paths
     mkdir -p $modPath
-    if [ $curVer -lt 201812180 ]; then
+    if [ $curVer -lt 201812180 ] && [ $curVer -ge 201812100 ]; then
       sed -i /alwaysOverwrite/d $config 2>/dev/null || :
       sed -i "s|^switch=[^#]*|switch= |" $config 2>/dev/null || :
     fi
@@ -267,7 +267,7 @@ install_system() {
       mv -f common/addon.d.sh /system/addon.d/$modId.sh
       set_perm /system/addon.d/$modId.sh
     fi
-    mv -f common/* module.prop $modPath/  
+    mv -f common/* module.prop $modPath/
     set_perm $modPath/accd
     mv -f License* README* ${config%/*}/info/
     [ -f $config ] || cp $modPath/default_config.txt $config
@@ -331,14 +331,10 @@ i() {
 
 version_info() {
 
-  local c="" whatsNew="- [acc] Non-interactive shell support
-- [accd] Always overwrite charging switch.
-- [accd] Higher coolDown sensitivity
-- [accd] Make sure the number of running instances is at most one.
-- [accd] More efficient log size watchdog
-- [accd] Pause execution until data is decrypted.
-- [General] Rearranged charging switches to accommodate newer devices, such as the OnePlus 6/6T. Reports suggest that these don't work correctly with .../battery/charging_enabled.
-- [Installer] When updating config.txt, try patching relevant lines only, instead of overwriting the whole file."
+  local c="" whatsNew="- [acc] Legacy/mcs <pause%> <resume%> syntax support (e.g., acc 85 80)
+- [acc] More comprehensive help text, command examples/tips included
+- [General] Minor fixes and optimizations
+- [General] Updated documentation and default config"
 
   set -euo pipefail
 

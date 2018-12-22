@@ -2,7 +2,7 @@
 # Copyright (C) 2017-2018, VR25 @ xda-developers
 # License: GPL V3+
 # Default lookup path: /sys/class/power_supply/
-# Last updated on Mon, Dec 17, 2018
+# Last updated on Fri, Dec 21, 2018
 
 ./battery/input_suspend 0 1
 ./manta-battery/charge_enabled 1 0
@@ -30,3 +30,4 @@
 ./battery/charging_enabled 1 0
 ./battery/store_mode 0 1
 ./battery/batt_slate_mode 0 1
+./usb\-parallel/charging_enabled

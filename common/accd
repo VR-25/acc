@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# Advanced Charging Controller Daemon (accd) 
+# Advanced Charging Controller Daemon (accd)
 # Copyright (C) 2017-2018, VR25 @ xda-developers
 # License: GPL V3+
 
@@ -176,13 +176,7 @@ ctrl_charging() {
 }
 
 
-set_switch() {
-  if grep -q "^switch=" $config; then
-    sed -i "s|^switch=[^#]*|switch=$1 |" $config
-  else
-    sed -i "s|^#switch=[^#]*|switch=$1 |" $config
-  fi
-}
+set_switch() { sed -i "s|^switch=[^#]*|switch=$1 |" $config; }
 
 
 check_compatibility() {
@@ -196,7 +190,7 @@ check_compatibility() {
 
         until is_charging; do sleep $(get_value loopDelay); done
 
-        chmod +w $s && echo $off >$s && sleep 5 || : # switch off
+        chmod +w $s && echo $off >$s && sleep 5 || : # disable charging
         if is_charging; then
           echo $on >$s && sleep 5 || : # if test fails, restore original value
         else
@@ -205,7 +199,7 @@ check_compatibility() {
         fi
       fi
     done <<SWITCHES
-$(grep -v '#' $modPath/switches.txt)
+$(grep -Ev '#|^$' $modPath/switches.txt)
 SWITCHES
   fi
   unset -f set_switch check_compatibility
