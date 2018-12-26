@@ -345,11 +345,7 @@ cleanup() {
 
 version_info() {
 
-  local c="" whatsNew="- [acc] New option: -R|--resetstats (reset battery stats)
-- [Core] New feature: \`onPlugged\` settings (applied every time an external power supply is connected)
-- [General] Fixes & optimizations
-- [General] Updated documentation & default config
-- [Installer] Enhanced modularization for easier maintenance"
+  local c="" whatsNew="- [accd] Fixed \"not autostarting if data is encrypted\""
 
   set -euo pipefail
 

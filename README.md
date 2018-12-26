@@ -174,6 +174,9 @@ Uninstall
 ---
 #### LATEST CHANGES
 
+**2018.12.26.1 (201812261)**
+- [accd] Fixed "not autostarting if data is encrypted"
+
 **2018.12.26 (201812260)**
 - [acc] New option: -R|--resetstats (reset battery stats)
 - [Core] New feature: `onPlugged` settings (applied every time an external power supply is connected)

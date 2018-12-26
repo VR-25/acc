@@ -20,7 +20,7 @@ main() {
   log=${config%/*}/logs/acc-daemon-$(getprop ro.product.device | grep . || getprop ro.build.product).log
 
   # wait until data is decrypted
-  until [ -e /data/media/0 ]; do
+  until [ -e /data/media/0/Android ]; do
     sleep 10
   done
 
