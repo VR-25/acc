@@ -50,6 +50,10 @@ main() {
     -i|--info) sed s/POWER_SUPPLY_// ./battery/uevent;;
     -l|--log) shift; edit ${config%/*}/logs/acc-daemon*.log $@;;
     -r|--readme) shift; edit ${config%/*}/info/README.md $@;;
+    -R|--resetstats)
+      dumpsys batterystats --reset 1>/dev/null 2>&1 || :
+      rm /data/system/batterystats* 2>/dev/null || :
+    ;;
     -s|--set) shift; set_values "$@";;
     *) help;;
   esac
@@ -111,44 +115,46 @@ help() {
 ACC Utilities
 Copyright (C) 2018, VR25 @ xda-developers
 License: GPL V3+
-Version: $(sed -n 's/version=//p' $modPath/module.prop)
+Build date: $(sed -n 's/version=//p' $modPath/module.prop)
 
 Usage: acc <options> <args>
 
--c/--config <editor [opts]>   Edit config w/ <editor [opts]> (default: vim/vi)
+-c|--config <editor [opts]>   Edit config w/ <editor [opts]> (default: vim|vi)
   e.g., acc -c nano -l
 
--d/--disable <#%, #s, #m or #h (optional)>   Disable charging or disable charging with <condition>
+-d|--disable <#%, #s, #m or #h (optional)>   Disable charging or disable charging with <condition>
   e.g., acc -d 70% (do not recharge until capacity drops to 70%), acc -d 1h (do not recharge until 1 hour has passed)
 
--D/--daemon   Show current acc daemon (accd) state
+-D|--daemon   Show current acc daemon (accd) state
   i.e., acc -D
 
--D/--daemon <start/stop/restart>   Manage accd state
+-D|--daemon <start|stop|restart>   Manage accd state
   e.g., acc -D restart
 
--e/--enable <#%, #s, #m or #h (optional)>   Enable charging or enable charging with <condition>
+-e|--enable <#%, #s, #m or #h (optional)>   Enable charging or enable charging with <condition>
   e.g., acc -e 30m (recharge for 30 minutes)
 
--i/--info   Show power supply info
+-i|--info   Show power supply info
   i.e., acc --info
 
--l/--log <editor [opts]>   Open <acc-daemon-deviceName.log> w/ <editor [opts]> (default: vim/vi)
+-l|--log <editor [opts]>   Open <acc-daemon-deviceName.log> w/ <editor [opts]> (default: vim|vi)
   e.g., acc -l grep ': ' (show errors only), acc -l cat >/sdcard/acc.log (yes, this also works)
 
--r/--readme   Open <README.md> w/ <editor [opts]> (default: vim/vi)
+-r|--readme   Open <README.md> w/ <editor [opts]> (default: vim|vi)
   i.e., acc -r
 
--s/--set   Show current config
+ -R|--resetstats   Reset battery stats
+
+-s|--set   Show current config
   i.e., acc --set
 
--s/--set <var> <value>   Set config parameters
+-s|--set <var> <value>   Set config parameters
   e.g., acc -s verbose true (enable verbose), acc -s capacity 5,60,80-85 (5: shutdown (default), 60: cool down (default), 80: resume, 85: pause)
 
--s/--set <resume-stop preset>   Can be 4041/endurance+, 5960/endurance, 7080/default, 8090/lite 9095/travel
+-s|--set <resume-stop preset>   Can be 4041|endurance+, 5960|endurance, 7080|default, 8090|lite 9095|travel
   e.g., acc -s endurance+ (a.k.a, "the li-ion sweet spot"; best for GPS navigation and other long operations), acc -s travel (for when you need extra juice), acc -s 7080 (restore default capacity settings (5,60,70-80))
 
--s/--set <s/switch>   Set a different charging switch from the database
+-s|--set <s|switch>   Set a different charging switch from the database
   i.e., acc -s s
 
 Tips
@@ -159,7 +165,7 @@ Tips
   Commands can be chained for extended functionality.
     e.g., acc -e 30m && acc -d 6h && acc -e 85 && accd (recharge for 30 minutes, halt charging for 6 hours, recharge to 85% capacity and restart daemon)
 
-Run acc -r to see the full documentation (enter ":q" to quit).
+Run acc -r to see the full documentation (enter ":q!" to quit).
 HELP
 }
 
@@ -270,6 +276,11 @@ enable_charging() {
     on=$(get_value switch | awk '{print $2}')
     if [ -e $s ]; then
       chmod +w $s && echo $on >$s || :
+      for l in $(get_value onPlugged); do
+        t=$(echo $l | cut -d: -f1)
+        v=$(echo $l | cut -d: -f2)
+        [ -e $t ] && chmod +w $t && echo $v >$t || :
+      done
     else
       echo -e "(!) Invalid charging switch\n"
       exit 1

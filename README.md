@@ -28,11 +28,11 @@ By choosing to use/misuse acc, you agree to proceed at your own risk!
 ---
 #### DESCRIPTION
 
-This is primarily intended for extending battery lifespan (or service life). On the flip side, it is a general purpose /sys interface manipulation utility (i.e., for setting voltage_max, CPU Governor, CPU scaling frequencies and more). It works with any root solution. Magisk 17.0+ is preferred. Versions below that are not supported.
+This is primarily intended for extending battery service life. On the flip side, the name says it all.
 
 By default, battery stats are automatically reset once battery capacity reaches the `maxCapacity %`. Users can choose whether battery stats are also reset every time the charger is unplugged (resetUnplugged=true/false). This is not guaranteed to work on all systems, though.
 
-Depending on device's capabilities, charging can be controlled based on temperature conditions, battery capacity, time, voltage, current and/or more variables. Limiting the charging voltage (i.e., to no more than 4.2V) is the best thing to do for a long lasting battery service life. There's an option for that (misc settings). Unfortunately, not all devices/kernels allow modifying voltage_max (even with rw permissions). Fortunately, for those who are deprived of this ability, acc can keep battery voltage within less stressful thresholds -- and it does that by default. Read on...
+Depending on device's capabilities, charging can be controlled based on temperature conditions, battery capacity, time, voltage, current and/or more variables. Limiting the charging voltage (i.e., to no more than 4.2V) is the best thing to do for a long lasting battery service life. There's an option for that (`onBoot` settings). Unfortunately, not all devices/kernels allow modifying voltage_max (even with rw permissions). Fortunately, for those who are deprived of this ability, acc can keep battery voltage within less stressful thresholds -- and it does that by default. Read on...
 
 Charging is paused when battery temperature >= `maxTemp °C` or capacity >= `maxCapacity %`.
 
@@ -42,7 +42,7 @@ Changes to config take effect within `loopDelay` seconds). No reboot is necessar
 
 If config.txt is missing, it is automatically recreated with default settings. However if it is deliberately removed while acc daemon is running, accd crashes.
 
-Daemon state is managed with `acc -D/--daemon <start/stop/restart>`. accd can as well be started/restarted by simply running `accd`. It can also be stopped through the removal of the lock file `/dev/acc/running`. This file  contains the daemon's Process ID (PID).
+Daemon state is managed with `acc -D|--daemon <start/stop/restart>`. accd can as well be started/restarted by simply running `accd`. It can also be stopped through the removal of the lock file `/dev/acc/running`. This file  contains the daemon's Process ID (PID).
 
 Logs are stored at `/data/media/0/acc/logs/`. `acc-debug-$deviceName.log` contains power supply information. That's were one would look for a charging switch when the device is not supported by acc. Some (very few) devices have charging switch(es) somewhere in /proc/ (e.g., /proc/smb1357_disable_chrg). Unfortunately, since /proc/ is non-standard for this sort of things, it's harder to look in there for charging switches. Most of the time, users will have to do that themselves. The remaining log files (`acc-daemon-$deviceName.log*`) contain runtime diagnostic information used for debugging general/advanced issues.
 
@@ -53,40 +53,42 @@ Logs are stored at `/data/media/0/acc/logs/`. `acc-debug-$deviceName.log` contai
 
 `Usage: acc <options> <args>
 
--c/--config <editor [opts]>   Edit config w/ <editor [opts]> (default: vim/vi)
+-c|--config <editor [opts]>   Edit config w/ <editor [opts]> (default: vim|vi)
   e.g., acc -c nano -l
 
--d/--disable <#%, #s, #m or #h (optional)>   Disable charging or disable charging with <condition>
+-d|--disable <#%, #s, #m or #h (optional)>   Disable charging or disable charging with <condition>
   e.g., acc -d 70% (do not recharge until capacity drops to 70%), acc -d 1h (do not recharge until 1 hour has passed)
 
--D/--daemon   Show current acc daemon (accd) state
+-D|--daemon   Show current acc daemon (accd) state
   i.e., acc -D
 
--D/--daemon <start/stop/restart>   Manage accd state
+-D|--daemon <start|stop|restart>   Manage accd state
   e.g., acc -D restart
 
--e/--enable <#%, #s, #m or #h (optional)>   Enable charging or enable charging with <condition>
+-e|--enable <#%, #s, #m or #h (optional)>   Enable charging or enable charging with <condition>
   e.g., acc -e 30m (recharge for 30 minutes)
 
--i/--info   Show power supply info
+-i|--info   Show power supply info
   i.e., acc --info
 
--l/--log <editor [opts]>   Open <acc-daemon-deviceName.log> w/ <editor [opts]> (default: vim/vi)
+-l|--log <editor [opts]>   Open <acc-daemon-deviceName.log> w/ <editor [opts]> (default: vim|vi)
   e.g., acc -l grep ': ' (show errors only), acc -l cat >/sdcard/acc.log (yes, this also works)
 
--r/--readme   Open <README.md> w/ <editor [opts]> (default: vim/vi)
+-r|--readme   Open <README.md> w/ <editor [opts]> (default: vim|vi)
   i.e., acc -r
 
--s/--set   Show current config
+ -R|--resetstats   Reset battery stats
+
+-s|--set   Show current config
   i.e., acc --set
 
--s/--set <var> <value>   Set config parameters
+-s|--set <var> <value>   Set config parameters
   e.g., acc -s verbose true (enable verbose), acc -s capacity 5,60,80-85 (5: shutdown (default), 60: cool down (default), 80: resume, 85: pause)
 
--s/--set <resume-stop preset>   Can be 4041/endurance+, 5960/endurance, 7080/default, 8090/lite 9095/travel
+-s|--set <resume-stop preset>   Can be 4041|endurance+, 5960|endurance, 7080|default, 8090|lite 9095|travel
   e.g., acc -s endurance+ (a.k.a, "the li-ion sweet spot"; best for GPS navigation and other long operations), acc -s travel (for when you need extra juice), acc -s 7080 (restore default capacity settings (5,60,70-80))
 
--s/--set <s/switch>   Set a different charging switch from the database
+-s|--set <s|switch>   Set a different charging switch from the database
   i.e., acc -s s
 
 Tips
@@ -95,10 +97,11 @@ Tips
     e.g., acc 85 80
 
   Commands can be chained for extended functionality.
-   acc -e 30m && acc -d 6h && acc -e 85 && accd (recharge for 30 minutes, halt charging for 6 hours, recharge to 85% capacity and restart daemon)`
+    e.g., acc -e 30m && acc -d 6h && acc -e 85 && accd (recharge for 30 minutes, halt charging for 6 hours, recharge to 85% capacity and restart daemon)`
 
 
 
+---
 #### DEFAULT CONFIG
 
 `capacity=5,60,70-80 # <shutdown,coolDown,resume-pause> -- ideally, <resume> shouldn't be more than 10 units below <pause>. <shutdown> and <coolDown> can be null/disabled (i.e., capacity=,,70-80).
@@ -117,9 +120,11 @@ maxLogSize=10 # Log size limit in Megabytes -- when exceeded, $log becomes $log.
 
 switch= # Charging switch parameters (<path> <onValue> <offValue>), example: switch=/sys/class/power_supply/battery/charging_enabled 1 0, pro tip: <./> can be used in place of </sys/class/power_supply/> (i.e., switch=./battery/charging_enabled 1 0). NOTE: if acc's database contains a working charging switch for your device, it is set automatically when charger is connected for the first time after installing and rebooting.
 
-misc=./usb/device/razer_charge_limit_enable:1 ./usb/device/razer_charge_limit_max:80 ./usb/device/razer_charge_limit_dropdown:70 # This can even be used for setting voltage_max (max charging voltage), CPU Governor, CPU scaling frequencies and pretty much anything else tweakable through the /sys interface. Note that the default working path is </sys/class/power_supply/> -- hence, <./> is also valid. These settings are applied on boot, after main() and before other function are called.
+onBoot=./usb/device/razer_charge_limit_enable:1 ./usb/device/razer_charge_limit_max:80 ./usb/device/razer_charge_limit_dropdown:70 # These settings are aplied on boot. Note that the default working path is "/sys/class/power_supply/"; "./" can be used in place of it.
 
-exitMisc=false # Exit after applying misc settings from above. Enabling this is particularly useful if voltage_max or similar is being set -- since keeping accd running in such cases is pointless.`
+onBootExit=false # Exit after applying "onBoot" settings from above. Enabling this is particularly useful if voltage_max or similar is being set -- since keeping accd running in such cases is pointless.
+
+#onPlugged=./wireless/current_max:2000000 ./usb/current_max:2000000 # These settings are applied every time an external power supply is connected. The default working path is "/sys/class/power_supply/"; "./" can be used in place of it.`
 
 
 
@@ -169,6 +174,13 @@ Uninstall
 ---
 #### LATEST CHANGES
 
+**2018.12.26 (201812260)**
+- [acc] New option: -R|--resetstats (reset battery stats)
+- [Core] New feature: `onPlugged` settings (applied every time an external power supply is connected)
+- [General] Fixes & optimizations
+- [General] Updated documentation & default config
+- [Installer] Enhanced modularization for easier maintenance
+
 **2018.12.22 (201812220)**
 - [acc] Legacy/mcs <pause%> <resume%> syntax support (e.g., acc 85 80)
 - [acc] More comprehensive help text, command examples/tips included
@@ -184,17 +196,3 @@ Uninstall
 - [accd] Pause execution until data is decrypted.
 - [General] Rearranged charging switches to accommodate newer devices, such as the OnePlus 6/6T. Reports suggest that these don't work correctly with .../battery/charging_enabled.
 - [Installer] When updating config.txt, try patching relevant lines only, instead of overwriting the whole file.
-
-**2018.12.10 (201812100)**
-- Fixed installation error <MOUNTPATH0 not found> (Magisk 18.0)
-- Flash the same version again to disable the module (recovery)
-- General cosmetic changes
-- General fixes and optimizations
-- Improved legacy (/system install) support
-- Minimum Magisk version supported is now 17.0
-- Module data moved to /data/media/0/acc/ (/sdcard/acc/).
-- Option to exit after applying misc settings; enabling this is particularly useful if voltage_max or similar is being set -- since keeping accd running in such cases is pointless
-- Option to overwrite switch file regardless of its value; useful when charging control is inconsistent
-- Option to reset battery stats automatically every time charger is unplugged, as opposed to only when max battery capacity is reached
-- Updated documentation and installer
-* Notes: config will be reset and legacy version (mcs) will be automatically removed

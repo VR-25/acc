@@ -143,14 +143,8 @@ install_module() {
   fi
 
   # cleanup & create module paths
+  cleanup
   rm -rf $MODPATH 2>/dev/null || :
-  if [ $curVer -lt 201812180 ] && [ $curVer -ge 201812100 ]; then
-      sed -i /alwaysOverwrite/d $config 2>/dev/null || :
-      sed -i "s|^switch=[^#]*|switch= |" $config 2>/dev/null || :
-  fi
-  if [ $curVer -lt 201812100 ] || [ $curVer -gt $(i versionCode) ]; then
-    rm -rf /data/media/0/$MODID 2>/dev/null || :
-  fi
   mkdir -p ${config%/*}/info ${config%/*}/logs
   [ -d /system/xbin ] && mkdir -p $MODPATH/system/xbin \
     || mkdir -p $MODPATH/system/bin
@@ -231,14 +225,8 @@ install_system() {
   else
 
     # cleanup & create paths
+    cleanup
     mkdir -p $modPath
-    if [ $curVer -lt 201812180 ] && [ $curVer -ge 201812100 ]; then
-      sed -i /alwaysOverwrite/d $config 2>/dev/null || :
-      sed -i "s|^switch=[^#]*|switch= |" $config 2>/dev/null || :
-    fi
-    if [ $curVer -lt 201812100 ] || [ $curVer -gt $(i versionCode) ]; then
-      rm -rf /data/media/0/$modId 2>/dev/null || :
-    fi
     mkdir -p ${config%/*}/info ${config%/*}/logs
 
     # remove legacy (mcs)
@@ -299,7 +287,7 @@ debug() {
   getprop | grep product
   echo; echo; echo
   getprop | grep version
-} >${config%/*}/logs/acc-debug-$(getprop ro.product.device | grep . || getprop ro.build.product).log
+} >${config%/*}/logs/acc-power_supply-$(getprop ro.product.device | grep . || getprop ro.build.product).log
 
 
 debug_exit() {
@@ -329,12 +317,39 @@ i() {
 }
 
 
+cleanup() {
+  if [ -e $config ]; then
+    if [ $curVer -lt 201812260 ]; then
+      rm ${config%/*}/logs/acc-debug* 2>/dev/null || :
+      sed -i s/misc/onBoot/g $config
+      sed -i s/exitMisc/onBootExit/g $config
+      unzip -o "$ZIP" common/default_config.txt -d $INSTALLER >&2
+      sed -i "\|onBoot|s|#.*|$(sed -n 's:onBoot=.[^#]*::p' $INSTALLER/common/default_config.txt)|" $config
+      sed -i "\|onBootExit|s|#.*|$(sed -n 's:onBootExit=.[^#]*::p' $INSTALLER/common/default_config.txt)|" $config
+      if ! grep -q onPlugged $config; then
+        unzip -o "$ZIP" common/default_config.txt -d $INSTALLER >&2
+        echo >>$config
+        grep 'onPlugged=' $INSTALLER/common/default_config.txt >>$config
+      fi
+    fi
+    if [ $curVer -lt 201812180 ]; then
+      sed -i /alwaysOverwrite/d $config 2>/dev/null || :
+      sed -i "s|^switch=[^#]*|switch= |" $config 2>/dev/null || :
+    fi
+  fi
+  if [ $curVer -lt 201812100 ] || [ $curVer -gt $(i versionCode) ]; then
+    rm -rf /data/media/0/acc 2>/dev/null || :
+  fi
+}
+
+
 version_info() {
 
-  local c="" whatsNew="- [acc] Legacy/mcs <pause%> <resume%> syntax support (e.g., acc 85 80)
-- [acc] More comprehensive help text, command examples/tips included
-- [General] Minor fixes and optimizations
-- [General] Updated documentation and default config"
+  local c="" whatsNew="- [acc] New option: -R|--resetstats (reset battery stats)
+- [Core] New feature: \`onPlugged\` settings (applied every time an external power supply is connected)
+- [General] Fixes & optimizations
+- [General] Updated documentation & default config
+- [Installer] Enhanced modularization for easier maintenance"
 
   set -euo pipefail
 

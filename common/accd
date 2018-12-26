@@ -20,11 +20,11 @@ main() {
   log=${config%/*}/logs/acc-daemon-$(getprop ro.product.device | grep . || getprop ro.build.product).log
 
   # wait until data is decrypted
-  until [ -e $config ]; do
+  until [ -e /data/media/0 ]; do
     sleep 10
   done
 
-  # make sure the number of running instances is at most one
+  # make sure the number of running accd processes is at most one
   sh $modPath/system/*bin/acc -D stop 1>/dev/null
 
   mkdir -p ${lockFile%/*} ${config%/*}/logs
@@ -40,7 +40,7 @@ main() {
 
   [ -e $modPath ] || exit 1
   unset modId
-  misc
+  on_boot
   check_compatibility
   ctrl_charging
 }
@@ -66,18 +66,29 @@ get_value() { sed -n "s:^$1=::p" $config | sed 's/#.*//'; }
 
 
 is_charging() {
+  local l="" t="" v=""
   local is_charging=true
+
   grep -Eiq 'dis|not' ./battery/status && is_charging=false
+
   if $is_charging; then
     resetUnplugged=true
+    for l in $(get_value onPlugged); do
+      t=$(echo $l | cut -d: -f1)
+      v=$(echo $l | cut -d: -f2)
+      [ -e $t ] && ! grep -q $v $t && chmod +w $t && echo $v >$t || :
+    done
   else
     if $resetUnplugged && eval $(get_value resetUnplugged); then
       dumpsys batterystats --reset 1>/dev/null 2>&1 || :
+      rm /data/system/batterystats* 2>/dev/null || :
       resetUnplugged=false
     fi
   fi
+
   [ $(du -m $log | awk '{print $1}') -gt $(get_value maxLogSize) ] \
     && cp -f $log $log.old && : >$log || :
+
   $is_charging && return 0 || return 1
 }
 
@@ -132,6 +143,7 @@ ctrl_charging() {
       then
         disable_charging
         dumpsys batterystats --reset 1>/dev/null 2>&1 || :
+        rm /data/system/batterystats* 2>/dev/null || :
       fi
 
       # cool down
@@ -206,16 +218,16 @@ SWITCHES
 }
 
 
-# apply miscellaneous settings
-misc() {
+# apply onBoot settings
+on_boot() {
   local l="" t="" v=""
-  for l in $(get_value misc); do
+  for l in $(get_value onBoot); do
     t=$(echo $l | cut -d: -f1)
     v=$(echo $l | cut -d: -f2)
     [ -e $t ] && chmod +w $t && echo $v >$t || :
   done
-  eval $(get_value exitMisc) && exit 0 || :
-  unset -f misc
+  eval $(get_value onBootExit) && exit 0 || :
+  unset -f on_boot
 }
 
 
