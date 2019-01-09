@@ -1,6 +1,6 @@
 #!/system/bin/sh
 # Advanced Charging Controller Daemon (accd)
-# Copyright (C) 2017-2018, VR25 @ xda-developers
+# Copyright (C) 2017-2019, VR25 @ xda-developers
 # License: GPL V3+
 
 
@@ -17,7 +17,7 @@ main() {
   modPath=/system/etc/$modId
   [ -e $modPath/module.prop ] || modPath=/sbin/.core/img/$modId
   [ -e $modPath/module.prop ] || modPath=/sbin/.magisk/img/$modId
-  log=${config%/*}/logs/acc-daemon-$(getprop ro.product.device | grep . || getprop ro.build.product).log
+  log=${config%/*}/logs/acc-daemon-$(getprop ro.product.device | grep .. || getprop ro.build.product).log
 
   # wait until data is decrypted
   until [ -e /data/media/0/Android ]; do
@@ -105,7 +105,7 @@ disable_charging() {
         exit 1
       fi
     else
-      exit 1
+      switch_loop off
     fi
   fi
   # cool down
@@ -126,7 +126,7 @@ enable_charging() {
         exit 1
       fi
     else
-      exit 1
+      switch_loop on
     fi
   fi
 }
@@ -151,10 +151,8 @@ ctrl_charging() {
         && [ $(cat ./battery/capacity) -lt $(get_value capacity | cut -d, -f3 | cut -d- -f2) ] \
         && [ $(cat ./battery/temp 2>/dev/null || cat ./battery/batt_temp) -lt $(get_value temp | cut -d- -f2 | cut -d_ -f1) ]
       do
-        if { [ -n "$(get_value temp | cut -d- -f1)" ] \
-            && [ $(cat ./battery/temp 2>/dev/null || cat battery/batt_temp) -ge $(get_value temp | cut -d- -f1) ]; } \
-          || { [ -n "$(get_value capacity | cut -d, -f2)" ] \
-            && [ $(cat ./battery/capacity) -ge $(get_value capacity | cut -d, -f2) ]; }
+        if [ $(cat ./battery/temp 2>/dev/null || cat battery/batt_temp) -ge $(get_value temp | cut -d- -f1) ] \
+          || [ $(cat ./battery/capacity) -ge $(get_value capacity | cut -d, -f2) ]
         then
           disable_charging
           sleep $(get_value coolDown | cut -d/ -f2)
@@ -162,8 +160,9 @@ ctrl_charging() {
           c=0
           while [ $c -lt $(get_value coolDown | cut -d/ -f1) ]; do
             sleep $(get_value loopDelay)
-            [ $(cat ./battery/capacity) -ge $(get_value capacity | cut -d, -f3 | cut -d- -f2) ] && break \
-              || c=$((c + $(get_value loopDelay)))
+            [ $(cat ./battery/capacity) -lt $(get_value capacity | cut -d, -f3 | cut -d- -f2) ] \
+              && [ $(cat ./battery/temp 2>/dev/null || cat ./battery/batt_temp) -lt $(get_value temp | cut -d- -f2 | cut -d_ -f1) ] \
+                && c=$((c + $(get_value loopDelay))) || break
           done
         else
           break
@@ -188,33 +187,22 @@ ctrl_charging() {
 }
 
 
-set_switch() { sed -i "s|^switch=[^#]*|switch=$1 |" $config; }
-
-
 check_compatibility() {
-  local s="" on="" off=""
+  local s="" compatible=false
   if ! get_value switch | grep -q /; then
     while read s; do
       if [ -e $(echo $s | awk '{print $1}') ]; then
-        on=$(echo $s | awk '{print $2}')
-        off=$(echo $s | awk '{print $3}')
-        s=$(echo $s | awk '{print $1}')
-
-        until is_charging; do sleep $(get_value loopDelay); done
-
-        chmod +w $s && echo $off >$s && sleep 5 || : # disable charging
-        if is_charging; then
-          echo $on >$s && sleep 5 || : # if test fails, restore original value
-        else
-          set_switch "$s $on $off" # else, save the working parameters
-          break # ...and return to main()
-        fi
+        compatible=true
+        break
       fi
     done <<SWITCHES
 $(grep -Ev '#|^$' $modPath/switches.txt)
 SWITCHES
+  else
+    [ -e $(get_value switch | awk '{print $1}') ] && compatible=true
   fi
-  unset -f set_switch check_compatibility
+  $compatible || exit 1
+  unset -f check_compatibility
 }
 
 
@@ -228,6 +216,27 @@ on_boot() {
   done
   eval $(get_value onBootExit) && exit 0 || :
   unset -f on_boot
+}
+
+
+switch_loop() {
+  local s="" on="" off="" default=""
+  while read s; do
+    if [ -e $(echo $s | awk '{print $1}') ]; then
+      on=$(echo $s | awk '{print $2}')
+      off=$(echo $s | awk '{print $3}')
+      s=$(echo $s | awk '{print $1}')
+      default=$(sed -n 1p $s)
+      chmod +w $s && eval "echo \$$1" >$s && sleep 1 || :
+      if { [ $1 = off ] && is_charging; } || { [ $1 = on ] && ! is_charging; }; then
+        echo $default >$s && sleep 1 || :
+      else
+        break
+      fi
+    fi
+  done <<SWITCHES
+$(grep -Ev '#|^$' $modPath/switches.txt)
+SWITCHES
 }
 
 

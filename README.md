@@ -1,5 +1,5 @@
 # Advanced Charging Controller (acc)
-## Copyright (C) 2017-2018, VR25 @ xda-developers
+## Copyright (C) 2017-2019, VR25 @ xda-developers
 ### License: GPL V3+
 #### README.md
 
@@ -30,13 +30,13 @@ By choosing to use/misuse acc, you agree to proceed at your own risk!
 
 This is primarily intended for extending battery service life. On the flip side, the name says it all.
 
-By default, battery stats are automatically reset once battery capacity reaches the `maxCapacity %`. Users can choose whether battery stats are also reset every time the charger is unplugged (resetUnplugged=true/false). This is not guaranteed to work on all systems, though.
+By default, battery stats are automatically reset once battery capacity reaches `maxCapacity%`. Users can choose whether battery stats are also reset every time the charger is unplugged (`resetUnplugged=true/false`).
 
-Depending on device's capabilities, charging can be controlled based on temperature conditions, battery capacity, time, voltage, current and/or more variables. Limiting the charging voltage (i.e., to no more than 4.2V) is the best thing to do for a long lasting battery service life. There's an option for that (`onBoot` settings). Unfortunately, not all devices/kernels allow modifying voltage_max (even with rw permissions). Fortunately, for those who are deprived of this ability, acc can keep battery voltage within less stressful thresholds -- and it does that by default. Read on...
+Depending on device's capabilities, charging can be controlled based on temperature conditions, battery capacity, time, voltage, current and/or more variables. Limiting the charging voltage (i.e., to no more than 4.2 Volts) is the best thing to do for a long lasting battery service life. There's an option for that (`onBoot` settings). Unfortunately, not all devices/kernels allow modifying `voltage_max` (even with read-write permissions). Fortunately, for those who are deprived of this ability, acc can keep battery voltage within less stressful thresholds -- and it does that by default. Read on...
 
-Charging is paused when battery temperature >= `maxTemp °C` or capacity >= `maxCapacity %`.
+Charging is paused when battery temperature >= `maxTemp °C` or capacity >= `maxCapacity%`. `maxTemp °C` includes a cooling timeout in seconds (default: 90). Charging is paused periodically as well to reduce voltage and temperature induced stress. This kicks in at `coolDown capacity` (default: 60) or `lower temperature` (default: 40°C) values. Each of these controls can be disabled individually.
 
-To prevent deep battery discharges and eventual cell damage, system is automatically and cleanly shutdown if battery is not charging and its capacity <= `shutdownCapacity %`.
+To prevent deep battery discharges and eventual cell damage, system is automatically and cleanly shutdown if battery is not charging and its capacity <= `shutdownCapacity%`.
 
 Changes to config take effect within `loopDelay` seconds). No reboot is necessary.
 
@@ -44,7 +44,7 @@ If config.txt is missing, it is automatically recreated with default settings. H
 
 Daemon state is managed with `acc -D|--daemon <start/stop/restart>`. accd can as well be started/restarted by simply running `accd`. It can also be stopped through the removal of the lock file `/dev/acc/running`. This file  contains the daemon's Process ID (PID).
 
-Logs are stored at `/data/media/0/acc/logs/`. `acc-debug-$deviceName.log` contains power supply information. That's were one would look for a charging switch when the device is not supported by acc. Some (very few) devices have charging switch(es) somewhere in /proc/ (e.g., /proc/smb1357_disable_chrg). Unfortunately, since /proc/ is non-standard for this sort of things, it's harder to look in there for charging switches. Most of the time, users will have to do that themselves. The remaining log files (`acc-daemon-$deviceName.log*`) contain runtime diagnostic information used for debugging general/advanced issues.
+Logs are stored at `/data/media/0/acc/logs/`. `acc-power_supply-$deviceName.log` contains power supply information. That's were one would look for a charging switch when the device is not supported by acc. The other log files (`acc-daemon-$deviceName.log*`) contain runtime diagnostic information used for debugging general/advanced issues.
 
 
 
@@ -104,11 +104,11 @@ Tips
 ---
 #### DEFAULT CONFIG
 
-`capacity=5,60,70-80 # <shutdown,coolDown,resume-pause> -- ideally, <resume> shouldn't be more than 10 units below <pause>. <shutdown> and <coolDown> can be null/disabled (i.e., capacity=,,70-80).
+`capacity=5,60,70-80 # <shutdown,coolDown,resume-pause> -- ideally, <resume> shouldn't be more than 10 units below <pause>. To disable <shutdown>, and <coolDown>, set these to 0 and 101, respectively (e.g., capacity=0,101,70-80). Note that the latter doesn't disable the cooling feature entirely, since it works not only based on battery capacity, but temperature as well.
 
-coolDown=50/10 # Charge/pause ratio (in seconds) -- reduces battery temperature and voltage induced stress by periodically pausing charging. This can be disabled with a null value or a preceding hashtag.
+coolDown=50/10 # Charge/pause ratio (in seconds) -- reduces battery temperature and voltage induced stress by periodically pausing charging. This can be disabled with a null value or a preceding hashtag. If charging is too slow, turn this off or change the charge/pause ratio. Disabling this nullifies <coolDown capacity> and <lower temperature> values -- leaving only a temperature limit with a cooling timeout.
 
-temp=400-450_90 # coolDown-pauseCharging_wait -- <wait> is interpreted in seconds and it allows battery temperature to drop below <pauseCharging>. By default, temperature values are interpreted in <degrees Celsius times 10>. If <coolDown> is null (i.e., temp=-450_90), the cooling engine acts upon coolDown capacity and max temperature only.
+temp=400-450_90 # <coolDown-pauseCharging_wait> -- <wait> is interpreted in seconds and it allows battery temperature to drop below <pauseCharging>. By default, temperature values are interpreted in <degrees Celsius times 10>. To disable temperature control entirely, set absurdly high values (e.g., temp=900-950_90).
 
 verbose=false # Alpha and Beta versions will generate verbose whether or not this is enabled.
 
@@ -118,13 +118,13 @@ loopDelay=10 # Time interval between loops, in seconds -- do not change this unl
 
 maxLogSize=10 # Log size limit in Megabytes -- when exceeded, $log becomes $log.old. This prevents storage space hijacking.
 
-switch= # Charging switch parameters (<path> <onValue> <offValue>), example: switch=/sys/class/power_supply/battery/charging_enabled 1 0, pro tip: <./> can be used in place of </sys/class/power_supply/> (i.e., switch=./battery/charging_enabled 1 0). NOTE: if acc's database contains a working charging switch for your device, it is set automatically when charger is connected for the first time after installing and rebooting.
+#switch= # Custom charging switch parameters (<path> <onValue> <offValue>), e.g., switch=/sys/class/power_supply/battery/charging_enabled 1 0, pro tip: <./> can be used in place of </sys/class/power_supply/> (e.g., switch=./battery/charging_enabled 1 0).
 
-onBoot=./usb/device/razer_charge_limit_enable:1 ./usb/device/razer_charge_limit_max:80 ./usb/device/razer_charge_limit_dropdown:70 # These settings are aplied on boot. Note that the default working path is "/sys/class/power_supply/"; "./" can be used in place of it.
+#onBoot=./usb/device/razer_charge_limit_enable:1 ./usb/device/razer_charge_limit_max:80 ./usb/device/razer_charge_limit_dropdown:70 # These settings are applied on boot.
 
 onBootExit=false # Exit after applying "onBoot" settings from above. Enabling this is particularly useful if voltage_max or similar is being set -- since keeping accd running in such cases is pointless.
 
-#onPlugged=./wireless/current_max:2000000 ./usb/current_max:2000000 # These settings are applied every time an external power supply is connected. The default working path is "/sys/class/power_supply/"; "./" can be used in place of it.`
+#onPlugged=./wireless/current_max:2000000 ./usb/current_max:2000000 # These settings are applied every time an external power supply is connected.`
 
 
 
@@ -144,14 +144,14 @@ onBootExit=false # Exit after applying "onBoot" settings from above. Enabling th
 First time
 1. Install from Magisk Manager or custom recovery.
 2. Reboot
-3. [Optional] customize /data/media/0/acc/config.txt.
+3. Customize /data/media/0/acc/config.txt (optional).
 
 Upgrade
 1. Install from Magisk Manager or custom recovery.
 2. Reboot
 
 After ROM updates
-- Unless `addon.d` feature is supported by the ROM, follow the upgrade steps above.
+- If the ROM supports `addon.d` feature, skip this. Else, follow the upgrade steps above.
 
 Uninstall
 1. Magisk: use Magisk Manager or other tool; legacy: flashing the same version again removes all traces of acc from /system.
@@ -174,6 +174,14 @@ Uninstall
 ---
 #### LATEST CHANGES
 
+**2019.1.9 (201901090)**
+- Additional devices support
+- Enhanced power supply logger. Owners of still unsupported devices, upload the newly generated acc-power_supply-$deviceName.log file.
+- Cycle through all supported charging switches (new algorithm). Users no longer need to run <acc -s s> if charging control is inconsistent - unless they want to enforce a particular switch or set custom charging switch parameters.
+- General fixes & optimizations
+- Updated building and debugging tools.
+- Updated documentation & default config.
+
 **2018.12.26.1 (201812261)**
 - [accd] Fixed "not autostarting if data is encrypted"
 
@@ -183,19 +191,3 @@ Uninstall
 - [General] Fixes & optimizations
 - [General] Updated documentation & default config
 - [Installer] Enhanced modularization for easier maintenance
-
-**2018.12.22 (201812220)**
-- [acc] Legacy/mcs <pause%> <resume%> syntax support (e.g., acc 85 80)
-- [acc] More comprehensive help text, command examples/tips included
-- [General] Minor fixes and optimizations
-- [General] Updated documentation and default config
-
-**2018.12.18 (201812180)**
-- [acc] Non-interactive shell support
-- [accd] Always overwrite charging switch.
-- [accd] Higher coolDown sensitivity
-- [accd] Make sure the number of running instances is at most one.
-- [accd] More efficient log size watchdog
-- [accd] Pause execution until data is decrypted.
-- [General] Rearranged charging switches to accommodate newer devices, such as the OnePlus 6/6T. Reports suggest that these don't work correctly with .../battery/charging_enabled.
-- [Installer] When updating config.txt, try patching relevant lines only, instead of overwriting the whole file.

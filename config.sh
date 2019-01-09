@@ -110,7 +110,7 @@ install_module() {
   set -euxo pipefail
   trap debug_exit EXIT
 
-  local config=/data/media/0/$MODID/config.txt
+  config=/data/media/0/$MODID/config.txt
 
   # magisk.img mount path
   if $BOOTMODE; then
@@ -167,6 +167,7 @@ install_module() {
   [ -f $config ] || cp $MODPATH/default_config.txt $config
 
   set +euxo pipefail
+  ui_print "- Generating ${config%/*}/logs/acc-power_supply-$(getprop ro.product.device | grep .. || getprop ro.build.product).log"
   debug
 }
 
@@ -179,7 +180,7 @@ install_system() {
 
   local modId=acc
   local modPath=/system/etc/$modId
-  local config=/data/media/0/$modId/config.txt
+  config=/data/media/0/$modId/config.txt
 
   grep_prop() {
     local REGEX="s/^$1=//p"
@@ -261,6 +262,7 @@ install_system() {
     [ -f $config ] || cp $modPath/default_config.txt $config
 
     set +euxo pipefail
+    ui_print "- Generating ${config%/*}/logs/acc-power_supply-$(getprop ro.product.device | grep .. || getprop ro.build.product).log"
     debug
     MAGISK_VER=0
     version_info
@@ -270,22 +272,20 @@ install_system() {
 
 
 debug() {
-  local d="" f=""
+  local target=""
   date
-  echo versionCode=$(i versionCode)
-  echo; echo; echo
-  for d in /sys/class/power_supply/*; do
-    for f in $d/*; do
-      if [ -f $f ]; then
-        echo $f
-        cat $f | sed 's/^/  /'
-        echo
-      fi
-    done
-    echo; echo
+  echo "Version code: $(i versionCode)"
+  echo; echo
+  for target in $(find /sys /proc 2>/dev/null | grep -Ei 'batt|ch.*rg|power_supply'); do
+    if [ -f $target ]; then
+      echo $target
+      sed 's/^/  /' $target 2>/dev/null
+      echo
+    fi
   done 2>/dev/null
+  echo
   getprop | grep product
-  echo; echo; echo
+  echo
   getprop | grep version
 } >${config%/*}/logs/acc-power_supply-$(getprop ro.product.device | grep . || getprop ro.build.product).log
 
@@ -318,36 +318,15 @@ i() {
 
 
 cleanup() {
-  if [ -e $config ]; then
-    if [ $curVer -lt 201812260 ]; then
-      rm ${config%/*}/logs/acc-debug* 2>/dev/null || :
-      sed -i s/misc/onBoot/g $config
-      sed -i s/exitMisc/onBootExit/g $config
-      unzip -o "$ZIP" common/default_config.txt -d $INSTALLER >&2
-      sed -i "\|onBoot|s|#.*|$(sed -n 's:onBoot=.[^#]*::p' $INSTALLER/common/default_config.txt)|" $config
-      sed -i "\|onBootExit|s|#.*|$(sed -n 's:onBootExit=.[^#]*::p' $INSTALLER/common/default_config.txt)|" $config
-      if ! grep -q onPlugged $config; then
-        unzip -o "$ZIP" common/default_config.txt -d $INSTALLER >&2
-        echo >>$config
-        grep 'onPlugged=' $INSTALLER/common/default_config.txt >>$config
-      fi
-    fi
-    if [ $curVer -lt 201812180 ]; then
-      sed -i /alwaysOverwrite/d $config 2>/dev/null || :
-      sed -i "s|^switch=[^#]*|switch= |" $config 2>/dev/null || :
-    fi
-  fi
-  if [ $curVer -lt 201812100 ] || [ $curVer -gt $(i versionCode) ]; then
+  if [ $curVer -lt 201901090 ] || [ $curVer -gt $(i versionCode) ]; then
     rm -rf /data/media/0/acc 2>/dev/null || :
   fi
 }
 
 
 version_info() {
-
-  local c="" whatsNew="- [accd] Fixed \"not autostarting if data is encrypted\""
-
-  set -euo pipefail
+  local line=""
+  local println=false
 
   # a note on untested Magisk versions
   if [ ${MAGISK_VER/.} -gt 180 ]; then
@@ -358,10 +337,11 @@ version_info() {
 
   ui_print " "
   ui_print "  WHAT'S NEW"
-  echo "$whatsNew" | \
-    while read c; do
-      ui_print "    $c"
-    done
+  cat ${config%/*}/info/README.md | while read line; do
+    echo "$line" | grep -q '\*\*.*\(.*\)\*\*' && println=true
+    $println && echo "$line" | grep -q '^$' && break
+    $println && echo "    $line" | grep -v '\*\*.*\(.*\)\*\*'
+  done
   ui_print " "
 
   ui_print "  LINKS"
@@ -373,3 +353,6 @@ version_info() {
   ui_print "    - XDA thread: forum.xda-developers.com/apps/magisk/module-magic-charging-switch-cs-v2017-9-t3668427/"
   ui_print " "
 }
+
+
+acc --daemon stop 1>/dev/null 2>&1

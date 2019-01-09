@@ -1,13 +1,12 @@
 # ACC Charging Switches Database
-# Copyright (C) 2017-2018, VR25 @ xda-developers
+# Copyright (C) 2017-2019, VR25 @ xda-developers
 # License: GPL V3+
-# Default lookup path: /sys/class/power_supply/
-# Last updated on Fri, Dec 21, 2018
+# PWD=/sys/class/power_supply
+# Last updated: Tue, Jan 8, 2018
 
 ./battery/input_suspend 0 1
 ./manta-battery/charge_enabled 1 0
 ./battery/charge_enabled 1 0
-./pm8921_charger/parameters/disabled 0 1
 ./battery/device/Charging_Enable 1 0
 ./battery/ChargerEnable 1 0
 ./battery/disable_charger 0 1
@@ -25,9 +24,17 @@
 ./parallel/charging_enabled 1 0
 ./parallel/input_suspend 0 1
 ./dollar_cove_charger/present 1 0
-/proc/smb1357_disable_chrg 0 1
 ./battery/battery_charging_enabled 1 0
 ./battery/charging_enabled 1 0
-./battery/store_mode 0 1
 ./battery/batt_slate_mode 0 1
+./battery/store_mode 0 1
 ./usb\-parallel/charging_enabled
+
+/proc/smb1357_disable_chrg 0 1
+/sys/devices/platform/battery/ChargerEnable 1 0
+/sys/module/pm8921_charger/parameters/disabled 0 1
+/sys/devices/platform/mt-battery/disable_charger 0 1
+/sys/devices/platform/huawei_charger/enable_charger 1 0
+/sys/devices/platform/*/*/charging_state enabled disabled
+/sys/class/hw_power/charger/charge_data/enable_charger 1 0
+/sys/devices/platform/omap/omap_i2c.3/i2c-3/3-005f/charge_enable 1 0

@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Basic shell syntax checker
+# Copyright (C) 2018-2019, VR25 @ xda-developers
+# License: GPL V3+
 
 echo
 cd ${0%/*} 2>/dev/null

@@ -2,11 +2,11 @@
 # /data/media/0/acc/config.txt
 
 
-capacity=5,60,70-80 # <shutdown,coolDown,resume-pause> -- ideally, <resume> shouldn't be more than 10 units below <pause>. <shutdown> and <coolDown> can be null/disabled (i.e., capacity=,,70-80).
+capacity=5,60,70-80 # <shutdown,coolDown,resume-pause> -- ideally, <resume> shouldn't be more than 10 units below <pause>. To disable <shutdown>, and <coolDown>, set these to 0 and 101, respectively (e.g., capacity=0,101,70-80). Note that the latter doesn't disable the cooling feature entirely, since it works not only based on battery capacity, but temperature as well.
 
-coolDown=50/10 # Charge/pause ratio (in seconds) -- reduces battery temperature and voltage induced stress by periodically pausing charging. This can be disabled with a null value or a preceding hashtag.
+coolDown=50/10 # Charge/pause ratio (in seconds) -- reduces battery temperature and voltage induced stress by periodically pausing charging. This can be disabled with a null value or a preceding hashtag. If charging is too slow, turn this off or change the charge/pause ratio. Disabling this nullifies <coolDown capacity> and <lower temperature> values -- leaving only a temperature limit with a cooling timeout.
 
-temp=400-450_90 # coolDown-pauseCharging_wait -- <wait> is interpreted in seconds and it allows battery temperature to drop below <pauseCharging>. By default, temperature values are interpreted in <degrees Celsius times 10>. If <coolDown> is null (i.e., temp=-450_90), the cooling engine acts upon coolDown capacity and max temperature only.
+temp=400-450_90 # <coolDown-pauseCharging_wait> -- <wait> is interpreted in seconds and it allows battery temperature to drop below <pauseCharging>. By default, temperature values are interpreted in <degrees Celsius times 10>. To disable temperature control entirely, set absurdly high values (e.g., temp=900-950_90).
 
 verbose=false # Alpha and Beta versions will generate verbose whether or not this is enabled.
 
@@ -16,10 +16,10 @@ loopDelay=10 # Time interval between loops, in seconds -- do not change this unl
 
 maxLogSize=10 # Log size limit in Megabytes -- when exceeded, $log becomes $log.old. This prevents storage space hijacking.
 
-switch= # Charging switch parameters (<path> <onValue> <offValue>), example: switch=/sys/class/power_supply/battery/charging_enabled 1 0, pro tip: <./> can be used in place of </sys/class/power_supply/> (i.e., switch=./battery/charging_enabled 1 0). NOTE: if acc's database contains a working charging switch for your device, it is set automatically when charger is connected for the first time after installing and rebooting.
+#switch= # Custom charging switch parameters (<path> <onValue> <offValue>), e.g., switch=/sys/class/power_supply/battery/charging_enabled 1 0, pro tip: <./> can be used in place of </sys/class/power_supply/> (e.g., switch=./battery/charging_enabled 1 0).
 
-onBoot=./usb/device/razer_charge_limit_enable:1 ./usb/device/razer_charge_limit_max:80 ./usb/device/razer_charge_limit_dropdown:70 # These settings are aplied on boot. Note that the default working path is "/sys/class/power_supply/"; "./" can be used in place of it.
+#onBoot=./usb/device/razer_charge_limit_enable:1 ./usb/device/razer_charge_limit_max:80 ./usb/device/razer_charge_limit_dropdown:70 # These settings are applied on boot.
 
 onBootExit=false # Exit after applying "onBoot" settings from above. Enabling this is particularly useful if voltage_max or similar is being set -- since keeping accd running in such cases is pointless.
 
-#onPlugged=./wireless/current_max:2000000 ./usb/current_max:2000000 # These settings are applied every time an external power supply is connected. The default working path is "/sys/class/power_supply/"; "./" can be used in place of it.
+#onPlugged=./wireless/current_max:2000000 ./usb/current_max:2000000 # These settings are applied every time an external power supply is connected.

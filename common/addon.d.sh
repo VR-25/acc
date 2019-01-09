@@ -1,5 +1,5 @@
 #!/sbin/sh
-# Preserves $modId across ROM updates
+# Preserves acc across ROM updates
 # Based on 50-cm.s
 
 umask 000

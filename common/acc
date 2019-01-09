@@ -1,6 +1,6 @@
 #!/system/bin/sh
 # Advanced Charging Controller Utilities
-# Copyright (C) 2018, VR25 @ xda-developers
+# Copyright (C) 2017-2019, VR25 @ xda-developers
 # License: GPL V3+
 
 
@@ -113,9 +113,9 @@ edit() {
 help() {
   cat <<HELP
 ACC Utilities
-Copyright (C) 2018, VR25 @ xda-developers
+Copyright (C) 2017-2019, VR25 @ xda-developers
 License: GPL V3+
-Build date: $(sed -n 's/version=//p' $modPath/module.prop)
+Version code: $(sed -n 's/versionCode=//p' $modPath/module.prop)
 
 Usage: acc <options> <args>
 
@@ -165,7 +165,7 @@ Tips
   Commands can be chained for extended functionality.
     e.g., acc -e 30m && acc -d 6h && acc -e 85 && accd (recharge for 30 minutes, halt charging for 6 hours, recharge to 85% capacity and restart daemon)
 
-Run acc -r to see the full documentation (enter ":q!" to quit).
+Run acc -r to see the full documentation (type ":q! <enter>" to quit).
 HELP
 }
 
@@ -217,10 +217,10 @@ $(grep -Ev '#|^$' $modPath/switches.txt)
 SWITCHES
 
   local IFS=$'\n'
-  eval 'select i in $l; do \
-    IFS=$oIFS; \
-    set_value switch "$i"; \
-    break; \
+  eval 'select i in $l; do
+    IFS=$oIFS
+    set_value switch "$i"
+    break
   done'
 }
 
@@ -238,8 +238,7 @@ disable_charging() {
       exit 1
     fi
   else
-    echo -e "(!) Charging switch not set\n"
-    exit 1
+    switch_loop off
   fi
   set +u
   if [ -n "$1" ]; then
@@ -286,8 +285,7 @@ enable_charging() {
       exit 1
     fi
   else
-    echo -e "(!) Charging switch not set\n"
-    exit 1
+    switch_loop on
   fi
   set +u
   if [ -n "$1" ]; then
@@ -330,6 +328,29 @@ set_cap() {
   local s=$(get_value capacity | cut -d, -f1)
   local c=$(get_value capacity | cut -d, -f2)
   set_value capacity $s,$c,$2-$1
+}
+
+
+switch_loop() {
+  local s="" on="" off="" default=""
+  while read s; do
+    if [ -e $(echo $s | awk '{print $1}') ]; then
+      on=$(echo $s | awk '{print $2}')
+      off=$(echo $s | awk '{print $3}')
+      s=$(echo $s | awk '{print $1}')
+      default=$(sed -n 1p $s)
+      chmod +w $s && eval "echo \$$1" >$s && sleep 1 || :
+      if { [ $1 = off ] && ! grep -Eiq 'dis|not' ./battery/status; } \
+        || { [ $1 = on ] && grep -Eiq 'dis|not' ./battery/status; }
+      then
+        echo $default >$s && sleep 1 || :
+      else
+        break
+      fi
+    fi
+  done <<SWITCHES
+$(grep -Ev '#|^$' $modPath/switches.txt)
+SWITCHES
 }
 
 

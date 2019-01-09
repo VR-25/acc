@@ -1,6 +1,6 @@
 #!/system/bin/sh
 # Advanced Charging Controller Daemon (accd) Starter
-# Copyright (C) 2017-2018, VR25 @ xda-developers
+# Copyright (C) 2017-2019, VR25 @ xda-developers
 # License: GPL V3+
 
 modId=acc
