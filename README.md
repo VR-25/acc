@@ -174,6 +174,8 @@ Uninstall
 ---
 #### LATEST CHANGES
 
+**2019.1.9.2 (201901092)**
+- Added support for some Huawei devices' weirdnesses.
 **2019.1.9.1 (201901091)**
 - Fixed `acc -s s <path> <on> <off>`.
 **2019.1.9 (201901090)**

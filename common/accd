@@ -69,7 +69,7 @@ is_charging() {
   local l="" t="" v=""
   local is_charging=true
 
-  grep -Eiq 'dis|not' ./battery/status && is_charging=false
+  grep -Eiq 'dis|not' ./?attery/status && is_charging=false
 
   if $is_charging; then
     resetUnplugged=true
@@ -109,7 +109,7 @@ disable_charging() {
     fi
   fi
   # cool down
-  [ $(cat ./battery/temp 2>/dev/null || cat ./battery/batt_temp) -ge $(get_value temp | cut -d- -f2 | cut -d_ -f1) ] \
+  [ $(cat ./?attery/temp 2>/dev/null || cat ./?attery/batt_temp) -ge $(get_value temp | cut -d- -f2 | cut -d_ -f1) ] \
     && sleep $(get_value temp | cut -d- -f2 | cut -d_ -f2) || :
 }
 
@@ -138,8 +138,8 @@ ctrl_charging() {
 
     if is_charging; then
       # disable charging & clear battery stats if conditions apply
-      if [ $(cat ./battery/temp 2>/dev/null || cat battery/batt_temp) -ge $(get_value temp | cut -d- -f2 | cut -d_ -f1) ] \
-        || [ $(cat ./battery/capacity) -ge $(get_value capacity | cut -d, -f3 | cut -d- -f2) ]
+      if [ $(cat ./?attery/temp 2>/dev/null || cat battery/batt_temp) -ge $(get_value temp | cut -d- -f2 | cut -d_ -f1) ] \
+        || [ $(cat ./?attery/capacity) -ge $(get_value capacity | cut -d, -f3 | cut -d- -f2) ]
       then
         disable_charging
         dumpsys batterystats --reset 1>/dev/null 2>&1 || :
@@ -148,11 +148,11 @@ ctrl_charging() {
 
       # cool down
       while [ -f $lockFile ] && get_value coolDown | grep -q / && is_charging \
-        && [ $(cat ./battery/capacity) -lt $(get_value capacity | cut -d, -f3 | cut -d- -f2) ] \
-        && [ $(cat ./battery/temp 2>/dev/null || cat ./battery/batt_temp) -lt $(get_value temp | cut -d- -f2 | cut -d_ -f1) ]
+        && [ $(cat ./?attery/capacity) -lt $(get_value capacity | cut -d, -f3 | cut -d- -f2) ] \
+        && [ $(cat ./?attery/temp 2>/dev/null || cat ./?attery/batt_temp) -lt $(get_value temp | cut -d- -f2 | cut -d_ -f1) ]
       do
-        if [ $(cat ./battery/temp 2>/dev/null || cat battery/batt_temp) -ge $(get_value temp | cut -d- -f1) ] \
-          || [ $(cat ./battery/capacity) -ge $(get_value capacity | cut -d, -f2) ]
+        if [ $(cat ./?attery/temp 2>/dev/null || cat battery/batt_temp) -ge $(get_value temp | cut -d- -f1) ] \
+          || [ $(cat ./?attery/capacity) -ge $(get_value capacity | cut -d, -f2) ]
         then
           disable_charging
           sleep $(get_value coolDown | cut -d/ -f2)
@@ -160,8 +160,8 @@ ctrl_charging() {
           c=0
           while [ $c -lt $(get_value coolDown | cut -d/ -f1) ]; do
             sleep $(get_value loopDelay)
-            [ $(cat ./battery/capacity) -lt $(get_value capacity | cut -d, -f3 | cut -d- -f2) ] \
-              && [ $(cat ./battery/temp 2>/dev/null || cat ./battery/batt_temp) -lt $(get_value temp | cut -d- -f2 | cut -d_ -f1) ] \
+            [ $(cat ./?attery/capacity) -lt $(get_value capacity | cut -d, -f3 | cut -d- -f2) ] \
+              && [ $(cat ./?attery/temp 2>/dev/null || cat ./?attery/batt_temp) -lt $(get_value temp | cut -d- -f2 | cut -d_ -f1) ] \
                 && c=$((c + $(get_value loopDelay))) || break
           done
         else
@@ -171,13 +171,13 @@ ctrl_charging() {
 
     else
       # enable charging if conditions apply
-      if [ $(cat ./battery/capacity) -le $(get_value capacity | cut -d, -f3 | cut -d- -f1) ] \
-        && [ $(cat ./battery/temp 2>/dev/null || cat battery/batt_temp) -lt $(get_value temp | cut -d- -f2 | cut -d_ -f1) ]
+      if [ $(cat ./?attery/capacity) -le $(get_value capacity | cut -d, -f3 | cut -d- -f1) ] \
+        && [ $(cat ./?attery/temp 2>/dev/null || cat battery/batt_temp) -lt $(get_value temp | cut -d- -f2 | cut -d_ -f1) ]
       then
         enable_charging
       fi
       # auto-shutdown if battery is not charging and capacity is too low
-      if ! is_charging && [ $(cat ./battery/capacity) -le $(get_value capacity | cut -d, -f1) ]; then
+      if ! is_charging && [ $(cat ./?attery/capacity) -le $(get_value capacity | cut -d, -f1) ]; then
         am start -n android/com.android.internal.app.ShutdownActivity
       fi
     fi

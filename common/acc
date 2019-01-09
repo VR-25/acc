@@ -47,7 +47,7 @@ main() {
     -d|--disable) shift; disable_charging $@;;
     -D|--daemon) shift; daemon $@;;
     -e|--enable) shift; enable_charging $@;;
-    -i|--info) sed s/POWER_SUPPLY_// ./battery/uevent;;
+    -i|--info) sed s/POWER_SUPPLY_// ./?attery/uevent;;
     -l|--log) shift; edit ${config%/*}/logs/acc-daemon*.log $@;;
     -r|--readme) shift; edit ${config%/*}/info/README.md $@;;
     -R|--resetstats)
@@ -244,7 +244,7 @@ disable_charging() {
   if [ -n "$1" ]; then
     if echo "$1" | grep -q %; then
       echo -e "(i) Charging disabled until battery capacity <= $1\n"
-      until [ $(cat ./battery/capacity) -le $(echo $1 | sed 's/%//') ]; do
+      until [ $(cat ./?attery/capacity) -le $(echo $1 | sed 's/%//') ]; do
         sleep $(get_value loopDelay)
       done
       enable_charging
@@ -291,7 +291,7 @@ enable_charging() {
   if [ -n "$1" ]; then
     if echo "$1" | grep -q %; then
       echo -e "(i) Charging enabled until battery capacity >= $1\n"
-      until [ $(cat ./battery/capacity) -ge $(echo $1 | sed 's/%//') ]; do
+      until [ $(cat ./?attery/capacity) -ge $(echo $1 | sed 's/%//') ]; do
         sleep $(get_value loopDelay)
       done
       disable_charging
@@ -340,8 +340,8 @@ switch_loop() {
       s=$(echo $s | awk '{print $1}')
       default=$(sed -n 1p $s)
       chmod +w $s && eval "echo \$$1" >$s && sleep 1 || :
-      if { [ $1 = off ] && ! grep -Eiq 'dis|not' ./battery/status; } \
-        || { [ $1 = on ] && grep -Eiq 'dis|not' ./battery/status; }
+      if { [ $1 = off ] && ! grep -Eiq 'dis|not' ./?attery/status; } \
+        || { [ $1 = on ] && grep -Eiq 'dis|not' ./?attery/status; }
       then
         echo $default >$s && sleep 1 || :
       else
