@@ -54,7 +54,7 @@ main() {
       dumpsys batterystats --reset 1>/dev/null 2>&1 || :
       rm /data/system/batterystats* 2>/dev/null || :
     ;;
-    -s|--set) shift; set_values "$@";;
+    -s|--set) shift; set_values $@;;
     *) help;;
   esac
   set -u
@@ -171,21 +171,21 @@ HELP
 
 
 set_value() {
-  if grep -Eq "^$1=|^#$1=" $config; then
-    if grep -q "^$1=" $config; then
-      sed -i "s|^$1=[^#]*|$1=$2 |" $config
-    else
-      sed -i "s|^#$1=[^#]*|$1=$2 |" $config
-    fi
+  local var=$1
+  [ $var = s ] && var=switch || :
+  shift
+  if grep -q "^$var=" $config; then
+    sed -i "s|^$var=[^#]*|$var=$(echo -n $@) |" $config
+  elif grep -q "^#$var=" $config; then
+    sed -i "s|^#$var=[^#]*|$var=$(echo -n $@) |" $config
   else
-    echo -e "(!) Invalid argument(s)\n"
+    echo "(!) Invalid variable"
     exit 1
   fi
 }
 
 
 set_values() {
-  [ -n "$3" ] && { echo -e "(!) acc -s: max 2 arguments\n"; exit 1; }
   case $1 in
     8090|lite) set_value capacity 5,60,80-90;;
     9095|travel) set_value capacity 5,60,90-95;;
@@ -196,7 +196,7 @@ set_values() {
          if [ -z "$2" ] && [ $1 = switch -o $1 = s ]; then
            set_switch
          else
-           set_value $1 "$2"
+           set_value $@
          fi
        else
          grep '^[a-z].*=' $config | sed 's/#.*//'
@@ -207,7 +207,7 @@ set_values() {
 
 set_switch() {
   local s="" on="" off="" l="" i="" oIFS=$IFS
-  echo -e "(i) Available charging switches\n- Choose one and press Enter to set it\n"
+  echo -e "(i) Available charging switches\n- Choose one and press <enter> to set it\n"
 
   while read s; do
     [ -e $(echo $s | awk '{print $1}') ] && l="$l

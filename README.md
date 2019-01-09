@@ -174,6 +174,8 @@ Uninstall
 ---
 #### LATEST CHANGES
 
+**2019.1.9.1 (201901091)**
+- Fixed `acc -s s <path> <on> <off>`.
 **2019.1.9 (201901090)**
 - Additional devices support
 - Enhanced power supply logger. Owners of still unsupported devices, upload the newly generated acc-power_supply-$deviceName.log file.
