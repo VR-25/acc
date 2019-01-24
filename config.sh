@@ -167,8 +167,8 @@ install_module() {
   [ -f $config ] || cp $MODPATH/default_config.txt $config
 
   set +euxo pipefail
-  ui_print "- Generating ${config%/*}/logs/acc-power_supply-$(getprop ro.product.device | grep .. || getprop ro.build.product).log"
-  debug
+  ui_print "- [Background] Generating ${config%/*}/logs/acc-power_supply-$(getprop ro.product.device | grep .. || getprop ro.build.product).log"
+  (debug &) &
 }
 
 
@@ -262,8 +262,8 @@ install_system() {
     [ -f $config ] || cp $modPath/default_config.txt $config
 
     set +euxo pipefail
-    ui_print "- Generating ${config%/*}/logs/acc-power_supply-$(getprop ro.product.device | grep .. || getprop ro.build.product).log"
-    debug
+    ui_print "- [Background] Generating ${config%/*}/logs/acc-power_supply-$(getprop ro.product.device | grep .. || getprop ro.build.product).log"
+    (debug &) &
     MAGISK_VER=0
     version_info
   fi
@@ -331,7 +331,7 @@ version_info() {
   # a note on untested Magisk versions
   if [ ${MAGISK_VER/.} -gt 180 ]; then
     ui_print " "
-    ui_print "  (i) NOTE: this Magisk version hasn't been tested by @VR25!"
+    ui_print "  (!) This Magisk version hasn't been tested by @VR25!"
     ui_print "    - If you come across any issue, please report."
   fi
 
@@ -351,6 +351,9 @@ version_info() {
   ui_print "    - Telegram channel: t.me/vr25_xda/"
   ui_print "    - Telegram profile: t.me/vr25xda/"
   ui_print "    - XDA thread: forum.xda-developers.com/apps/magisk/module-magic-charging-switch-cs-v2017-9-t3668427/"
+  ui_print " "
+
+  ui_print "(i) You can close this now, but before rebooting, wait at least a minute or two for the background job to finish."
   ui_print " "
 }
 

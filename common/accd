@@ -6,7 +6,7 @@
 
 main() {
 
-  umask 000
+  umask 0
   set -euo pipefail
 
   modId=acc
@@ -15,17 +15,24 @@ main() {
   config=/data/media/0/$modId/config.txt
 
   modPath=/system/etc/$modId
-  [ -e $modPath/module.prop ] || modPath=/sbin/.core/img/$modId
-  [ -e $modPath/module.prop ] || modPath=/sbin/.magisk/img/$modId
+  [ -f $modPath/module.prop ] || modPath=/sbin/.core/img/$modId
+  [ -f $modPath/module.prop ] || modPath=/sbin/.magisk/img/$modId
+
   log=${config%/*}/logs/acc-daemon-$(getprop ro.product.device | grep .. || getprop ro.build.product).log
 
+  if ! which awk 1>/dev/null && echo $modPath | grep -q /system/etc/; then
+    PATH=$(echo $modPath | sed 's|/img/.*|/busybox|'):$PATH
+  fi
+
+  batt=$(echo /sys/class/power_supply/*attery/capacity | awk '{print $1}' | sed 's|/capacity||')
+
   # wait until data is decrypted
-  until [ -e /data/media/0/Android ]; do
+  until [ -d /data/media/0/?ndroid ]; do
     sleep 10
   done
 
   # make sure the number of running accd processes is at most one
-  sh $modPath/system/*bin/acc -D stop 1>/dev/null
+  sh $modPath/system/*bin/acc --daemon stop 1>/dev/null
 
   mkdir -p ${lockFile%/*} ${config%/*}/logs
   [ -f $config ] || cp $modPath/default_config.txt $config
@@ -35,10 +42,10 @@ main() {
   # diagnostics and cleanup
   echo "###$(date)###" >>$log
   exec 1>>$log 2>&1
-  { grep -q beta $modPath/module.prop || eval $(get_value verbose); } && set -x || :
+  { grep -Eiq 'alpha|beta' $modPath/module.prop || eval $(get_value verbose); } && set -x || :
   trap debug_exit EXIT
 
-  [ -e $modPath ] || exit 1
+  [ -d $modPath ] || exit 1
   unset modId
   on_boot
   check_compatibility
@@ -56,8 +63,8 @@ debug_exit() {
   echo
   echo "SELinux status: $(getenforce 2>/dev/null || sestatus 2>/dev/null)" \
     | sed 's/En/en/;s/Pe/pe/'
-  enable_charging
   rm $lockFile 2>/dev/null
+  enable_charging 2>/dev/null 1>&2
   exit $exitCode
 }
 
@@ -69,14 +76,14 @@ is_charging() {
   local l="" t="" v=""
   local is_charging=true
 
-  grep -Eiq 'dis|not' ./?attery/status && is_charging=false
+  grep -Eiq 'dis|not' $batt/status && is_charging=false
 
   if $is_charging; then
     resetUnplugged=true
     for l in $(get_value onPlugged); do
       t=$(echo $l | cut -d: -f1)
       v=$(echo $l | cut -d: -f2)
-      [ -e $t ] && ! grep -q $v $t && chmod +w $t && echo $v >$t || :
+      [ -f $t ] && ! grep -q $v $t && chmod +w $t && echo $v >$t || :
     done
   else
     if $resetUnplugged && eval $(get_value resetUnplugged); then
@@ -99,7 +106,7 @@ disable_charging() {
     if get_value switch | grep -q /; then
       s=$(get_value switch | awk '{print $1}')
       off=$(get_value switch | awk '{print $3}')
-      if [ -e $s ]; then
+      if [ -f $s ]; then
         chmod +w $s && echo $off >$s || :
       else
         exit 1
@@ -109,7 +116,7 @@ disable_charging() {
     fi
   fi
   # cool down
-  [ $(cat ./?attery/temp 2>/dev/null || cat ./?attery/batt_temp) -ge $(get_value temp | cut -d- -f2 | cut -d_ -f1) ] \
+  [ $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) -ge $(get_value temp | cut -d- -f2 | cut -d_ -f1) ] \
     && sleep $(get_value temp | cut -d- -f2 | cut -d_ -f2) || :
 }
 
@@ -120,7 +127,7 @@ enable_charging() {
     if get_value switch | grep -q /; then
       s=$(get_value switch | awk '{print $1}')
       on=$(get_value switch | awk '{print $2}')
-      if [ -e $s ]; then
+      if [ -f $s ]; then
         chmod +w $s && echo $on >$s || :
       else
         exit 1
@@ -138,8 +145,8 @@ ctrl_charging() {
 
     if is_charging; then
       # disable charging & clear battery stats if conditions apply
-      if [ $(cat ./?attery/temp 2>/dev/null || cat battery/batt_temp) -ge $(get_value temp | cut -d- -f2 | cut -d_ -f1) ] \
-        || [ $(cat ./?attery/capacity) -ge $(get_value capacity | cut -d, -f3 | cut -d- -f2) ]
+      if [ $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) -ge $(get_value temp | cut -d- -f2 | cut -d_ -f1) ] \
+        || [ $(cat $batt/capacity) -ge $(get_value capacity | cut -d, -f3 | cut -d- -f2) ]
       then
         disable_charging
         dumpsys batterystats --reset 1>/dev/null 2>&1 || :
@@ -148,11 +155,11 @@ ctrl_charging() {
 
       # cool down
       while [ -f $lockFile ] && get_value coolDown | grep -q / && is_charging \
-        && [ $(cat ./?attery/capacity) -lt $(get_value capacity | cut -d, -f3 | cut -d- -f2) ] \
-        && [ $(cat ./?attery/temp 2>/dev/null || cat ./?attery/batt_temp) -lt $(get_value temp | cut -d- -f2 | cut -d_ -f1) ]
+        && [ $(cat $batt/capacity) -lt $(get_value capacity | cut -d, -f3 | cut -d- -f2) ] \
+        && [ $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) -lt $(get_value temp | cut -d- -f2 | cut -d_ -f1) ]
       do
-        if [ $(cat ./?attery/temp 2>/dev/null || cat battery/batt_temp) -ge $(get_value temp | cut -d- -f1) ] \
-          || [ $(cat ./?attery/capacity) -ge $(get_value capacity | cut -d, -f2) ]
+        if [ $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) -ge $(get_value temp | cut -d- -f1) ] \
+          || [ $(cat $batt/capacity) -ge $(get_value capacity | cut -d, -f2) ]
         then
           disable_charging
           sleep $(get_value coolDown | cut -d/ -f2)
@@ -160,8 +167,8 @@ ctrl_charging() {
           c=0
           while [ $c -lt $(get_value coolDown | cut -d/ -f1) ]; do
             sleep $(get_value loopDelay)
-            [ $(cat ./?attery/capacity) -lt $(get_value capacity | cut -d, -f3 | cut -d- -f2) ] \
-              && [ $(cat ./?attery/temp 2>/dev/null || cat ./?attery/batt_temp) -lt $(get_value temp | cut -d- -f2 | cut -d_ -f1) ] \
+            [ $(cat $batt/capacity) -lt $(get_value capacity | cut -d, -f3 | cut -d- -f2) ] \
+              && [ $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) -lt $(get_value temp | cut -d- -f2 | cut -d_ -f1) ] \
                 && c=$((c + $(get_value loopDelay))) || break
           done
         else
@@ -171,13 +178,13 @@ ctrl_charging() {
 
     else
       # enable charging if conditions apply
-      if [ $(cat ./?attery/capacity) -le $(get_value capacity | cut -d, -f3 | cut -d- -f1) ] \
-        && [ $(cat ./?attery/temp 2>/dev/null || cat battery/batt_temp) -lt $(get_value temp | cut -d- -f2 | cut -d_ -f1) ]
+      if [ $(cat $batt/capacity) -le $(get_value capacity | cut -d, -f3 | cut -d- -f1) ] \
+        && [ $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) -lt $(get_value temp | cut -d- -f2 | cut -d_ -f1) ]
       then
         enable_charging
       fi
       # auto-shutdown if battery is not charging and capacity is too low
-      if ! is_charging && [ $(cat ./?attery/capacity) -le $(get_value capacity | cut -d, -f1) ]; then
+      if ! is_charging && [ $(cat $batt/capacity) -le $(get_value capacity | cut -d, -f1) ]; then
         am start -n android/com.android.internal.app.ShutdownActivity
       fi
     fi
@@ -191,7 +198,7 @@ check_compatibility() {
   local s="" compatible=false
   if ! get_value switch | grep -q /; then
     while read s; do
-      if [ -e $(echo $s | awk '{print $1}') ]; then
+      if [ -f $(echo $s | awk '{print $1}') ]; then
         compatible=true
         break
       fi
@@ -199,7 +206,7 @@ check_compatibility() {
 $(grep -Ev '#|^$' $modPath/switches.txt)
 SWITCHES
   else
-    [ -e $(get_value switch | awk '{print $1}') ] && compatible=true
+    [ -f $(get_value switch | awk '{print $1}') ] && compatible=true
   fi
   $compatible || exit 1
   unset -f check_compatibility
@@ -212,7 +219,7 @@ on_boot() {
   for l in $(get_value onBoot); do
     t=$(echo $l | cut -d: -f1)
     v=$(echo $l | cut -d: -f2)
-    [ -e $t ] && chmod +w $t && echo $v >$t || :
+    [ -f $t ] && chmod +w $t && echo $v >$t || :
   done
   eval $(get_value onBootExit) && exit 0 || :
   unset -f on_boot
@@ -222,7 +229,7 @@ on_boot() {
 switch_loop() {
   local s="" on="" off="" default=""
   while read s; do
-    if [ -e $(echo $s | awk '{print $1}') ]; then
+    if [ -f $(echo $s | awk '{print $1}') ]; then
       on=$(echo $s | awk '{print $2}')
       off=$(echo $s | awk '{print $3}')
       s=$(echo $s | awk '{print $1}')

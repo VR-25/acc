@@ -1,21 +1,21 @@
 #!/system/bin/sh
-# Advanced Charging Controller Utilities
+# Advanced Charging Controller
 # Copyright (C) 2017-2019, VR25 @ xda-developers
 # License: GPL V3+
 
 
 main() {
 
-  umask 000
+  umask 0
   set -euo pipefail
 
   lockFile=/dev/acc/running
   modPath=/system/etc/acc
   config=/data/media/0/acc/config.txt
 
-  if [ ! -e $modPath/module.prop ]; then
+  if [ ! -f $modPath/module.prop ]; then
     modPath=/sbin/.magisk/img/acc
-    if [ -e $modPath/module.prop ]; then
+    if [ -f $modPath/module.prop ]; then
       PATH=/sbin/.magisk/busybox:$PATH
     else
       modPath=/sbin/.core/img/acc
@@ -23,11 +23,13 @@ main() {
     fi
   fi
 
+  batt=$(echo /sys/class/power_supply/*attery/capacity | awk '{print $1}' | sed 's|/capacity||')
+
   trap exxit EXIT
 
   # root check
   echo
-  if ! whoami | grep -q root; then
+  if ! ls /data/data 1>/dev/null 2>&1; then
     echo "(!) Must run as root (su)"
     exit 1
   fi
@@ -47,7 +49,7 @@ main() {
     -d|--disable) shift; disable_charging $@;;
     -D|--daemon) shift; daemon $@;;
     -e|--enable) shift; enable_charging $@;;
-    -i|--info) sed s/POWER_SUPPLY_// ./?attery/uevent;;
+    -i|--info) sed s/POWER_SUPPLY_// $batt/uevent;;
     -l|--log) shift; edit ${config%/*}/logs/acc-daemon*.log $@;;
     -r|--readme) shift; edit ${config%/*}/info/README.md $@;;
     -R|--resetstats)
@@ -75,6 +77,7 @@ daemon() {
       if [ -f $lockFile ] && ps | grep -q $(sed -n 1p $lockFile); then
         kill $(cat $lockFile) 2>/dev/null || :
         rm $lockFile
+        enable_charging
         echo "(i) accd stopped"
       else
         echo "(i) accd is not running"
@@ -112,7 +115,7 @@ edit() {
 
 help() {
   cat <<HELP
-ACC Utilities
+Advanced Charging Controller
 Copyright (C) 2017-2019, VR25 @ xda-developers
 License: GPL V3+
 Version code: $(sed -n 's/versionCode=//p' $modPath/module.prop)
@@ -210,7 +213,7 @@ set_switch() {
   echo -e "(i) Available charging switches\n- Choose one and press <enter> to set it\n"
 
   while read s; do
-    [ -e $(echo $s | awk '{print $1}') ] && l="$l
+    [ -f $(echo $s | awk '{print $1}') ] && l="$l
 $s"
   done <<SWITCHES
 $(grep -Ev '#|^$' $modPath/switches.txt)
@@ -231,7 +234,7 @@ disable_charging() {
   if get_value switch | grep -q /; then
     s=$(get_value switch | awk '{print $1}')
     off=$(get_value switch | awk '{print $3}')
-    if [ -e $s ]; then
+    if [ -f $s ]; then
       chmod +w $s && echo $off >$s || :
     else
       echo -e "(!) Invalid charging switch\n"
@@ -244,7 +247,7 @@ disable_charging() {
   if [ -n "$1" ]; then
     if echo "$1" | grep -q %; then
       echo -e "(i) Charging disabled until battery capacity <= $1\n"
-      until [ $(cat ./?attery/capacity) -le $(echo $1 | sed 's/%//') ]; do
+      until [ $(cat $batt/capacity) -le $(echo $1 | sed 's/%//') ]; do
         sleep $(get_value loopDelay)
       done
       enable_charging
@@ -273,12 +276,12 @@ enable_charging() {
   if get_value switch | grep -q /; then
     s=$(get_value switch | awk '{print $1}')
     on=$(get_value switch | awk '{print $2}')
-    if [ -e $s ]; then
+    if [ -f $s ]; then
       chmod +w $s && echo $on >$s || :
       for l in $(get_value onPlugged); do
         t=$(echo $l | cut -d: -f1)
         v=$(echo $l | cut -d: -f2)
-        [ -e $t ] && chmod +w $t && echo $v >$t || :
+        [ -f $t ] && chmod +w $t && echo $v >$t || :
       done
     else
       echo -e "(!) Invalid charging switch\n"
@@ -291,7 +294,7 @@ enable_charging() {
   if [ -n "$1" ]; then
     if echo "$1" | grep -q %; then
       echo -e "(i) Charging enabled until battery capacity >= $1\n"
-      until [ $(cat ./?attery/capacity) -ge $(echo $1 | sed 's/%//') ]; do
+      until [ $(cat $batt/capacity) -ge $(echo $1 | sed 's/%//') ]; do
         sleep $(get_value loopDelay)
       done
       disable_charging
@@ -334,14 +337,14 @@ set_cap() {
 switch_loop() {
   local s="" on="" off="" default=""
   while read s; do
-    if [ -e $(echo $s | awk '{print $1}') ]; then
+    if [ -f $(echo $s | awk '{print $1}') ]; then
       on=$(echo $s | awk '{print $2}')
       off=$(echo $s | awk '{print $3}')
       s=$(echo $s | awk '{print $1}')
       default=$(sed -n 1p $s)
       chmod +w $s && eval "echo \$$1" >$s && sleep 1 || :
-      if { [ $1 = off ] && ! grep -Eiq 'dis|not' ./?attery/status; } \
-        || { [ $1 = on ] && grep -Eiq 'dis|not' ./?attery/status; }
+      if { [ $1 = off ] && ! grep -Eiq 'dis|not' $batt/status; } \
+        || { [ $1 = on ] && grep -Eiq 'dis|not' $batt/status; }
       then
         echo $default >$s && sleep 1 || :
       else

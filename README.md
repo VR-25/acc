@@ -174,6 +174,13 @@ Uninstall
 ---
 #### LATEST CHANGES
 
+**2019.1.24 (201901240)**
+- Additional devices support
+- General fixes & optimizations
+- Generate power_supply log in the background.
+- Enable charging after stopping accd (acc --daemon stop).
+- More accurate encrypted data detection
+
 **2019.1.9.2 (201901092)**
 - Added support for some Huawei devices' weirdnesses.
 **2019.1.9.1 (201901091)**
@@ -188,10 +195,3 @@ Uninstall
 
 **2018.12.26.1 (201812261)**
 - [accd] Fixed "not autostarting if data is encrypted"
-
-**2018.12.26 (201812260)**
-- [acc] New option: -R|--resetstats (reset battery stats)
-- [Core] New feature: `onPlugged` settings (applied every time an external power supply is connected)
-- [General] Fixes & optimizations
-- [General] Updated documentation & default config
-- [Installer] Enhanced modularization for easier maintenance

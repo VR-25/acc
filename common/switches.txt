@@ -2,7 +2,7 @@
 # Copyright (C) 2017-2019, VR25 @ xda-developers
 # License: GPL V3+
 # PWD=/sys/class/power_supply
-# Last updated: Tue, Jan 8, 2018
+# Last updated: Wed, Jan 23, 2019
 
 ./battery/input_suspend 0 1
 ./manta-battery/charge_enabled 1 0
@@ -23,9 +23,10 @@
 ./mt-battery/disable_charger 0 1
 ./parallel/charging_enabled 1 0
 ./parallel/input_suspend 0 1
-./dollar_cove_charger/present 1 0
-./battery/battery_charging_enabled 1 0
+./dollar_cove_charger/enable_charging 1 0
+./dollar_cove_charger/enable_charger 1 0
 ./battery/charging_enabled 1 0
+./battery/battery_charging_enabled 1 0
 ./battery/batt_slate_mode 0 1
 ./battery/store_mode 0 1
 ./usb\-parallel/charging_enabled
