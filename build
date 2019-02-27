@@ -18,4 +18,4 @@ set_value versionCode $versionCode
 
 mkdir -p .releases
 
-zip -r9u .releases/$(get_value id)-$(get_value version).zip * .gitattributes .gitignore | grep . && echo
+zip -r9u .releases/$(get_value id)-$(get_value versionCode).zip * .gitattributes .gitignore | grep . && echo

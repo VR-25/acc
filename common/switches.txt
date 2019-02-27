@@ -2,15 +2,15 @@
 # Copyright (C) 2017-2019, VR25 @ xda-developers
 # License: GPL V3+
 # PWD=/sys/class/power_supply
-# Last updated: Wed, Jan 23, 2019
+# Last updated: Wed, Feb 27, 2019
 
+./battery/charge_disable 0 1
 ./battery/input_suspend 0 1
 ./manta-battery/charge_enabled 1 0
 ./battery/charge_enabled 1 0
 ./battery/device/Charging_Enable 1 0
 ./battery/ChargerEnable 1 0
 ./battery/disable_charger 0 1
-./battery/charge_disable 0 1
 ./charge_data/enable_charger 1 0
 ./huawei_charger/enable_charger 1 0
 ./?-00??/enable_charger 1 0
@@ -29,7 +29,7 @@
 ./battery/battery_charging_enabled 1 0
 ./battery/batt_slate_mode 0 1
 ./battery/store_mode 0 1
-./usb\-parallel/charging_enabled
+./usb-parallel/charging_enabled 1 0
 
 /proc/smb1357_disable_chrg 0 1
 /sys/devices/platform/battery/ChargerEnable 1 0
@@ -39,3 +39,7 @@
 /sys/devices/platform/*/*/charging_state enabled disabled
 /sys/class/hw_power/charger/charge_data/enable_charger 1 0
 /sys/devices/platform/omap/omap_i2c.3/i2c-3/3-005f/charge_enable 1 0
+
+# experimental (may cause lag)
+#./bms/temp_cold 0 500
+#./bms/temp_hot 500 0

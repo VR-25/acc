@@ -11,18 +11,16 @@ main() {
 
   modId=acc
   resetUnplugged=false
-  lockFile=/dev/$modId/running
+  pidFile=/dev/$modId/pid
   config=/data/media/0/$modId/config.txt
 
   modPath=/system/etc/$modId
   [ -f $modPath/module.prop ] || modPath=/sbin/.core/img/$modId
   [ -f $modPath/module.prop ] || modPath=/sbin/.magisk/img/$modId
 
-  log=${config%/*}/logs/acc-daemon-$(getprop ro.product.device | grep .. || getprop ro.build.product).log
+  which awk 1>/dev/null || PATH=$(echo $modPath | sed 's|/img/.*|/busybox|'):$PATH
 
-  if ! which awk 1>/dev/null && echo $modPath | grep -q /system/etc/; then
-    PATH=$(echo $modPath | sed 's|/img/.*|/busybox|'):$PATH
-  fi
+  log=${config%/*}/logs/acc-daemon-$(getprop ro.product.device | grep .. || getprop ro.build.product).log
 
   batt=$(echo /sys/class/power_supply/*attery/capacity | awk '{print $1}' | sed 's|/capacity||')
 
@@ -34,16 +32,26 @@ main() {
   # make sure the number of running accd processes is at most one
   sh $modPath/system/*bin/acc --daemon stop 1>/dev/null
 
-  mkdir -p ${lockFile%/*} ${config%/*}/logs
-  [ -f $config ] || cp $modPath/default_config.txt $config
-  echo $$ >$lockFile
+  # self-upgrade
+  (if eval $(get_value selfUpgrade); then
+    sleep $((60*10))
+    curl -L https://raw.githubusercontent.com/Magisk-Modules-Repo/acc/master/module.prop 2>/dev/null | grep selfUpgrade=true 1>/dev/null 2>&1 || exit 0
+    [ -f ${pidFile%/*}/install-stderr.log ] || sh $modPath/upgrade.sh
+  fi
+  exit 0 &) &
+
+  mkdir -p ${pidFile%/*} ${config%/*}/logs
+  [ -f $config ] || install -m 0777 $modPath/default_config.txt $config
+  echo $$ >$pidFile
   cd /sys/class/power_supply/
 
   # diagnostics and cleanup
-  echo "###$(date)###" >>$log
+  { grep -Eiq 'alpha|beta' $modPath/module.prop || eval $(get_value verbose); } \
+    || log=${pidFile%/*}/acc-daemon-$(getprop ro.product.device | grep .. || getprop ro.build.product).log
+  echo "###$(date)###" >> $log
   exec 1>>$log 2>&1
-  { grep -Eiq 'alpha|beta' $modPath/module.prop || eval $(get_value verbose); } && set -x || :
-  trap debug_exit EXIT
+  set -x
+  trap exxit EXIT
 
   [ -d $modPath ] || exit 1
   unset modId
@@ -53,18 +61,12 @@ main() {
 }
 
 
-debug_exit() {
+exxit() {
   local exitCode=$?
-  echo -e "\n***EXIT $exitCode***\n"
   set +euxo pipefail
-  getprop | grep -Ei 'product|version'
-  echo
-  set
-  echo
-  echo "SELinux status: $(getenforce 2>/dev/null || sestatus 2>/dev/null)" \
-    | sed 's/En/en/;s/Pe/pe/'
-  rm $lockFile 2>/dev/null
+  rm $pidFile 2>/dev/null
   enable_charging 2>/dev/null 1>&2
+  echo "***EXIT $exitCode***"
   exit $exitCode
 }
 
@@ -93,6 +95,7 @@ is_charging() {
     fi
   fi
 
+  # limit log size
   [ $(du -m $log | awk '{print $1}') -gt $(get_value maxLogSize) ] \
     && cp -f $log $log.old && : >$log || :
 
@@ -107,16 +110,19 @@ disable_charging() {
       s=$(get_value switch | awk '{print $1}')
       off=$(get_value switch | awk '{print $3}')
       if [ -f $s ]; then
-        chmod +w $s && echo $off >$s || :
+        chmod +w $s && echo $off >$s \
+          || $modPath/system/*bin/acc -s s- 1>/dev/null
       else
-        exit 1
+        $modPath/system/*bin/acc -s s- 1>/dev/null
       fi
+      ! is_charging || $modPath/system/*bin/acc -s s- 1>/dev/null
     else
       switch_loop off
+      ! is_charging || exit 1
     fi
   fi
   # cool down
-  [ $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) -ge $(get_value temp | cut -d- -f2 | cut -d_ -f1) ] \
+  ! is_charging && [ $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) -ge $(get_value temp | cut -d- -f2 | cut -d_ -f1) ] \
     && sleep $(get_value temp | cut -d- -f2 | cut -d_ -f2) || :
 }
 
@@ -128,9 +134,10 @@ enable_charging() {
       s=$(get_value switch | awk '{print $1}')
       on=$(get_value switch | awk '{print $2}')
       if [ -f $s ]; then
-        chmod +w $s && echo $on >$s || :
+        chmod +w $s && echo $on >$s \
+          || $modPath/system/*bin/acc -s s- 1>/dev/null
       else
-        exit 1
+        $modPath/system/*bin/acc -s s- 1>/dev/null
       fi
     else
       switch_loop on
@@ -141,7 +148,7 @@ enable_charging() {
 
 ctrl_charging() {
   local c=0 s=""
-  while [ -f $lockFile ]; do
+  while [ -f $pidFile ]; do
 
     if is_charging; then
       # disable charging & clear battery stats if conditions apply
@@ -154,7 +161,7 @@ ctrl_charging() {
       fi
 
       # cool down
-      while [ -f $lockFile ] && get_value coolDown | grep -q / && is_charging \
+      while [ -f $pidFile ] && get_value coolDown | grep -q / && is_charging \
         && [ $(cat $batt/capacity) -lt $(get_value capacity | cut -d, -f3 | cut -d- -f2) ] \
         && [ $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) -lt $(get_value temp | cut -d- -f2 | cut -d_ -f1) ]
       do
@@ -185,7 +192,7 @@ ctrl_charging() {
       fi
       # auto-shutdown if battery is not charging and capacity is too low
       if ! is_charging && [ $(cat $batt/capacity) -le $(get_value capacity | cut -d, -f1) ]; then
-        am start -n android/com.android.internal.app.ShutdownActivity
+        am start -n android/com.android.internal.app.ShutdownActivity || :
       fi
     fi
 
@@ -197,7 +204,7 @@ ctrl_charging() {
 check_compatibility() {
   local s="" compatible=false
   if ! get_value switch | grep -q /; then
-    while read s; do
+    while IFS= read -r s; do
       if [ -f $(echo $s | awk '{print $1}') ]; then
         compatible=true
         break
@@ -228,13 +235,13 @@ on_boot() {
 
 switch_loop() {
   local s="" on="" off="" default=""
-  while read s; do
+  while IFS= read -r s; do
     if [ -f $(echo $s | awk '{print $1}') ]; then
       on=$(echo $s | awk '{print $2}')
       off=$(echo $s | awk '{print $3}')
       s=$(echo $s | awk '{print $1}')
       default=$(sed -n 1p $s)
-      chmod +w $s && eval "echo \$$1" >$s && sleep 1 || :
+      chmod +w $s && eval "echo \$$1" >$s && sleep 1 || continue
       if { [ $1 = off ] && is_charging; } || { [ $1 = on ] && ! is_charging; }; then
         echo $default >$s && sleep 1 || :
       else

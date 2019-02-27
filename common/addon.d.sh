@@ -50,7 +50,7 @@ case "$1" in
       fi
     done
     # recreate symlinks
-    [ -e /system/etc/init.d ] && ln -sf /system/etc/$modId/autorun.sh /system/etc/init.d/$modId
+    [ -d /system/etc/init.d ] && ln -sf /system/etc/$modId/autorun.sh /system/etc/init.d/$modId
     if [ -d /system/xbin ]; then
       ln -sf $modPath/autorun.sh /system/xbin/accd
     else

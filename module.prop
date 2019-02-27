@@ -1,7 +1,8 @@
 id=acc
 name=Advanced Charging Controller (acc)
-version=2019.1.24
-versionCode=201901240
+version=2019.2.27
+versionCode=201902270
 author=VR25 @ xda-developers
 description=This is primarily intended for extending battery service life. On the flip side, the name says it all. It works with any root solution. Magisk 17.0+ is preferred. Versions below that are not supported. Refer to README.md for details.
 minMagisk=17000
+selfUpgrade=true

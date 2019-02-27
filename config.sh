@@ -28,7 +28,7 @@ AUTOMOUNT=true
 PROPFILE=false
 
 # Set to true if you need post-fs-data script
-POSTFSDATA=false
+POSTFSDATA=true
 
 # Set to true if you need late_start service script
 LATESTARTSERVICE=true
@@ -106,16 +106,16 @@ set_permissions() {
 
 install_module() {
 
-  umask 000
+  umask 0
   set -euxo pipefail
-  trap debug_exit EXIT
+  trap 'exxit $?' EXIT
 
   config=/data/media/0/$MODID/config.txt
 
   # magisk.img mount path
   if $BOOTMODE; then
     MOUNTPATH0=/sbin/.magisk/img
-    [ -e $MOUNTPATH0 ] || MOUNTPATH0=/sbin/.core/img
+    [ -d $MOUNTPATH0 ] || MOUNTPATH0=/sbin/.core/img
     if [ ! -e $MOUNTPATH0 ]; then
       ui_print " "
       ui_print "(!) \$MOUNTPATH0 not found"
@@ -156,17 +156,36 @@ install_module() {
   # extract module files
   ui_print "- Extracting module files"
   cd $INSTALLER
-  unzip -o "$ZIP" -x common/addon.d.sh -d ./ >&2
+  unzip -o "$ZIP" -d ./ 1>&2
   mv common/$MODID $MODPATH/system/*bin/
   mv common/* $MODPATH/
   rm $MODPATH/addon.d.sh
-  cp -f $MODPATH/service.sh $(echo -n $MODPATH/system/*bin)/accd
+  cp $MODPATH/service.sh $(echo -n $MODPATH/system/*bin)/accd
+  sed -i '\|/dev/|s|^|#|' $MODPATH/system/*bin/accd
+  $POSTFSDATA && POSTFSDATA=false \
+    && cp -l $MODPATH/service.sh $MODPATH/post-fs-data.sh || :
   $LATESTARTSERVICE && LATESTARTSERVICE=false \
     || rm $MODPATH/service.sh
   mv -f License* README* ${config%/*}/info/
   [ -f $config ] || cp $MODPATH/default_config.txt $config
 
-  set +euxo pipefail
+  # install acc app
+  mkdir -p $MODPATH/system/priv-app/acc
+  mv bin/acc*.apk $MODPATH/system/priv-app/acc/acc.apk 2>/dev/null || :
+  ls $MODPATH/system/priv-app/acc 2>/dev/null | grep .. 2>/dev/null 1>&2 \
+    || rm -rf $MODPATH/system/priv-app
+
+  # prepare djs installation
+  set +e
+  if [ ! -f $MOUNTPATH0/djs/module.prop ] || [ $(grep_prop versionCode $MOUNTPATH0/djs/module.prop) -lt \
+    $(echo bin/djs*.zip | sed -e 's|bin/djs-||' -e 's/.zip//') ]
+  then
+    mkdir -p /dev/djs_tmp
+    mv -f bin/djs*.zip /dev/djs_tmp/djs.zip
+    unzip -o /dev/djs_tmp/djs.zip META-INF/com/google/android/update-binary -d /dev/djs_tmp/ 1>&2
+  fi
+
+  set +uxo pipefail
   ui_print "- [Background] Generating ${config%/*}/logs/acc-power_supply-$(getprop ro.product.device | grep .. || getprop ro.build.product).log"
   (debug &) &
 }
@@ -174,9 +193,9 @@ install_module() {
 
 install_system() {
 
-  umask 000
+  umask 0
   set -euxo pipefail
-  trap debug_exit EXIT
+  trap 'exxit $?' EXIT
 
   local modId=acc
   local modPath=/system/etc/$modId
@@ -193,6 +212,7 @@ install_system() {
   set_perm() {
     chown 0:0 "$@"
     chmod 0755 "$@"
+    chcon u:object_r:system_file:s0 "$@" 2>/dev/null || :
   }
 
   mount -o rw /system 2>/dev/null || mount -o remount,rw /system
@@ -200,7 +220,7 @@ install_system() {
   [ -z "$curVer" ] && curVer=0
 
   # set OUTFD
-  if [ -z $OUTFD ] || readlink /proc/$$/fd/$OUTFD | grep -q /tmp; then
+  if [ -z "${OUTFD:-}" ] || readlink /proc/$$/fd/$OUTFD | grep -q /tmp; then
     for FD in `ls /proc/$$/fd`; do
       if readlink /proc/$$/fd/$FD | grep -q pipe; then
         if ps | grep -v grep | grep -q " 3 $FD "; then
@@ -245,14 +265,16 @@ install_system() {
     set_perm $modPath/autorun.sh
     if [ -d /system/xbin ]; then
       mv -f common/$modId /system/xbin/
-      ln -sf $modPath/autorun.sh /system/xbin/accd
+      cp -f $modPath/autorun.sh /system/xbin/accd
     else
       mv -f common/$modId /system/bin/
-      ln -sf $modPath/autorun.sh /system/bin/accd
+      cp -f $modPath/autorun.sh /system/bin/accd
     fi
-    set_perm /system/*bin/$modId
-    [ -e /system/etc/init.d ] && $LATESTARTSERVICE \ && ln -sf $modPath/autorun.sh /system/etc/init.d/$modId || :
-    if [ -e /system/addon.d ]; then
+    sed -i '\|/dev/|s|^|#|' /system/bin/accd
+    set_perm /system/*bin/$modId*
+    [ -d /system/etc/init.d ] && { $LATESTARTSERVICE || $POSTFSDATA; } \
+      && cp -afl $modPath/autorun.sh /system/etc/init.d/$modId || :
+    if [ -d /system/addon.d ]; then
       mv -f common/addon.d.sh /system/addon.d/$modId.sh
       set_perm /system/addon.d/$modId.sh
     fi
@@ -287,25 +309,22 @@ debug() {
   getprop | grep product
   echo
   getprop | grep version
-} >${config%/*}/logs/acc-power_supply-$(getprop ro.product.device | grep . || getprop ro.build.product).log
+} >${config%/*}/logs/acc-power_supply-$(getprop ro.product.device | grep .. || getprop ro.build.product).log
 
 
-debug_exit() {
-  local exitCode=$?
-  echo -e "\n***EXIT $exitCode***\n"
+exxit() {
   set +euxo pipefail
-  set
-  echo
-  echo "SELinux status: $(getenforce 2>/dev/null || sestatus 2>/dev/null)" \
-    | sed 's/En/en/;s/Pe/pe/'
-  if [ $e -ne 0 ]; then
+  if [ $1 -ne 0 ]; then
     unmount_magisk_img
     $BOOTMODE || recovery_cleanup
     set -u
     rm -rf $TMPDIR
   fi 1>/dev/null 2>&1
+  rm -rf /dev/djs_tmp 2>/dev/null
   echo
-  exit $exitCode
+  echo "***EXIT $1***"
+  echo
+  exit $1
 } 1>&2
 
 
@@ -318,8 +337,25 @@ i() {
 
 
 cleanup() {
+  local dConfig=$INSTALLER/common/default_config.txt
   if [ $curVer -lt 201901090 ] || [ $curVer -gt $(i versionCode) ]; then
     rm -rf /data/media/0/acc 2>/dev/null || :
+  elif [ $curVer -lt 201902260 ] && [ -f $config ]; then # patch config.txt
+    cd $INSTALLER
+    unzip -o "$ZIP" common/default_config.txt -d ./ >&2
+    sed -i -e "\|onBoot=|s| # .*|$(sed -n 's|.*onBoot=.* # | # |p' $dConfig)|" \
+      -e "\|onBootExit=|s| # .*|$(sed -n 's|.*onBootExit=.* # | # |p' $dConfig)|" \
+      -e "\|onPlugged=|s| # .*|$(sed -n 's|.*onPlugged=.* # | # |p' $dConfig)|" \
+      -e "s|dly high va|dly high temperature va|" \
+      -e "\|maxLogSize=10|s|10|5|" $config
+    if ! grep -q voltFile $config; then
+      echo >>$config
+      grep voltFile $dConfig >>$config
+    fi
+    if ! grep -q selfUpgrade $config; then
+      echo >>$config
+      grep selfUpgrade $dConfig >>$config
+    fi
   fi
 }
 
@@ -329,7 +365,7 @@ version_info() {
   local println=false
 
   # a note on untested Magisk versions
-  if [ ${MAGISK_VER/.} -gt 180 ]; then
+  if [ ${MAGISK_VER/.} -gt 181 ]; then
     ui_print " "
     ui_print "  (!) This Magisk version hasn't been tested by @VR25!"
     ui_print "    - If you come across any issue, please report."
@@ -340,22 +376,37 @@ version_info() {
   cat ${config%/*}/info/README.md | while read line; do
     echo "$line" | grep -q '\*\*.*\(.*\)\*\*' && println=true
     $println && echo "$line" | grep -q '^$' && break
-    $println && echo "    $line" | grep -v '\*\*.*\(.*\)\*\*'
+    $println && line="$(echo "    $line" | grep -v '\*\*.*\(.*\)\*\*')" && ui_print "$line"
   done
   ui_print " "
 
   ui_print "  LINKS"
+  ui_print "    - ACC App: github.com/MatteCarra/AccA/"
   ui_print "    - Battery University: batteryuniversity.com/learn/article/how_to_prolong_lithium_based_batteries/"
+  ui_print "    - Daily Job Scheduler: github.com/Magisk-Modules-Repo/djs/"
+  ui_print "    - Donate: paypal.me/vr25xda/"
   ui_print "    - Facebook page: facebook.com/VR25-at-xda-developers-258150974794782/"
   ui_print "    - Git repository: github.com/Magisk-Modules-Repo/acc/"
   ui_print "    - Telegram channel: t.me/vr25_xda/"
+  ui_print "    - Telegram group: t.me/acc_magisk/"
   ui_print "    - Telegram profile: t.me/vr25xda/"
   ui_print "    - XDA thread: forum.xda-developers.com/apps/magisk/module-magic-charging-switch-cs-v2017-9-t3668427/"
   ui_print " "
 
   ui_print "(i) You can close this now, but before rebooting, wait at least a minute or two for the background job to finish."
   ui_print " "
+
+  ui_print "(i) Important info: https://bit.ly/2TRqRz0"
+  ui_print ""
+
+  # install djs
+  if [ -z "$modPath" ] && [ -d /dev/djs_tmp ]; then
+    ui_print " "
+    ui_print " "
+    sh /dev/djs_tmp/META-INF/com/google/android/update-binary \
+      dummy $OUTFD /dev/djs_tmp/djs.zip
+  fi
 }
 
 
-acc --daemon stop 1>/dev/null 2>&1
+#acc --daemon stop 2>/dev/null | grep stopped | sed '\|stopped|s|^|\n|'
