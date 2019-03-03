@@ -1,4 +1,4 @@
-# Advanced Charging Controller (acc)
+# # Advanced Charging Controller (acc)
 ## Copyright (C) 2017-2019, VR25 @ xda-developers
 ### License: GPL V3+
 #### README.md
@@ -36,16 +36,16 @@ By default, battery stats are automatically reset once battery capacity reaches 
 Users can choose whether battery stats are also reset every time the charger is unplugged (`resetUnplugged=true/false`).
 
 Depending on device's capabilities, charging can be controlled based on temperature conditions, battery capacity, time, voltage, current and/or more variables.
-Limiting the charging voltage (i.e., to no more than 4.19 Volts) is the best thing to do for a long lasting battery service life.
+Limiting the charging voltage (i.e., to no more than 4199 millivolts) is the best thing to do for a long lasting battery service life.
 There are two options for that (`onBoot` settings and `acc -v`).
-Unfortunately, not all devices/kernels allow modifying `voltage_max`.
+Unfortunately, not all devices/kernels support custom charging voltage.
 Nevertheless, acc can still keep battery voltage within less stressful thresholds -- and it does that by default.
 Keep reading.
 
 Charging is paused when battery temperature >= `maxTemp °C` or capacity >= `maxCapacity%`.
 `maxTemp °C` includes a cooling timeout in seconds (default: 90).
-Charging is paused periodically as well to reduce voltage and temperature induced stress.
-This kicks in at `coolDownCapacity%` (default: 60%) or `coolDownTemp` (default: 40°C) values.
+Charging is also paused periodically to reduce voltage and temperature induced stress.
+This kicks in at `coolDownCapacity%` (default: 60%) or `coolDownTemp` (default: 40°C).
 Each of these can be disabled individually.
 
 To prevent deep battery discharges and eventual cell damage, system is automatically and cleanly shutdown if battery is not charging and its capacity <= `shutdownCapacity%`.
@@ -93,6 +93,8 @@ Daily Job Scheduler (djs) - run `djs` or refer to its README.md to learn how to 
 -e|--enable <#%, #s, #m or #h (optional)>   Enable charging or enable charging with <condition>
   e.g., acc -e 30m (recharge for 30 minutes)
 
+-f|--force|--full <capacity>   Charge to a given capacity (fallback: 100) once and uninterrupted
+
 -i|--info   Show power supply info
   i.e., acc --info
 
@@ -128,8 +130,8 @@ Daily Job Scheduler (djs) - run `djs` or refer to its README.md to learn how to 
 -t|--test <file onValue offValue>   Test custom charging ctrl file
   Return codes: 0 (works), 1 (does not work) or 2 (battery must be charging)
 
--v|--voltage <xxxx|voltFile:xxxx>   Set charging voltage (mV) on demand (3920-4199mV)
-  e.g., acc -v 3920, acc -v /sys/class/power_supply/battery/voltage_max:4100
+-v|--voltage <millivolts|file:millivolts>   Set charging voltage (3920-4199mV)
+  e.g., acc -v 3920, acc -v /sys/class/power_supply/battery/voltage_max:4050
 
 -v|--voltage   Restore default voltage
 
@@ -137,7 +139,7 @@ Daily Job Scheduler (djs) - run `djs` or refer to its README.md to learn how to 
 
 -v|--voltage -   Show current voltage
 
--v|--voltage :xxxx   Evaluate and set charging voltage control files
+-v|--voltage :millivolts   Evaluate and set charging voltage control files
 
 -x|--xtrace <other option(s)>   Run under set -x (debugging)
 
@@ -172,15 +174,17 @@ maxLogSize=5 # Log size limit in Megabytes -- when exceeded, $log becomes $log.o
 
 switch= # Custom charging switch parameters (<path> <onValue> <offValue>), e.g., switch=/sys/class/power_supply/battery/charging_enabled 1 0, pro tip: <./> can be used in place of </sys/class/power_supply/> (e.g., switch=./battery/charging_enabled 1 0).
 
-onBoot= # These settings are applied on boot. e.g., ./usb/device/razer_charge_limit_enable:1 ./usb/device/razer_charge_limit_max:80 ./usb/device/razer_charge_limit_dropdown:70
+onBoot= # These settings are applied on boot. e.g., ./usb/device/razer_charge_limit_enable:1 ./usb/device/razer_charge_limit_max:80 ./usb/device/razer_charge_limit_dropdown:70 /sys/kernel/fast_charge/force_fast_charge:1
 
 onBootExit=false # Exit after applying "onBoot" settings from above. Enabling this is particularly useful if voltage_max or similar is being set -- since keeping accd running in such cases is usually redundant.
 
 onPlugged= # These settings are applied every time an external power supply is connected. e.g., ./wireless/voltage_max:9000000 ./usb/current_max:2000000
 
-voltFile=./?attery/voltage_max # Used by <acc -v [xxxx]> command for setting charging voltage on demand. This is device dependent. <acc -v [voltFile]:[xxxx]> overrides the value set here -- e.g., "acc -v ./main/voltage_max:4100". For your convenience and safety, voltage unit is always millivolt (mV). Only the first four voltage digits are modified. The accepted voltage range is 3920-4199mV. "acc -v" restores the default value and "acc -v -" shows the current voltage. "acc -v :" lists available voltage_max  files. "acc -v :xxxx" is for evaluating and setting charging voltage control files
+cVolt=./?attery/voltage_max:4199 # Used by <acc -v millivolts> command for setting charging voltage. This is automatically applied on boot. <acc -v file:millivolts> overrides the value set here -- e.g., "acc -v ./main/voltage_max:4050". For convenience and safety, voltage unit is always millivolt (mV). Only the first four digits of the original value are modified. The accepted voltage range is 3920-4199mV. "acc -v" restores the default value and "acc -v -" shows the current voltage. "acc -v :" lists available charging voltage control files files. "acc -v :millivolts" is for evaluating charging voltage control files.
 
-selfUpgrade=true # Automatically check for a new release, download and install it - minutes after daemon is started/restarted. This has virtually no impact on mobile data. It runs only once per boot session. Update zips weigh way less than 100 kilobytes.`
+selfUpgrade=true # Automatically check for a new release, download and install it - minutes after daemon is started/restarted. This has virtually no impact on mobile data. It runs only once per boot session. Update zips weigh less than 60 kilobytes.
+
+rebootOnPause= # After set seconds (disabled if null).`
 
 
 
@@ -228,16 +232,22 @@ Note: if you're not comfortable with the command line, use ACC app (linked below
 By default, acc cycles through available charging control files until it finds one that works. However, things don't always go well.
 Certain switches may be unreliable under certain conditions.
 Others may hold a wakelock - causing faster battery drain - while in plugged in, not charging state.
+Run `acc -s s` to enforce a particular switch.
+Test default switches with `acc -t`.
+Evaluate custom switches with `-t|--test <file onValue offValue>`.
 
-- Charging voltage control
-Unfortunately, not all devices/kernels allow modifying the charging voltage.
-Since I don't own every device under the sun, I cannot tell whether yours supports that.
-Use `acc -v :xxxx` (e.g., acc -v :3920) for evaluating and setting charging voltage control files.
+- Charging voltage limit
+Unfortunately, not all devices/kernels support custom charging voltage.
+Since I don't own every device under the sun, I cannot tell whether yours does.
+Use `acc -v :millivolts` (e.g., acc -v :4050) for evaluating charging voltage control files.
 
 - [Important info](https://bit.ly/2TRqRz0)
 
-- Reset settings
-Remove /sdcard/acc/config.txt and restart the daemon (acc -D restart).
+- Restore default settings
+`acc -s r`
+
+- Slow charging
+- Disable coolDown (`acc -s coolDown`) or play around with its charge/pause ratio.
 
 
 
@@ -260,6 +270,20 @@ Remove /sdcard/acc/config.txt and restart the daemon (acc -D restart).
 ---
 #### LATEST CHANGES
 
+**2019.3.3-r1 (201903031)**
+- `acc -f|--force|--full <capacity>`: charge to a given capacity (fallback: 100) once and uninterrupted.
+- `acc -s s` has an "auto" option (unsets switch).
+- `acc -v $@` commands accept and output voltage values in millivolts only. Outputs include the unit (e.g., 4050mV).
+- `acc -v file:millivolts` saves settings to config if <file> works.
+- Additional devices support
+- Custom charging voltage limit is automatically set on boot (without `onBoot=file:voltage`).
+- Daemon exit text
+- General fixes and optimizations
+- Faster power supply log generator - users no longer have  wait for it.
+- `rebootOnPause= # After set seconds (disabled if null).`
+- The output of `acc -v :` is cleaner.
+- Updated documentation and debugging tools
+
 **2019.2.27 (201902270)**
 - Advanced and assisted charging voltage control. Refer to README.md or `acc --help` for details.
 - Automatically unset nonworking charging switch (fallback to cycling through all).
@@ -270,11 +294,11 @@ Remove /sdcard/acc/config.txt and restart the daemon (acc -D restart).
 - Major fixes and optimizations
 - On demand charging control files tester
 - Reset config with `acc -s r`.
-- Self-upgrade (enabled by default, virtually no impact on mobile data - acc zips weigh way less than 100 kilobytes)
+- Self-upgrade (enabled by default, virtually no impact on mobile data - acc zips weigh less than 60 kilobytes)
 - Updated documentation -- added troubleshooting section and more.
 - Updated links and default config.
 - When persistent verbose is off, volatile verbose is generated (`/dev/acc/acc-daemon-*.log`).
-- Workaround for Magisk service.sh bug (scrip not executed)
+- Workaround for Magisk service.sh bug (script not executed)
 
 **2019.1.24 (201901240)**
 - Additional devices support
@@ -282,6 +306,3 @@ Remove /sdcard/acc/config.txt and restart the daemon (acc -D restart).
 - Generate power_supply log in the background.
 - Enable charging after stopping accd (acc --daemon stop).
 - More accurate encrypted data detection
-
-**2019.1.9.2 (201901092)**
-- Added support for some Huawei devices' weirdnesses.

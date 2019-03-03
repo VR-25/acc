@@ -42,7 +42,7 @@ main() {
 
   mkdir -p ${pidFile%/*} ${config%/*}/logs
   [ -f $config ] || install -m 0777 $modPath/default_config.txt $config
-  echo $$ >$pidFile
+  echo $$ > $pidFile
   cd /sys/class/power_supply/
 
   # diagnostics and cleanup
@@ -53,9 +53,10 @@ main() {
   set -x
   trap exxit EXIT
 
-  [ -d $modPath ] || exit 1
+  [ -d $modPath ] || exxit 1 "(!) modPath not found"
   unset modId
   on_boot
+  sh $modPath/system/*bin/acc --voltage apply 1>/dev/null 2>&1 || :
   check_compatibility
   ctrl_charging
 }
@@ -66,26 +67,27 @@ exxit() {
   set +euxo pipefail
   rm $pidFile 2>/dev/null
   enable_charging 2>/dev/null 1>&2
+  [ -n "$1" ] && echo "$2" && exitCode=$1
   echo "***EXIT $exitCode***"
   exit $exitCode
 }
 
 
-get_value() { sed -n "s:^$1=::p" $config | sed 's/#.*//'; }
+get_value() { sed -n "s|^$1=||p" $config | sed -e 's/#.*//' -e 's/ $//' -e 's/ $//' -e 's/ $//'; }
 
 
 is_charging() {
-  local l="" t="" v=""
+  local target="" value=""
   local is_charging=true
 
   grep -Eiq 'dis|not' $batt/status && is_charging=false
 
   if $is_charging; then
     resetUnplugged=true
-    for l in $(get_value onPlugged); do
-      t=$(echo $l | cut -d: -f1)
-      v=$(echo $l | cut -d: -f2)
-      [ -f $t ] && ! grep -q $v $t && chmod +w $t && echo $v >$t || :
+    for target in $(get_value onPlugged); do
+      value=${target##*:}
+      target=${target%:*}
+      [ -f $target ] && ! grep -q $value $target && chmod +w $target && echo $value > $target || :
     done
   else
     if $resetUnplugged && eval $(get_value resetUnplugged); then
@@ -110,15 +112,16 @@ disable_charging() {
       s=$(get_value switch | awk '{print $1}')
       off=$(get_value switch | awk '{print $3}')
       if [ -f $s ]; then
-        chmod +w $s && echo $off >$s \
-          || $modPath/system/*bin/acc -s s- 1>/dev/null
+        chmod +w $s && echo $off > $s \
+          || sh $modPath/system/*bin/acc -s s- 1>/dev/null
       else
-        $modPath/system/*bin/acc -s s- 1>/dev/null
+        sh $modPath/system/*bin/acc -s s- 1>/dev/null
       fi
-      ! is_charging || $modPath/system/*bin/acc -s s- 1>/dev/null
+      #sleep 1
+      #! is_charging || sh $modPath/system/*bin/acc -s s- 1>/dev/null
     else
       switch_loop off
-      ! is_charging || exit 1
+      ! is_charging || exxit 1 "(!) Unsupported device"
     fi
   fi
   # cool down
@@ -134,10 +137,10 @@ enable_charging() {
       s=$(get_value switch | awk '{print $1}')
       on=$(get_value switch | awk '{print $2}')
       if [ -f $s ]; then
-        chmod +w $s && echo $on >$s \
-          || $modPath/system/*bin/acc -s s- 1>/dev/null
+        chmod +w $s && echo $on > $s \
+          || sh $modPath/system/*bin/acc -s s- 1>/dev/null
       else
-        $modPath/system/*bin/acc -s s- 1>/dev/null
+        sh $modPath/system/*bin/acc -s s- 1>/dev/null
       fi
     else
       switch_loop on
@@ -158,6 +161,8 @@ ctrl_charging() {
         disable_charging
         dumpsys batterystats --reset 1>/dev/null 2>&1 || :
         rm /data/system/batterystats* 2>/dev/null || :
+        sleep $(get_value rebootOnPause) 2>/dev/null \
+          && am start -a android.intent.action.REBOOT 2>/dev/null || :
       fi
 
       # cool down
@@ -215,18 +220,18 @@ SWITCHES
   else
     [ -f $(get_value switch | awk '{print $1}') ] && compatible=true
   fi
-  $compatible || exit 1
+  $compatible || exxit 1 "(!) Unsupported device"
   unset -f check_compatibility
 }
 
 
 # apply onBoot settings
 on_boot() {
-  local l="" t="" v=""
-  for l in $(get_value onBoot); do
-    t=$(echo $l | cut -d: -f1)
-    v=$(echo $l | cut -d: -f2)
-    [ -f $t ] && chmod +w $t && echo $v >$t || :
+  local target="" value=""
+  for target in $(get_value onBoot); do
+    value=${target##*:}
+    target=${target%:*}
+    [ -f $target ] && ! grep -q $value $target && chmod +w $target && echo $value > $target || :
   done
   eval $(get_value onBootExit) && exit 0 || :
   unset -f on_boot

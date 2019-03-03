@@ -186,8 +186,6 @@ install_module() {
   fi
 
   set +uxo pipefail
-  ui_print "- [Background] Generating ${config%/*}/logs/acc-power_supply-$(getprop ro.product.device | grep .. || getprop ro.build.product).log"
-  (debug &) &
 }
 
 
@@ -284,8 +282,6 @@ install_system() {
     [ -f $config ] || cp $modPath/default_config.txt $config
 
     set +euxo pipefail
-    ui_print "- [Background] Generating ${config%/*}/logs/acc-power_supply-$(getprop ro.product.device | grep .. || getprop ro.build.product).log"
-    (debug &) &
     MAGISK_VER=0
     version_info
   fi
@@ -293,23 +289,39 @@ install_system() {
 }
 
 
-debug() {
-  local target=""
+gen_ps_log() {
   date
-  echo "Version code: $(i versionCode)"
+  echo "versionCode=$(i versionCode)"
   echo; echo
-  for target in $(find /sys /proc 2>/dev/null | grep -Ei 'batt|ch.*rg|power_supply'); do
-    if [ -f $target ]; then
-      echo $target
-      sed 's/^/  /' $target 2>/dev/null
-      echo
-    fi
-  done 2>/dev/null
+  gather_ps_data /sys
+  gather_ps_data /proc
   echo
   getprop | grep product
   echo
   getprop | grep version
-} >${config%/*}/logs/acc-power_supply-$(getprop ro.product.device | grep .. || getprop ro.build.product).log
+} > ${config%/*}/logs/acc-power_supply-$(getprop ro.product.device | grep .. || getprop ro.build.product).log
+
+
+gather_ps_data() {
+  local target="" target2=""
+  for target in $(ls -1 $1 | grep -Ev '^[0-9]|^block$|^dev$|^fs$|^ram$'); do
+    if [ -f $1/$target ]; then
+      if echo $1/$target | grep -Eq 'batt|ch.*rg|power_supply'; then
+        echo $1/$target
+        sed 's/^/  /' $1/$target 2>/dev/null || :
+        echo
+      fi
+    elif [ -d $1/$target ]; then
+      for target2 in $(find $1/$target \( \( -type f -o -type d \) -a \( -ipath '*batt*' -o -ipath '*ch*rg*' -o -ipath '*power_supply*' \) \) -print 2>/dev/null || :); do
+        if [ -f $target2 ]; then
+          echo $target2
+          sed 's/^/  /' $target2 2>/dev/null || :
+          echo
+        fi
+      done
+    fi
+  done
+}
 
 
 exxit() {
@@ -337,27 +349,47 @@ i() {
 
 
 cleanup() {
+
   local dConfig=$INSTALLER/common/default_config.txt
+
+  ui_print "- [Background] Generating ${config%/*}/logs/acc-power_supply-$(getprop ro.product.device | grep .. || getprop ro.build.product).log"
+  (gen_ps_log) &
+
   if [ $curVer -lt 201901090 ] || [ $curVer -gt $(i versionCode) ]; then
     rm -rf /data/media/0/acc 2>/dev/null || :
-  elif [ $curVer -lt 201902260 ] && [ -f $config ]; then # patch config.txt
+
+  else
+    [ -f $config ] || return 0
     cd $INSTALLER
     unzip -o "$ZIP" common/default_config.txt -d ./ >&2
-    sed -i -e "\|onBoot=|s| # .*|$(sed -n 's|.*onBoot=.* # | # |p' $dConfig)|" \
-      -e "\|onBootExit=|s| # .*|$(sed -n 's|.*onBootExit=.* # | # |p' $dConfig)|" \
-      -e "\|onPlugged=|s| # .*|$(sed -n 's|.*onPlugged=.* # | # |p' $dConfig)|" \
-      -e "s|dly high va|dly high temperature va|" \
-      -e "\|maxLogSize=10|s|10|5|" $config
-    if ! grep -q voltFile $config; then
-      echo >>$config
-      grep voltFile $dConfig >>$config
+    if [ $curVer -lt 201902260 ]; then
+      sed -i -e "\|onBoot=|s| # .*|$(sed -n 's|.*onBoot=.* # | # |p' $dConfig)|" \
+        -e "\|onBootExit=|s| # .*|$(sed -n 's|.*onBootExit=.* # | # |p' $dConfig)|" \
+        -e "\|onPlugged=|s| # .*|$(sed -n 's|.*onPlugged=.* # | # |p' $dConfig)|" \
+        -e "s|dly high va|dly high temperature va|" \
+        -e "\|maxLogSize=10|s|10|5|" $config
+      if ! grep -q voltFile $config; then
+        echo >> $config
+        grep voltFile $dConfig >> $config
+      fi
+      if ! grep -q selfUpgrade $config; then
+        echo >> $config
+        grep selfUpgrade $dConfig >> $config
+      fi
     fi
-    if ! grep -q selfUpgrade $config; then
-      echo >>$config
-      grep selfUpgrade $dConfig >>$config
+    if [ $curVer -lt 201903010 ]; then
+      sed -i "s|voltFile=.*|$(grep cVolt $dConfig)|" $config
+    fi
+    if [ $curVer -lt 201903030 ]; then
+      if ! grep -q rebootOnPause $config; then
+        echo >> $config
+        grep rebootOnPause $dConfig >> $config
+      fi
+      sed -i "\|selfUpgrade=|s| # .*|$(sed -n 's|.*selfUpgrade=.* # | # |p' $dConfig)|" $config
     fi
   fi
 }
+
 
 
 version_info() {
@@ -393,9 +425,6 @@ version_info() {
   ui_print "    - XDA thread: forum.xda-developers.com/apps/magisk/module-magic-charging-switch-cs-v2017-9-t3668427/"
   ui_print " "
 
-  ui_print "(i) You can close this now, but before rebooting, wait at least a minute or two for the background job to finish."
-  ui_print " "
-
   ui_print "(i) Important info: https://bit.ly/2TRqRz0"
   ui_print ""
 
@@ -406,6 +435,8 @@ version_info() {
     sh /dev/djs_tmp/META-INF/com/google/android/update-binary \
       dummy $OUTFD /dev/djs_tmp/djs.zip
   fi
+
+  wait # until power supply log is fully generated
 }
 
 

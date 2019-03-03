@@ -49,6 +49,14 @@ main() {
     -d|--disable) shift; disable_charging $@;;
     -D|--daemon) shift; daemon $@;;
     -e|--enable) shift; enable_charging $@;;
+    -f|--force|--full)
+      echo "(i) Charging to ${2:-100}% capacity."
+      (cVolt=$(set_charging_voltage -)
+      set_charging_voltage 1>/dev/null
+      enable_charging ${2:-100}% 1>/dev/null
+      set_charging_voltage $(echo $cVolt | sed 's/(default|mV)//') 1>/dev/null || :
+      daemon start 1>/dev/null &) &
+    ;;
     -i|--info) sed s/POWER_SUPPLY_// $batt/uevent;;
     -l|--log) shift; edit ${config%/*}/logs/acc-daemon*.log $@;;
     -L)
@@ -66,7 +74,7 @@ main() {
     -s|--set) shift; set_values $@;;
     -t|--test)
       shift
-      if [ -z "${1-}" ]; then
+      if [ -z "${1:-}" ]; then
         test_cctrl_file $(get_value switch)
       else
         test_cctrl_file $@
@@ -155,6 +163,8 @@ Usage: acc <options> <args>
 -e|--enable <#%, #s, #m or #h (optional)>   Enable charging or enable charging with <condition>
   e.g., acc -e 30m (recharge for 30 minutes)
 
+-f|--force|--full <capacity>   Charge to a given capacity (fallback: 100) once and uninterrupted
+
 -i|--info   Show power supply info
   i.e., acc --info
 
@@ -190,7 +200,7 @@ Usage: acc <options> <args>
 -t|--test <file onValue offValue>   Test custom charging ctrl file
   Return codes: 0 (works), 1 (does not work) or 2 (battery must be charging)
 
--v|--voltage <xxxx|voltFile:xxxx>   Set charging voltage (mV) on demand (3920-4199mV)
+-v|--voltage <millivolts|file:millivolts>   Set charging voltage (3920-4199mV)
   e.g., acc -v 3920, acc -v /sys/class/power_supply/battery/voltage_max:4100
 
 -v|--voltage   Restore default voltage
@@ -199,7 +209,7 @@ Usage: acc <options> <args>
 
 -v|--voltage -   Show current voltage
 
--v|--voltage :xxxx   Evaluate and set charging voltage control files
+-v|--voltage :millivolts   Evaluate and set charging voltage control files
 
 -x|--xtrace <other option(s)>   Run under set -x (debugging)
 
@@ -250,9 +260,9 @@ set_values() {
       if [ -n "$1" ]; then
         if [ -z "$2" ] && [[ $1 = s || $1 = switch ]]; then
           set_switch
-        elif [ "x$2" = x: ] || [[ $1 = s: || $1 = switch: ]]; then
+        elif [ "${2:-x}" = : ] || [[ $1 = s: || $1 = switch: ]]; then
           list_cctrl_files
-        elif [ "x$2" = x- ] || [[ $1 = s- || $1 = switch- ]]; then
+        elif [ "${2:-x}" = "-" ] || [[ $1 = s- || $1 = switch- ]]; then
           set_value switch
           echo "(i) Charging switch reset"
         else
@@ -268,12 +278,14 @@ set_values() {
 
 set_switch() {
   local switch="" on="" off="" oIFS=$IFS
+  local PS3="
+(?) Choice, <enter>: "
   echo "(i) Available charging switches"
-  echo "- Choose one and press <enter> to set it"
   echo
   local IFS=$'\n'
-  eval 'select switch in $(list_cctrl_files) exit; do
-    [ x$switch = xexit ] && exit 0
+  eval 'select switch in auto $(list_cctrl_files) exit; do
+    [ ${switch:-x} = exit ] && exit 0
+    [ ${switch:-x} = auto ] && set_values s- 1>/dev/null && exit 0
     IFS=$oIFS
     set_value switch "$switch"
     break
@@ -288,7 +300,7 @@ disable_charging() {
     s=$(get_value switch | awk '{print $1}')
     off=$(get_value switch | awk '{print $3}')
     if [ -f $s ]; then
-      chmod +w $s && echo $off >$s \
+      chmod +w $s && echo $off > $s \
         || { echo "(!) [$switch] does not work"
           set_value switch
           exit 1; }
@@ -330,20 +342,20 @@ disable_charging() {
 
 
 enable_charging() {
-  local s="" on=""
+  local s="" on="" target="" value""
   daemon stop | grep stopped || :
   if get_value switch | grep -q /; then
     s=$(get_value switch | awk '{print $1}')
     on=$(get_value switch | awk '{print $2}')
     if [ -f $s ]; then
-      chmod +w $s && echo $on >$s \
+      chmod +w $s && echo $on > $s \
         || { echo "(!) [$switch] does not work"
           set_value switch
           exit 1; }
-      for l in $(get_value onPlugged); do
-        t=$(echo $l | cut -d: -f1)
-        v=$(echo $l | cut -d: -f2)
-        [ -f $t ] && chmod +w $t && echo $v >$t || :
+      for target in $(get_value onPlugged); do
+        value=${target##*:}
+        target=${target%:*}
+        [ -f $target ] && ! grep -q $value $target && chmod +w $target && echo $value > $target || :
       done
     else
       echo "(!) Invalid charging switch"
@@ -382,7 +394,7 @@ enable_charging() {
 }
 
 
-get_value() { sed -n "s:^$1=::p" $config | sed 's/#.*//'; }
+get_value() { sed -n "s|^$1=||p" $config | sed -e 's/#.*//' -e 's/ $//' -e 's/ $//' -e 's/ $//'; }
 
 
 exxit() {
@@ -424,39 +436,44 @@ SWITCHES
 
 set_charging_voltage() {
 
-  local value=""
   local setVoltage=false
   local dVolt=${pidFile%/*}/dVolt
-  local file=$(echo -n $(get_value voltFile))
+  local file=$(get_value cVolt)
+  local value=${file##*:}
+  local oValue=""
+  file=${file%:*}
 
-  if echo ${1-} | grep -q '^[34]' && [ $1 -ge 3920 ] && [ $1 -le 4199 ] ; then # mV
+  if echo ${1:-} | grep -q '^[34]' && [ $1 -ge 3920 ] && [ $1 -le 4199 ] ; then # mV
     setVoltage=true
     value=$1
-  elif echo ${1-} | grep -q ':[34]' && [ ${1##*:} -ge 3920 ] && [ ${1##*:} -le 4199 ]; then # override voltFile
+    [ -f ${file:-x} ] || vfiles_prompt $value
+  elif echo ${1:-} | grep -q ':[34]' && [ ${1##*:} -ge 3920 ] && [ ${1##*:} -le 4199 ]; then # set voltage ctrl file
     setVoltage=true
     value=${1##*:}
     [[ $1 = */* ]] && file=$(echo ${1%:*}) || vfiles_prompt $value
-  elif echo ${1-} | grep -q '^\-$'; then # show current voltage
-    if [ -f ${pidFile%/*}/dVolt ]; then
-      file=$(awk '{print $1}' ${pidFile%/*}/dVolt)
-      cat $file
+  elif echo ${1:-} | grep -q '^\-$'; then # show current voltage
+    if [ -f $dVolt ]; then
+      file=$(awk '{print $1}' $dVolt)
+      echo "$(grep -o '^....' $file)mV"
     else
       echo default
     fi
     return 0
-  elif [ -z "${1-}" ]; then # restore default voltage
-    if [ -f ${pidFile%/*}/dVolt ]; then
-      file=$(awk '{print $1}' ${pidFile%/*}/dVolt)
-      value=$(awk '{print $2}' ${pidFile%/*}/dVolt)
+  elif [ -z "${1:-}" ]; then # restore default voltage
+    if [ -f $dVolt ]; then
+      file=$(awk '{print $1}' $dVolt)
+      value=$(awk '{print $2}' $dVolt)
       chmod +w $file && echo $value > $file \
-      && echo "(i) Default voltage ($(sed -n 1p $file)) was successfully restored."
+        && echo "(i) Default voltage ($(grep -o '^....' $file)mV) was successfully restored." && rm $dVolt
     else
       echo "(i) Default voltage is already set."
     fi
     return 0
-  elif [ x${1-} = x: ]; then
+  elif [ ${1:-x} = : ]; then
     list_vfiles
     return 0
+  elif [[ ${1:-x} = a || ${1:-x} = apply ]]; then
+    setVoltage=true
   else
     echo "(!) Invalid input"
     echo "- Recall that the accepted voltage range is 3920-4199mV."
@@ -465,15 +482,20 @@ set_charging_voltage() {
 
   if $setVoltage; then
     if [ -f $file ]; then
-      if chmod +w $file && sed "s/^..../$value/" $file > $file 2>/dev/null && grep -q "^$value" $file; then
-        [ -f $dVolt ] || echo "$file $(sed -n 1p $file)" > $dVolt
-        echo "(i) Charging voltage set to $(sed -n 1p $file)."
+      oValue=$value
+      value=$(sed "s/^..../$value/" $file)
+      echo "$file $(sed -n 1p $file)" > $dVolt
+      if chmod +w $file && echo $value > $file 2>/dev/null && grep -q "^$oValue" $file; then
+        [ x$(get_value cVolt) = x$file:$oValue ] || set_value cVolt $file:$oValue
+        echo "(i) Charging voltage set to $(grep -o '^....' $file)mV"
       else
-        echo "(!) Either $(echo -n $file) is not the right file or your kernel does not support this feature."
+        echo "(!) Either $(echo -n $file) is not the right file or your kernel does not support custom charging voltage."
+        rm $dVolt
         return 1
       fi
     else
       echo "(!) No such file, $file"
+      rm $dVolt
       return 1
     fi
   fi
@@ -481,21 +503,24 @@ set_charging_voltage() {
 
 
 list_vfiles(){
-  grep -E '/constant_charge_voltage$|/voltage_max$' ${config%/*}/logs/acc-power_supply-*.log | sed 's/$/\n/'
+  grep -E '/constant_charge_voltage$|/voltage_max$' ${config%/*}/logs/acc-power_supply-*.log | sed -e 's|^.*power_supply/|\./|' -e 's/$/\n/'
 }
 
 
 vfiles_prompt() {
   local file="" success=false
-  local PS3="(?) Choice, <enter>: "
+  local PS3="
+(?) Choice, <enter>: "
+  echo "(i) Available charging voltage control files"
+  echo
   eval 'select file in $(list_vfiles) exit; do
     echo
-    [ x$file = xexit ] && exit
+    [ ${file:-x} = exit ] && exit 0
     set_charging_voltage $file:$1 && success=true || :
     if $success; then
       echo
-      acc -s voltFile $file 1>/dev/null
-      echo "(i) voltFile=$file --> config.txt"
+      set_value cVolt $file:$1
+      echo "(i) cVolt=$file:$1 --> config.txt"
       exit 0
     else
       echo
@@ -554,7 +579,6 @@ test_cctrl_file() {
       return 0
     else
       echo "(!) Unsupported device"
-      ! $daemonUp || daemon start 1>/dev/null
       return 1
     fi
   fi
@@ -562,7 +586,7 @@ test_cctrl_file() {
 
 
 # debugging
-if [[ "${1:-x}" = "-x" || "${1:-x}" = "--xtrace" ]]; then
+if echo "${1:-x}" | grep -Eq '\-x|\-\-xtrace'; then
   shift
   set -x
 fi
