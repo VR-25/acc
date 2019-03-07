@@ -290,6 +290,7 @@ install_system() {
 
 
 gen_ps_log() {
+  set +x
   date
   echo "versionCode=$(i versionCode)"
   echo; echo
@@ -359,6 +360,7 @@ cleanup() {
     rm -rf /data/media/0/acc 2>/dev/null || :
 
   else
+    set +e
     [ -f $config ] || return 0
     cd $INSTALLER
     unzip -o "$ZIP" common/default_config.txt -d ./ >&2
@@ -387,7 +389,13 @@ cleanup() {
       fi
       sed -i "\|selfUpgrade=|s| # .*|$(sed -n 's|.*selfUpgrade=.* # | # |p' $dConfig)|" $config
     fi
+    [ $curVer -lt 201903032 ] && sed -i 's|less than 60|just a few|' $config
   fi
+  if [ $curVer -lt 201903060 ] && ! grep -q vNow $config; then
+    echo >> $config
+    grep vNow $dConfig >> $config
+  fi
+  set -e
 }
 
 
@@ -435,6 +443,10 @@ version_info() {
     sh /dev/djs_tmp/META-INF/com/google/android/update-binary \
       dummy $OUTFD /dev/djs_tmp/djs.zip
   fi
+
+  # report successful install/upgrade
+  mkdir -p /dev/acc
+  touch /dev/acc/installed
 
   wait # until power supply log is fully generated
 }

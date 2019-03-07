@@ -26,6 +26,8 @@ onPlugged= # These settings are applied every time an external power supply is c
 
 cVolt=./?attery/voltage_max:4199 # Used by <acc -v millivolts> command for setting charging voltage. This is automatically applied on boot. <acc -v file:millivolts> overrides the value set here -- e.g., "acc -v ./main/voltage_max:4050". For convenience and safety, voltage unit is always millivolt (mV). Only the first four digits of the original value are modified. The accepted voltage range is 3920-4199mV. "acc -v" restores the default value and "acc -v -" shows the current voltage. "acc -v :" lists available charging voltage control files. "acc -v :millivolts" is for evaluating charging voltage control files.
 
-selfUpgrade=true # Automatically check for a new release, download and install it - minutes after daemon is started/restarted. This has virtually no impact on mobile data. It runs only once per boot session. Update zips weigh less than 60 kilobytes.
+selfUpgrade=true # Automatically check for a new release, download and install it - minutes after daemon is started/restarted. This has virtually no impact on mobile data. It runs only once per boot session. Update zips weigh only a few kilobytes.
 
 rebootOnPause= # After set seconds (disabled if null).
+
+vNow= # Pause charging for _seconds when charging voltage (voltage_now) >= mV_ (e.g., 4150_15). This is an alternative to charging voltage control. However, in order to actually benefit from it, the charging current must be low (e.g., 500-1000mA). You can use onPlugged=./usb/current_max:500000 or similar configuration, or a low current power supply to achieve that. The higher the current, the less effective this is. That is because battery voltage raises quicker with higher charging current.

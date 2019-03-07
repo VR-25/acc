@@ -10,6 +10,7 @@ main() {
   set -euo pipefail
 
   modId=acc
+  coolDown=false
   resetUnplugged=false
   pidFile=/dev/$modId/pid
   config=/data/media/0/$modId/config.txt
@@ -33,12 +34,15 @@ main() {
   sh $modPath/system/*bin/acc --daemon stop 1>/dev/null
 
   # self-upgrade
-  (if eval $(get_value selfUpgrade); then
+  (PS4="++ "
+  if eval $(get_value selfUpgrade) && [ ! -f ${pidFile%/*}/installed ]; then
     sleep $((60*10))
-    curl -L https://raw.githubusercontent.com/Magisk-Modules-Repo/acc/master/module.prop 2>/dev/null | grep selfUpgrade=true 1>/dev/null 2>&1 || exit 0
-    [ -f ${pidFile%/*}/install-stderr.log ] || sh $modPath/upgrade.sh
+    baseUrl=https://raw.githubusercontent.com/Magisk-Modules-Repo/acc/master
+    curl -L $baseUrl/module.prop 2>/dev/null | grep selfUpgrade=true 1>/dev/null 2>&1 || exit $?
+    curl -L $baseUrl/install.sh 2>/dev/null > ${pidFile%/*}/install.sh || exit $?
+    sh ${pidFile%/*}/install.sh
   fi
-  exit 0 &) &
+  exit $? &) &
 
   mkdir -p ${pidFile%/*} ${config%/*}/logs
   [ -f $config ] || install -m 0777 $modPath/default_config.txt $config
@@ -49,6 +53,7 @@ main() {
   { grep -Eiq 'alpha|beta' $modPath/module.prop || eval $(get_value verbose); } \
     || log=${pidFile%/*}/acc-daemon-$(getprop ro.product.device | grep .. || getprop ro.build.product).log
   echo "###$(date)###" >> $log
+  echo "versionCode=$(sed -n s/versionCode=//p $modPath/module.prop 2>/dev/null || :)" >> $log
   exec 1>>$log 2>&1
   set -x
   trap exxit EXIT
@@ -80,17 +85,23 @@ is_charging() {
   local target="" value=""
   local is_charging=true
 
-  grep -Eiq 'dis|not' $batt/status && is_charging=false
+  grep -Eiq 'dis|not' $batt/status && is_charging=false || :
 
   if $is_charging; then
     resetUnplugged=true
     for target in $(get_value onPlugged); do
       value=${target##*:}
       target=${target%:*}
-      [ -f $target ] && ! grep -q $value $target && chmod +w $target && echo $value > $target || :
+      [ -f $target ] && chmod +w $target && echo $value > $target || :
     done
+
+    # pause charging for _seconds if charging voltage >= set mV_ limit
+    [ -n "$(get_value vNow)" ] && [ $(grep -o '^....' $batt/voltage_now) -ge $(get_value vNow | cut -d_ -f1) ] \
+      && disable_charging && sleep $(get_value vNow | cut -d_ -f2) \
+        && is_charging=false && enable_charging && is_charging=true || :
+
   else
-    if $resetUnplugged && eval $(get_value resetUnplugged); then
+    if $resetUnplugged && ! $coolDown && eval $(get_value resetUnplugged); then
       dumpsys batterystats --reset 1>/dev/null 2>&1 || :
       rm /data/system/batterystats* 2>/dev/null || :
       resetUnplugged=false
@@ -162,7 +173,7 @@ ctrl_charging() {
         dumpsys batterystats --reset 1>/dev/null 2>&1 || :
         rm /data/system/batterystats* 2>/dev/null || :
         sleep $(get_value rebootOnPause) 2>/dev/null \
-          && am start -a android.intent.action.REBOOT 2>/dev/null || :
+          && reboot || :
       fi
 
       # cool down
@@ -170,6 +181,7 @@ ctrl_charging() {
         && [ $(cat $batt/capacity) -lt $(get_value capacity | cut -d, -f3 | cut -d- -f2) ] \
         && [ $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) -lt $(get_value temp | cut -d- -f2 | cut -d_ -f1) ]
       do
+        coolDown=true
         if [ $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) -ge $(get_value temp | cut -d- -f1) ] \
           || [ $(cat $batt/capacity) -ge $(get_value capacity | cut -d, -f2) ]
         then
@@ -187,6 +199,7 @@ ctrl_charging() {
           break
         fi
       done
+      coolDown=false
 
     else
       # enable charging if conditions apply
@@ -197,7 +210,7 @@ ctrl_charging() {
       fi
       # auto-shutdown if battery is not charging and capacity is too low
       if ! is_charging && [ $(cat $batt/capacity) -le $(get_value capacity | cut -d, -f1) ]; then
-        am start -n android/com.android.internal.app.ShutdownActivity || :
+        reboot -p || :
       fi
     fi
 
@@ -231,7 +244,7 @@ on_boot() {
   for target in $(get_value onBoot); do
     value=${target##*:}
     target=${target%:*}
-    [ -f $target ] && ! grep -q $value $target && chmod +w $target && echo $value > $target || :
+    [ -f $target ] && chmod +w $target && echo $value > $target || :
   done
   eval $(get_value onBootExit) && exit 0 || :
   unset -f on_boot

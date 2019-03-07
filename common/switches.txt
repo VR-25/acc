@@ -2,7 +2,7 @@
 # Copyright (C) 2017-2019, VR25 @ xda-developers
 # License: GPL V3+
 # PWD=/sys/class/power_supply
-# Last updated: Sat, Mar 2, 2019
+# Last updated: Thu, Mar 7, 2019
 
 ./battery/charger_control 1 0
 ./battery/charge_disable 0 1
@@ -42,7 +42,12 @@
 /sys/devices/platform/omap/omap_i2c.3/i2c-3/3-005f/charge_enable 1 0
 /sys/power/pnpmgr/battery/charging_enabled 1 0
 
-# experimental (may cause lag)
+# experimental
 #./bms/temp_cold 0 500
 #./bms/temp_hot 500 0
 #./battery/system_temp_level 0 9
+#./battery/charge_done 0 1
+#./dc/power/control auto disabled (or off)
+#./bms/power/control auto disabled (or off)
+#./battery/power/control auto disabled (or off)
+#./usb/present 1 0

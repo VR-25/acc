@@ -182,9 +182,11 @@ onPlugged= # These settings are applied every time an external power supply is c
 
 cVolt=./?attery/voltage_max:4199 # Used by <acc -v millivolts> command for setting charging voltage. This is automatically applied on boot. <acc -v file:millivolts> overrides the value set here -- e.g., "acc -v ./main/voltage_max:4050". For convenience and safety, voltage unit is always millivolt (mV). Only the first four digits of the original value are modified. The accepted voltage range is 3920-4199mV. "acc -v" restores the default value and "acc -v -" shows the current voltage. "acc -v :" lists available charging voltage control files files. "acc -v :millivolts" is for evaluating charging voltage control files.
 
-selfUpgrade=true # Automatically check for a new release, download and install it - minutes after daemon is started/restarted. This has virtually no impact on mobile data. It runs only once per boot session. Update zips weigh less than 60 kilobytes.
+selfUpgrade=true # Automatically check for a new release, download and install it - minutes after daemon is started/restarted. This has virtually no impact on mobile data. It runs only once per boot session. Update zips weigh just a few kilobytes.
 
-rebootOnPause= # After set seconds (disabled if null).`
+rebootOnPause= # After set seconds (disabled if null).
+
+vNow= # Pause charging for _seconds when charging voltage (voltage_now) >= mV_ (e.g., 4150_15). This is an alternative to charging voltage control. However, in order to actually benefit from it, the charging current must be low (e.g., 500-1000mA). You can use onPlugged=./usb/current_max:500000 or similar configuration, or a low current power supply to achieve that. The higher the current, the less effective this is. That is because battery voltage raises quicker with higher charging current.`
 
 
 
@@ -207,21 +209,23 @@ Note: if you're not comfortable with the command line, use ACC app (linked below
 ---
 #### SETUP STEPS
 
+
 - Install
 1. Install from Magisk Manager or custom recovery.
 2. Reboot
 3. [Optional] customize /data/media/0/acc/config.txt either with acc commands or a text editor.
 
 - Upgrade
-1. Install from Magisk Manager or custom recovery.
+1. Install from Magisk Manager or custom recovery. Note that by default, acc upgrades itself ~10 minutes after accd is started/restarted. Update zips weigh just a few kilobytes.
 2. Reboot
-
-- ROM updates
--- If the ROM supports `addon.d` feature, skip this. Else, follow the upgrade steps above.
 
 - Uninstall
-1. Magisk: use Magisk Manager or other tool; legacy: flashing the same version again removes all traces of acc from /system.
+1. Use Magisk Manager or other utility.
 2. Reboot
+
+
+- Notes on legacy (/system install)
+If the ROM supports addon.d, acc persists across ROM updates. Flashing the same acc version again uninstalls it.
 
 
 
@@ -232,7 +236,7 @@ Note: if you're not comfortable with the command line, use ACC app (linked below
 By default, acc cycles through available charging control files until it finds one that works. However, things don't always go well.
 Certain switches may be unreliable under certain conditions.
 Others may hold a wakelock - causing faster battery drain - while in plugged in, not charging state.
-Run `acc -s s` to enforce a particular switch.
+Run `acc -s s` to enforce a particular switch. It's best trying the first one last.
 Test default switches with `acc -t`.
 Evaluate custom switches with `-t|--test <file onValue offValue>`.
 
@@ -270,6 +274,20 @@ Use `acc -v :millivolts` (e.g., acc -v :4050) for evaluating charging voltage co
 ---
 #### LATEST CHANGES
 
+**2019.3.7 (201903070)**
+- `acc --log` commands determine the target log file based on verbose state.
+- Enhanced self-upgrade.
+- Fixed instalation error faced by some users.
+- Generate `/dev/acc/installed` after successful install/upgrade.
+- Include version code in log files.
+- New (experimental) charging switches (in `switches.txt`)
+- Reduced installer verbose.
+- `resetUnplugged` doesn't apply within `coolDown` loop.
+- Updated documentation (mainly the troubleshooting section).
+- Updated installation instructions in `install.sh` (for app developers).
+- Use regular `reboot` commands instead of the unreliable `am bla bla` for system reboot and power off.
+- `vNow=mV_pauseSeconds` - monitor `voltage_now` as part of `coolDown` (experimental, default: null (off)).
+
 **2019.3.3-r1 (201903031)**
 - `acc -f|--force|--full <capacity>`: charge to a given capacity (fallback: 100) once and uninterrupted.
 - `acc -s s` has an "auto" option (unsets switch).
@@ -294,15 +312,8 @@ Use `acc -v :millivolts` (e.g., acc -v :4050) for evaluating charging voltage co
 - Major fixes and optimizations
 - On demand charging control files tester
 - Reset config with `acc -s r`.
-- Self-upgrade (enabled by default, virtually no impact on mobile data - acc zips weigh less than 60 kilobytes)
+- Self-upgrade (enabled by default, virtually no impact on mobile data - acc zips weigh just a few kilobytes)
 - Updated documentation -- added troubleshooting section and more.
 - Updated links and default config.
 - When persistent verbose is off, volatile verbose is generated (`/dev/acc/acc-daemon-*.log`).
 - Workaround for Magisk service.sh bug (script not executed)
-
-**2019.1.24 (201901240)**
-- Additional devices support
-- General fixes & optimizations
-- Generate power_supply log in the background.
-- Enable charging after stopping accd (acc --daemon stop).
-- More accurate encrypted data detection

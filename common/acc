@@ -58,7 +58,13 @@ main() {
       daemon start 1>/dev/null &) &
     ;;
     -i|--info) sed s/POWER_SUPPLY_// $batt/uevent;;
-    -l|--log) shift; edit ${config%/*}/logs/acc-daemon*.log $@;;
+    -l|--log)
+      if eval $(get_value verbose); then
+        shift; edit ${config%/*}/logs/acc-daemon*.log $@
+      else
+        shift; edit ${pidFile%/*}/acc-daemon-*.log $@
+      fi
+	;;
     -L)
       if eval $(get_value verbose); then
         tail -F ${config%/*}/logs/acc-daemon*.log
