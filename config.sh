@@ -300,7 +300,7 @@ gen_ps_log() {
   getprop | grep product
   echo
   getprop | grep version
-} > ${config%/*}/logs/acc-power_supply-$(getprop ro.product.device | grep .. || getprop ro.build.product).log
+} > /data/acc-power_supply-$(getprop ro.product.device | grep .. || getprop ro.build.product).log
 
 
 gather_ps_data() {
@@ -364,6 +364,7 @@ cleanup() {
     [ -f $config ] || return 0
     cd $INSTALLER
     unzip -o "$ZIP" common/default_config.txt -d ./ >&2
+
     if [ $curVer -lt 201902260 ]; then
       sed -i -e "\|onBoot=|s| # .*|$(sed -n 's|.*onBoot=.* # | # |p' $dConfig)|" \
         -e "\|onBootExit=|s| # .*|$(sed -n 's|.*onBootExit=.* # | # |p' $dConfig)|" \
@@ -379,9 +380,11 @@ cleanup() {
         grep selfUpgrade $dConfig >> $config
       fi
     fi
+
     if [ $curVer -lt 201903010 ]; then
       sed -i "s|voltFile=.*|$(grep cVolt $dConfig)|" $config
     fi
+
     if [ $curVer -lt 201903030 ]; then
       if ! grep -q rebootOnPause $config; then
         echo >> $config
@@ -389,11 +392,13 @@ cleanup() {
       fi
       sed -i "\|selfUpgrade=|s| # .*|$(sed -n 's|.*selfUpgrade=.* # | # |p' $dConfig)|" $config
     fi
+
     [ $curVer -lt 201903032 ] && sed -i 's|less than 60|just a few|' $config
-  fi
-  if [ $curVer -lt 201903060 ] && ! grep -q vNow $config; then
-    echo >> $config
-    grep vNow $dConfig >> $config
+
+    if [ $curVer -lt 201903060 ] && ! grep -q vNow $config; then
+      echo >> $config
+      grep vNow $dConfig >> $config
+    fi
   fi
   set -e
 }
@@ -449,6 +454,7 @@ version_info() {
   touch /dev/acc/installed
 
   wait # until power supply log is fully generated
+  mv -f /data/acc-power_supply-*.log ${config%/*}/logs/
 }
 
 

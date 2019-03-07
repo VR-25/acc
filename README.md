@@ -274,6 +274,9 @@ Use `acc -v :millivolts` (e.g., acc -v :4050) for evaluating charging voltage co
 ---
 #### LATEST CHANGES
 
+**2019.3.7-r1 (201903071)**
+- Hotfix: new users can't install.
+
 **2019.3.7 (201903070)**
 - `acc --log` commands determine the target log file based on verbose state.
 - Enhanced self-upgrade.
