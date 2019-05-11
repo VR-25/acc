@@ -1,2 +1,4 @@
-.releases
-.rsc
+_builds
+_resources
+.directory
+*.kate-swp

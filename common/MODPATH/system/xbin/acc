@@ -1,0 +1,2 @@
+#!/system/bin/sh
+/dev/acc/modPath/acc $@

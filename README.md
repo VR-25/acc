@@ -1,91 +1,189 @@
-# # Advanced Charging Controller (acc)
-## Copyright (C) 2017-2019, VR25 @ xda-developers
-### License: GPL V3+
-#### README.md
+# Advanced Charging Controller (ACC)
 
 
 
 ---
-#### DISCLAIMER
+## LEGAL
 
-This software is provided as is, in the hope that it will be useful, but without any warranty.
-Always read/reread this reference prior to installing/upgrading.
-While no cats have been harmed, I assume no responsibility under anything which might go wrong due to the use/misuse of it.
+Copyright (C) 2017-2019, VR25 @ xda-developers
 
-A copy of the GNU General Public License, version 3 or newer ships with every build. Please, study it prior to using, modifying and/or sharing any part of this work.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-To prevent fraud, DO NOT mirror any link associated with this project; DO NOT share ready-to-flash-builds (zips) on-line!
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-
-
----
-#### WARNING
-
-acc manipulates Android's low level (kernel) parameters which control the charging circuitry.
-While nothing went wrong with my devices so far, I assume no responsibility under anything which might break due to the use/misuse of this software.
-By choosing to use/misuse acc, you agree to proceed at your own risk!
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
 
 ---
-#### DESCRIPTION
+## DISCLAIMER
 
-This is primarily intended for extending battery service life. On the flip side, the name says it all.
+Always read/reread this reference prior to installing/upgrading this software.
 
-By default, battery stats are automatically reset once battery capacity reaches `maxCapacity%`.
-Users can choose whether battery stats are also reset every time the charger is unplugged (`resetUnplugged=true/false`).
+While no cats have been harmed, the author assumes no responsibility for anything that might break due to the use/misuse of it.
 
-Depending on device's capabilities, charging can be controlled based on temperature conditions, battery capacity, time, voltage, current and/or more variables.
-Limiting the charging voltage (i.e., to no more than 4199 millivolts) is the best thing to do for a long lasting battery service life.
-There are two options for that (`onBoot` settings and `acc -v`).
-Unfortunately, not all devices/kernels support custom charging voltage.
-Nevertheless, acc can still keep battery voltage within less stressful thresholds -- and it does that by default.
-Keep reading.
-
-Charging is paused when battery temperature >= `maxTemp °C` or capacity >= `maxCapacity%`.
-`maxTemp °C` includes a cooling timeout in seconds (default: 90).
-Charging is also paused periodically to reduce voltage and temperature induced stress.
-This kicks in at `coolDownCapacity%` (default: 60%) or `coolDownTemp` (default: 40°C).
-Each of these can be disabled individually.
-
-To prevent deep battery discharges and eventual cell damage, system is automatically and cleanly shutdown if battery is not charging and its capacity <= `shutdownCapacity%`.
-
-Changes to config take effect within `loopDelay` seconds. No reboot is necessary.
-
-If config.txt is missing, it is automatically recreated with default settings.
-However if it is deliberately removed while acc daemon is running, accd crashes.
-
-Daemon state is managed with `acc -D|--daemon <start/stop/restart>`.
-accd can as well be started/restarted by simply running `accd`. It can also be stopped through the removal of the PID file `/dev/acc/pid`.
-That file  contains the daemon's Process ID.
-
-Logs are stored at `/data/media/0/acc/logs/` and `/dev/acc/` (volatile verbose).
-`acc-power_supply-$deviceName.log` contains power supply information.
-That's were one would look for a charging control files when the device is not supported by acc.
-The other log files (`acc-daemon-$deviceName.log*`) contain runtime diagnostic information used for debugging general/advanced issues.
+To prevent fraud, do NOT mirror any link associated with this project; do NOT share builds (zips)! Share official links instead.
 
 
 
 ---
-#### INCLUDED SOFTWARE
+## WARNING
 
-Daily Job Scheduler (djs) - run `djs` or refer to its README.md to learn how to schedule commands, profiles, and even entire scripts.
+ACC manipulates Android low level (kernel) parameters which control the charging circuitry.
+While nothing went wrong with my devices so far, I assume no responsibility under anything that might break due to the use/misuse of this software.
+By choosing to use/misuse ACC, you agree to do so at your own risk!
 
 
 
 ---
-#### TERMINAL
+## DESCRIPTION
 
-`Usage: acc <options> <args>
+ACC is primarily intended for extending battery service life. On the flip side, the name says it all.
 
--c|--config <editor [opts]>   Edit config w/ <editor [opts]> (default: vim|vi)
-  e.g., acc -c nano -l
+
+
+---
+## PREREQUISITES
+
+- Magisk 17-19
+- [Optional] terminal emulator (running as root) or text editor.
+
+
+
+---
+## BUILDING FROM SOURCE
+
+
+Dependencies
+
+- git
+- zip
+
+
+Steps
+
+1. `git clone <repo>`
+2. `cd acc`
+3. `sh build.sh` (or double-click `build.bat` on Windows, if you have Windows subsystem for Linux installed)
+
+
+Notes
+
+- The output file is acc/_builds/acc-$versionCode.zip.
+
+- By default, `build.sh` auto-updates the (update-binary)[https://raw.githubusercontent.com/topjohnwu/Magisk/master/scripts/module_installer.sh]. To skip this, run it as `sh build.sh f`.
+
+- To update the local repo, run `git pull -f <repo>`.
+
+
+
+---
+## SETUP
+
+
+Install
+
+- Flash live (e.g., from Magisk Manager) or from custom recovery (e.g., TWRP).
+
+- ACC suports live upgrades. This means you don't need to reboot after installing/upgrading to be able to use it. However, after installing it for the first time, you have to prefix `acc` with `/dev/acc/modPath/` (e.g., /dev/acc/*/acc -D) to run it before a reboot.
+
+- The daemon is stopped before installation and restarted afterwards. It is started automatically even after the first install. Again, rebooting is unnecessary to get things running.
+
+
+Uninstall
+
+- Use Magisk Manager (app) or Magisk Manager for Recovery Mode (utility).
+
+
+
+## DEFAULT CONFIGURATION
+
+```
+# This is used to determine whether config should be patched. Do NOT modify!
+versionCode=XXXXXXXXX
+
+# shutdown,coolDown,resume-pause
+capacity=0,60,70-80
+
+# Change this only if your system reports incorrect battery capacity ("acc -i" (BMS) vs "dumpsys battery" (system)).
+capacityOffset=+0
+
+# This is an alternative to CapacityOffset. It tells acc whether the battery capacity reported by Android should be updated every few seconds to reflect the actual value from the battery management system.
+capacitySync=true
+
+# <coolDown-pauseCharging_waitSeconds> - <waitSeconds> allow battery temperature to drop below <pauseCharging>. Temperature values are interpreted in Celsius degrees. To disable temperature control entirely, set absurdly high temperature values (e.g., temperature=90-95_90).
+temperature=40-45_90
+
+# Charge/pause ratio in seconds (e.g., coolDownRatio=50/10) - reduces battery stress induced by prolonged high temperature and high charging voltage by periodically pausing charging. If charging is too slow, turn this off (null value) or change the ratio. When set to null, <coolDown capacity> and <coolDown temperature> values are nullified.
+# Generally, you don't need this if you're limiting the maximum charging voltage.
+coolDownRatio=
+
+# Reset battery stats after <pauseCapacity> is reached.
+resetBsOnPause=true
+
+# Reset battery stats every time charger is unplugged, as opposed to only when <pauseCapacity> is reached.
+resetBsOnUnplug=false
+
+# Seconds between loop iterations - this is essentially a sensitivity "slider". Do not touch it unless you know exactly what you're doing!
+loopDelay=10
+
+# Custom charging switch parameters (<path> <onValue> <offValue>), e.g., chargingSwitch=/sys/class/power_supply/battery/charging_enabled 1 0, pro tip: </sys/class/power_supply/> can be omitted (e.g., chargingSwitch=battery/charging_enabled 1 0).
+chargingSwitch=
+
+# Settings to apply on boot - e.g., applyOnBoot=usb/device/razer_charge_limit_enable:1 usb/device/razer_charge_limit_max:80 usb/device/razer_charge_limit_dropdown:70 /sys/kernel/fast_charge/force_fast_charge:1 --exit
+# --exit stops accd.
+applyOnBoot=
+
+# Settings applied every time an external power supply is connected - e.g., applyOnPlug=wireless/voltage_max:9000000 usb/current_max:2000000
+# Tip: applyOnPlug=wireless/voltage_max:9000000 forces fast wireless charging.
+applyOnPlug=
+
+# Charging voltage limit (file:millivolts, e.g., chargingVoltageLimit=?attery/voltage_max:4200)
+# Voltage range (millivolts): 3920-4349
+chargingVoltageLimit=
+
+# Reboot after <pauseCapacity> is reached and <seconds> (e.g., rebootOnPause=60) have passed (disabled if null). If this doesn't make sense to you, you probably don't need it.
+rebootOnPause=
+```
+
+
+
+---
+## USAGE
+
+
+ACC is designed to run out of the box, without user intervention. You can simply install it and forget. However, as I've been observing, most people will want to tweak settings - and everyone will want to know whether the thing is actually working.
+
+If you're not comfortable with the command line, skip this section and use the `ACC app` (links section) to configure/manage ACC.
+Alternatively, you can use a `text editor` to modify `/sdcard/acc/config.txt`. Changes to this file take effect almost instantly, and without a daemon restart.
+
+Notes/Tips for Front-end Developers
+- Apps should always run `/dev/acc/modPath/acc` (e.g., /dev/acc/modPath/acc --daemon restart) instead of the regular `acc`and `accd` commands. This ensures full compatibility with ACC's live upgrade feature.
+- It's best to use full commands over short equivalents - e.g., `--set chargingSwitch` instead of `-s s`.
+- Follow auto-install/upgrade instructions in `moduleZip/install-latest.sh`.
+- Use provided config descriptions for ACC settings in the app. Include additional information (trusted) where appropriate.
+
+
+Terminal Commands
+
+```
+acc <option(s)> <arg(s)>
+
+-c|--config <editor [opts]>   Edit config w/ <editor [opts]> (default: nano|vim|vi)
+  e.g., acc -c vim
 
 -d|--disable <#%, #s, #m or #h (optional)>   Disable charging or disable charging with <condition>
   e.g., acc -d 70% (do not recharge until capacity drops to 70%), acc -d 1h (do not recharge until 1 hour has passed)
 
 -D|--daemon   Show current acc daemon (accd) state
-  i.e., acc -D
+  e.g., acc -D
 
 -D|--daemon <start|stop|restart>   Manage accd state
   e.g., acc -D restart
@@ -94,176 +192,146 @@ Daily Job Scheduler (djs) - run `djs` or refer to its README.md to learn how to 
   e.g., acc -e 30m (recharge for 30 minutes)
 
 -f|--force|--full <capacity>   Charge to a given capacity (fallback: 100) once and uninterrupted
+  e.g., acc -f 95
 
 -i|--info   Show power supply info
-  i.e., acc --info
+  e.g., acc -i
 
--l|--log <editor [opts]>   Open <acc-daemon-deviceName.log> w/ <editor [opts]> (default: vim|vi)
-  e.g., acc -l grep ': ' (show errors only), acc -l cat >/sdcard/acc.log (yes, this also works)
+-l|--log -e|--export   Export all logs to /sdcard/acc-logs-<device>.tar.bz2
+  e.g., acc -l -e
 
--L   Monitor log
+-l|--log <editor [opts]>   Open <acc-daemon-deviceName.log> w/ <editor [opts]> (default: nano|vim|vi)
+  e.g., acc -l grep ': ' (show explicit errors only)
 
--r|--readme   Open <README.md> w/ <editor [opts]> (default: vim|vi)
-  i.e., acc -r
+-L|--logwatch   Monitor log
+  e.g., acc -L
 
--R|--resetstats   Reset battery stats
+-r|--readme   Open <README.md> w/ <editor [opts]> (default: nano|vim|vi)
+  e.g., acc -r
+
+-R|--resetbs   Reset battery stats
+  e.g., acc -R
 
 -s|--set   Show current config
-  i.e., acc --set
+  e.g., acc -s
 
 -s|--set <var> <value>   Set config parameters
-  e.g., acc -s verbose true (enable verbose), acc -s capacity 5,60,80-85 (5: shutdown (default), 60: cool down (default), 80: resume, 85: pause)
+  e.g., acc -s capacity 5,60,80-85 (5: shutdown (default), 60: cool down (default), 80: resume, 85: pause)
 
 -s|--set <resume-stop preset>   Can be 4041|endurance+, 5960|endurance, 7080|default, 8090|lite 9095|travel
   e.g., acc -s endurance+ (a.k.a, "the li-ion sweet spot"; best for GPS navigation and other long operations), acc -s travel (for when you need extra juice), acc -s 7080 (restore default capacity settings (5,60,70-80))
 
--s|--set <s|switch>   Set a different charging switch from the database
-  i.e., acc -s s
+-s|--set <s|chargingSwitch>   Set a different charging switch from the database
+  e.g., acc -s s
 
--s|--set <s:|switch:>   List available charging switches
+-s|--set <s:|chargingSwitch:>   List available charging switches
+  e.g., acc -s s:
 
--s|--set <s-|switch->   Unset charging switch
+-s|--set <s-|chargingSwitch->   Unset charging switch
+  e.g., acc -s s-
 
 -t|--test   Test currently set charging ctrl file
-  Return codes: 0 (works), 1 (does not work) or 2 (battery must be charging)
+  e.g., acc -t
+  Return codes: 0 (works), 1 (doesn't work) or 2 (battery must be charging)
 
--t|--test <file onValue offValue>   Test custom charging ctrl file
-  Return codes: 0 (works), 1 (does not work) or 2 (battery must be charging)
+-t|--test <file on off>   Test custom charging ctrl file
+  e.g., acc -t battery/charging_enabled 1 0
+  Return codes: 0 (works), 1 (doesn't work) or 2 (battery must be charging)
 
--v|--voltage <millivolts|file:millivolts>   Set charging voltage (3920-4199mV)
-  e.g., acc -v 3920, acc -v /sys/class/power_supply/battery/voltage_max:4050
+-v|--voltage <millivolts|file:millivolts>   Set charging voltage (3920-4349mV)
+  e.g., acc -v 3920, acc -v /sys/class/power_supply/battery/voltage_max:4100
 
--v|--voltage   Restore default voltage
+-v|--voltage   Show current voltage
+  e.g., acc -v
 
--v|--voltage :   List available charging voltage control files
+-v|--voltage :   List available charging voltage ctrl files
+  e.g., acc -v :
 
--v|--voltage -   Show current voltage
+-v|--voltage -   Restore default voltage
+  e.g., acc -v -
 
--v|--voltage :millivolts   Evaluate and set charging voltage control files
+-v|--voltage :millivolts   Evaluate and set charging voltage ctrl files
+  e.g., acc -v :4100
 
 -x|--xtrace <other option(s)>   Run under set -x (debugging)
+  acc -x -i
 
 Tips
 
-  Commands can be chained for extended functionality.
-    e.g., acc -e 30m && acc -d 6h && acc -e 85 && accd (recharge for 30 minutes, halt charging for 6 hours, recharge to 85% capacity and restart daemon)
+  Commands can be chained for extended functionality. Note that accd must be stopped first.
+    e.g., acc -D stop && acc -e 30m && acc -d 6h && acc -e 85 && accd (recharge for 30 minutes, halt charging for 6 hours, recharge to 85% capacity and restart daemon)
 
   Pause and resume capacities can also be set with acc <pause%> <resume%>.
     e.g., acc 85 80
 
-  Run "djs" to learn how to schedule commands, profiles, and even entire scripts.`
+  That last command can be used for programming charging before bed. In this case, the daemon must be running.
+     e.g., acc 45 44 && acc --set applyOnPlug usb/current_max:500000 && sleep $((60*60*7)) && acc 80 70 && acc --set applyOnPlug usb/current_max:2000000
+     - "Keep battery capacity at ~45% and limit charging current to 500mA for 7 hours. Restore regular charging settings afterwards."
+    - You can write this to a file and run as "sh <file>".
+
+Run acc --readme to see the full documentation.
+```
 
 
 
 ---
-#### DEFAULT CONFIG
-
-`capacity=5,60,70-80 # <shutdown,coolDown,resume-pause> -- ideally, <resume> shouldn't be more than 10 units below <pause>. To disable <shutdown>, and <coolDown>, set these to 0 and 101, respectively (e.g., capacity=0,101,70-80). Note that the latter doesn't disable the cooling feature entirely, since it works not only based on battery capacity, but temperature as well.
-
-coolDown=50/10 # Charge/pause ratio (in seconds) -- reduces battery temperature and voltage induced stress by periodically pausing charging. This can be disabled with a null value or a preceding hashtag. If charging is too slow, turn this off or change the charge/pause ratio. Disabling this nullifies <coolDown capacity> and <lower temperature> values -- leaving only a temperature limit with a cooling timeout.
-
-temp=400-450_90 # <coolDown-pauseCharging_wait> -- <wait> is interpreted in seconds and it allows battery temperature to drop below <pauseCharging>. By default, temperature values are interpreted in <degrees Celsius times 10>. To disable temperature control entirely, set absurdly high temperature values (e.g., temp=900-950_90).
-
-verbose=false # Alpha and Beta versions will generate verbose whether or not this is enabled.
-
-resetUnplugged=false # Reset battery stats every time charger is unplugged, as opposed to only when max battery capacity is reached.
-
-loopDelay=10 # Time interval between loops, in seconds -- do not change this unless you know exactly what you're doing!
-
-maxLogSize=5 # Log size limit in Megabytes -- when exceeded, $log becomes $log.old. This prevents storage space hijacking.
-
-switch= # Custom charging switch parameters (<path> <onValue> <offValue>), e.g., switch=/sys/class/power_supply/battery/charging_enabled 1 0, pro tip: <./> can be used in place of </sys/class/power_supply/> (e.g., switch=./battery/charging_enabled 1 0).
-
-onBoot= # These settings are applied on boot. e.g., ./usb/device/razer_charge_limit_enable:1 ./usb/device/razer_charge_limit_max:80 ./usb/device/razer_charge_limit_dropdown:70 /sys/kernel/fast_charge/force_fast_charge:1
-
-onBootExit=false # Exit after applying "onBoot" settings from above. Enabling this is particularly useful if voltage_max or similar is being set -- since keeping accd running in such cases is usually redundant.
-
-onPlugged= # These settings are applied every time an external power supply is connected. e.g., ./wireless/voltage_max:9000000 ./usb/current_max:2000000
-
-cVolt=./?attery/voltage_max:4199 # Used by <acc -v millivolts> command for setting charging voltage. This is automatically applied on boot. <acc -v file:millivolts> overrides the value set here -- e.g., "acc -v ./main/voltage_max:4050". For convenience and safety, voltage unit is always millivolt (mV). Only the first four digits of the original value are modified. The accepted voltage range is 3920-4199mV. "acc -v" restores the default value and "acc -v -" shows the current voltage. "acc -v :" lists available charging voltage control files files. "acc -v :millivolts" is for evaluating charging voltage control files.
-
-selfUpgrade=true # Automatically check for a new release, download and install it - minutes after daemon is started/restarted. This has virtually no impact on mobile data. It runs only once per boot session. Update zips weigh just a few kilobytes.
-
-rebootOnPause= # After set seconds (disabled if null).
-
-vNow= # Pause charging for _seconds when charging voltage (voltage_now) >= mV_ (e.g., 4150_15). This is an alternative to charging voltage control. However, in order to actually benefit from it, the charging current must be low (e.g., 500-1000mA). You can use onPlugged=./usb/current_max:500000 or similar configuration, or a low current power supply to achieve that. The higher the current, the less effective this is. That is because battery voltage raises quicker with higher charging current.`
-
-
-
----
-#### PRE-REQUISITES
-
-- Mandatory
--- Any root solution, preferably Magisk 17.0+
-
-- Optional
--- App to run (as root) `accd` or `/system/etc/acc/autorun.sh` or `acc -D start` on boot, if system doesn't support Magisk nor init.d
--- Basic terminal usage knowledge
--- Know how to use `Daily Job Scheduler (djs)` - run `djs` or refer to its README.md for details.
--- Terminal emulator (e.g., Termux) running as root (su)
-
-Note: if you're not comfortable with the command line, use ACC app (linked below) by @MatteCarra to configure/manage acc.
-
-
-
----
-#### SETUP STEPS
-
-
-- Install
-1. Install from Magisk Manager or custom recovery.
-2. Reboot
-3. [Optional] customize /data/media/0/acc/config.txt either with acc commands or a text editor.
-
-- Upgrade
-1. Install from Magisk Manager or custom recovery. Note that by default, acc upgrades itself ~10 minutes after accd is started/restarted. Update zips weigh just a few kilobytes.
-2. Reboot
-
-- Uninstall
-1. Use Magisk Manager or other utility.
-2. Reboot
-
-
-- Notes on legacy (/system install)
-If the ROM supports addon.d, acc persists across ROM updates. Flashing the same acc version again uninstalls it.
-
-
-
----
-#### TROUBLESHOOTING
+## TROUBLESHOOTING
 
 - Charging switch
-By default, acc cycles through available charging control files until it finds one that works. However, things don't always go well.
-Certain switches may be unreliable under certain conditions.
+By default, ACC cycles through all available charging control files until it finds one that works. However, things don't always go well.
+Some switches may be unreliable under certain conditions (e.g., screen off).
 Others may hold a wakelock - causing faster battery drain - while in plugged in, not charging state.
-Run `acc -s s` to enforce a particular switch. It's best trying the first one last.
-Test default switches with `acc -t`.
-Evaluate custom switches with `-t|--test <file onValue offValue>`.
+Run `acc --set chargingSwitch` to enforce a particular switch.
+Test default/set switch(es) with `acc --test`.
+Evaluate custom switches with `acc --test <file onValue offValue>`.
 
 - Charging voltage limit
-Unfortunately, not all devices/kernels support custom charging voltage.
+Unfortunately, not all devices/kernels support custom charging voltage limit.
 Since I don't own every device under the sun, I cannot tell whether yours does.
-Use `acc -v :millivolts` (e.g., acc -v :4050) for evaluating charging voltage control files.
+Use `acc --voltage :millivolts` (e.g., acc -v :4050) for evaluating charging voltage control files.
 
-- [Important info](https://bit.ly/2TRqRz0)
-
-- Restore default settings
-`acc -s r`
+- Restore default config
+`acc --set reset`
 
 - Slow charging
-- Disable coolDown (`acc -s coolDown`) or play around with its charge/pause ratio.
+Nullify coolDownRatio (`acc --set coolDownRatio`) or change its value. By default, coolDownRatio is null.
+
+- Logs are stored at `/dev/acc/`. You can export all to `/sdcard/acc-logs-$device.tar.bz2` with `acc --log --export`.
 
 
 
 ---
-#### LINKS
+## Power Supply Log
+
+
+Please upload `/dev/acc/acc-power_supply-*.log` to [this dropbox](https://www.dropbox.com/request/WYVDyCc0GkKQ8U5mLNlH/).
+This file contains invaluable power supply information, such as battery details and available charging control files.
+I'm creating a public database for mutual benefit.
+Your cooperation is greatly appreciated.
+
+
+Privacy Notes
+
+- When asked for a name, give your `XDA username`.
+- For the email, you can type something like `noway@areyoucrazy.com`.
+
+Example
+- Name: `VR25 .`
+- Email: `myemail@iscool.com`
+
+
+See current submissions [here](https://www.dropbox.com/sh/rolzxvqxtdkfvfa/AABceZM3BBUHUykBqOW-0DYIa?dl=0).
+
+
+
+---
+## LINKS
 
 - [ACC App](https://github.com/MatteCarra/AccA/)
 - [Battery University](http://batteryuniversity.com/learn/article/how_to_prolong_lithium_based_batteries/)
-- [Daily Job Scheduler](https://github.com/Magisk-Modules-Repo/djs/)
 - [Donate](https://paypal.me/vr25xda)
 - [Facebook page](https://facebook.com/VR25-at-xda-developers-258150974794782/)
-- [Git repository](https://github.com/Magisk-Modules-Repo/acc/)
+- [Git repository](https://github.com/VR-25/acc/)
 - [Telegram channel](https://t.me/vr25_xda/)
 - [Telegram group](https://t.me/acc_magisk/)
 - [Telegram profile](https://t.me/vr25xda/)
@@ -272,7 +340,31 @@ Use `acc -v :millivolts` (e.g., acc -v :4050) for evaluating charging voltage co
 
 
 ---
-#### LATEST CHANGES
+## LATEST CHANGES
+
+**2019.5.11 (201905110)**
+- build.sh auto-updates update-binary (module_installer.sh)
+- capacityOffset and capacitySync features for better control over battery capacity reported by the system
+- Cleaner and more intuitive code - readability and maintenance
+- coolDownRatio is null by default
+- Enhanced daemon efficiency and flexibility
+- Export logs to /sdcard/acc-logs-<device>.tar.bz2 with --log --export
+- Fallback editors for --config and --log options:nano > vim > vi
+- Improved overall performance
+- Live upgrade support - users don't need to reboot after installing/upgrading to use the module
+- Major fixes and optimizations
+- Modular config for simpler and more accurate patching (config with old format will be reset)
+- New charging voltage limit range: 3920-4349mV
+- Option to disable battery stats auto-reset
+- Regenerate power supply log on post-fs-data and during installation/upgrade
+- Removed self-upgrade feature (security vulnerability)
+- Restore default config with acc --set reset
+- Simpler and more modular installer
+- Standalone power supply logger
+- Swapped "-v" and "-v -" options - "display current charging voltage" and "restore default voltage", respectively
+- Temperature values are expressed in actual Celsius degrees
+- Updated charging switches database
+- Updated documentation
 
 **2019.3.7-r1 (201903071)**
 - Hotfix: new users can't install.
@@ -280,43 +372,13 @@ Use `acc -v :millivolts` (e.g., acc -v :4050) for evaluating charging voltage co
 **2019.3.7 (201903070)**
 - `acc --log` commands determine the target log file based on verbose state.
 - Enhanced self-upgrade.
-- Fixed instalation error faced by some users.
+- Fixed installation error faced by some users.
 - Generate `/dev/acc/installed` after successful install/upgrade.
 - Include version code in log files.
 - New (experimental) charging switches (in `switches.txt`)
 - Reduced installer verbose.
-- `resetUnplugged` doesn't apply within `coolDown` loop.
+- `resetUnplugged` doesn't apply within `coolDownRatioRatio` loop.
 - Updated documentation (mainly the troubleshooting section).
 - Updated installation instructions in `install.sh` (for app developers).
 - Use regular `reboot` commands instead of the unreliable `am bla bla` for system reboot and power off.
-- `vNow=mV_pauseSeconds` - monitor `voltage_now` as part of `coolDown` (experimental, default: null (off)).
-
-**2019.3.3-r1 (201903031)**
-- `acc -f|--force|--full <capacity>`: charge to a given capacity (fallback: 100) once and uninterrupted.
-- `acc -s s` has an "auto" option (unsets switch).
-- `acc -v $@` commands accept and output voltage values in millivolts only. Outputs include the unit (e.g., 4050mV).
-- `acc -v file:millivolts` saves settings to config if <file> works.
-- Additional devices support
-- Custom charging voltage limit is automatically set on boot (without `onBoot=file:voltage`).
-- Daemon exit text
-- General fixes and optimizations
-- Faster power supply log generator - users no longer have  wait for it.
-- `rebootOnPause= # After set seconds (disabled if null).`
-- The output of `acc -v :` is cleaner.
-- Updated documentation and debugging tools
-
-**2019.2.27 (201902270)**
-- Advanced and assisted charging voltage control. Refer to README.md or `acc --help` for details.
-- Automatically unset nonworking charging switch (fallback to cycling through all).
-- Daily Job Scheduler (djs) -- run `djs` or refer to its README.md to learn how to schedule commands, profiles, and even entire scripts. That's a standalone Magisk module.
-- Enhanced debugging tools (e.g., `acc -x|--xtrace <other option(s)>`)
-- Flexible framework and easy installer for app developers
-- Log monitoring (`acc -L`)
-- Major fixes and optimizations
-- On demand charging control files tester
-- Reset config with `acc -s r`.
-- Self-upgrade (enabled by default, virtually no impact on mobile data - acc zips weigh just a few kilobytes)
-- Updated documentation -- added troubleshooting section and more.
-- Updated links and default config.
-- When persistent verbose is off, volatile verbose is generated (`/dev/acc/acc-daemon-*.log`).
-- Workaround for Magisk service.sh bug (script not executed)
+- `vNow=mV_pauseSeconds` - monitor `voltage_now` as part of `coolDownRatioRatio` (experimental, default: null (off)).

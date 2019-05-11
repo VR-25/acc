@@ -1,0 +1,68 @@
+# ACC Charging Switches Database
+# Copyright (C) 2017-2019, VR25 @ xda-developers
+# License: GPLv3+
+#
+# PWD=/sys/class/power_supply
+# Last updated: Sat, May 11, 2019
+
+
+battery/charger_control 1 0
+battery/charge_disable 0 1
+battery/input_suspend 0 1
+manta-battery/charge_enabled 1 0
+battery/charge_enabled 1 0
+battery/device/Charging_Enable 1 0
+battery/ChargerEnable 1 0
+battery/disable_charger 0 1
+charge_data/enable_charger 1 0
+huawei_charger/enable_charger 1 0
+?-00??/enable_charger 1 0
+?-00??/charging_state enabled disabled
+bq*_charger/enable_charging 1 2
+ac/charging_enabled 1 0
+dc/charging_enabled 1 0
+charger/charge_enabled 1 0
+chargalg/disable_charging 0 1
+mt-battery/disable_charger 0 1
+parallel/charging_enabled 1 0
+parallel/input_suspend 0 1
+dollar_cove_charger/enable_charging 1 0
+dollar_cove_charger/enable_charger 1 0
+battery/charging_enabled 1 0
+battery/battery_charging_enabled 1 0
+battery/batt_slate_mode 0 1
+battery/store_mode 0 1
+usb-parallel/charging_enabled 1 0
+dc-wireless/charging_enabled 1 0
+*-charger/charging_enabled 1 0
+dc/input_suspend
+
+/proc/smb*_disable_chrg 0 1
+/sys/devices/platform/battery/ChargerEnable 1 0
+/sys/module/pm*_charger/parameters/disabled 0 1
+/sys/devices/platform/mt-battery/disable_charger 0 1
+/sys/devices/platform/huawei_charger/enable_charger 1 0
+/sys/devices/platform/*/*/*/charging_state enabled disabled
+/sys/class/hw_power/charger/charge_data/enable_charger 1 0
+/sys/devices/platform/omap/omap_i2c.?/i2c-?/?-00??/charge_enable 1 0
+/sys/power/pnpmgr/battery/charging_enabled 1 0
+/sys/devices/soc/soc:lge,cable_detect/lge_power/lge_cable_detect/charging_enabled 1 0
+/sys/devices/soc/soc:lge,charging_controller/lge_power/lge_cc/charging_enabled 1 0
+
+
+# experimental
+
+#/sys/devices/platform/battery_meter/FG_suspend_current_threshold 100 30
+#/sys/devices/platform/battery_meter/FG_daemon_disable 0 1
+#bms/temp_cold 0 500
+#bms/temp_hot 500 0
+#battery/system_temp_level 0 9
+#battery/charge_done 0 1
+#dc/power/control auto disabled (or off)
+#bms/power/control auto disabled (or off)
+#battery/power/control auto disabled (or off)
+#usb/present 1 0
+#dc-wireless/charge_done
+#/sys/devices/soc/soc:lge,charging_controller/lge_power/lge_cc/charge_done 0 1
+#/sys/devices/soc/soc:lge,cable_detect/lge_power/lge_cable_detect/charge_done 0 1
+#battery/wc_enable 1 0
