@@ -1,0 +1,2 @@
+#!/system/bin/sh
+(/sbin/_acc/acc/accd &) &

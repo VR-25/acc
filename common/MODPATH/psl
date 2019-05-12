@@ -3,7 +3,6 @@
 # Copyright (C) 2019, VR25 @ xda-developers
 # License: GPLv3+
 
-
 gather_ps_data() {
   local target="" target2=""
   for target in $(ls -1 $1 | grep -Ev '^[0-9]|^block$|^dev$|^fs$|^ram$'); do
@@ -28,8 +27,8 @@ gather_ps_data() {
   done
 }
 
-log=/dev/acc/acc-power_supply-$(getprop ro.product.device | grep .. || getprop ro.build.product).log
-mkdir -p /dev/acc
+log=/sbin/_acc/acc-power_supply-$(getprop ro.product.device | grep .. || getprop ro.build.product).log
+mkdir -p /sbin/_acc
 
 {
   date

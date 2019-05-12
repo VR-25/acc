@@ -63,6 +63,7 @@ ACC is primarily intended for extending battery service life. On the flip side, 
 
 Dependencies
 
+- curl (optional)
 - git
 - zip
 
@@ -92,7 +93,7 @@ Install
 
 - Flash live (e.g., from Magisk Manager) or from custom recovery (e.g., TWRP).
 
-- ACC suports live upgrades. This means you don't need to reboot after installing/upgrading to be able to use it. However, after installing it for the first time, you have to prefix `acc` with `/dev/acc/modPath/` (e.g., /dev/acc/*/acc -D) to run it before a reboot.
+- ACC suports live upgrades. This means you don't need to reboot after installing/upgrading to be able to use it.
 
 - The daemon is stopped before installation and restarted afterwards. It is started automatically even after the first install. Again, rebooting is unnecessary to get things running.
 
@@ -115,7 +116,7 @@ capacity=0,60,70-80
 # Change this only if your system reports incorrect battery capacity ("acc -i" (BMS) vs "dumpsys battery" (system)).
 capacityOffset=+0
 
-# This is an alternative to CapacityOffset. It tells acc whether the battery capacity reported by Android should be updated every few seconds to reflect the actual value from the battery management system.
+# This is an alternative to capacityOffset. It tells acc whether the battery capacity reported by Android should be updated every few seconds to reflect the actual value from the battery management system.
 capacitySync=true
 
 # <coolDown-pauseCharging_waitSeconds> - <waitSeconds> allow battery temperature to drop below <pauseCharging>. Temperature values are interpreted in Celsius degrees. To disable temperature control entirely, set absurdly high temperature values (e.g., temperature=90-95_90).
@@ -165,7 +166,6 @@ If you're not comfortable with the command line, skip this section and use the `
 Alternatively, you can use a `text editor` to modify `/sdcard/acc/config.txt`. Changes to this file take effect almost instantly, and without a daemon restart.
 
 Notes/Tips for Front-end Developers
-- Apps should always run `/dev/acc/modPath/acc` (e.g., /dev/acc/modPath/acc --daemon restart) instead of the regular `acc`and `accd` commands. This ensures full compatibility with ACC's live upgrade feature.
 - It's best to use full commands over short equivalents - e.g., `--set chargingSwitch` instead of `-s s`.
 - Follow auto-install/upgrade instructions in `moduleZip/install-latest.sh`.
 - Use provided config descriptions for ACC settings in the app. Include additional information (trusted) where appropriate.
@@ -176,8 +176,8 @@ Terminal Commands
 ```
 acc <option(s)> <arg(s)>
 
--c|--config <editor [opts]>   Edit config w/ <editor [opts]> (default: nano|vim|vi)
-  e.g., acc -c vim
+-c|--config <editor [opts]>   Edit config w/ <editor [opts]> (default: vim|vi)
+  e.g., acc -c
 
 -d|--disable <#%, #s, #m or #h (optional)>   Disable charging or disable charging with <condition>
   e.g., acc -d 70% (do not recharge until capacity drops to 70%), acc -d 1h (do not recharge until 1 hour has passed)
@@ -200,13 +200,13 @@ acc <option(s)> <arg(s)>
 -l|--log -e|--export   Export all logs to /sdcard/acc-logs-<device>.tar.bz2
   e.g., acc -l -e
 
--l|--log <editor [opts]>   Open <acc-daemon-deviceName.log> w/ <editor [opts]> (default: nano|vim|vi)
+-l|--log <editor [opts]>   Open <acc-daemon-deviceName.log> w/ <editor [opts]> (default: vim|vi)
   e.g., acc -l grep ': ' (show explicit errors only)
 
 -L|--logwatch   Monitor log
   e.g., acc -L
 
--r|--readme   Open <README.md> w/ <editor [opts]> (default: nano|vim|vi)
+-r|--readme   Open <README.md> w/ <editor [opts]> (default: vim|vi)
   e.g., acc -r
 
 -R|--resetbs   Reset battery stats
@@ -296,7 +296,7 @@ Use `acc --voltage :millivolts` (e.g., acc -v :4050) for evaluating charging vol
 - Slow charging
 Nullify coolDownRatio (`acc --set coolDownRatio`) or change its value. By default, coolDownRatio is null.
 
-- Logs are stored at `/dev/acc/`. You can export all to `/sdcard/acc-logs-$device.tar.bz2` with `acc --log --export`.
+- Logs are stored at `/sbin/_acc/`. You can export all to `/sdcard/acc-logs-$device.tar.bz2` with `acc --log --export`.
 
 
 
@@ -304,7 +304,7 @@ Nullify coolDownRatio (`acc --set coolDownRatio`) or change its value. By defaul
 ## Power Supply Log
 
 
-Please upload `/dev/acc/acc-power_supply-*.log` to [this dropbox](https://www.dropbox.com/request/WYVDyCc0GkKQ8U5mLNlH/).
+Please upload `/sbin/_acc/acc-power_supply-*.log` to [this dropbox](https://www.dropbox.com/request/WYVDyCc0GkKQ8U5mLNlH/).
 This file contains invaluable power supply information, such as battery details and available charging control files.
 I'm creating a public database for mutual benefit.
 Your cooperation is greatly appreciated.
@@ -342,6 +342,15 @@ See current submissions [here](https://www.dropbox.com/sh/rolzxvqxtdkfvfa/AABceZ
 ---
 ## LATEST CHANGES
 
+**2019.5.12 (201905120)**
+- Autofix Termux SU PATH
+- Do not use Magic Mount; link everything to /sbin
+- Enforce Magisk's busybox to prevent issues caused by outdated binaries
+- Enhanced live upgrade; no more command prefix
+- Fixed bugs and typos
+- Removed nano from fallback editors list.
+- Updated build tools and info
+
 **2019.5.11 (201905110)**
 - build.sh auto-updates update-binary (module_installer.sh)
 - capacityOffset and capacitySync features for better control over battery capacity reported by the system
@@ -349,7 +358,7 @@ See current submissions [here](https://www.dropbox.com/sh/rolzxvqxtdkfvfa/AABceZ
 - coolDownRatio is null by default
 - Enhanced daemon efficiency and flexibility
 - Export logs to /sdcard/acc-logs-<device>.tar.bz2 with --log --export
-- Fallback editors for --config and --log options:nano > vim > vi
+- Fallback editors for --config and --log options: vim|vi
 - Improved overall performance
 - Live upgrade support - users don't need to reboot after installing/upgrading to use the module
 - Major fixes and optimizations
@@ -368,17 +377,3 @@ See current submissions [here](https://www.dropbox.com/sh/rolzxvqxtdkfvfa/AABceZ
 
 **2019.3.7-r1 (201903071)**
 - Hotfix: new users can't install.
-
-**2019.3.7 (201903070)**
-- `acc --log` commands determine the target log file based on verbose state.
-- Enhanced self-upgrade.
-- Fixed installation error faced by some users.
-- Generate `/dev/acc/installed` after successful install/upgrade.
-- Include version code in log files.
-- New (experimental) charging switches (in `switches.txt`)
-- Reduced installer verbose.
-- `resetUnplugged` doesn't apply within `coolDownRatioRatio` loop.
-- Updated documentation (mainly the troubleshooting section).
-- Updated installation instructions in `install.sh` (for app developers).
-- Use regular `reboot` commands instead of the unreliable `am bla bla` for system reboot and power off.
-- `vNow=mV_pauseSeconds` - monitor `voltage_now` as part of `coolDownRatioRatio` (experimental, default: null (off)).

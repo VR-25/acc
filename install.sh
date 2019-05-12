@@ -22,13 +22,13 @@
 # Set to true if you do *NOT* want Magisk to mount
 # any files for you. Most modules would NOT want
 # to set this flag to true
-SKIPMOUNT=false
+SKIPMOUNT=true
 
 # Set to true if you need to load system.prop
 PROPFILE=false
 
 # Set to true if you need post-fs-data script
-POSTFSDATA=true
+POSTFSDATA=false
 
 # Set to true if you need late_start service script
 LATESTARTSERVICE=true
@@ -151,6 +151,8 @@ on_install() {
   trap 'exxit $?' EXIT
 
   config=/data/media/0/$MODID/config.txt
+  configVer=$(sed -n s|^versionCode=||p $config 2>/dev/null || :)
+  termuxSu=/data/data/com.termux/files/usr/bin/su
 
   # extract module files
   ui_print "- Extracting module files"
@@ -162,8 +164,12 @@ on_install() {
   unzip -o "$ZIPFILE" License.md README.md -d ${config%/*}/info/ >&2
 
   # upgrade config
-  if [ -f $config ] && [ 0$(sed -n s|^verionCode=||p $config) -lt 0201905110 ]; then
-    rm -rf $config ${config%/*}/logs 2>/dev/null || :
+  if [ -f $config ]; then
+    if [ ${configVer:-0} -lt 201905110 ]; then
+      rm -rf $config ${config%/*}/logs 2>/dev/null || :
+    elif [ ${configVer:-0} -lt 201905111 ]; then
+      sed -i -e /CapacityOffset/s/C/c/ -e /versionCode/s/=.*/201905111/ $config
+    fi
   fi
 
   set +euxo pipefail
@@ -194,14 +200,26 @@ set_permissions() {
 
   # finishing touches
   if $BOOTMODE; then
-    mkdir -p /dev/acc
+    mkdir -p /sbin/_acc
+    [ -h /sbin/_acc/acc ] && rm /sbin/_acc/acc \
+      || rm -rf /sbin/_acc/acc 2>/dev/null
+    cp -a $MODPATH /sbin/_acc/acc
+    ln -fs /sbin/_acc/acc/acc /sbin/acc
+    ln -fs /sbin/_acc/acc/accd-init /sbin/accd
+    ###
     [ -h /dev/acc/modPath ] && rm /dev/acc/modPath \
       || rm -rf /dev/acc/modPath 2>/dev/null
     cp -a $MODPATH /dev/acc/modPath
+    ###
     wait
-    /dev/acc/modPath/system/*bin/accd
+    /sbin/accd
   fi
   chmod -R 0777 ${config%/*}
+  # fix termux su PATH
+  if [ -f $termuxSu ] && grep -q '/su:' $termuxSu; then
+    sed -i 's|/su:|:|' $termuxSu
+    magisk --clone-attr ${termuxSu%su}apt $termuxSu
+  fi
 }
 
 # You can add more functions to assist your custom script code

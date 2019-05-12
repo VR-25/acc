@@ -64,12 +64,12 @@ disable_charging() {
       value=$(get_value chargingSwitch | awk '{print $3}')
       if [ -f $file ]; then
         chmod +w $file && echo $value > $file 2>/dev/null \
-          || $acc --set chargingSwitch- > /dev/null
+          || acc --set chargingSwitch- > /dev/null
       else
-        $acc --set chargingSwitch- > /dev/null
+        acc --set chargingSwitch- > /dev/null
       fi
       #sleep 1
-      #! is_charging || $acc --set chargingSwitch- > /dev/null
+      #! is_charging || acc --set chargingSwitch- > /dev/null
     else
       switch_loop off
       ! is_charging || exxit 1 "(!) Unsupported device"
@@ -89,9 +89,9 @@ enable_charging() {
       value=$(get_value chargingSwitch | awk '{print $2}')
       if [ -f $file ]; then
         chmod +w $file && echo $value > $file 2>/dev/null \
-          || $acc --set chargingSwitch- > /dev/null
+          || acc --set chargingSwitch- > /dev/null
       else
-        $acc --set chargingSwitch- > /dev/null
+        acc --set chargingSwitch- > /dev/null
       fi
     else
       switch_loop on
@@ -223,11 +223,10 @@ set -euo pipefail
 modId=acc
 coolDown=false
 resetBsOnUnplug=false
-modPath=/dev/$modId/modPath
-acc=$modPath/acc
+modPath=/sbin/_$modId/$modId
 config=/data/media/0/$modId/config.txt
 
-which busybox > /dev/null || PATH=/sbin/.magisk/busybox:$PATH
+[[ $PATH == "*magisk/busybox*" ]] || PATH=/sbin/.magisk/busybox:$PATH
 
 log=${modPath%/*}/acc-daemon-$(getprop ro.product.device | grep .. || getprop ro.build.product).log
 
@@ -244,7 +243,7 @@ set -e
 
 mkdir -p ${modPath%/*} ${config%/*}
 [ -f $config ] || install -m 0777 $modPath/config.txt $config
-cd /sys/class/power_supply
+cd /sys/class/power_supply/
 
 # diagnostics and cleanup
 echo "###$(date)###" >> $log
@@ -256,7 +255,7 @@ trap exxit EXIT
 [ -f $modPath/module.prop ] || exxit 1 "(!) modPath not found"
 unset modId
 apply_on_boot
-$acc --voltage apply > /dev/null 2>&1 || :
+acc --voltage apply > /dev/null 2>&1 || :
 check_compatibility
 ctrl_charging
 exit $?

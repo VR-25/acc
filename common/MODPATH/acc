@@ -19,7 +19,7 @@ daemon() {
       else
         echo "(i) accd started"
         set +x
-       $accd
+       accd
       fi
     ;;
     stop)
@@ -39,7 +39,7 @@ daemon() {
         echo "(i) accd started"
       fi
       set +x
-      $accd
+      accd
     ;;
     *)
       if $isRunning; then
@@ -60,7 +60,7 @@ edit() {
   if [ -n "${1:-}" ]; then
     $@ $file
   else
-    nano -$ $file 2>/dev/null || vim $file 2>/dev/null || vi $file
+    vim $file 2>/dev/null || vi $file
   fi
 }
 
@@ -74,8 +74,8 @@ Version code: $(sed -n 's/versionCode=//p' $modPath/module.prop)
 
 Usage: acc <option(s)> <arg(s)>
 
--c|--config <editor [opts]>   Edit config w/ <editor [opts]> (default: nano|vim|vi)
-  e.g., acc -c vim
+-c|--config <editor [opts]>   Edit config w/ <editor [opts]> (default: vim|vi)
+  e.g., acc -c
 
 -d|--disable <#%, #s, #m or #h (optional)>   Disable charging or disable charging with <condition>
   e.g., acc -d 70% (do not recharge until capacity drops to 70%), acc -d 1h (do not recharge until 1 hour has passed)
@@ -98,13 +98,13 @@ Usage: acc <option(s)> <arg(s)>
 -l|--log -e|--export   Export all logs to /sdcard/acc-logs-<device>.tar.bz2
   e.g., acc -l -e
 
--l|--log <editor [opts]>   Open <acc-daemon-deviceName.log> w/ <editor [opts]> (default: nano|vim|vi)
+-l|--log <editor [opts]>   Open <acc-daemon-deviceName.log> w/ <editor [opts]> (default: vim|vi)
   e.g., acc -l grep ': ' (show explicit errors only)
 
 -L|--logwatch   Monitor log
   e.g., acc -L
 
--r|--readme   Open <README.md> w/ <editor [opts]> (default: nano|vim|vi)
+-r|--readme   Open <README.md> w/ <editor [opts]> (default: vim|vi)
   e.g., acc -r
 
 -R|--resetbs   Reset battery stats
@@ -177,9 +177,9 @@ set_value() {
   [ $var = s ] && var=chargingSwitch || :
   shift
   if grep -q "^$var=" $config; then
-    sed -i "s|^$var=.*|$var=$@|" $config
+    sed -i "s|^$var=.*|$var=$*|" $config
   elif grep -q "^#$var=" $config; then
-    sed -i "s|^#$var=.*|$var=$@|" $config
+    sed -i "s|^#$var=.*|$var=$*|" $config
   else
     echo "(!) Invalid variable, [$var]"
     exit 1
@@ -198,7 +198,7 @@ set_values() {
       cp -f $modPath/config.txt $config
       chmod 0777 $config
       echo "(i) Config reset"
-      daemon > /dev/null && daemon restart || :
+      accd
       return 0
     ;;
     *)
@@ -494,7 +494,7 @@ test_charging_switch() {
 
   if not_charging; then
     echo "(!) Battery must be charging"
-    $accd
+    accd
     return 2
   fi
 
@@ -504,19 +504,19 @@ test_charging_switch() {
     if not_charging; then
       echo "(i) [$file $on $off] works"
       echo $default > $file
-      $accd
+      accd
       return 0
     else
       echo "(!) [$file $on $off] doesn't work"
       echo $default > $file
-      $accd
+      accd
       return 1
     fi
   else
     disable_charging > /dev/null
     if not_charging; then
       echo "(i) Supported device"
-      $accd
+      accd
       return 0
     else
       echo "(!) Unsupported device"
@@ -540,10 +540,9 @@ umask 0
 trap exxit EXIT
 set -euo pipefail
 
-modPath=/dev/acc/modPath
-accd=$modPath/system/*bin/accd
+modPath=/sbin/_acc/acc
 config=/data/media/0/acc/config.txt
-which busybox > /dev/null || PATH=/sbin/.magisk/busybox:$PATH
+[[ $PATH == "*magisk/busybox*" ]] || PATH=/sbin/.magisk/busybox:$PATH
 device=$(getprop ro.product.device | grep .. || getprop ro.build.product)
 batt=$(echo /sys/class/power_supply/*attery/capacity | awk '{print $1}' | sed 's|/capacity||')
 
@@ -579,7 +578,7 @@ case ${1:-} in
     enable_charging ${2:-100}%
     set_charging_voltage $chargingVoltageLimit
     unset chargingVoltageLimit
-    $accd
+    accd
   ;;
 
   -i|--info) sed s/POWER_SUPPLY_// $batt/uevent | sed "/^CAPACITY=/s/=.*/=$(( $(cat $batt/capacity) $(get_value capacityOffset) ))/";;
