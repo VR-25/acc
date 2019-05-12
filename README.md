@@ -277,26 +277,44 @@ Run acc --readme to see the full documentation.
 ---
 ## TROUBLESHOOTING
 
-- Charging switch
-By default, ACC cycles through all available charging control files until it finds one that works. However, things don't always go well.
+
+++Charging switch++
+
+By default, ACC cycles through all available charging control files until it finds one that works.
+
+However, things don't always go well.
 Some switches may be unreliable under certain conditions (e.g., screen off).
 Others may hold a wakelock - causing faster battery drain - while in plugged in, not charging state.
+
 Run `acc --set chargingSwitch` to enforce a particular switch.
+
 Test default/set switch(es) with `acc --test`.
+
 Evaluate custom switches with `acc --test <file onValue offValue>`.
 
-- Charging voltage limit
+
+++Charging voltage limit++
+
 Unfortunately, not all devices/kernels support custom charging voltage limit.
+
 Since I don't own every device under the sun, I cannot tell whether yours does.
+
 Use `acc --voltage :millivolts` (e.g., acc -v :4050) for evaluating charging voltage control files.
 
-- Restore default config
+
+++Restore default config++
+
 `acc --set reset`
 
-- Slow charging
+
+++Slow charging++
+
 Nullify coolDownRatio (`acc --set coolDownRatio`) or change its value. By default, coolDownRatio is null.
 
-- Logs are stored at `/sbin/_acc/`. You can export all to `/sdcard/acc-logs-$device.tar.bz2` with `acc --log --export`.
+
+++Logs++
+
+Logs are stored at `/sbin/_acc/`. You can export all to `/sdcard/acc-logs-$device.tar.bz2` with `acc --log --export`.
 
 
 
@@ -342,6 +360,10 @@ See current submissions [here](https://www.dropbox.com/sh/rolzxvqxtdkfvfa/AABceZ
 ---
 ## LATEST CHANGES
 
+**2019.5.12-r1 (201905121)**
+- Installer optimizations
+- Updated documentation
+
 **2019.5.12 (201905120)**
 - Autofix Termux SU PATH
 - Do not use Magic Mount; link everything to /sbin
@@ -374,6 +396,3 @@ See current submissions [here](https://www.dropbox.com/sh/rolzxvqxtdkfvfa/AABceZ
 - Temperature values are expressed in actual Celsius degrees
 - Updated charging switches database
 - Updated documentation
-
-**2019.3.7-r1 (201903071)**
-- Hotfix: new users can't install.

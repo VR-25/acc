@@ -1,4 +1,4 @@
-##########################################################################################
+########################################################################################################
 #
 # Magisk Module Installer Script
 #
@@ -206,11 +206,6 @@ set_permissions() {
     cp -a $MODPATH /sbin/_acc/acc
     ln -fs /sbin/_acc/acc/acc /sbin/acc
     ln -fs /sbin/_acc/acc/accd-init /sbin/accd
-    ###
-    [ -h /dev/acc/modPath ] && rm /dev/acc/modPath \
-      || rm -rf /dev/acc/modPath 2>/dev/null
-    cp -a $MODPATH /dev/acc/modPath
-    ###
     wait
     /sbin/accd
   fi
