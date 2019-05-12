@@ -151,7 +151,7 @@ on_install() {
   trap 'exxit $?' EXIT
 
   config=/data/media/0/$MODID/config.txt
-  configVer=$(sed -n s|^versionCode=||p $config 2>/dev/null || :)
+  configVer=$(sed -n 's|^versionCode=||p' $config 2>/dev/null || :)
   termuxSu=/data/data/com.termux/files/usr/bin/su
 
   # extract module files

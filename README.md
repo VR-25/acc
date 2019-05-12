@@ -160,18 +160,13 @@ rebootOnPause=
 ## USAGE
 
 
-ACC is designed to run out of the box, without user intervention. You can simply install it and forget. However, as I've been observing, most people will want to tweak settings - and everyone will want to know whether the thing is actually working.
+ACC is designed to run out of the box, without user intervention. You can simply install it and forget. However, as I've been observing, most people will want to tweak settings - and obviously everyone will want to know whether the thing is actually working.
 
-If you're not comfortable with the command line, skip this section and use the `ACC app` (links section) to configure/manage ACC.
+If you're not comfortable with the command line, skip this section and use the `ACC app` (links section) to manage ACC.
 Alternatively, you can use a `text editor` to modify `/sdcard/acc/config.txt`. Changes to this file take effect almost instantly, and without a daemon restart.
 
-Notes/Tips for Front-end Developers
-- It's best to use full commands over short equivalents - e.g., `--set chargingSwitch` instead of `-s s`.
-- Follow auto-install/upgrade instructions in `moduleZip/install-latest.sh`.
-- Use provided config descriptions for ACC settings in the app. Include additional information (trusted) where appropriate.
 
-
-Terminal Commands
+### Terminal Commands
 
 ```
 acc <option(s)> <arg(s)>
@@ -275,10 +270,38 @@ Run acc --readme to see the full documentation.
 
 
 ---
+## NOTES/TIPS FOR FRONT-END DEVELOPERS
+
+
+It's best to use full commands over short equivalents - e.g., `--set chargingSwitch` instead of `-s s`.
+
+Use provided config descriptions for ACC settings in your app(s). Include additional information (trusted) where appropriate.
+
+
+### Auto-install ACC
+
+```
+1) Check whether ACC installed (exit code 0)
+which acc > /dev/null
+
+2) Download the installer (https://raw.githubusercontent.com/VR-25/acc/master/install-latest.sh)
+- e.g., curl -#L [URL] > [output file] (progress is shown)
+
+3) Run "sh [installer]" (progress is shown)
+```
+
+Notes
+
+- The installer must run as root (obviously).
+- Log: /sbin/_acc/install-sdterr.log
+
+
+
+---
 ## TROUBLESHOOTING
 
 
-++Charging switch++
+### Charging Switch
 
 By default, ACC cycles through all available charging control files until it finds one that works.
 
@@ -293,7 +316,7 @@ Test default/set switch(es) with `acc --test`.
 Evaluate custom switches with `acc --test <file onValue offValue>`.
 
 
-++Charging voltage limit++
+### Charging Voltage Limit
 
 Unfortunately, not all devices/kernels support custom charging voltage limit.
 
@@ -302,17 +325,17 @@ Since I don't own every device under the sun, I cannot tell whether yours does.
 Use `acc --voltage :millivolts` (e.g., acc -v :4050) for evaluating charging voltage control files.
 
 
-++Restore default config++
+### Restore Default Config
 
 `acc --set reset`
 
 
-++Slow charging++
+### Slow Charging
 
 Nullify coolDownRatio (`acc --set coolDownRatio`) or change its value. By default, coolDownRatio is null.
 
 
-++Logs++
+### Logs
 
 Logs are stored at `/sbin/_acc/`. You can export all to `/sdcard/acc-logs-$device.tar.bz2` with `acc --log --export`.
 
@@ -359,6 +382,11 @@ See current submissions [here](https://www.dropbox.com/sh/rolzxvqxtdkfvfa/AABceZ
 
 ---
 ## LATEST CHANGES
+
+**2019.5.12-r2 (201905122)**
+- Enhanced auto-installer (install-latest.sh)
+- Fixed - install.sh always resets config
+- Updated documentation - notes/tips for front-end developers, improved readability
 
 **2019.5.12-r1 (201905121)**
 - Installer optimizations
