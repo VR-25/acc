@@ -281,7 +281,7 @@ Use provided config descriptions for ACC settings in your app(s). Include additi
 ### Auto-install ACC
 
 ```
-1) Check whether ACC installed (exit code 0)
+1) Check whether ACC is installed (exit code 0)
 which acc > /dev/null
 
 2) Download the installer (https://raw.githubusercontent.com/VR-25/acc/master/install-latest.sh)
@@ -293,7 +293,7 @@ which acc > /dev/null
 Notes
 
 - The installer must run as root (obviously).
-- Log: /sbin/_acc/install-sdterr.log
+- Log: /sbin/_acc/install-stderr.log
 
 
 

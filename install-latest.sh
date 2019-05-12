@@ -16,6 +16,8 @@ modId=acc
 log=/sbin/_$modId/install-stderr.log
 [[ $PATH == "*magisk/busybox*" ]] || PATH=/sbin/.magisk/busybox:$PATH
 
+mkdir -p ${log%/*}
+
 get_ver() { sed -n 's/^versionCode=//p' ${1:-}; }
 
 instVer=$(get_ver /sbin/_$modId/acc/module.prop 2>/dev/null || :)
