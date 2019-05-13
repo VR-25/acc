@@ -117,7 +117,7 @@ capacity=0,60,70-80
 capacityOffset=+0
 
 # This is an alternative to capacityOffset. It tells acc whether the battery capacity reported by Android should be updated every few seconds to reflect the actual value from the battery management system.
-capacitySync=true
+capacitySync=false
 
 # <coolDown-pauseCharging_waitSeconds> - <waitSeconds> allow battery temperature to drop below <pauseCharging>. Temperature values are interpreted in Celsius degrees. To disable temperature control entirely, set absurdly high temperature values (e.g., temperature=90-95_90).
 temperature=40-45_90
@@ -383,6 +383,10 @@ See current submissions [here](https://www.dropbox.com/sh/rolzxvqxtdkfvfa/AABceZ
 ---
 ## LATEST CHANGES
 
+**2019.5.13 (201905130)**
+- capacitySync disabled by default - some systems don't like the "dumpsys" command
+- Fixed installer bugs
+
 **2019.5.12-r2 (201905122)**
 - Enhanced auto-installer (install-latest.sh)
 - Fixed - install.sh always resets config
@@ -400,27 +404,3 @@ See current submissions [here](https://www.dropbox.com/sh/rolzxvqxtdkfvfa/AABceZ
 - Fixed bugs and typos
 - Removed nano from fallback editors list.
 - Updated build tools and info
-
-**2019.5.11 (201905110)**
-- build.sh auto-updates update-binary (module_installer.sh)
-- capacityOffset and capacitySync features for better control over battery capacity reported by the system
-- Cleaner and more intuitive code - readability and maintenance
-- coolDownRatio is null by default
-- Enhanced daemon efficiency and flexibility
-- Export logs to /sdcard/acc-logs-<device>.tar.bz2 with --log --export
-- Fallback editors for --config and --log options: vim|vi
-- Improved overall performance
-- Live upgrade support - users don't need to reboot after installing/upgrading to use the module
-- Major fixes and optimizations
-- Modular config for simpler and more accurate patching (config with old format will be reset)
-- New charging voltage limit range: 3920-4349mV
-- Option to disable battery stats auto-reset
-- Regenerate power supply log on post-fs-data and during installation/upgrade
-- Removed self-upgrade feature (security vulnerability)
-- Restore default config with acc --set reset
-- Simpler and more modular installer
-- Standalone power supply logger
-- Swapped "-v" and "-v -" options - "display current charging voltage" and "restore default voltage", respectively
-- Temperature values are expressed in actual Celsius degrees
-- Updated charging switches database
-- Updated documentation

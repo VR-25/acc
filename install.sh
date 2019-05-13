@@ -159,7 +159,6 @@ on_install() {
   unzip -o "$ZIPFILE" 'common/MODPATH/*' -d $TMPDIR/ >&2
   mv $TMPDIR/common/MODPATH/* $MODPATH/
   ! $BOOTMODE || (sh $MODPATH/psl $versionCode &) &
-  [ -d /system/xbin ] || mv $MODPATH/system/xbin $MODPATH/system/bin
   mkdir -p ${config%/*}/info
   unzip -o "$ZIPFILE" License.md README.md -d ${config%/*}/info/ >&2
 
@@ -167,8 +166,11 @@ on_install() {
   if [ -f $config ]; then
     if [ ${configVer:-0} -lt 201905110 ]; then
       rm -rf $config ${config%/*}/logs 2>/dev/null || :
-    elif [ ${configVer:-0} -lt 201905111 ]; then
-      sed -i -e /CapacityOffset/s/C/c/ -e /versionCode/s/=.*/201905111/ $config
+    else
+      [ $configVer -lt 201905111 ] \
+        && sed -i -e '/CapacityOffset/s/C/c/' -e '/^versionCode=/s/=.*/=201905111/' $config || :
+      [ $configVer -lt 201905130 ] \
+        && sed -i -e '/^capacitySync=/s/true/false/' -e '/^versionCode=/s/=.*/=201905130/' $config || :
     fi
   fi
 
@@ -219,9 +221,15 @@ set_permissions() {
 
 # You can add more functions to assist your custom script code
 
+cancel() {
+  imageless_magisk || unmount_magisk_image
+  abort "$1"
+}
+
+
 exxit() {
   set +euxo pipefail
-  [ $1 -ne 0 ] && abort
+  [ $1 -ne 0 ] && cancel
   exit $1
 }
 

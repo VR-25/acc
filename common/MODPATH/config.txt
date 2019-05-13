@@ -3,7 +3,7 @@
 
 
 # This is used to determine whether config should be patched. Do NOT modify!
-versionCode=201905111
+versionCode=201905130
 
 # shutdown,coolDown,resume-pause
 capacity=0,60,70-80
@@ -12,7 +12,7 @@ capacity=0,60,70-80
 capacityOffset=+0
 
 # This is an alternative to capacityOffset. It tells acc whether the battery capacity reported by Android should be updated every few seconds to reflect the actual value from the battery management system.
-capacitySync=true
+capacitySync=false
 
 # <coolDown-pauseCharging_waitSeconds> - <waitSeconds> allow battery temperature to drop below <pauseCharging>. Temperature values are interpreted in Celsius degrees. To disable temperature control entirely, set absurdly high temperature values (e.g., temperature=90-95_90).
 temperature=40-45_90
