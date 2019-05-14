@@ -79,7 +79,7 @@ Notes
 
 - The output file is acc/_builds/acc-$versionCode.zip.
 
-- By default, `build.sh` auto-updates the (update-binary)[https://raw.githubusercontent.com/topjohnwu/Magisk/master/scripts/module_installer.sh]. To skip this, run it as `sh build.sh f`.
+- By default, `build.sh` auto-updates the [update-binary](https://raw.githubusercontent.com/topjohnwu/Magisk/master/scripts/module_installer.sh). To skip this, run it as `sh build.sh f`.
 
 - To update the local repo, run `git pull -f <repo>`.
 
@@ -337,7 +337,7 @@ Nullify coolDownRatio (`acc --set coolDownRatio`) or change its value. By defaul
 
 ### Logs
 
-Logs are stored at `/sbin/_acc/`. You can export all to `/sdcard/acc-logs-$device.tar.bz2` with `acc --log --export`.
+Logs are stored at `/sbin/_acc/`. You can export all to `/sdcard/acc-logs-$device.tar.bz2` with `acc --log --export`. In addition to acc logs, the archive includes `config.txt` and `magisk.log`.
 
 
 
@@ -383,6 +383,12 @@ See current submissions [here](https://www.dropbox.com/sh/rolzxvqxtdkfvfa/AABceZ
 ---
 ## LATEST CHANGES
 
+**2019.5.14-r1 (201905141)**
+- Exported logs archive also includes config.txt and magisk.log
+- Fixed typos
+- Installer optimizations
+> Note: compatible with ACCApp 1.0.6
+
 **2019.5.14 (201905140)**
 - Overwrite existing config if its format is newer than current config's
 > Note: compatible with ACCApp 1.0.6
@@ -390,21 +396,3 @@ See current submissions [here](https://www.dropbox.com/sh/rolzxvqxtdkfvfa/AABceZ
 **2019.5.13 (201905130)**
 - capacitySync disabled by default - some systems don't like the "dumpsys" command
 - Fixed installer bugs
-
-**2019.5.12-r2 (201905122)**
-- Enhanced auto-installer (install-latest.sh)
-- Fixed - install.sh always resets config
-- Updated documentation - notes/tips for front-end developers, improved readability
-
-**2019.5.12-r1 (201905121)**
-- Installer optimizations
-- Updated documentation
-
-**2019.5.12 (201905120)**
-- Autofix Termux SU PATH
-- Do not use Magic Mount; link everything to /sbin
-- Enforce Magisk's busybox to prevent issues caused by outdated binaries
-- Enhanced live upgrade; no more command prefix
-- Fixed bugs and typos
-- Removed nano from fallback editors list.
-- Updated build tools and info

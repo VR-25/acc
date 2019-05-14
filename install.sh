@@ -146,7 +146,7 @@ on_install() {
   #ui_print "- Extracting module files"
   #unzip -o "$ZIPFILE" 'system/*' -d $MODPATH >&2
 
-  $BOOTMODE && pgrep -f '/acc -?[edf]|/accd$' | xargs kill -9 2>/dev/null
+  $BOOTMODE && pgrep -f "/$MODID -?[edf]|/${MODID}d$" | xargs kill -9 2>/dev/null
   set -euxo pipefail
   trap 'exxit $?' EXIT
 
@@ -196,21 +196,23 @@ set_permissions() {
 
   # permissions for executables
   for file in $MODPATH/bin/* $MODPATH/system/*bin/* \
-    $MODPATH/*.sh $MODPATH/acc* $MODPATH/psl
+    $MODPATH/*.sh $MODPATH/$MODID* $MODPATH/psl
   do
     [ -f $file ] && set_perm $file  0  0  0755
   done
 
   # finishing touches
   if $BOOTMODE; then
-    mkdir -p /sbin/_acc
-    [ -h /sbin/_acc/acc ] && rm /sbin/_acc/acc \
-      || rm -rf /sbin/_acc/acc 2>/dev/null
-    cp -a $MODPATH /sbin/_acc/acc
-    ln -fs /sbin/_acc/acc/acc /sbin/acc
-    ln -fs /sbin/_acc/acc/accd-init /sbin/accd
+    mkdir -p /sbin/_$MODID
+    [ -h /sbin/_$MODID/$MODID ] && rm /sbin/_$MODID/$MODID \
+      || rm -rf /sbin/_$MODID/$MODID 2>/dev/null
+    [[ $MODPATH == /data/adb/modules_update/$MODID ]] \
+      && ln -s $MODPATH /sbin/_$MODID/$MODID \
+      || cp -a $MODPATH /sbin/_$MODID/$MODID
+    ln -fs /sbin/_$MODID/$MODID/$MODID /sbin/$MODID
+    ln -fs /sbin/_$MODID/$MODID/${MODID}d-init /sbin/${MODID}d
     wait
-    /sbin/accd
+    /sbin/${MODID}d
   fi
   chmod -R 0777 ${config%/*}
   # fix termux su PATH
@@ -264,9 +266,9 @@ version_info() {
   ui_print "    - Battery University: batteryuniversity.com/learn/article/how_to_prolong_lithium_based_batteries/"
   ui_print "    - Donate: paypal.me/vr25xda/"
   ui_print "    - Facebook page: facebook.com/VR25-at-xda-developers-258150974794782/"
-  ui_print "    - Git repository: github.com/VR-25/acc/"
+  ui_print "    - Git repository: github.com/VR-25/$MODID/"
   ui_print "    - Telegram channel: t.me/vr25_xda/"
-  ui_print "    - Telegram group: t.me/acc_magisk/"
+  ui_print "    - Telegram group: t.me/${MODID}_magisk/"
   ui_print "    - Telegram profile: t.me/vr25xda/"
   ui_print "    - XDA thread: forum.xda-developers.com/apps/magisk/module-magic-charging-switch-cs-v2017-9-t3668427/"
   ui_print " "

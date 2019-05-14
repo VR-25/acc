@@ -587,7 +587,12 @@ case ${1:-} in
     shift
     if [[ "${1:-x}" == -*e* ]]; then
       cd ${modPath%/*}
-      tar -c acc-*-*.log* | bzip2 -9 > /data/media/0/acc-logs-$device.tar.bz2
+      set_values > config.txt
+      for file in /cache/magisk.log /data/cache/magisk.log; do
+        [ -f $file ] && cp $file ./ && break || :
+      done
+      tar -c acc-*-*.log* config.txt magisk.log | bzip2 -9 > /data/media/0/acc-logs-$device.tar.bz2
+      rm config.txt magisk.log
     else
       edit ${modPath%/*}/acc-daemon-*.log $@
     fi
