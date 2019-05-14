@@ -151,7 +151,7 @@ on_install() {
   trap 'exxit $?' EXIT
 
   config=/data/media/0/$MODID/config.txt
-  configVer=$(sed -n 's|^versionCode=||p' $config 2>/dev/null || :)
+  local configVer=$(sed -n 's|^versionCode=||p' $config 2>/dev/null || :)
   termuxSu=/data/data/com.termux/files/usr/bin/su
 
   # extract module files
@@ -163,8 +163,9 @@ on_install() {
   unzip -o "$ZIPFILE" License.md README.md -d ${config%/*}/info/ >&2
 
   # upgrade config
+  local newConfigVer=$(sed -n 's|^versionCode=||p' $MODPATH/config.txt)
   if [ -f $config ]; then
-    if [ ${configVer:-0} -lt 201905110 ]; then
+    if [ ${configVer:-0} -lt 201905110 ] || [ ${configVer:-0} -gt $newConfigVer ]; then
       rm -rf $config ${config%/*}/logs 2>/dev/null || :
     else
       [ $configVer -lt 201905111 ] \

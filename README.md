@@ -383,6 +383,10 @@ See current submissions [here](https://www.dropbox.com/sh/rolzxvqxtdkfvfa/AABceZ
 ---
 ## LATEST CHANGES
 
+**2019.5.14 (201905140)**
+- Overwrite existing config if its format is newer than current config's
+> Note: compatible with ACCApp 1.0.6
+
 **2019.5.13 (201905130)**
 - capacitySync disabled by default - some systems don't like the "dumpsys" command
 - Fixed installer bugs
