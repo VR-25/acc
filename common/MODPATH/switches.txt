@@ -3,8 +3,7 @@
 # License: GPLv3+
 #
 # PWD=/sys/class/power_supply
-# Last updated: Sat, May 11, 2019
-
+# Last updated: Wed, May 15, 2019
 
 battery/charger_control 1 0
 battery/charge_disable 0 1
@@ -21,21 +20,21 @@ huawei_charger/enable_charger 1 0
 bq*_charger/enable_charging 1 2
 ac/charging_enabled 1 0
 dc/charging_enabled 1 0
-charger/charge_enabled 1 0
+*charger/charge_enabled 1 0
 chargalg/disable_charging 0 1
 mt-battery/disable_charger 0 1
 parallel/charging_enabled 1 0
 parallel/input_suspend 0 1
 dollar_cove_charger/enable_charging 1 0
 dollar_cove_charger/enable_charger 1 0
-battery/charging_enabled 1 0
+battery*/charging_enabled 1 0
 battery/battery_charging_enabled 1 0
 battery/batt_slate_mode 0 1
 battery/store_mode 0 1
 usb-parallel/charging_enabled 1 0
 dc-wireless/charging_enabled 1 0
 *-charger/charging_enabled 1 0
-dc/input_suspend
+dc/input_suspend 0 1
 
 /proc/smb*_disable_chrg 0 1
 /sys/devices/platform/battery/ChargerEnable 1 0
@@ -49,9 +48,12 @@ dc/input_suspend
 /sys/devices/soc/soc:lge,cable_detect/lge_power/lge_cable_detect/charging_enabled 1 0
 /sys/devices/soc/soc:lge,charging_controller/lge_power/lge_cc/charging_enabled 1 0
 
+# unconfirmed
+/sys/devices/soc.0/78b8000.i2c/i2c-4/4-006b/power_supply/ext-charger/charge_enabled 1 0
+/sys/devices/soc.0/qpnp-linear-charger-8/power_supply/battery_qpnp/charging_enabled 1 0
 
-# experimental
-
+# EXPERIMENTAL
+#battery/is_in_call 0 1
 #/sys/devices/platform/battery_meter/FG_suspend_current_threshold 100 30
 #/sys/devices/platform/battery_meter/FG_daemon_disable 0 1
 #bms/temp_cold 0 500

@@ -2,6 +2,7 @@
 # acc/accd initializer
 
 # prepare working directory
+([ -d /sbin/_acc ] && exit 0
 mkdir /sbin/_acc
 ln -fs ${0%/*} /sbin/_acc/acc
 ln -fs /sbin/_acc/acc/acc /sbin/acc
@@ -19,6 +20,6 @@ fi
 unset termuxSu
 
 # start accd
-accd
+accd &) &
 
 exit 0

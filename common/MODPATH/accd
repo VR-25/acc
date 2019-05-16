@@ -226,7 +226,7 @@ resetBsOnUnplug=false
 modPath=/sbin/_$modId/$modId
 config=/data/media/0/$modId/config.txt
 
-[[ $PATH == "*magisk/busybox*" ]] || PATH=/sbin/.magisk/busybox:$PATH
+[[ $PATH == *magisk/busybox* ]] || PATH=/sbin/.magisk/busybox:$PATH
 
 log=${modPath%/*}/acc-daemon-$(getprop ro.product.device | grep .. || getprop ro.build.product).log
 

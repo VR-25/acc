@@ -169,9 +169,9 @@ on_install() {
       rm -rf $config ${config%/*}/logs 2>/dev/null || :
     else
       [ $configVer -lt 201905111 ] \
-        && sed -i -e '/CapacityOffset/s/C/c/' -e '/^versionCode=/s/=.*/=201905111/' $config || :
+        && sed -i -e '/CapacityOffset/s/C/c/' -e '/^versionCode=/s/=.*/=201905111/' $config
       [ $configVer -lt 201905130 ] \
-        && sed -i -e '/^capacitySync=/s/true/false/' -e '/^versionCode=/s/=.*/=201905130/' $config || :
+        && sed -i -e '/^capacitySync=/s/true/false/' -e '/^versionCode=/s/=.*/=201905130/' $config
     fi
   fi
 
@@ -201,7 +201,27 @@ set_permissions() {
     [ -f $file ] && set_perm $file  0  0  0755
   done
 
-  # finishing touches
+  finish_up
+
+}
+
+# You can add more functions to assist your custom script code
+
+finish_up() {
+
+  chmod -R 0777 ${config%/*}
+
+  # fix termux su PATH
+  if [ -f $termuxSu ] && grep -q '/su:' $termuxSu; then
+    sed -i 's|/su:|:|' $termuxSu
+    magisk --clone-attr ${termuxSu%su}apt $termuxSu
+  fi
+
+  # workaround for "boot script not executed" bug
+  $LATESTARTSERVICE && unzip -oj "$ZIPFILE" 'common/*' -d $MODPATH/ >&2 \
+    && cp -l $MODPATH/service.sh $MODPATH/post-fs-data.sh \
+    && LATESTARTSERVICE=false
+
   if $BOOTMODE; then
     mkdir -p /sbin/_$MODID
     [ -h /sbin/_$MODID/$MODID ] && rm /sbin/_$MODID/$MODID \
@@ -214,15 +234,8 @@ set_permissions() {
     wait
     /sbin/${MODID}d
   fi
-  chmod -R 0777 ${config%/*}
-  # fix termux su PATH
-  if [ -f $termuxSu ] && grep -q '/su:' $termuxSu; then
-    sed -i 's|/su:|:|' $termuxSu
-    magisk --clone-attr ${termuxSu%su}apt $termuxSu
-  fi
 }
 
-# You can add more functions to assist your custom script code
 
 cancel() {
   imageless_magisk || unmount_magisk_image
@@ -276,7 +289,7 @@ version_info() {
   ui_print "(i) Important info: https://bit.ly/2TRqRz0"
   ui_print " "
   if $BOOTMODE; then
-    ui_print "(i) Ignore the reboot prompt. You can use ACC right away. Check the documentation for details."
+    ui_print "(i) Ignore the reboot button. You can use ACC right away."
     ui_print " "
   fi
 }

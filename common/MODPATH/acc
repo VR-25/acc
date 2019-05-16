@@ -542,7 +542,7 @@ set -euo pipefail
 
 modPath=/sbin/_acc/acc
 config=/data/media/0/acc/config.txt
-[[ $PATH == "*magisk/busybox*" ]] || PATH=/sbin/.magisk/busybox:$PATH
+[[ $PATH == *magisk/busybox* ]] || PATH=/sbin/.magisk/busybox:$PATH
 device=$(getprop ro.product.device | grep .. || getprop ro.build.product)
 batt=$(echo /sys/class/power_supply/*attery/capacity | awk '{print $1}' | sed 's|/capacity||')
 
