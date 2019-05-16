@@ -445,7 +445,11 @@ set_charging_voltage() {
 }
 
 
-ls_voltage_ctrl_files(){ grep -E '/constant_charge_voltage$|/voltage_max$' ${modPath%/*}/acc-power_supply-*.log | sed -e 's|^.*power_supply/||' -e 's/$/\n/'; }
+ls_voltage_ctrl_files() {
+  cat -v ${modPath%/*}/acc-power_supply-*.log \
+    | grep -E '/constant_charge_voltage$|/voltage_max$' \
+    | sed -e 's|^.*power_supply/||' -e 's/$/\n/'
+}
 
 
 v_ctrl_files_prompt() {
@@ -526,7 +530,7 @@ test_charging_switch() {
 }
 
 
-not_charging(){ grep -Eiq 'dis|not' $batt/status; }
+not_charging() { grep -Eiq 'dis|not' $batt/status; }
 
 
 if echo "${1:-x}" | grep -Eq '\-x|\-\-xtrace'; then

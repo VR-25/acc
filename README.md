@@ -383,6 +383,10 @@ See current submissions [here](https://www.dropbox.com/sh/rolzxvqxtdkfvfa/AABceZ
 ---
 ## LATEST CHANGES
 
+**2019.5.16-r2 (201905162)**
+- Fixed - ls_voltage_ctrl_files() not working for all
+> Note: compatible with ACCApp 1.0.6
+
 **2019.5.16-r1 (201905161)**
 - Fixed - enforced switch containing wildcards not recognized
 - General optimizations
@@ -391,10 +395,4 @@ See current submissions [here](https://www.dropbox.com/sh/rolzxvqxtdkfvfa/AABceZ
 **2019.5.16 (201905160)**
 - Additional charging switches
 - General optimizations
-> Note: compatible with ACCApp 1.0.6
-
-**2019.5.14-r1 (201905141)**
-- Exported logs archive also includes config.txt and magisk.log
-- Fixed typos
-- Installer optimizations
 > Note: compatible with ACCApp 1.0.6
