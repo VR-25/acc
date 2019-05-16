@@ -166,7 +166,7 @@ on_install() {
   local newConfigVer=$(sed -n 's|^versionCode=||p' $MODPATH/config.txt)
   if [ -f $config ]; then
     if [ ${configVer:-0} -lt 201905110 ] || [ ${configVer:-0} -gt $newConfigVer ]; then
-      rm -rf $config ${config%/*}/logs 2>/dev/null || :
+      rm $config
     else
       [ $configVer -lt 201905111 ] \
         && sed -i -e '/CapacityOffset/s/C/c/' -e '/^versionCode=/s/=.*/=201905111/' $config

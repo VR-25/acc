@@ -60,7 +60,7 @@ disable_charging() {
   local file="" value=""
   if is_charging; then
     if [[ x$(get_value chargingSwitch) == */* ]]; then
-      file=$(get_value chargingSwitch | awk '{print $1}')
+      file=$(echo $(get_value chargingSwitch) | awk '{print $1}')
       value=$(get_value chargingSwitch | awk '{print $3}')
       if [ -f $file ]; then
         chmod +w $file && echo $value > $file 2>/dev/null \
@@ -85,7 +85,7 @@ enable_charging() {
   local file="" value=""
   if ! is_charging; then
     if [[ x$(get_value chargingSwitch) == */* ]]; then
-      file=$(get_value chargingSwitch | awk '{print $1}')
+      file=$(echo $(get_value chargingSwitch) | awk '{print $1}')
       value=$(get_value chargingSwitch | awk '{print $2}')
       if [ -f $file ]; then
         chmod +w $file && echo $value > $file 2>/dev/null \
