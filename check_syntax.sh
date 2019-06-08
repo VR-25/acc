@@ -5,11 +5,8 @@
 
 echo
 cd ${0%/*} 2>/dev/null
-for f in $(find . \( -path ./_builds -o -path ./_resources \) -prune \
-  -o -type f -name '*.sh') \
-  ./common/MODPATH/acc* ./common/MODPATH/psl \
-  ./common/MODPATH/system/xbin/acc
-do
+modId=${PWD##/}
+for f in $(find . \( -path ./_builds -o -path ./_resources -o -path ./META-INF \) -prune -o -type f -name '*.sh'); do
   [ -f "$f" ] && bash -n $f
 done
 echo

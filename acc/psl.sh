@@ -27,8 +27,8 @@ gather_ps_data() {
   done
 }
 
-log=/sbin/_acc/acc-power_supply-$(getprop ro.product.device | grep .. || getprop ro.build.product).log
-mkdir -p /sbin/_acc
+log=/sbin/.acc/acc-power_supply-$(getprop ro.product.device | grep .. || getprop ro.build.product).log
+mkdir -p /sbin/.acc
 
 {
   date

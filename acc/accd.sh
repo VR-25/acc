@@ -27,7 +27,7 @@ is_charging() {
   grep -Eiq 'dis|not' $batt/status && isCharging=false || :
 
   if $isCharging; then
-    resetBsOnUnplug=true
+    unplugged=false
     # applyOnPlug
     for file in $(get_value applyOnPlug); do
       value=${file##*:}
@@ -35,12 +35,21 @@ is_charging() {
       [ -f $file ] && chmod +w $file && echo $value > $file || :
     done
   else
+    ${unplugged:=true}
     # resetBsOnUnplug
-    if $resetBsOnUnplug && ! $coolDown && eval $(get_value resetBsOnUnplug); then
-      dumpsys batterystats --reset > /dev/null 2>&1 || :
-      rm /data/system/batterystats* 2>/dev/null || :
-      resetBsOnUnplug=false
+    if ! $unplugged && ! $coolDown && eval $(get_value resetBsOnUnplug); then
+      sleep $(get_value loopDelay)
+      if grep -Eiq 'dis|not' $batt/status; then
+        dumpsys batterystats --reset > /dev/null 2>&1 || :
+        rm /data/system/batterystats* 2>/dev/null || :
+      fi
     fi
+    # rebootOnUnplug
+    if ! $unplugged && [[ x$(get_value rebootOnUnplug) == x[0-9]* ]]; then
+      sleep $(get_value rebootOnUnplug)
+      ! grep -Eiq 'dis|not' $batt/status || reboot
+    fi
+    unplugged=true
   fi
 
   # limit log size
@@ -63,13 +72,11 @@ disable_charging() {
       file=$(echo $(get_value chargingSwitch) | awk '{print $1}')
       value=$(get_value chargingSwitch | awk '{print $3}')
       if [ -f $file ]; then
-        chmod +w $file && echo $value > $file 2>/dev/null \
+        chmod +w $file && echo $value > $file 2>/dev/null && sleep $(get_value chargingOnOffDelay) \
           || acc --set chargingSwitch- > /dev/null
       else
         acc --set chargingSwitch- > /dev/null
       fi
-      #sleep 1
-      #! is_charging || acc --set chargingSwitch- > /dev/null
     else
       switch_loop off
       ! is_charging || exxit 1 "(!) Unsupported device"
@@ -88,7 +95,7 @@ enable_charging() {
       file=$(echo $(get_value chargingSwitch) | awk '{print $1}')
       value=$(get_value chargingSwitch | awk '{print $2}')
       if [ -f $file ]; then
-        chmod +w $file && echo $value > $file 2>/dev/null \
+        chmod +w $file && echo $value > $file 2>/dev/null && sleep $(get_value chargingOnOffDelay) \
           || acc --set chargingSwitch- > /dev/null
       else
         acc --set chargingSwitch- > /dev/null
@@ -187,8 +194,8 @@ SWITCHES
 apply_on_boot() {
   local file="" value=""
   for file in $(get_value applyOnBoot); do
-    value=${target##*:}
-    file=${target%:*}
+    value=${file##*:}
+    file=${file%:*}
     [ -f $file ] && chmod +w $file && echo $value > $file || :
   done
   [[ "x$(get_value applyOnBoot)" == *--exit ]] && exit 0 || :
@@ -204,8 +211,10 @@ switch_loop() {
       off=$(echo $file | awk '{print $3}')
       file=$(echo $file | awk '{print $1}')
       default=$(sed -n 1p $file)
-      chmod +w $file && eval "echo \$$1" > $file 2>/dev/null && sleep 1 || continue
-      if { [ $1 = off ] && is_charging; } || { [ $1 = on ] && ! is_charging; }; then
+      chmod +w $file && eval "echo \$$1" > $file 2>/dev/null && sleep $(get_value chargingOnOffDelay) || continue
+      if { [ $1 = off ] && is_charging; } \
+        || { [ $1 = on ] && ! is_charging; }
+      then
         echo $default > $file 2>/dev/null || :
       else
         break
@@ -222,8 +231,7 @@ set -euo pipefail
 
 modId=acc
 coolDown=false
-resetBsOnUnplug=false
-modPath=/sbin/_$modId/$modId
+modPath=/sbin/.$modId/$modId
 config=/data/media/0/$modId/config.txt
 
 [[ $PATH == *magisk/busybox* ]] || PATH=/sbin/.magisk/busybox:$PATH
@@ -233,12 +241,10 @@ log=${modPath%/*}/acc-daemon-$(getprop ro.product.device | grep .. || getprop ro
 batt=$(echo /sys/class/power_supply/*attery/capacity | awk '{print $1}' | sed 's|/capacity||')
 
 # wait until data is decrypted
-until [ -d /data/media/0/?ndroid ]; do
-  sleep 10
-done
+until [ -d /storage/emulated/0/?ndroid ]; do sleep 10; done
 
 set +e
-pgrep -f '/acc -?[edf]|/accd$' | sed s/$$// | xargs kill -9 2>/dev/null
+pgrep -f '/acc.sh -?[edf]|/accd.sh$' | sed s/$$// | xargs kill -9 2>/dev/null
 set -e
 
 mkdir -p ${modPath%/*} ${config%/*}

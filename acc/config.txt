@@ -3,7 +3,7 @@
 
 
 # This is used to determine whether config should be patched. Do NOT modify!
-versionCode=201905130
+versionCode=201906050
 
 # shutdown,coolDown,resume-pause
 capacity=0,60,70-80
@@ -47,3 +47,12 @@ chargingVoltageLimit=
 
 # Reboot after <pauseCapacity> is reached and <seconds> (e.g., rebootOnPause=60) have passed (disabled if null). If this doesn't make sense to you, you probably don't need it.
 rebootOnPause=
+
+# Reboot after charger is unplugged and <seconds> (e.g., rebootOnUnplug=60) have passed (disabled if null). This is a workaround for re-enabling charging.
+rebootOnUnplug=
+
+# Minimum charging on/off toggling interval (seconds)
+chargingOnOffDelay=1
+
+# English (en) and Portuguese (pt) are the main languages supported. Refer to README.md for all available languages and translation information.
+language=en

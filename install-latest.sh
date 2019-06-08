@@ -13,14 +13,14 @@ echo
 echo "Downloading [module.prop], [update-binary] and [acc-*.zip]..."
 
 modId=acc
-log=/sbin/_$modId/install-stderr.log
+log=/sbin/.$modId/install-stderr.log
 [[ $PATH == "*magisk/busybox*" ]] || PATH=/sbin/.magisk/busybox:$PATH
 
 mkdir -p ${log%/*}
 
 get_ver() { sed -n 's/^versionCode=//p' ${1:-}; }
 
-instVer=$(get_ver /sbin/_$modId/acc/module.prop 2>/dev/null || :)
+instVer=$(get_ver /sbin/.$modId/acc/module.prop 2>/dev/null || :)
 baseUrl=https://github.com/VR-25/$modId
 rawUrl=https://raw.githubusercontent.com/VR-25/$modId/master
 currVer=$(curl -#L $rawUrl/module.prop | get_ver)

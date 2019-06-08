@@ -7,7 +7,7 @@
 daemon() {
 
   local isRunning=true
-  local pid="$(pgrep -f '/acc -?[edf]|/accd$' || :)"
+  local pid="$(pgrep -f '/acc.sh -?[edf]|/accd.sh$' || :)"
 
   pid="${pid/$$/}"
   [[ x$pid == *[0-9]* ]] || isRunning=false
@@ -15,9 +15,9 @@ daemon() {
   case ${1:-} in
     start)
       if $isRunning; then
-        echo "(i) accd is already running"
+        print_already_running
       else
-        echo "(i) accd started"
+        print_started
         set +x
        accd
       fi
@@ -27,26 +27,26 @@ daemon() {
         echo "$pid" | xargs kill 2>/dev/null || :
         dumpsys battery reset > /dev/null 2>&1 || :
         enable_charging > /dev/null
-        echo "(i) accd stopped"
+        print_stopped
       else
-        echo "(i) accd is not running"
+        print_not_running
       fi
     ;;
     restart)
       if $isRunning; then
-        echo "(i) accd restarted"
+        print_restarted
       else
-        echo "(i) accd started"
+        print_started
       fi
       set +x
       accd
     ;;
     *)
       if $isRunning; then
-        echo "(i) accd is running"
+        print_is_running
         return 0
       else
-        echo "(i) accd is not running"
+        print_not_running
         return 1
       fi
     ;;
@@ -65,123 +65,16 @@ edit() {
 }
 
 
-help() {
-  cat <<HELP
-Advanced Charging Controller
-Copyright (C) 2017-2019, VR25 @ xda-developers
-License: GPLv3+
-Version code: $(sed -n 's/versionCode=//p' $modPath/module.prop)
-
-Usage: acc <option(s)> <arg(s)>
-
--c|--config <editor [opts]>   Edit config w/ <editor [opts]> (default: vim|vi)
-  e.g., acc -c
-
--d|--disable <#%, #s, #m or #h (optional)>   Disable charging or disable charging with <condition>
-  e.g., acc -d 70% (do not recharge until capacity drops to 70%), acc -d 1h (do not recharge until 1 hour has passed)
-
--D|--daemon   Show current acc daemon (accd) state
-  e.g., acc -D
-
--D|--daemon <start|stop|restart>   Manage accd state
-  e.g., acc -D restart
-
--e|--enable <#%, #s, #m or #h (optional)>   Enable charging or enable charging with <condition>
-  e.g., acc -e 30m (recharge for 30 minutes)
-
--f|--force|--full <capacity>   Charge to a given capacity (fallback: 100) once and uninterrupted
-  e.g., acc -f 95
-
--i|--info   Show power supply info
-  e.g., acc -i
-
--l|--log -e|--export   Export all logs to /sdcard/acc-logs-<device>.tar.bz2
-  e.g., acc -l -e
-
--l|--log <editor [opts]>   Open <acc-daemon-deviceName.log> w/ <editor [opts]> (default: vim|vi)
-  e.g., acc -l grep ': ' (show explicit errors only)
-
--L|--logwatch   Monitor log
-  e.g., acc -L
-
--r|--readme   Open <README.md> w/ <editor [opts]> (default: vim|vi)
-  e.g., acc -r
-
--R|--resetbs   Reset battery stats
-  e.g., acc -R
-
--s|--set   Show current config
-  e.g., acc -s
-
--s|--set <var> <value>   Set config parameters
-  e.g., acc -s capacity 5,60,80-85 (5: shutdown (default), 60: cool down (default), 80: resume, 85: pause)
-
--s|--set <resume-stop preset>   Can be 4041|endurance+, 5960|endurance, 7080|default, 8090|lite 9095|travel
-  e.g., acc -s endurance+ (a.k.a, "the li-ion sweet spot"; best for GPS navigation and other long operations), acc -s travel (for when you need extra juice), acc -s 7080 (restore default capacity settings (5,60,70-80))
-
--s|--set <s|chargingSwitch>   Set a different charging switch from the database
-  e.g., acc -s s
-
--s|--set <s:|chargingSwitch:>   List available charging switches
-  e.g., acc -s s:
-
--s|--set <s-|chargingSwitch->   Unset charging switch
-  e.g., acc -s s-
-
--t|--test   Test currently set charging ctrl file
-  e.g., acc -t
-  Return codes: 0 (works), 1 (doesn't work) or 2 (battery must be charging)
-
--t|--test <file on off>   Test custom charging ctrl file
-  e.g., acc -t battery/charging_enabled 1 0
-  Return codes: 0 (works), 1 (doesn't work) or 2 (battery must be charging)
-
--v|--voltage <millivolts|file:millivolts>   Set charging voltage (3920-4349mV)
-  e.g., acc -v 3920, acc -v /sys/class/power_supply/battery/voltage_max:4100
-
--v|--voltage   Show current voltage
-  e.g., acc -v
-
--v|--voltage :   List available charging voltage ctrl files
-  e.g., acc -v :
-
--v|--voltage -   Restore default voltage
-  e.g., acc -v -
-
--v|--voltage :millivolts   Evaluate and set charging voltage ctrl files
-  e.g., acc -v :4100
-
--x|--xtrace <other option(s)>   Run under set -x (debugging)
-  acc -x -i
-
-Tips
-
-  Commands can be chained for extended functionality. Note that accd must be stopped first.
-    e.g., acc -D stop && acc -e 30m && acc -d 6h && acc -e 85 && accd (recharge for 30 minutes, halt charging for 6 hours, recharge to 85% capacity and restart daemon)
-
-  Pause and resume capacities can also be set with acc <pause%> <resume%>.
-    e.g., acc 85 80
-
-  That last command can be used for programming charging before bed. In this case, the daemon must be running.
-     e.g., acc 45 44 && acc --set applyOnPlug usb/current_max:500000 && sleep $((60*60*7)) && acc 80 70 && acc --set applyOnPlug usb/current_max:2000000
-     - "Keep battery capacity at ~45% and limit charging current to 500mA for 7 hours. Restore regular charging settings afterwards."
-     - You can write this to a file and run as "sh <file>".
-
-Run acc --readme to see the full documentation.
-HELP
-}
-
-
 set_value() {
   local var=$1
-  [ $var = s ] && var=chargingSwitch || :
+  [ $var == s ] && var=chargingSwitch || :
   shift
   if grep -q "^$var=" $config; then
     sed -i "s|^$var=.*|$var=$*|" $config
   elif grep -q "^#$var=" $config; then
     sed -i "s|^#$var=.*|$var=$*|" $config
   else
-    echo "(!) Invalid variable, [$var]"
+    print_invalid_var
     exit 1
   fi
 }
@@ -197,19 +90,19 @@ set_values() {
     r|reset)
       cp -f $modPath/config.txt $config
       chmod 0777 $config
-      echo "(i) Config reset"
+      print_config_reset
       accd
       return 0
     ;;
     *)
       if [ -n "${1:-}" ]; then
-        if [ -z "${2:-}" ] && [[ $1 = s || $1 = chargingSwitch ]]; then
+        if [ -z "${2:-}" ] && [[ $1 == s || $1 == chargingSwitch ]]; then
           set_charging_switch
-        elif [ "${2:-x}" = : ] || [[ $1 = s: || $1 = chargingSwitch: ]]; then
+        elif [ "${2:-x}" == : ] || [[ $1 == s: || $1 == chargingSwitch: ]]; then
           ls_charging_switches
-        elif [ "${2:-x}" = "-" ] || [[ $1 = s- || $1 = chargingSwitch- ]]; then
+        elif [ "${2:-x}" == "-" ] || [[ $1 == s- || $1 == chargingSwitch- ]]; then
           set_value chargingSwitch
-          echo "(i) Charging switch reset"
+          print_cs_reset
         else
           set_value $@
         fi
@@ -224,12 +117,12 @@ set_values() {
 set_charging_switch() {
   local chargingSwitch="" IFS=$'\n'
   local PS3="
-(?) Choice, [Enter]: "
-  echo "(i) Available charging switches"
+$(print_choice_prompt)"
+  print_supported_cs
   echo
-  eval 'select chargingSwitch in auto $(ls_charging_switches) exit; do
-    [ ${chargingSwitch:-x} = exit ] && exit 0
-    [ ${chargingSwitch:-x} = auto ] && set_values s- > /dev/null && exit 0
+  eval 'select chargingSwitch in $(print_auto) $(ls_charging_switches) $(print_exit); do
+    [ ${chargingSwitch:-x} == $(print_exit) ] && exit 0
+    [ ${chargingSwitch:-x} == $(print_auto) ] && set_values s- > /dev/null && exit 0
     set_value chargingSwitch "$chargingSwitch"
     break
   done'
@@ -243,11 +136,11 @@ disable_charging() {
     value=$(get_value chargingSwitch | awk '{print $3}')
     if [ -f $file ]; then
       chmod +w $file && echo $value > $file 2>/dev/null \
-        || { echo "(!) [$(get_value chargingSwitch)] doesn't work"
+        || { print_cs_fails
           set_value chargingSwitch
           exit 1; }
     else
-      echo "(!) Invalid charging switch, [$(get_value chargingSwitch)]"
+      print_invalid_cs
       set_value chargingSwitch
       exit 1
     fi
@@ -256,14 +149,14 @@ disable_charging() {
   fi
   if [ -n "${1:-}" ]; then
     if [[ $1 == *% ]]; then
-      echo "(i) Charging disabled until battery capacity <= $1"
+      print_ch_disabled_until $1
       echo
       until [ $(( $(cat $batt/capacity) $(get_value capacityOffset) )) -le ${1%\%} ]; do
         sleep $(get_value loopDelay)
       done
       enable_charging
     elif [[ $1 == *[smh] ]]; then
-      echo "(i) Charging disabled for $1"
+      print_ch_disabled_for $1
       echo
       if [[ $1 == *s ]]; then
         sleep ${1%s}
@@ -274,10 +167,10 @@ disable_charging() {
       fi
       enable_charging
     else
-      echo "(i) Charging disabled"
+      print_ch_disabled
     fi
   else
-    echo "(i) Charging disabled"
+    print_ch_disabled
   fi
 }
 
@@ -289,7 +182,7 @@ enable_charging() {
     value=$(get_value chargingSwitch | awk '{print $2}')
     if [ -f $file ]; then
       chmod +w $file && echo $value > $file 2>/dev/null \
-        || { echo "(!) [$(get_value chargingSwitch)] doesn't work"
+        || { print_cs_fails
           set_value chargingSwitch
           exit 1; }
       # applyOnPlug
@@ -299,7 +192,7 @@ enable_charging() {
         [ -f $file2 ] && chmod +w $file2 && echo $value2 > $file2 || :
       done
     else
-      echo "(!) Invalid charging switch, [$(get_value chargingSwitch)]"
+      print_invalid_cs
       set_value chargingSwitch
       exit 1
     fi
@@ -308,14 +201,14 @@ enable_charging() {
   fi
   if [ -n "${1:-}" ]; then
     if [[ $1 == *% ]]; then
-      echo "(i) Charging enabled until battery capacity >= $1"
+     print_ch_enabled_until $1
       echo
       until [ $(( $(cat $batt/capacity) $(get_value capacityOffset) )) -ge ${1%\%} ]; do
         sleep $(get_value loopDelay)
       done
       disable_charging
     elif [[ $1 == *[smh] ]]; then
-      echo "(i) Charging enabled for $1"
+      print_ch_enabled_for $1
       echo
       if [[ $1 == *s ]]; then
         sleep ${1%s}
@@ -326,10 +219,10 @@ enable_charging() {
       fi
       disable_charging
     else
-      echo "(i) Charging enabled"
+      print_ch_enabled
     fi
   else
-    echo "(i) Charging enabled"
+    print_ch_enabled
   fi
 }
 
@@ -360,9 +253,9 @@ switch_loop() {
       off=$(echo $file | awk '{print $3}')
       file=$(echo $file | awk '{print $1}')
       default=$(sed -n 1p $file)
-      chmod +w $file && eval "echo \$$1" > $file 2>/dev/null && sleep 1 || continue
-      if { [ $1 = off ] && ! not_charging; } \
-        || { [ $1 = on ] && not_charging; }
+      chmod +w $file && eval "echo \$$1" > $file 2>/dev/null && sleep $(get_value chargingOnOffDelay) || continue
+      if { [ $1 == off ] && ! not_charging; } \
+        || { [ $1 == on ] && not_charging; }
       then
         echo $default > $file 2>/dev/null || :
       else
@@ -391,14 +284,14 @@ set_charging_voltage() {
   elif echo ${1:-} | grep -q ':[34]' && [ ${1##*:} -ge 3920 ] && [ ${1##*:} -le 4349 ]; then
     setVoltage=true
     value=${1##*:}
-    [[ $1 = */* ]] && file=$(echo ${1%:*}) || v_ctrl_files_prompt $value
+    [[ $1 == */* ]] && file=$(echo ${1%:*}) || v_ctrl_files_prompt $value
   elif [ -z "${1:-}" ]; then
     # show current voltage
     if [ -f $dVolt ]; then
       file=$(awk '{print $1}' $dVolt)
       echo "$(grep -o '^....' $file)mV"
     else
-      echo default
+      print_default
     fi
     return 0
   elif  echo ${1:-} | grep -q '^\-$'; then
@@ -407,19 +300,19 @@ set_charging_voltage() {
       file=$(awk '{print $1}' $dVolt)
       value=$(awk '{print $2}' $dVolt)
       chmod +w $file && echo $value > $file \
-        && echo "(i) Default voltage ($(grep -o '^....' $file)mV) was successfully restored." && rm $dVolt
+        && print_dvolt_restored && rm $dVolt
     else
-      echo "(i) Default voltage is already set."
+      print_dvolt_already_set
     fi
     return 0
-  elif [ ${1:-x} = : ]; then
+  elif [ ${1:-x} == : ]; then
     ls_voltage_ctrl_files
     return 0
-  elif [[ ${1:-x} = a || ${1:-x} = apply ]]; then
+  elif [[ ${1:-x} == a || ${1:-x} == apply ]]; then
     setVoltage=true
   else
-    echo "(!) Invalid input, [$@]"
-    echo "- Recall that the accepted voltage range is 3920-4349mV."
+    print_invalid_input $@
+    print_accepted_volt
     return 1
   fi
 
@@ -429,15 +322,15 @@ set_charging_voltage() {
       value=$(sed "s/^..../$value/" $file)
       echo "$file $(sed -n 1p $file)" > $dVolt
       if chmod +w $file && echo $value > $file 2>/dev/null && grep -q "^$oValue" $file; then
-        [ x$(get_value chargingVoltageLimit) = x$file:$oValue ] || set_value chargingVoltageLimit $file:$oValue
-        echo "(i) Charging voltage set to $(grep -o '^....' $file)mV"
+        [ x$(get_value chargingVoltageLimit) == x$file:$oValue ] || set_value chargingVoltageLimit $file:$oValue
+        print_cvolt_set
       else
-        echo "(!) Either [$(echo -n $file)] is not the right file or your kernel doesn't support custom charging voltage."
+        print_cvolt_unsupported
         rm $dVolt
         return 1
       fi
     else
-      echo "(!) No such file, [$file]"
+      print_no_such_file
       rm $dVolt
       return 1
     fi
@@ -455,17 +348,17 @@ ls_voltage_ctrl_files() {
 v_ctrl_files_prompt() {
   local file="" success=false
   local PS3="
-(?) Choice, [Enter]: "
-  echo "(i) Available charging voltage ctrl files"
+$(print_choice_prompt)"
+  print_supported_cvolt_files
   echo
-  eval 'select file in $(ls_voltage_ctrl_files) exit; do
+  eval 'select file in $(ls_voltage_ctrl_files) $(print_exit); do
     echo
-    [ ${file:-x} = exit ] && exit 0
+    [ ${file:-x} == $(print_exit) ] && exit 0
     set_charging_voltage $file:$1 && success=true || :
     if $success; then
       echo
       set_value chargingVoltageLimit $file:$1
-      echo "(i) chargingVoltageLimit=$file:$1 --> config.txt"
+      print_cvolt_limit_set
       exit 0
     else
       echo
@@ -493,25 +386,25 @@ test_charging_switch() {
   [ -z "$file" ] || local default=$(sed -n 1p $file)
 
   set +e
-  pgrep -f '/acc -?[edf]|/accd$' | xargs kill -9 2>/dev/null
+  pgrep -f '/acc.sh -?[edf]|/accd.sh$' | xargs kill -9 2>/dev/null
   set -e
 
   if not_charging; then
-    echo "(!) Battery must be charging"
+    print_unplugged
     accd
     return 2
   fi
 
   if [ -n "${1:-}" ]; then
     chmod +w $file && echo $off > $file || :
-    sleep 1
+    sleep $(get_value chargingOnOffDelay)
     if not_charging; then
-      echo "(i) [$file $on $off] works"
+      print_file_works
       echo $default > $file
       accd
       return 0
     else
-      echo "(!) [$file $on $off] doesn't work"
+      print_file_fails
       echo $default > $file
       accd
       return 1
@@ -519,11 +412,11 @@ test_charging_switch() {
   else
     disable_charging > /dev/null
     if not_charging; then
-      echo "(i) Supported device"
+      print_supported
       accd
       return 0
     else
-      echo "(!) Unsupported device"
+      print_unsupported
       return 1
     fi
   fi
@@ -544,21 +437,29 @@ umask 0
 trap exxit EXIT
 set -euo pipefail
 
-modPath=/sbin/_acc/acc
+modPath=/sbin/.acc/acc
 config=/data/media/0/acc/config.txt
 [[ $PATH == *magisk/busybox* ]] || PATH=/sbin/.magisk/busybox:$PATH
 device=$(getprop ro.product.device | grep .. || getprop ro.build.product)
 batt=$(echo /sys/class/power_supply/*attery/capacity | awk '{print $1}' | sed 's|/capacity||')
 
+. $modPath/strings.sh
+readmeSuffix=""
+if [ -f $modPath/strings_$(get_value language).sh ]; then
+  . $modPath/strings_$(get_value language).sh
+  readmeSuffix=_$(get_value language)
+  [ -f ${config%/*}/info/README$readmeSuffix.md ] || readmeSuffix=""
+fi
+
 # root check
 echo
 if ! ls /data/data > /dev/null 2>&1; then
-  echo "(!) Must run as root (su)"
+  print_not_root
   exit 1
 fi
 
 if [ ! -f $modPath/module.prop ]; then
-  echo "(!) modPath not found"
+  print_no_modpath
   exit 1
 fi
 
@@ -575,7 +476,7 @@ case ${1:-} in
 
   -f|--force|--full)
     set +e
-    pgrep -f '/acc -?[ed]|/accd$' | xargs kill -9 2>/dev/null
+    pgrep -f '/acc.sh -?[ed]|/accd.sh$' | xargs kill -9 2>/dev/null
     set -e
     chargingVoltageLimit=$(set_charging_voltage | sed 's/mV//')
     set_charging_voltage -
@@ -603,7 +504,13 @@ case ${1:-} in
   ;;
 
   -L|--logwatch) tail -F ${modPath%/*}/acc-daemon-*.log;;
-  -r|--readme) shift; edit ${config%/*}/info/README.md $@;;
+
+  -p|--preset)
+    shift
+
+  ;;
+
+  -r|--readme) shift; edit ${config%/*}/info/README$readmeSuffix.md $@;;
 
   -R|--resetbs)
     dumpsys batterystats --reset > /dev/null 2>&1 || :
@@ -622,6 +529,6 @@ case ${1:-} in
   ;;
 
   -v|--voltage) shift; set_charging_voltage $@;;
-  *) help;;
+  *) print_help;;
 esac
 exit $?

@@ -37,7 +37,7 @@ To prevent fraud, do NOT mirror any link associated with this project; do NOT sh
 ## WARNING
 
 ACC manipulates Android low level (kernel) parameters which control the charging circuitry.
-While nothing went wrong with my devices so far, I assume no responsibility under anything that might break due to the use/misuse of this software.
+The author assumes no responsibility under anything that might break due to the use/misuse of this software.
 By choosing to use/misuse ACC, you agree to do so at your own risk!
 
 
@@ -52,8 +52,10 @@ ACC is primarily intended for extending battery service life. On the flip side, 
 ---
 ## PREREQUISITES
 
-- Magisk 17-19
+- Magisk 18.2-19.3
 - [Optional] terminal emulator (running as root) or text editor.
+
+Note: for other root solutions, including older Magisk versions, refer to the "alternate install" section below.
 
 
 
@@ -77,9 +79,9 @@ Steps
 
 Notes
 
-- The output file is acc/_builds/acc-$versionCode.zip.
+- The output file is _builds/acc-$versionCode.zip.
 
-- By default, `build.sh` auto-updates the [update-binary](https://raw.githubusercontent.com/topjohnwu/Magisk/master/scripts/module_installer.sh). To skip this, run it as `sh build.sh f`.
+- By default, `build.sh` auto-updates the [update-binary](https://raw.githubusercontent.com/topjohnwu/Magisk/master/scripts/module_installer.sh). To skip this, run `sh build.sh f` (or `buildf.bat` on Windows).
 
 - To update the local repo, run `git pull -f <repo>`.
 
@@ -93,9 +95,7 @@ Install
 
 - Flash live (e.g., from Magisk Manager) or from custom recovery (e.g., TWRP).
 
-- ACC suports live upgrades. This means you don't need to reboot after installing/upgrading to be able to use it.
-
-- The daemon is stopped before installation and restarted afterwards. It is started automatically even after the first install. Again, rebooting is unnecessary to get things running.
+- ACC supports live upgrades - meaning rebooting after installing/upgrading is unnecessary. The demon is automatically started/restarted after installation.
 
 
 Uninstall
@@ -152,6 +152,15 @@ chargingVoltageLimit=
 
 # Reboot after <pauseCapacity> is reached and <seconds> (e.g., rebootOnPause=60) have passed (disabled if null). If this doesn't make sense to you, you probably don't need it.
 rebootOnPause=
+
+# Reboot after charger is unplugged and <seconds> (e.g., rebootOnUnplug=60) have passed (disabled if null). This is a workaround for re-enabling charging.
+rebootOnUnplug=
+
+# Minimum charging on/off toggling interval (seconds)
+chargingOnOffDelay=1
+
+# English (en) and Portuguese (pt) are the main languages supported. Refer to the localization section below for all available languages and translation information.
+language=en
 ```
 
 
@@ -160,7 +169,7 @@ rebootOnPause=
 ## USAGE
 
 
-ACC is designed to run out of the box, without user intervention. You can simply install it and forget. However, as I've been observing, most people will want to tweak settings - and obviously everyone will want to know whether the thing is actually working.
+ACC is designed to run out of the box, without user intervention. You can simply install it and forget. However, as it's been observed, most people will want to tweak settings - and obviously everyone will want to know whether the thing is actually working.
 
 If you're not comfortable with the command line, skip this section and use the `ACC app` (links section) to manage ACC.
 Alternatively, you can use a `text editor` to modify `/sdcard/acc/config.txt`. Changes to this file take effect almost instantly, and without a daemon restart.
@@ -174,8 +183,10 @@ acc <option(s)> <arg(s)>
 -c|--config <editor [opts]>   Edit config w/ <editor [opts]> (default: vim|vi)
   e.g., acc -c
 
--d|--disable <#%, #s, #m or #h (optional)>   Disable charging or disable charging with <condition>
-  e.g., acc -d 70% (do not recharge until capacity drops to 70%), acc -d 1h (do not recharge until 1 hour has passed)
+-d|--disable <#%, #s, #m or #h (optional)>   Disable charging (with or without <condition>)
+  e.g.,
+    acc -d 70% (do not recharge until capacity drops to 70%)
+    acc -d 1h (do not recharge until 1 hour has passed)
 
 -D|--daemon   Show current acc daemon (accd) state
   e.g., acc -D
@@ -280,6 +291,9 @@ Use provided config descriptions for ACC settings in your app(s). Include additi
 
 ### Auto-install ACC
 
+- The installer must run as root (obviously).
+- Log: /sbin/.acc/install-stderr.log
+
 ```
 1) Check whether ACC is installed (exit code 0)
 which acc > /dev/null
@@ -289,11 +303,6 @@ which acc > /dev/null
 
 3) Run "sh [installer]" (progress is shown)
 ```
-
-Notes
-
-- The installer must run as root (obviously).
-- Log: /sbin/_acc/install-stderr.log
 
 
 
@@ -320,7 +329,7 @@ Evaluate custom switches with `acc --test <file onValue offValue>`.
 
 Unfortunately, not all devices/kernels support custom charging voltage limit.
 
-Since I don't own every device under the sun, I cannot tell whether yours does.
+Since the author doesn't own every device under the sun, they cannot tell whether yours does.
 
 Use `acc --voltage :millivolts` (e.g., acc -v :4050) for evaluating charging voltage control files.
 
@@ -337,27 +346,27 @@ Nullify coolDownRatio (`acc --set coolDownRatio`) or change its value. By defaul
 
 ### Logs
 
-Logs are stored at `/sbin/_acc/`. You can export all to `/sdcard/acc-logs-$device.tar.bz2` with `acc --log --export`. In addition to acc logs, the archive includes `config.txt` and `magisk.log`.
+Logs are stored at `/sbin/.acc/`. You can export all to `/sdcard/acc-logs-$device.tar.bz2` with `acc --log --export`. In addition to acc logs, the archive includes `config.txt` and `magisk.log`.
 
 
 
 ---
-## Power Supply Log
+## POWER SUPPLY LOG
 
 
-Please upload `/sbin/_acc/acc-power_supply-*.log` to [this dropbox](https://www.dropbox.com/request/WYVDyCc0GkKQ8U5mLNlH/).
+Please upload `/sbin/.acc/acc-power_supply-*.log` to [this dropbox](https://www.dropbox.com/request/WYVDyCc0GkKQ8U5mLNlH/).
 This file contains invaluable power supply information, such as battery details and available charging control files.
-I'm creating a public database for mutual benefit.
+A public database is being built for mutual benefit.
 Your cooperation is greatly appreciated.
 
 
 Privacy Notes
 
-- When asked for a name, give your `XDA username`.
+- When asked for a name, give your `XDA username` or any random name.
 - For the email, you can type something like `noway@areyoucrazy.com`.
 
 Example
-- Name: `VR25 .`
+- Name: `user .`
 - Email: `myemail@iscool.com`
 
 
@@ -366,11 +375,61 @@ See current submissions [here](https://www.dropbox.com/sh/rolzxvqxtdkfvfa/AABceZ
 
 
 ---
+## ALTERNATE INSTALL/UPGRADE
+
+
+Older Magisk Versions
+
+```
+$ su
+# cd /sbin/.core/img
+# unzip -o <zipFile> 'acc/*' -d .
+# ln -f service.sh post-fs-data.sh
+# chmod -R 0755 acc
+# ./acc/service.sh
+```
+
+
+Non-Magisk Root Solutions
+
+- init.d support is required!
+
+```
+$ su
+# cd /data
+# unzip -o <zipFile> 'acc/*' -d .
+# chmod -R 0755 acc
+# mount -o remount,rw /system
+# cd /system/etc/init.d
+# echo "#!/system/bin/sh" > acc
+# echo /data/acc/service.sh >> acc
+# chmod 755 acc
+# mount -o remount,ro /system
+# ./acc
+```
+
+
+
+## LOCALIZATION
+
+Currently Supported Languages
+- English (en): complete
+- Portuguese (pt): partial
+
+Translation Notes
+- Translators should start with copies of `acc/strings.sh` and `README.md` - and append the appropriate language suffix to the base names - e.g., `strings_it`, `README_it`.
+- Anyone is free and encouraged to open translation pull requests.
+- Alternatively, `strings_*.sh` and `README_*.md` files can be send to the developer.
+
+
+
+---
 ## LINKS
 
-- [ACC App](https://github.com/MatteCarra/AccA/)
+- [ACC app](https://github.com/MatteCarra/AccA/releases/)
+- [Battery company](https://cadex.com/)
 - [Battery University](http://batteryuniversity.com/learn/article/how_to_prolong_lithium_based_batteries/)
-- [Donate](https://paypal.me/vr25xda)
+- [Donate](https://paypal.me/vr25xda/)
 - [Facebook page](https://facebook.com/VR25-at-xda-developers-258150974794782/)
 - [Git repository](https://github.com/VR-25/acc/)
 - [Telegram channel](https://t.me/vr25_xda/)
@@ -383,16 +442,22 @@ See current submissions [here](https://www.dropbox.com/sh/rolzxvqxtdkfvfa/AABceZ
 ---
 ## LATEST CHANGES
 
+**2019.6.8 (201906080)**
+- Customizable minimum charging on/off toggling interval (`chargingOnOffDelay`)
+- Enhanced modularity to work even without Magisk
+- Fixed `applyOnBoot`
+- Major optimizations
+- Multi-language support (refer to `README.md` for details)
+- Partial Portuguese language support (first additional language)
+- Updated documentation, charging switches database and building/debugging tools
+- Workaround for re-enabling charging (`rebootOnUnplug`)
+> Note: compatible with ACCApp 1.0.6-1.0.8
+
 **2019.5.16-r2 (201905162)**
 - Fixed - ls_voltage_ctrl_files() not working for all
 > Note: compatible with ACCApp 1.0.6
 
 **2019.5.16-r1 (201905161)**
 - Fixed - enforced switch containing wildcards not recognized
-- General optimizations
-> Note: compatible with ACCApp 1.0.6
-
-**2019.5.16 (201905160)**
-- Additional charging switches
 - General optimizations
 > Note: compatible with ACCApp 1.0.6

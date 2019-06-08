@@ -31,7 +31,7 @@ PROPFILE=false
 POSTFSDATA=false
 
 # Set to true if you need late_start service script
-LATESTARTSERVICE=true
+LATESTARTSERVICE=false
 
 ##########################################################################################
 # Replace list
@@ -146,23 +146,21 @@ on_install() {
   #ui_print "- Extracting module files"
   #unzip -o "$ZIPFILE" 'system/*' -d $MODPATH >&2
 
-  $BOOTMODE && pgrep -f "/$MODID -?[edf]|/${MODID}d$" | xargs kill -9 2>/dev/null
+  $BOOTMODE && pgrep -f "/$MODID.sh -?[edf]|/${MODID}d.sh$" | xargs kill -9 2>/dev/null
   set -euxo pipefail
   trap 'exxit $?' EXIT
 
   config=/data/media/0/$MODID/config.txt
   local configVer=$(sed -n 's|^versionCode=||p' $config 2>/dev/null || :)
-  termuxSu=/data/data/com.termux/files/usr/bin/su
 
   # extract module files
   ui_print "- Extracting module files"
-  unzip -o "$ZIPFILE" 'common/MODPATH/*' -d $TMPDIR/ >&2
-  mv $TMPDIR/common/MODPATH/* $MODPATH/
-  ! $BOOTMODE || (sh $MODPATH/psl $versionCode &) &
+  unzip -o "$ZIPFILE" "$MODID/*" -d ${MODPATH%/*}/ >&2
+  ln $MODPATH/service.sh $MODPATH/post-fs-data.sh
   mkdir -p ${config%/*}/info
-  unzip -o "$ZIPFILE" License.md README.md -d ${config%/*}/info/ >&2
+  unzip -o "$ZIPFILE" '*.md' -d ${config%/*}/info/ >&2
 
-  # upgrade config
+  # patch/upgrade config
   local newConfigVer=$(sed -n 's|^versionCode=||p' $MODPATH/config.txt)
   if [ -f $config ]; then
     if [ ${configVer:-0} -lt 201905110 ] || [ ${configVer:-0} -gt $newConfigVer ]; then
@@ -172,6 +170,19 @@ on_install() {
         && sed -i -e '/CapacityOffset/s/C/c/' -e '/^versionCode=/s/=.*/=201905111/' $config
       [ $configVer -lt 201905130 ] \
         && sed -i -e '/^capacitySync=/s/true/false/' -e '/^versionCode=/s/=.*/=201905130/' $config
+      if [ $configVer -lt 201906020 ]; then
+        echo >> $config
+        grep rebootOnUnplug $MODPATH/config.txt >> $config
+        echo >> $config
+        grep "toggling interval" $MODPATH/config.txt >> $config
+        grep chargingOnOffDelay $MODPATH/config.txt >> $config
+        sed -i '/^versionCode=/s/=.*/=201906020/' $config
+      fi
+      if [ $configVer -lt 201906050 ]; then
+        echo >> $config
+        grep language $MODPATH/config.txt >> $config
+        sed -i '/^versionCode=/s/=.*/=201906050/' $config
+      fi
     fi
   fi
 
@@ -195,47 +206,16 @@ set_permissions() {
   # set_perm  $MODPATH/system/lib/libart.so       0     0       0644
 
   # permissions for executables
-  for file in $MODPATH/bin/* $MODPATH/system/*bin/* \
-    $MODPATH/*.sh $MODPATH/$MODID* $MODPATH/psl
-  do
+  for file in $MODPATH/*.sh; do
     [ -f $file ] && set_perm $file  0  0  0755
   done
 
-  finish_up
-
+  # finishing touches
+  chmod -R 0777 ${config%/*}
+  $BOOTMODE && $MODPATH/service.sh install
 }
 
 # You can add more functions to assist your custom script code
-
-finish_up() {
-
-  chmod -R 0777 ${config%/*}
-
-  # fix termux su PATH
-  if [ -f $termuxSu ] && grep -q '/su:' $termuxSu; then
-    sed -i 's|/su:|:|' $termuxSu
-    magisk --clone-attr ${termuxSu%su}apt $termuxSu
-  fi
-
-  # workaround for "boot script not executed" bug
-  $LATESTARTSERVICE && unzip -oj "$ZIPFILE" 'common/*' -d $MODPATH/ >&2 \
-    && cp -l $MODPATH/service.sh $MODPATH/post-fs-data.sh \
-    && LATESTARTSERVICE=false
-
-  if $BOOTMODE; then
-    mkdir -p /sbin/_$MODID
-    [ -h /sbin/_$MODID/$MODID ] && rm /sbin/_$MODID/$MODID \
-      || rm -rf /sbin/_$MODID/$MODID 2>/dev/null
-    [[ $MODPATH == /data/adb/modules_update/$MODID ]] \
-      && ln -s $MODPATH /sbin/_$MODID/$MODID \
-      || cp -a $MODPATH /sbin/_$MODID/$MODID
-    ln -fs /sbin/_$MODID/$MODID/$MODID /sbin/$MODID
-    ln -fs /sbin/_$MODID/$MODID/${MODID}d-init /sbin/${MODID}d
-    wait
-    /sbin/${MODID}d
-  fi
-}
-
 
 cancel() {
   imageless_magisk || unmount_magisk_image
@@ -245,7 +225,7 @@ cancel() {
 
 exxit() {
   set +euxo pipefail
-  [ $1 -ne 0 ] && cancel
+  [ $1 -ne 0 ] && cancel "$2"
   exit $1
 }
 
@@ -255,7 +235,7 @@ version_info() {
   local println=false
 
   # a note on untested Magisk versions
-  if [ ${MAGISK_VER/.} -gt 191 ]; then
+  if [ $MAGISK_VER_CODE -gt 19300 ]; then
     ui_print " "
     ui_print "  (i) Note: this Magisk version hasn't been tested by $author!"
     ui_print "    - If you come across any issue, please report."
@@ -275,7 +255,8 @@ version_info() {
   ui_print " "
 
   ui_print "  LINKS"
-  ui_print "    - ACC App: github.com/MatteCarra/AccA/"
+  ui_print "    - ACC app: github.com/MatteCarra/AccA/"
+  ui_print "    - Battery company: cadex.com"
   ui_print "    - Battery University: batteryuniversity.com/learn/article/how_to_prolong_lithium_based_batteries/"
   ui_print "    - Donate: paypal.me/vr25xda/"
   ui_print "    - Facebook page: facebook.com/VR25-at-xda-developers-258150974794782/"
@@ -289,7 +270,7 @@ version_info() {
   ui_print "(i) Important info: https://bit.ly/2TRqRz0"
   ui_print " "
   if $BOOTMODE; then
-    ui_print "(i) Ignore the reboot button. You can use ACC right away."
+    ui_print "(i) Ignore the reboot button. You can use $MODID right away."
     ui_print " "
   fi
 }

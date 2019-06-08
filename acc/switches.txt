@@ -3,7 +3,7 @@
 # License: GPLv3+
 #
 # PWD=/sys/class/power_supply
-# Last updated: Wed, May 15, 2019
+# Last updated: Sat, Jun 8, 2019
 
 battery/charger_control 1 0
 battery/charge_disable 0 1
@@ -54,7 +54,7 @@ dc/input_suspend 0 1
 
 # EXPERIMENTAL
 #battery/is_in_call 0 1
-#/sys/devices/platform/battery_meter/FG_suspend_current_threshold 100 30
+#/sys/devices/platform/battery_meter/FG_suspend_current_threshold 100 10
 #/sys/devices/platform/battery_meter/FG_daemon_disable 0 1
 #bms/temp_cold 0 500
 #bms/temp_hot 500 0
@@ -64,7 +64,7 @@ dc/input_suspend 0 1
 #bms/power/control auto disabled (or off)
 #battery/power/control auto disabled (or off)
 #usb/present 1 0
-#dc-wireless/charge_done
+#dc-wireless/charge_done 1 0
 #/sys/devices/soc/soc:lge,charging_controller/lge_power/lge_cc/charge_done 0 1
 #/sys/devices/soc/soc:lge,cable_detect/lge_power/lge_cable_detect/charge_done 0 1
 #battery/wc_enable 1 0
