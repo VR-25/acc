@@ -3,17 +3,18 @@
 
 # prepare working directory
 ([ -d /sbin/.acc ] && [ ${1:-x} != install ] && exit 0
-mkdir /sbin/.acc
+mount -o remount,rw /sbin
+mkdir -p /sbin/.acc
 [ -h /sbin/.acc/acc ] && rm /sbin/.acc/acc \
   || rm -rf /sbin/.acc/acc 2>/dev/null
-[ $MAGISK_VER_CODE:-18200} -gt 18100 ] \
+[ ${MAGISK_VER_CODE:-18200} -gt 18100 ] \
   && ln -s ${0%/*} /sbin/.acc/acc \
   || cp -a ${0%/*} /sbin/.acc/acc
 ln -fs /sbin/.acc/acc/acc.sh /sbin/acc
 ln -fs /sbin/.acc/acc/accd-init.sh /sbin/accd
 
 # generate power supply log
-${0%/*}/psl.sh $(sed -n s/versionCode=//p ${0%/*}/module.prop)
+${0%/*}/psl.sh $(sed -n s/versionCode=//p ${0%/*}/module.prop) &
 
 # fix termux's PATH
 termuxSu=/data/data/com.termux/files/usr/bin/su
@@ -25,6 +26,8 @@ fi
 unset termuxSu
 
 # start accd
-/sbin/accd &) &
+sleep 30
+kill -9 $(pgrep -f psl.sh) 2>/dev/null
+/sbin/.acc/acc/accd.sh &) &
 
 exit 0

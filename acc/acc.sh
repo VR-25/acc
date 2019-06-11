@@ -7,7 +7,7 @@
 daemon() {
 
   local isRunning=true
-  local pid="$(pgrep -f '/acc.sh -?[edf]|/accd.sh$' || :)"
+  local pid="$(pgrep -f '/acc.sh -?[edf]|/accd.sh' || :)"
 
   pid="${pid/$$/}"
   [[ x$pid == *[0-9]* ]] || isRunning=false
@@ -19,7 +19,7 @@ daemon() {
       else
         print_started
         set +x
-       accd
+        accd
       fi
     ;;
     stop)
@@ -386,7 +386,7 @@ test_charging_switch() {
   [ -z "$file" ] || local default=$(sed -n 1p $file)
 
   set +e
-  pgrep -f '/acc.sh -?[edf]|/accd.sh$' | xargs kill -9 2>/dev/null
+  pgrep -f '/acc.sh -?[edf]|/accd.sh' | xargs kill -9 2>/dev/null
   set -e
 
   if not_charging; then
@@ -443,6 +443,16 @@ config=/data/media/0/acc/config.txt
 device=$(getprop ro.product.device | grep .. || getprop ro.build.product)
 batt=$(echo /sys/class/power_supply/*attery/capacity | awk '{print $1}' | sed 's|/capacity||')
 
+# root check
+echo
+if ! ls /data/data > /dev/null 2>&1; then
+  echo "! su"
+  exit 1
+fi
+
+mkdir -p ${modPath%/*} ${config%/*}
+[ -f $config ] || install -m 0777 $modPath/config.txt $config
+
 . $modPath/strings.sh
 readmeSuffix=""
 if [ -f $modPath/strings_$(get_value language).sh ]; then
@@ -451,20 +461,11 @@ if [ -f $modPath/strings_$(get_value language).sh ]; then
   [ -f ${config%/*}/info/README$readmeSuffix.md ] || readmeSuffix=""
 fi
 
-# root check
-echo
-if ! ls /data/data > /dev/null 2>&1; then
-  print_not_root
-  exit 1
-fi
-
 if [ ! -f $modPath/module.prop ]; then
   print_no_modpath
   exit 1
 fi
 
-mkdir -p ${modPath%/*} ${config%/*}
-[ -f $config ] || install -m 0777 $modPath/config.txt $config
 cd /sys/class/power_supply/
 
 case ${1:-} in
@@ -476,7 +477,7 @@ case ${1:-} in
 
   -f|--force|--full)
     set +e
-    pgrep -f '/acc.sh -?[ed]|/accd.sh$' | xargs kill -9 2>/dev/null
+    pgrep -f '/acc.sh -?[ed]|/accd.sh' | xargs kill -9 2>/dev/null
     set -e
     chargingVoltageLimit=$(set_charging_voltage | sed 's/mV//')
     set_charging_voltage -

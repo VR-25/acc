@@ -127,10 +127,6 @@ print_unsupported() {
   echo "(!) Unsupported device"
 }
 
-print_not_root() {
-  echo "(!) Must run as root (su)"
-}
-
 print_no_modpath() {
   echo "(!) modPath not found"
 }

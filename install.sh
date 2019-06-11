@@ -119,15 +119,6 @@ REPLACE="
 # Enable boot scripts by setting the flags in the config section above.
 ##########################################################################################
 
-print() { grep_prop $1 $TMPDIR/module.prop; }
-
-author=$(print author)
-name=$(print name)
-version=$(print version)
-versionCode=$(print versionCode)
-
-unset -f print
-
 # Set what you want to display when installing your module
 
 print_modname() {
@@ -146,12 +137,12 @@ on_install() {
   #ui_print "- Extracting module files"
   #unzip -o "$ZIPFILE" 'system/*' -d $MODPATH >&2
 
-  $BOOTMODE && pgrep -f "/$MODID.sh -?[edf]|/${MODID}d.sh$" | xargs kill -9 2>/dev/null
+  $BOOTMODE && pgrep -f "/$MODID.sh -?[edf]|/${MODID}d.sh" | xargs kill -9 2>/dev/null
   set -euxo pipefail
   trap 'exxit $?' EXIT
 
   config=/data/media/0/$MODID/config.txt
-  local configVer=$(sed -n 's|^versionCode=||p' $config 2>/dev/null || :)
+  local configVer=$(print versionCode $config)
 
   # extract module files
   ui_print "- Extracting module files"
@@ -161,9 +152,10 @@ on_install() {
   unzip -o "$ZIPFILE" '*.md' -d ${config%/*}/info/ >&2
 
   # patch/upgrade config
-  local newConfigVer=$(sed -n 's|^versionCode=||p' $MODPATH/config.txt)
   if [ -f $config ]; then
-    if [ ${configVer:-0} -lt 201905110 ] || [ ${configVer:-0} -gt $newConfigVer ]; then
+    if [ ${configVer:-0} -lt 201905110 ] \
+      || [ ${configVer:-0} -gt $(print versionCode $MODPATH/config.txt) ]
+    then
       rm $config
     else
       [ $configVer -lt 201905111 ] \
@@ -274,3 +266,10 @@ version_info() {
     ui_print " "
   fi
 }
+
+print() { sed -n "s|^$1=||p" ${2:-$TMPDIR/module.prop} 2>/dev/null || :; }
+
+author=$(print author)
+name=$(print name)
+version=$(print version)
+versionCode=$(print versionCode)

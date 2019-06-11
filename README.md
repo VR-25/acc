@@ -52,10 +52,8 @@ ACC is primarily intended for extending battery service life. On the flip side, 
 ---
 ## PREREQUISITES
 
-- Magisk 18.2-19.3
-- [Optional] terminal emulator (running as root) or text editor.
-
-Note: for other root solutions, including older Magisk versions, refer to the "alternate install" section below.
+- Any root solution
+- Terminal emulator (running as root) or a text editor.
 
 
 
@@ -91,16 +89,25 @@ Notes
 ## SETUP
 
 
-Install
+### Magisk 18.2+
 
-- Flash live (e.g., from Magisk Manager) or from custom recovery (e.g., TWRP).
+Install: flash live (e.g., from Magisk Manager) or from custom recovery (e.g., TWRP).
 
-- ACC supports live upgrades - meaning rebooting after installing/upgrading is unnecessary. The demon is automatically started/restarted after installation.
+Uninstall: use Magisk Manager (app) or Magisk Manager for Recovery Mode (utility).
 
 
-Uninstall
+### Older Magisk Versions and Other Root Solutions
 
-- Use Magisk Manager (app) or Magisk Manager for Recovery Mode (utility).
+Install: extract `acc-*.zip/install-legacy.sh`, run `su`, then execute `sh /path/to/install-legacy.sh /absolute/path/to/acc-*.zip`.
+
+Uninstall: for Magisk install, use Magisk Manager (app); else, run `su -c rm -rf /data/adb/acc/`.
+
+
+### Notes
+
+ACC supports live upgrades - meaning, rebooting after installing/upgrading is unnecessary.
+
+The demon is automatically started/restarted ~30 seconds after installation.
 
 
 
@@ -374,42 +381,6 @@ See current submissions [here](https://www.dropbox.com/sh/rolzxvqxtdkfvfa/AABceZ
 
 
 
----
-## ALTERNATE INSTALL/UPGRADE
-
-
-Older Magisk Versions
-
-```
-$ su
-# cd /sbin/.core/img
-# unzip -o <zipFile> 'acc/*' -d .
-# ln -f service.sh post-fs-data.sh
-# chmod -R 0755 acc
-# ./acc/service.sh
-```
-
-
-Non-Magisk Root Solutions
-
-- init.d support is required!
-
-```
-$ su
-# cd /data
-# unzip -o <zipFile> 'acc/*' -d .
-# chmod -R 0755 acc
-# mount -o remount,rw /system
-# cd /system/etc/init.d
-# echo "#!/system/bin/sh" > acc
-# echo /data/acc/service.sh >> acc
-# chmod 755 acc
-# mount -o remount,ro /system
-# ./acc
-```
-
-
-
 ## LOCALIZATION
 
 Currently Supported Languages
@@ -442,9 +413,17 @@ Translation Notes
 ---
 ## LATEST CHANGES
 
+**2019.6.11 (201906110)**
+- Enhanced power supply logger (psl.sh) and `rebootOnPause`
+- Fixed accd not auto-starting and `coolDownRatio` issues
+- General fixes
+- `install-legacy.sh` - for older Magisk versions and other root solutions
+- Major optimizations
+> Note: compatible with ACCApp 1.0.6-1.0.8
+
 **2019.6.8 (201906080)**
 - Customizable minimum charging on/off toggling interval (`chargingOnOffDelay`)
-- Enhanced modularity to work even without Magisk
+- Enhanced modularity to work even without Magisk (refer to README.md for details)
 - Fixed `applyOnBoot`
 - Major optimizations
 - Multi-language support (refer to `README.md` for details)
@@ -455,9 +434,4 @@ Translation Notes
 
 **2019.5.16-r2 (201905162)**
 - Fixed - ls_voltage_ctrl_files() not working for all
-> Note: compatible with ACCApp 1.0.6
-
-**2019.5.16-r1 (201905161)**
-- Fixed - enforced switch containing wildcards not recognized
-- General optimizations
 > Note: compatible with ACCApp 1.0.6

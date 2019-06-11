@@ -7,7 +7,7 @@ gather_ps_data() {
   local target="" target2=""
   for target in $(ls -1 $1 | grep -Ev '^[0-9]|^block$|^dev$|^fs$|^ram$'); do
     if [ -f $1/$target ]; then
-      if echo $1/$target | grep -Eq 'batt|ch.*rg|power_supply'; then
+      if echo $1/$target | grep -Ev 'logg|(/|_|-)log' | grep -Eq 'batt|ch.*rg|power_supply'; then
         echo $1/$target
         sed 's/^/  /' $1/$target 2>/dev/null || :
         echo
@@ -35,12 +35,14 @@ mkdir -p /sbin/.acc
   echo versionCode=$1
   echo
   echo
-  gather_ps_data /sys
-  gather_ps_data /proc
-  echo
   getprop | grep product
   echo
   getprop | grep version
+  echo
+  echo
+  gather_ps_data /sys
+  echo
+  gather_ps_data /proc
 } > $log
 
 exit 0

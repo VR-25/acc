@@ -123,10 +123,6 @@ print_unsupported() {
   echo "(!) Este dispositivo não é suportado"
 }
 
-print_not_root() {
-  echo "(!) Execute \"su\" primeiro"
-}
-
 print_no_modpath() {
   echo "(!) Diretório raíz não encontrado"
 }

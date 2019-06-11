@@ -61,6 +61,10 @@ is_charging() {
     dumpsys battery set level $(cat $batt/capacity) || :
   fi > /dev/null 2>&1
 
+  # clear "rebooted on pause" flag
+  [ $(( $(cat $batt/capacity) $(get_value capacityOffset) )) -le $(get_value capacity | cut -d, -f3 | cut -d- -f1) ] \
+    && rm ${config%/*}/.rebootedOnPause 2>/dev/null || :
+
   $isCharging && return 0 || return 1
 }
 
@@ -126,11 +130,14 @@ ctrl_charging() {
         fi
         # rebootOnPause
         sleep $(get_value rebootOnPause) 2>/dev/null \
-          && [ $(( $(cat $batt/capacity) $(get_value capacityOffset) )) -eq $(get_value capacity | cut -d, -f3 | cut -d- -f2) ] && reboot || :
+          && [ $(( $(cat $batt/capacity) $(get_value capacityOffset) )) -ge $(get_value capacity | cut -d, -f3 | cut -d- -f2) ] \
+            && [ ! -f ${config%/*}/.rebootedOnPause ] \
+              && touch ${config%/*}/.rebootedOnPause \
+               && reboot || :
       fi
 
       # cool down
-      while [[ x$(get_value coolDown) == */* ]] && is_charging \
+      while [[ x$(get_value coolDownRatio) == */* ]] && is_charging \
         && [ $(( $(cat $batt/capacity) $(get_value capacityOffset) )) -lt $(get_value capacity | cut -d, -f3 | cut -d- -f2) ] \
         && [ $(( $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) / 10 )) -lt $(get_value temperature | cut -d- -f2 | cut -d_ -f1) ]
       do
@@ -139,10 +146,10 @@ ctrl_charging() {
           || [ $(( $(cat $batt/capacity) $(get_value capacityOffset) )) -ge $(get_value capacity | cut -d, -f2) ]
         then
           disable_charging
-          sleep $(get_value coolDown | cut -d/ -f2)
+          sleep $(get_value coolDownRatio | cut -d/ -f2)
           enable_charging
           count=0
-          while [ $count -lt $(get_value coolDown | cut -d/ -f1) ]; do
+          while [ $count -lt $(get_value coolDownRatio | cut -d/ -f1) ]; do
             sleep $(get_value loopDelay)
             [ $(( $(cat $batt/capacity) $(get_value capacityOffset) )) -lt $(get_value capacity | cut -d, -f3 | cut -d- -f2) ] \
               && [ $(( $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) / 10 )) -lt $(get_value temperature | cut -d- -f2 | cut -d_ -f1) ] \
@@ -244,7 +251,7 @@ batt=$(echo /sys/class/power_supply/*attery/capacity | awk '{print $1}' | sed 's
 until [ -d /storage/emulated/0/?ndroid ]; do sleep 10; done
 
 set +e
-pgrep -f '/acc.sh -?[edf]|/accd.sh$' | sed s/$$// | xargs kill -9 2>/dev/null
+pgrep -f '/acc.sh -?[edf]|/accd.sh' | sed s/$$// | xargs kill -9 2>/dev/null
 set -e
 
 mkdir -p ${modPath%/*} ${config%/*}
