@@ -1,17 +1,25 @@
 #!/system/bin/sh
-# acc/accd initializer
+# $modId/${modId}d initializer
+
+modId=$(sed -n 's/^id=//p' ${0%/*}/module.prop)
 
 # prepare working directory
-([ -d /sbin/.acc ] && [ ${1:-x} != install ] && exit 0
-mount -o remount,rw /sbin
-mkdir -p /sbin/.acc
-[ -h /sbin/.acc/acc ] && rm /sbin/.acc/acc \
-  || rm -rf /sbin/.acc/acc 2>/dev/null
+([ -d /sbin/.$modId ] && [ ${1:-x} != install ] && exit 0
+if ! mount -o remount,rw /sbin 2>/dev/null; then
+  set -e
+  rm -rf /dev/.sbin 2>/dev/null || :
+  cp -a /sbin /dev/.sbin
+  mount -o bind,rw /dev/.sbin /sbin
+  set +e
+fi
+mkdir -p /sbin/.$modId
+[ -h /sbin/.$modId/$modId ] && rm /sbin/.$modId/$modId \
+  || rm -rf /sbin/.$modId/$modId 2>/dev/null
 [ ${MAGISK_VER_CODE:-18200} -gt 18100 ] \
-  && ln -s ${0%/*} /sbin/.acc/acc \
-  || cp -a ${0%/*} /sbin/.acc/acc
-ln -fs /sbin/.acc/acc/acc.sh /sbin/acc
-ln -fs /sbin/.acc/acc/accd-init.sh /sbin/accd
+  && ln -s ${0%/*} /sbin/.$modId/$modId \
+  || cp -a ${0%/*} /sbin/.$modId/$modId
+ln -fs /sbin/.$modId/$modId/$modId.sh /sbin/$modId
+ln -fs /sbin/.$modId/$modId/${modId}d-init.sh /sbin/${modId}d
 
 # generate power supply log
 ${0%/*}/psl.sh $(sed -n s/versionCode=//p ${0%/*}/module.prop) &
@@ -25,9 +33,9 @@ if [ -f $termuxSu ] && grep -q 'PATH=.*/sbin/su' $termuxSu; then
 fi
 unset termuxSu
 
-# start accd
+# start ${modId}d
 sleep 30
-kill -9 $(pgrep -f psl.sh) 2>/dev/null
-/sbin/.acc/acc/accd.sh &) &
+kill -9 $(pgrep -f /psl.sh) 2>/dev/null
+${0%/*}/${modId}d.sh &) &
 
 exit 0

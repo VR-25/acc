@@ -7,9 +7,9 @@
 daemon() {
 
   local isRunning=true
-  local pid="$(pgrep -f '/acc.sh -?[edf]|/accd.sh' || :)"
-
-  pid="${pid/$$/}"
+  set +eo pipefail
+  local pid="$(pgrep -f '/acc -|/accd.sh' | sed s/$$//)"
+  set -eo pipefail
   [[ x$pid == *[0-9]* ]] || isRunning=false
 
   case ${1:-} in
@@ -19,7 +19,7 @@ daemon() {
       else
         print_started
         set +x
-        accd
+        /sbin/accd
       fi
     ;;
     stop)
@@ -39,7 +39,7 @@ daemon() {
         print_started
       fi
       set +x
-      accd
+      /sbin/accd
     ;;
     *)
       if $isRunning; then
@@ -91,7 +91,7 @@ set_values() {
       cp -f $modPath/config.txt $config
       chmod 0777 $config
       print_config_reset
-      accd
+      /sbin/accd
       return 0
     ;;
     *)
@@ -246,18 +246,15 @@ set_capacity() {
 
 
 switch_loop() {
-  local file="" on="" off="" default=""
+  local file="" on="" off=""
   while IFS= read -r file; do
     if [ -f $(echo $file | awk '{print $1}') ]; then
       on=$(echo $file | awk '{print $2}')
       off=$(echo $file | awk '{print $3}')
       file=$(echo $file | awk '{print $1}')
-      default=$(sed -n 1p $file)
       chmod +w $file && eval "echo \$$1" > $file 2>/dev/null && sleep $(get_value chargingOnOffDelay) || continue
-      if { [ $1 == off ] && ! not_charging; } \
-        || { [ $1 == on ] && not_charging; }
-      then
-        echo $default > $file 2>/dev/null || :
+      if [ $1 == off ] && ! not_charging; then
+        echo $on > $file 2>/dev/null || :
       else
         break
       fi
@@ -320,7 +317,7 @@ set_charging_voltage() {
     if [ -f $file ]; then
       oValue=$value
       value=$(sed "s/^..../$value/" $file)
-      echo "$file $(sed -n 1p $file)" > $dVolt
+      [ -f $dVolt ] || echo "$file $(sed -n 1p $file)" > $dVolt
       if chmod +w $file && echo $value > $file 2>/dev/null && grep -q "^$oValue" $file; then
         [ x$(get_value chargingVoltageLimit) == x$file:$oValue ] || set_value chargingVoltageLimit $file:$oValue
         print_cvolt_set
@@ -340,7 +337,7 @@ set_charging_voltage() {
 
 ls_voltage_ctrl_files() {
   cat -v ${modPath%/*}/acc-power_supply-*.log \
-    | grep -E '/constant_charge_voltage$|/voltage_max$' \
+    | grep -E '/constant_charge_voltage$|/voltage_max$|/batt_tune_float_voltage$' \
     | sed -e 's|^.*power_supply/||' -e 's/$/\n/'
 }
 
@@ -383,15 +380,14 @@ test_charging_switch() {
   local on=$(echo "$@" | awk '{print $2}')
   local off=$(echo "$@" | awk '{print $3}')
   local file=$(echo "$@" | awk '{print $1}')
-  [ -z "$file" ] || local default=$(sed -n 1p $file)
 
-  set +e
-  pgrep -f '/acc.sh -?[edf]|/accd.sh' | xargs kill -9 2>/dev/null
-  set -e
+  set +eo pipefail
+  pgrep -f '/acc -|/accd.sh' | sed s/$$// | xargs kill -9 2>/dev/null
+  set -eo pipefail
 
   if not_charging; then
     print_unplugged
-    accd
+    /sbin/accd
     return 2
   fi
 
@@ -400,20 +396,20 @@ test_charging_switch() {
     sleep $(get_value chargingOnOffDelay)
     if not_charging; then
       print_file_works
-      echo $default > $file
-      accd
+      echo $on > $file
+      /sbin/accd
       return 0
     else
       print_file_fails
-      echo $default > $file
-      accd
+      echo $on > $file
+      /sbin/accd
       return 1
     fi
   else
     disable_charging > /dev/null
     if not_charging; then
       print_supported
-      accd
+      /sbin/accd
       return 0
     else
       print_unsupported
@@ -439,7 +435,15 @@ set -euo pipefail
 
 modPath=/sbin/.acc/acc
 config=/data/media/0/acc/config.txt
-[[ $PATH == *magisk/busybox* ]] || PATH=/sbin/.magisk/busybox:$PATH
+
+if [[ $PATH != */busybox* ]]; then
+  if [ -d /sbin/.magisk/busybox ]; then
+    PATH=/sbin/.magisk/busybox:$PATH
+  elif [ -d /sbin/.core/busybox ]; then
+    PATH=/sbin/.core/busybox:$PATH
+  fi
+fi
+
 device=$(getprop ro.product.device | grep .. || getprop ro.build.product)
 batt=$(echo /sys/class/power_supply/*attery/capacity | awk '{print $1}' | sed 's|/capacity||')
 
@@ -476,15 +480,12 @@ case ${1:-} in
   -e|--enable) shift; enable_charging $@;;
 
   -f|--force|--full)
-    set +e
-    pgrep -f '/acc.sh -?[ed]|/accd.sh' | xargs kill -9 2>/dev/null
-    set -e
-    chargingVoltageLimit=$(set_charging_voltage | sed 's/mV//')
-    set_charging_voltage -
+    set +eo pipefail
+    pgrep -f '/acc -|/accd.sh' | sed s/$$// | xargs kill -9 2>/dev/null
+    set_charging_voltage - > /dev/null
+    set -eo pipefail
     enable_charging ${2:-100}%
-    set_charging_voltage $chargingVoltageLimit
-    unset chargingVoltageLimit
-    accd
+    /sbin/accd
   ;;
 
   -i|--info) sed s/POWER_SUPPLY_// $batt/uevent | sed "/^CAPACITY=/s/=.*/=$(( $(cat $batt/capacity) $(get_value capacityOffset) ))/";;
@@ -492,13 +493,17 @@ case ${1:-} in
   -l|--log)
     shift
     if [[ "${1:-x}" == -*e* ]]; then
+      set +eo pipefail
+      ls_charging_switches | grep -v '^$' > ${modPath%/*}/charging-ctrl-files.txt
       cd ${modPath%/*}
       set_values > config.txt
+      ls_voltage_ctrl_files | grep -v '^$' > charging-voltage-ctrl-files.txt
       for file in /cache/magisk.log /data/cache/magisk.log; do
-        [ -f $file ] && cp $file ./ && break || :
+        [ -f $file ] && cp $file ./ && break
       done
-      tar -c acc-*-*.log* config.txt magisk.log | bzip2 -9 > /data/media/0/acc-logs-$device.tar.bz2
-      rm config.txt magisk.log
+      tar -c *.log *.txt magisk.log 2>/dev/null | bzip2 -9 > /data/media/0/acc-logs-$device.tar.bz2
+      rm *.txt magisk.log 2>/dev/null
+      echo "(i) /sdcard/acc-logs-$device.tar.bz2"
     else
       edit ${modPath%/*}/acc-daemon-*.log $@
     fi

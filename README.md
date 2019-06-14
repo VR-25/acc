@@ -53,7 +53,8 @@ ACC is primarily intended for extending battery service life. On the flip side, 
 ## PREREQUISITES
 
 - Any root solution
-- Terminal emulator (running as root) or a text editor.
+- Terminal emulator (running as root)
+- Text editor (optional)
 
 
 
@@ -91,14 +92,14 @@ Notes
 
 ### Magisk 18.2+
 
-Install: flash live (e.g., from Magisk Manager) or from custom recovery (e.g., TWRP).
+Install/upgrade: flash live (e.g., from Magisk Manager) or from custom recovery (e.g., TWRP).
 
 Uninstall: use Magisk Manager (app) or Magisk Manager for Recovery Mode (utility).
 
 
-### Older Magisk Versions and Other Root Solutions
+### Any Root Solution (Advanced)
 
-Install: extract `acc-*.zip/install-legacy.sh`, run `su`, then execute `sh /path/to/install-legacy.sh /absolute/path/to/acc-*.zip`.
+Install/upgrade: extract `acc-*.zip`, run `su`, then execute `sh /absolute/path/to/extracted/install-current.sh`.
 
 Uninstall: for Magisk install, use Magisk Manager (app); else, run `su -c rm -rf /data/adb/acc/`.
 
@@ -107,7 +108,7 @@ Uninstall: for Magisk install, use Magisk Manager (app); else, run `su -c rm -rf
 
 ACC supports live upgrades - meaning, rebooting after installing/upgrading is unnecessary.
 
-The demon is automatically started/restarted ~30 seconds after installation.
+The demon is automatically started ~30 seconds after installation.
 
 
 
@@ -178,7 +179,8 @@ language=en
 
 ACC is designed to run out of the box, without user intervention. You can simply install it and forget. However, as it's been observed, most people will want to tweak settings - and obviously everyone will want to know whether the thing is actually working.
 
-If you're not comfortable with the command line, skip this section and use the `ACC app` (links section) to manage ACC.
+If you feel uncomfortable with the command line, skip this section and use the `ACC app` (links section) to manage ACC.
+
 Alternatively, you can use a `text editor` to modify `/sdcard/acc/config.txt`. Changes to this file take effect almost instantly, and without a daemon restart.
 
 
@@ -228,6 +230,9 @@ acc <option(s)> <arg(s)>
 -s|--set   Show current config
   e.g., acc -s
 
+s|--set <r|reset>   Restore default config
+  e.g., acc -s r
+
 -s|--set <var> <value>   Set config parameters
   e.g., acc -s capacity 5,60,80-85 (5: shutdown (default), 60: cool down (default), 80: resume, 85: pause)
 
@@ -251,20 +256,20 @@ acc <option(s)> <arg(s)>
   e.g., acc -t battery/charging_enabled 1 0
   Return codes: 0 (works), 1 (doesn't work) or 2 (battery must be charging)
 
--v|--voltage <millivolts|file:millivolts>   Set charging voltage (3920-4349mV)
-  e.g., acc -v 3920, acc -v /sys/class/power_supply/battery/voltage_max:4100
-
--v|--voltage   Show current voltage
+-v|--voltage   Show current charging voltage
   e.g., acc -v
 
--v|--voltage :   List available charging voltage ctrl files
+-v|--voltage :   List available/default charging voltage ctrl files
   e.g., acc -v :
 
--v|--voltage -   Restore default voltage
+-v|--voltage -   Restore default charging voltage limit
   e.g., acc -v -
 
--v|--voltage :millivolts   Evaluate and set charging voltage ctrl files
-  e.g., acc -v :4100
+-v|--voltage <millivolts>   Set charging voltage limit (default/set ctrl file)
+  e.g., acc -v 4100
+
+-v|--voltage <file:millivolts>   Set charging voltage limit (custom ctrl file)
+  e.g., acc -v battery/voltage_max:4100
 
 -x|--xtrace <other option(s)>   Run under set -x (debugging)
   acc -x -i
@@ -325,7 +330,7 @@ However, things don't always go well.
 Some switches may be unreliable under certain conditions (e.g., screen off).
 Others may hold a wakelock - causing faster battery drain - while in plugged in, not charging state.
 
-Run `acc --set chargingSwitch` to enforce a particular switch.
+Run `acc --set chargingSwitch` (or `acc -s s` for short) to enforce a particular switch.
 
 Test default/set switch(es) with `acc --test`.
 
@@ -394,11 +399,25 @@ Translation Notes
 
 
 
+## ASSORTED TIPS
+
+
+### Samsung
+
+The following files could be used to control charging current and voltage (with `applyOnBoot`):
+```
+battery/batt_tune_fast_charge_current (default: 2100)
+
+battery/batt_tune_input_charge_current (default: 1800)
+
+battery/batt_tune_float_voltage (max: 43500)
+```
+
+
 ---
 ## LINKS
 
 - [ACC app](https://github.com/MatteCarra/AccA/releases/)
-- [Battery company](https://cadex.com/)
 - [Battery University](http://batteryuniversity.com/learn/article/how_to_prolong_lithium_based_batteries/)
 - [Donate](https://paypal.me/vr25xda/)
 - [Facebook page](https://facebook.com/VR25-at-xda-developers-258150974794782/)
@@ -413,9 +432,22 @@ Translation Notes
 ---
 ## LATEST CHANGES
 
+**2019.6.14-r1 (201906141)**
+- Added `battery/batt_tune_float_voltage` (Samsung) to the list of supported voltage control files
+- Enhanced log exporter (`acc -l --export`)
+- Fixed: default voltage limit not restored when accd is stopped
+- `From-source` installer for any root solution (install-current.sh)
+- General fixes
+- Major optimizations
+- Redesigned `rebootOnPause`
+- Update charging switches database
+- Updated documentation (`assorted tips` section and more)
+- Updated Portuguese translation
+> Note: compatible with ACCApp 1.0.6-1.0.8
+
 **2019.6.11 (201906110)**
 - Enhanced power supply logger (psl.sh) and `rebootOnPause`
-- Fixed accd not auto-starting and `coolDownRatio` issues
+- Fixed: accd not auto-starting and `coolDownRatio` issues
 - General fixes
 - `install-legacy.sh` - for older Magisk versions and other root solutions
 - Major optimizations
@@ -424,14 +456,10 @@ Translation Notes
 **2019.6.8 (201906080)**
 - Customizable minimum charging on/off toggling interval (`chargingOnOffDelay`)
 - Enhanced modularity to work even without Magisk (refer to README.md for details)
-- Fixed `applyOnBoot`
+- Fixed: `applyOnBoot`
 - Major optimizations
 - Multi-language support (refer to `README.md` for details)
 - Partial Portuguese language support (first additional language)
 - Updated documentation, charging switches database and building/debugging tools
 - Workaround for re-enabling charging (`rebootOnUnplug`)
 > Note: compatible with ACCApp 1.0.6-1.0.8
-
-**2019.5.16-r2 (201905162)**
-- Fixed - ls_voltage_ctrl_files() not working for all
-> Note: compatible with ACCApp 1.0.6

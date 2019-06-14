@@ -3,7 +3,7 @@
 # License: GPLv3+
 #
 # PWD=/sys/class/power_supply
-# Last updated: Sat, Jun 8, 2019
+# Last updated: Thu, Jun 13, 2019
 
 battery/charger_control 1 0
 battery/charge_disable 0 1
@@ -49,10 +49,13 @@ dc/input_suspend 0 1
 /sys/devices/soc/soc:lge,charging_controller/lge_power/lge_cc/charging_enabled 1 0
 
 # unconfirmed
+#battery/charge_control_limit_max 16 -- supposedly works with the next
+battery/charge_control_limit 0 1
 /sys/devices/soc.0/78b8000.i2c/i2c-4/4-006b/power_supply/ext-charger/charge_enabled 1 0
 /sys/devices/soc.0/qpnp-linear-charger-8/power_supply/battery_qpnp/charging_enabled 1 0
 
 # EXPERIMENTAL
+#battery/charger_temp_max 803 0
 #battery/is_in_call 0 1
 #/sys/devices/platform/battery_meter/FG_suspend_current_threshold 100 10
 #/sys/devices/platform/battery_meter/FG_daemon_disable 0 1

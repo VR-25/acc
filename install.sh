@@ -137,7 +137,7 @@ on_install() {
   #ui_print "- Extracting module files"
   #unzip -o "$ZIPFILE" 'system/*' -d $MODPATH >&2
 
-  $BOOTMODE && pgrep -f "/$MODID.sh -?[edf]|/${MODID}d.sh" | xargs kill -9 2>/dev/null
+  $BOOTMODE && pgrep -f "/$MODID -|/${MODID}d.sh" | xargs kill -9 2>/dev/null
   set -euxo pipefail
   trap 'exxit $?' EXIT
 
@@ -145,7 +145,8 @@ on_install() {
   local configVer=$(print versionCode $config)
 
   # extract module files
-  ui_print "- Extracting module files"
+  ui_print " "
+  ui_print "(i) Extracting module files..."
   unzip -o "$ZIPFILE" "$MODID/*" -d ${MODPATH%/*}/ >&2
   ln $MODPATH/service.sh $MODPATH/post-fs-data.sh
   mkdir -p ${config%/*}/info
@@ -223,8 +224,11 @@ exxit() {
 
 
 version_info() {
+
   local line=""
   local println=false
+
+  ui_print "- Done"
 
   # a note on untested Magisk versions
   if [ $MAGISK_VER_CODE -gt 19300 ]; then
@@ -248,7 +252,6 @@ version_info() {
 
   ui_print "  LINKS"
   ui_print "    - ACC app: github.com/MatteCarra/AccA/"
-  ui_print "    - Battery company: cadex.com"
   ui_print "    - Battery University: batteryuniversity.com/learn/article/how_to_prolong_lithium_based_batteries/"
   ui_print "    - Donate: paypal.me/vr25xda/"
   ui_print "    - Facebook page: facebook.com/VR25-at-xda-developers-258150974794782/"
@@ -262,7 +265,9 @@ version_info() {
   ui_print "(i) Important info: https://bit.ly/2TRqRz0"
   ui_print " "
   if $BOOTMODE; then
-    ui_print "(i) Ignore the reboot button. You can use $MODID right away."
+    ui_print "(i) Ignore the reboot button."
+    ui_print "- $MODID can be used right now."
+    ui_print "- $MODID daemon is already initializing."
     ui_print " "
   fi
 }

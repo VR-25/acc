@@ -35,7 +35,7 @@ print_cs_reset() {
 }
 
 print_supported_cs() {
-  echo "(i) supported charging switches"
+  echo "(i) Supported charging switches"
 }
 
 print_cs_fails() {
@@ -72,11 +72,11 @@ print_ch_enabled() {
 
 
 print_dvolt_restored() {
-  echo "(i) Default voltage ($(grep -o '^....' $file)mV) was successfully restored."
+  echo "(i) Default charging voltage limit ($(grep -o '^....' $file)mV) successfully restored"
 }
 
 print_dvolt_already_set() {
-  echo "(i) Default voltage is already set."
+  echo "(i) Default charging voltage limit is already set"
 }
 
 print_invalid_input() {
@@ -84,15 +84,15 @@ print_invalid_input() {
 }
 
 print_accepted_volt() {
-  echo "- Recall that the accepted voltage range is 3920-4349mV."
+  echo "- Recall that the accepted voltage range is 3920-4349mV"
 }
 
 print_cvolt_set() {
-  echo "(i) Charging voltage set to $(grep -o '^....' $file)mV"
+  echo "(i) Charging voltage limited to $(grep -o '^....' $file)mV"
 }
 
 print_cvolt_unsupported() {
-  echo "(!) Either [$(echo -n $file)] is not the right file or your kernel doesn't support custom charging voltage."
+  echo "(!) Either [$(echo -n $file)] is not the right file or your kernel doesn't support custom charging voltage"
 }
 
 print_no_such_file() {
@@ -100,7 +100,7 @@ print_no_such_file() {
 }
 
 print_supported_cvolt_files() {
-  echo "(i) supported charging voltage ctrl files"
+  echo "(i) Supported charging voltage ctrl files"
 }
 
 print_cvolt_limit_set() {
@@ -132,7 +132,7 @@ print_no_modpath() {
 }
 
 print_help() {
-  cat <<HELP
+  cat << HELP
 Advanced Charging Controller
 Copyright (C) 2017-2019, VR25 @ xda-developers
 License: GPLv3+
@@ -181,6 +181,9 @@ Usage: acc <option(s)> <arg(s)>
 -s|--set   Show current config
   e.g., acc -s
 
+s|--set <r|reset>   Restore default config
+  e.g., acc -s r
+
 -s|--set <var> <value>   Set config parameters
   e.g., acc -s capacity 5,60,80-85 (5: shutdown (default), 60: cool down (default), 80: resume, 85: pause)
 
@@ -204,20 +207,20 @@ Usage: acc <option(s)> <arg(s)>
   e.g., acc -t battery/charging_enabled 1 0
   Return codes: 0 (works), 1 (doesn't work) or 2 (battery must be charging)
 
--v|--voltage <millivolts|file:millivolts>   Set charging voltage (3920-4349mV)
-  e.g., acc -v 3920, acc -v /sys/class/power_supply/battery/voltage_max:4100
-
--v|--voltage   Show current voltage
+-v|--voltage   Show current charging voltage
   e.g., acc -v
 
--v|--voltage :   List supported charging voltage ctrl files
+-v|--voltage :   List available/default charging voltage ctrl files
   e.g., acc -v :
 
--v|--voltage -   Restore default voltage
+-v|--voltage -   Restore default charging voltage limit
   e.g., acc -v -
 
--v|--voltage :millivolts   Evaluate and set charging voltage ctrl files
-  e.g., acc -v :4100
+-v|--voltage <millivolts>   Set charging voltage limit (default/set ctrl file)
+  e.g., acc -v 4100
+
+-v|--voltage <file:millivolts>   Set charging voltage limit (custom ctrl file)
+  e.g., acc -v battery/voltage_max:4100
 
 -x|--xtrace <other option(s)>   Run under set -x (debugging)
   acc -x -i

@@ -1,16 +1,16 @@
 #!/system/bin/sh
 #
-# ACC installer/upgrader
-# https://raw.githubusercontent.com/VR-25/acc/master/install-latest.sh
+# $modId installer/upgrader
+# https://raw.githubusercontent.com/VR-25/$modId/master/install-latest.sh
 #
 # Copyright (C) 2019, VR25 @xda-developers
 # License: GPLv3+
 #
-# Run "which acc > /dev/null || sh <this script>" to install ACC.
+# Run "which $modId > /dev/null || sh <this script>" to install $modId.
 
 set -euo pipefail
 echo
-echo "Downloading [module.prop], [update-binary] and [acc-*.zip]..."
+echo "Downloading [module.prop], [update-binary] and [$modId-*.zip]..."
 
 modId=acc
 log=/sbin/.$modId/install-stderr.log
@@ -20,7 +20,7 @@ mkdir -p ${log%/*}
 
 get_ver() { sed -n 's/^versionCode=//p' ${1:-}; }
 
-instVer=$(get_ver /sbin/.$modId/acc/module.prop 2>/dev/null || :)
+instVer=$(get_ver /sbin/.$modId/$modId/module.prop 2>/dev/null || :)
 baseUrl=https://github.com/VR-25/$modId
 rawUrl=https://raw.githubusercontent.com/VR-25/$modId/master
 currVer=$(curl -#L $rawUrl/module.prop | get_ver)

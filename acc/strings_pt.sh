@@ -72,11 +72,11 @@ print_ch_enabled() {
 
 
 print_dvolt_restored() {
-  echo "(i) A voltagem padrão ($(grep -o '^....' $file)mV) foi restaurada com sucesso."
+  echo "(i) Voltagem padrão ($(grep -o '^....' $file)mV) restaurada com sucesso"
 }
 
 print_dvolt_already_set() {
-  echo "(i) A voltagem padrão já está definida."
+  echo "(i) A voltagem padrão já está definida"
 }
 
 print_invalid_input() {
@@ -84,15 +84,15 @@ print_invalid_input() {
 }
 
 print_accepted_volt() {
-  echo "- O intervalo permitido é 3920-4349mV."
+  echo "- O intervalo permitido é 3920-4349mV"
 }
 
 print_cvolt_set() {
-  echo "(i) Voltagem definida para $(grep -o '^....' $file)mV"
+  echo "(i) Voltagem limitada à $(grep -o '^....' $file)mV"
 }
 
 print_cvolt_unsupported() {
-  echo "(!) [$(echo -n $file)] é o ficheiro errado ou o kernel não suporta alteração de voltagem."
+  echo "(!) [$(echo -n $file)] é o ficheiro errado ou o kernel não suporta alteração de voltagem"
 }
 
 print_no_such_file() {
@@ -128,7 +128,7 @@ print_no_modpath() {
 }
 
 print_help() {
-  cat <<DELIMITADOR
+  cat << DELIMITADOR
 Advanced Charging Controller
 Copyright (C) 2017-2019, VR25 @ xda-developers
 Licença: GPLv3+
@@ -177,6 +177,9 @@ Uso: acc <opções> <argumentos>
 -s|--set   Show current config
   Exemplo: acc -s
 
+s|--set <r|reset>   Restaurar configuração padrão
+  Exemplo acc -s r
+
 -s|--set <var> <value>   Set config parameters
   Exemplo: acc -s capacity 5,60,80-85 (5: shutdown (default), 60: cool down (default), 80: resume, 85: pause)
 
@@ -200,20 +203,20 @@ Uso: acc <opções> <argumentos>
   Exemplo: acc -t battery/charging_enabled 1 0
   Return codes: 0 (works), 1 (doesn't work) or 2 (battery must be charging)
 
--v|--voltage <millivolts|file:millivolts>   Set charging voltage (3920-4349mV)
-  Exemplo: acc -v 3920, acc -v /sys/class/power_supply/battery/voltage_max:4100
+-v|--voltage   Show current charging voltage
+  e.g., acc -v
 
--v|--voltage   Show current voltage
-  Exemplo: acc -v
+-v|--voltage :   List available/default charging voltage ctrl files
+  e.g., acc -v :
 
--v|--voltage :   List supported charging voltage ctrl files
-  Exemplo: acc -v :
+-v|--voltage -   Restore default charging voltage limit
+  e.g., acc -v -
 
--v|--voltage -   Restore default voltage
-  Exemplo: acc -v -
+-v|--voltage <millivolts>   Set charging voltage limit (default/set ctrl file)
+  e.g., acc -v 4100
 
--v|--voltage :millivolts   Evaluate and set charging voltage ctrl files
-  Exemplo: acc -v :4100
+-v|--voltage <file:millivolts>   Set charging voltage limit (custom ctrl file)
+  e.g., acc -v battery/voltage_max:4100
 
 -x|--xtrace <other option(s)>   Run under set -x (debugging)
   acc -x -i

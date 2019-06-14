@@ -10,7 +10,7 @@ exxit() {
   trap - EXIT
   { dumpsys battery reset
   enable_charging
-  set_charging_voltage; } > /dev/null 2>&1
+  /sbin/acc --voltage -; } > /dev/null 2>&1
   [ -n "$1" ] && echo "$2" && exitCode=$1
   echo "***EXIT $exitCode***"
   exit $exitCode
@@ -77,9 +77,9 @@ disable_charging() {
       value=$(get_value chargingSwitch | awk '{print $3}')
       if [ -f $file ]; then
         chmod +w $file && echo $value > $file 2>/dev/null && sleep $(get_value chargingOnOffDelay) \
-          || acc --set chargingSwitch- > /dev/null
+          || /sbin/acc --set chargingSwitch- > /dev/null
       else
-        acc --set chargingSwitch- > /dev/null
+        /sbin/acc --set chargingSwitch- > /dev/null
       fi
     else
       switch_loop off
@@ -100,9 +100,9 @@ enable_charging() {
       value=$(get_value chargingSwitch | awk '{print $2}')
       if [ -f $file ]; then
         chmod +w $file && echo $value > $file 2>/dev/null && sleep $(get_value chargingOnOffDelay) \
-          || acc --set chargingSwitch- > /dev/null
+          || /sbin/acc --set chargingSwitch- > /dev/null
       else
-        acc --set chargingSwitch- > /dev/null
+        /sbin/acc --set chargingSwitch- > /dev/null
       fi
     else
       switch_loop on
@@ -211,18 +211,15 @@ apply_on_boot() {
 
 
 switch_loop() {
-  local file="" on="" off="" default=""
+  local file="" on="" off=""
   while IFS= read -r file; do
     if [ -f $(echo $file | awk '{print $1}') ]; then
       on=$(echo $file | awk '{print $2}')
       off=$(echo $file | awk '{print $3}')
       file=$(echo $file | awk '{print $1}')
-      default=$(sed -n 1p $file)
       chmod +w $file && eval "echo \$$1" > $file 2>/dev/null && sleep $(get_value chargingOnOffDelay) || continue
-      if { [ $1 = off ] && is_charging; } \
-        || { [ $1 = on ] && ! is_charging; }
-      then
-        echo $default > $file 2>/dev/null || :
+      if [ $1 = off ] && is_charging; then
+        echo $on > $file 2>/dev/null || :
       else
         break
       fi
@@ -241,7 +238,13 @@ coolDown=false
 modPath=/sbin/.$modId/$modId
 config=/data/media/0/$modId/config.txt
 
-[[ $PATH == *magisk/busybox* ]] || PATH=/sbin/.magisk/busybox:$PATH
+if [[ $PATH != */busybox* ]]; then
+  if [ -d /sbin/.magisk/busybox ]; then
+    PATH=/sbin/.magisk/busybox:$PATH
+  elif [ -d /sbin/.core/busybox ]; then
+    PATH=/sbin/.core/busybox:$PATH
+  fi
+fi
 
 log=${modPath%/*}/acc-daemon-$(getprop ro.product.device | grep .. || getprop ro.build.product).log
 
@@ -251,7 +254,7 @@ batt=$(echo /sys/class/power_supply/*attery/capacity | awk '{print $1}' | sed 's
 until [ -d /storage/emulated/0/?ndroid ]; do sleep 10; done
 
 set +e
-pgrep -f '/acc.sh -?[edf]|/accd.sh' | sed s/$$// | xargs kill -9 2>/dev/null
+pgrep -f '/acc -|/accd.sh' | sed s/$$// | xargs kill -9 2>/dev/null
 set -e
 
 mkdir -p ${modPath%/*} ${config%/*}
@@ -268,7 +271,7 @@ trap exxit EXIT
 [ -f $modPath/module.prop ] || exxit 1 "(!) modPath not found"
 unset modId
 apply_on_boot
-acc --voltage apply > /dev/null 2>&1 || :
+/sbin/acc --voltage apply > /dev/null 2>&1 || :
 check_compatibility
 ctrl_charging
 exit $?
