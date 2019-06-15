@@ -113,7 +113,6 @@ The demon is automatically started ~30 seconds after installation.
 
 
 ## DEFAULT CONFIGURATION
-
 ```
 # This is used to determine whether config should be patched. Do NOT modify!
 versionCode=XXXXXXXXX
@@ -172,7 +171,6 @@ language=en
 ```
 
 
-
 ---
 ## USAGE
 
@@ -185,7 +183,6 @@ Alternatively, you can use a `text editor` to modify `/sdcard/acc/config.txt`. C
 
 
 ### Terminal Commands
-
 ```
 acc <option(s)> <arg(s)>
 
@@ -291,7 +288,6 @@ Run acc --readme to see the full documentation.
 ```
 
 
-
 ---
 ## NOTES/TIPS FOR FRONT-END DEVELOPERS
 
@@ -305,7 +301,6 @@ Use provided config descriptions for ACC settings in your app(s). Include additi
 
 - The installer must run as root (obviously).
 - Log: /sbin/.acc/install-stderr.log
-
 ```
 1) Check whether ACC is installed (exit code 0)
 which acc > /dev/null
@@ -315,7 +310,6 @@ which acc > /dev/null
 
 3) Run "sh [installer]" (progress is shown)
 ```
-
 
 
 ---
@@ -340,10 +334,10 @@ Evaluate custom switches with `acc --test <file onValue offValue>`.
 ### Charging Voltage Limit
 
 Unfortunately, not all devices/kernels support custom charging voltage limit.
+Those that do are rare.
+Most OEMs don't care about that.
 
-Since the author doesn't own every device under the sun, they cannot tell whether yours does.
-
-Use `acc --voltage :millivolts` (e.g., acc -v :4050) for evaluating charging voltage control files.
+The existence of a potential voltage control file doesn't necessarily mean it works.
 
 
 ### Restore Default Config
@@ -352,6 +346,8 @@ Use `acc --voltage :millivolts` (e.g., acc -v :4050) for evaluating charging vol
 
 
 ### Slow Charging
+
+Check whether charging current in being limited by `applyOnPlug` or `applyOnBoot`.
 
 Nullify coolDownRatio (`acc --set coolDownRatio`) or change its value. By default, coolDownRatio is null.
 
@@ -399,8 +395,26 @@ Translation Notes
 
 
 
-## ASSORTED TIPS
+## TIPS
 
+
+### Generic
+
+Force fast charge: `applyOnBoot=/sys/kernel/fast_charge/force_fast_charge:1`
+
+
+### Google Pixel Family
+
+Force fast wireless charging with third party wireless chargers that are supposed to charge the battery faster: `applyOnPlug=wireless/voltage_max:9000000`.
+
+
+### Razer Phone
+
+Alternate charging control configuration:
+```
+capacity=5,60,0,101
+applyOnBoot=razer_charge_limit_enable:1 usb/device/razer_charge_limit_max:80 usb/device/razer_charge_limit_dropdown:70
+```
 
 ### Samsung
 
@@ -432,6 +446,10 @@ battery/batt_tune_float_voltage (max: 43500)
 ---
 ## LATEST CHANGES
 
+**2019.6.15 (201906150)**
+- Prioritize charging switches that put the battery on idle when charging is paused - allowing the device to draw power directly from the external power supply
+- Updated documentation
+
 **2019.6.14-r1 (201906141)**
 - Added `battery/batt_tune_float_voltage` (Samsung) to the list of supported voltage control files
 - Enhanced log exporter (`acc -l --export`)
@@ -451,15 +469,4 @@ battery/batt_tune_float_voltage (max: 43500)
 - General fixes
 - `install-legacy.sh` - for older Magisk versions and other root solutions
 - Major optimizations
-> Note: compatible with ACCApp 1.0.6-1.0.8
-
-**2019.6.8 (201906080)**
-- Customizable minimum charging on/off toggling interval (`chargingOnOffDelay`)
-- Enhanced modularity to work even without Magisk (refer to README.md for details)
-- Fixed: `applyOnBoot`
-- Major optimizations
-- Multi-language support (refer to `README.md` for details)
-- Partial Portuguese language support (first additional language)
-- Updated documentation, charging switches database and building/debugging tools
-- Workaround for re-enabling charging (`rebootOnUnplug`)
 > Note: compatible with ACCApp 1.0.6-1.0.8
