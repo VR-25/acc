@@ -446,6 +446,9 @@ battery/batt_tune_float_voltage (max: 43500)
 ---
 ## LATEST CHANGES
 
+**2019.6.17 (201906170)**
+- Fixed: "automatic" charging switch not working
+
 **2019.6.15 (201906150)**
 - Prioritize charging switches that put the battery on idle when charging is paused - allowing the device to draw power directly from the external power supply
 - Updated documentation
@@ -461,12 +464,4 @@ battery/batt_tune_float_voltage (max: 43500)
 - Update charging switches database
 - Updated documentation (`assorted tips` section and more)
 - Updated Portuguese translation
-> Note: compatible with ACCApp 1.0.6-1.0.8
-
-**2019.6.11 (201906110)**
-- Enhanced power supply logger (psl.sh) and `rebootOnPause`
-- Fixed: accd not auto-starting and `coolDownRatio` issues
-- General fixes
-- `install-legacy.sh` - for older Magisk versions and other root solutions
-- Major optimizations
 > Note: compatible with ACCApp 1.0.6-1.0.8

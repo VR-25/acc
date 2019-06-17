@@ -219,7 +219,9 @@ switch_loop() {
       off=$(echo $file | awk '{print $3}')
       file=$(echo $file | awk '{print $1}')
       chmod +w $file && eval "echo \$$1" > $file 2>/dev/null && sleep $(get_value chargingOnOffDelay) || continue
-      if [ $1 = off ] && ! grep -Eiq "${2:-dis|not}" $batt/status; then
+      if [ $1 == off ] && ! grep -Eiq "${2:-dis|not}" $batt/status; then
+        echo $on > $file 2>/dev/null || :
+      elif [ $1 == on ] && grep -Eiq "${2:-dis|not}" $batt/status; then
         echo $on > $file 2>/dev/null || :
       else
         break
