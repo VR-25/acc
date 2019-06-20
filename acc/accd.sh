@@ -11,7 +11,7 @@ exxit() {
   { dumpsys battery reset
   enable_charging
   /sbin/acc --voltage -; } > /dev/null 2>&1
-  [ -n "$1" ] && echo "$2" && exitCode=$1
+  [ -n "$1" ] && echo -e "$2" && exitCode=$1
   echo "***EXIT $exitCode***"
   exit $exitCode
 }
@@ -22,7 +22,7 @@ get_value() { sed -n "s|^$1=||p" $config; }
 
 is_charging() {
 
-  local file="" value="" isCharging=true
+  local file="" value="" isCharging=true wakelock=""
 
   grep -Eiq 'dis|not' $batt/status && isCharging=false || :
 
@@ -50,6 +50,10 @@ is_charging() {
       ! grep -Eiq 'dis|not' $batt/status || reboot
     fi
     unplugged=true
+    # wakeUnlock
+    for wakelock in $(get_value wakeUnlock); do
+      echo $wakelock > /sys/power/wake_unlock
+    done
   fi
 
   # limit log size
@@ -84,7 +88,7 @@ disable_charging() {
     else
       switch_loop off not
       ! is_charging || switch_loop off
-      ! is_charging || exxit 1 "(!) Unsupported device"
+      ! is_charging || echo "(!) Failed to disable charging"
     fi
   fi
   # cool down
@@ -192,10 +196,15 @@ check_compatibility() {
 $(grep -Ev '#|^$' $modPath/switches.txt)
 SWITCHES
   else
-    [ -f $(get_value chargingSwitch | awk '{print $1}') ] && compatible=true
+    if [ -f $(get_value chargingSwitch | awk '{print $1}') ]; then
+      compatible=true
+    else
+      /sbin/acc --set chargingSwitch- > /dev/null
+      check_compatibility
+      return 0
+    fi
   fi
-  $compatible || exxit 1 "(!) Unsupported device"
-  unset -f check_compatibility
+  $compatible || exxit 1 "(!) Unsupported device\n- Please, send the output file of acc --log --export to the developer"
 }
 
 
@@ -207,7 +216,6 @@ apply_on_boot() {
     [ -f $file ] && chmod +w $file && echo $value > $file || :
   done
   [[ "x$(get_value applyOnBoot)" == *--exit ]] && exit 0 || :
-  unset -f apply_on_boot
 }
 
 
@@ -272,9 +280,10 @@ set -x
 trap exxit EXIT
 
 [ -f $modPath/module.prop ] || exxit 1 "(!) modPath not found"
-unset modId
 apply_on_boot
 /sbin/acc --voltage apply > /dev/null 2>&1 || :
 check_compatibility
+unset modId
+unset -f apply_on_boot check_compatibility
 ctrl_charging
 exit $?

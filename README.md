@@ -36,7 +36,7 @@ To prevent fraud, do NOT mirror any link associated with this project; do NOT sh
 ---
 ## WARNING
 
-ACC manipulates Android low level (kernel) parameters which control the charging circuitry.
+ACC manipulates Android low level ([kernel](https://duckduckgo.com/?q=kernel+android)) parameters which control the charging circuitry.
 The author assumes no responsibility under anything that might break due to the use/misuse of this software.
 By choosing to use/misuse ACC, you agree to do so at your own risk!
 
@@ -45,7 +45,7 @@ By choosing to use/misuse ACC, you agree to do so at your own risk!
 ---
 ## DESCRIPTION
 
-ACC is primarily intended for extending battery service life. On the flip side, the name says it all.
+ACC is primarily intended for [extending battery service life](https://batteryuniversity.com/learn/article/how_to_prolong_lithium_based_batteries). On the flip side, the name says it all.
 
 
 
@@ -84,6 +84,8 @@ Notes
 
 - To update the local repo, run `git pull -f <repo>`.
 
+- To install/upgrade straight from source, refer to the next section.
+
 
 
 ---
@@ -94,12 +96,12 @@ Notes
 
 Install/upgrade: flash live (e.g., from Magisk Manager) or from custom recovery (e.g., TWRP).
 
-Uninstall: use Magisk Manager (app) or Magisk Manager for Recovery Mode (utility).
+Uninstall: use Magisk Manager (app) or [Magisk Manager for Recovery Mode (utility)](https://github.com/VR-25/mm/).
 
 
 ### Any Root Solution (Advanced)
 
-Install/upgrade: extract `acc-*.zip`, run `su`, then execute `sh /absolute/path/to/extracted/install-current.sh`.
+Install/upgrade: extract `acc-*.zip`, run `su`, then execute `sh /path/to/extracted/install-current.sh`.
 
 Uninstall: for Magisk install, use Magisk Manager (app); else, run `su -c rm -rf /data/adb/acc/`.
 
@@ -109,6 +111,8 @@ Uninstall: for Magisk install, use Magisk Manager (app); else, run `su -c rm -rf
 ACC supports live upgrades - meaning, rebooting after installing/upgrading is unnecessary.
 
 The demon is automatically started ~30 seconds after installation.
+
+For non-Magisk install, `/data/adb/acc/acc-init.sh` must be executed on boot to initialize acc. Without this, acc commands won't work. Additionally, ff your system lacks executables such as `awk` and `grep`, [busybox](https://duckduckgo.com/?q=busybox+android) or similar binary must be installed prior to installing acc.
 
 
 
@@ -168,6 +172,9 @@ chargingOnOffDelay=1
 
 # English (en) and Portuguese (pt) are the main languages supported. Refer to the localization section below for all available languages and translation information.
 language=en
+
+# Wakelocks to unlock after pausing charging
+wakeUnlock=SEC_BATTERY_VBUS f9200000.ssusb chg_wake_lock qcom_step_chg c440000.qcom,spmi:qcom,pmi8998@2:qcom,qpnp-smb2
 ```
 
 
@@ -177,9 +184,9 @@ language=en
 
 ACC is designed to run out of the box, without user intervention. You can simply install it and forget. However, as it's been observed, most people will want to tweak settings - and obviously everyone will want to know whether the thing is actually working.
 
-If you feel uncomfortable with the command line, skip this section and use the `ACC app` (links section) to manage ACC.
+If you feel uncomfortable with the command line, skip this section and use the [ACC app](https://github.com/MatteCarra/AccA/releases/) to manage ACC.
 
-Alternatively, you can use a `text editor` to modify `/sdcard/acc/config.txt`. Changes to this file take effect almost instantly, and without a daemon restart.
+Alternatively, you can use a `text editor` to modify `/sdcard/acc/config.txt`. Changes to this file take effect almost instantly, and without a [daemon](https://en.wikipedia.org/wiki/Daemon_(computing)) restart.
 
 
 ### Terminal Commands
@@ -297,7 +304,7 @@ It's best to use full commands over short equivalents - e.g., `--set chargingSwi
 Use provided config descriptions for ACC settings in your app(s). Include additional information (trusted) where appropriate.
 
 
-### Auto-install ACC
+### Online ACC Install
 
 - The installer must run as root (obviously).
 - Log: /sbin/.acc/install-stderr.log
@@ -311,6 +318,11 @@ which acc > /dev/null
 3) Run "sh [installer]" (progress is shown)
 ```
 
+### Offline ACC Install
+
+Refer to [SETUP > Any Root Solution (Advanced)](https://github.com/VR-25/acc/tree/master#any-root-solution-advanced) and [SETUP > Notes ](https://github.com/VR-25/acc/tree/master#notes).
+
+
 
 ---
 ## TROUBLESHOOTING
@@ -318,11 +330,13 @@ which acc > /dev/null
 
 ### Charging Switch
 
-By default, ACC cycles through all available charging control files until it finds one that works.
+By default, ACC cycles through all available [charging control files](https://github.com/VR-25/acc/blob/master/acc/switches.txt) until it finds one that works.
+
+Charging switches that support battery idle mode take precedence - allowing the device to draw power directly from the external power supply when charging is paused.
 
 However, things don't always go well.
 Some switches may be unreliable under certain conditions (e.g., screen off).
-Others may hold a wakelock - causing faster battery drain - while in plugged in, not charging state.
+Others may hold a [wakelock](https://duckduckgo.com/?q=wakelock) - causing faster battery drain - while in plugged in, not charging state.
 
 Run `acc --set chargingSwitch` (or `acc -s s` for short) to enforce a particular switch.
 
@@ -342,7 +356,7 @@ The existence of a potential voltage control file doesn't necessarily mean it wo
 
 ### Restore Default Config
 
-`acc --set reset`
+`acc --set reset` (or `acc -s r`)
 
 
 ### Slow Charging
@@ -354,7 +368,7 @@ Nullify coolDownRatio (`acc --set coolDownRatio`) or change its value. By defaul
 
 ### Logs
 
-Logs are stored at `/sbin/.acc/`. You can export all to `/sdcard/acc-logs-$device.tar.bz2` with `acc --log --export`. In addition to acc logs, the archive includes `config.txt` and `magisk.log`.
+Logs are stored at `/sbin/.acc/`. You can export all to `/sdcard/acc-logs-$device.tar.bz2` with `acc --log --export`. In addition to acc logs, the archive includes `charging-ctrl-files.txt`, `charging-voltage-ctrl-files.txt`, `config.txt` and `magisk.log`.
 
 
 
@@ -389,8 +403,8 @@ Currently Supported Languages
 - Portuguese (pt): partial
 
 Translation Notes
-- Translators should start with copies of `acc/strings.sh` and `README.md` - and append the appropriate language suffix to the base names - e.g., `strings_it`, `README_it`.
-- Anyone is free and encouraged to open translation pull requests.
+- Translators should start with copies of [acc/strings.sh](https://github.com/VR-25/acc/blob/master/acc/strings.sh) and [README.md](https://github.com/VR-25/acc/blob/master/README.md) - and append the appropriate language suffix to the base names - e.g., `strings_it`, `README_it`.
+- Anyone is free and encouraged to open translation [pull requests](https://duckduckgo.com/?q=pull+request).
 - Alternatively, `strings_*.sh` and `README_*.md` files can be send to the developer.
 
 
@@ -424,7 +438,7 @@ battery/batt_tune_fast_charge_current (default: 2100)
 
 battery/batt_tune_input_charge_current (default: 1800)
 
-battery/batt_tune_float_voltage (max: 43500)
+battery/batt_tune_float_voltage (max: 4350)
 ```
 
 
@@ -446,22 +460,16 @@ battery/batt_tune_float_voltage (max: 43500)
 ---
 ## LATEST CHANGES
 
+**2019.6.20 (201906200)**
+- Additional charging control files
+- Enhanced daemon reliability
+- `install-current.sh` no longer requires absolute path
+- Updated documentation
+- wakeUnlock - auto-unlock select wakelocks after charging is disabled
+
 **2019.6.17 (201906170)**
 - Fixed: "automatic" charging switch not working
 
 **2019.6.15 (201906150)**
 - Prioritize charging switches that put the battery on idle when charging is paused - allowing the device to draw power directly from the external power supply
 - Updated documentation
-
-**2019.6.14-r1 (201906141)**
-- Added `battery/batt_tune_float_voltage` (Samsung) to the list of supported voltage control files
-- Enhanced log exporter (`acc -l --export`)
-- Fixed: default voltage limit not restored when accd is stopped
-- `From-source` installer for any root solution (install-current.sh)
-- General fixes
-- Major optimizations
-- Redesigned `rebootOnPause`
-- Update charging switches database
-- Updated documentation (`assorted tips` section and more)
-- Updated Portuguese translation
-> Note: compatible with ACCApp 1.0.6-1.0.8

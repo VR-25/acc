@@ -4,9 +4,6 @@
 # License: GPLv3+
 
 
-# enforce absolute path
-[[ $0 == /* ]] || exec echo -e "\n(!) You must use the absolute path\n"
-
 # prepend Magisk's busybox to PATH
 if [ -d /sbin/.magisk/busybox ]; then
   PATH=/sbin/.magisk/busybox:$PATH
@@ -14,23 +11,26 @@ elif [ -d /sbin/.core/busybox ]; then
   PATH=/sbin/.core/busybox:$PATH
 fi
 
-which awk > /dev/null || exec echo -e "\n(!) Install busybox first\n"
+which awk > /dev/null || { echo -e "\n(!) Install busybox or similar binary first\n"; exit 1; }
 
-print() { sed -n "s|^$1=||p" ${2:-$srcDir/module.prop} 2>/dev/null || :; }
+print() { sed -n "s|^$1=||p" ${2:-$srcDir/module.prop}; }
 
-srcDir=${0%/*}
+umask 022
+set -euo pipefail
+
+[ -f $PWD/${0##*/} ] && srcDir=$PWD || srcDir=${0%/*}
 modId=$(print id)
 name=$(print name)
 author=$(print author)
 version=$(print version)
 versionCode=$(print versionCode)
+installDir=/sbin/.magisk/modules
 config=/data/media/0/$modId/config.txt
 configVer=$(print versionCode $config)
 
-pgrep -f "/$modId -|/${modId}d.sh" | xargs kill -9 2>/dev/null
-
-cd /sbin/.magisk/modules 2>/dev/null || cd /sbin/.core/img 2>/dev/null \
-  || cd /data/adb || exec echo -e "\n(!) /data/adb/ not found\n"
+[ -d $installDir ] || installDir=/sbin/.core/img
+[ -d $installDir ] || installDir=/data/adb
+[ -d $installDir ] || { echo -e "\n(!) /data/adb/ not found\n"; exit 1; }
 
 
 cat << CAT
@@ -39,33 +39,34 @@ $name $version
 Copyright (C) 2017-2019, $author
 License: GPLv3+
 
-(i) Installing to $PWD/$modId/...
+(i) Installing to $installDir/$modId/...
 CAT
 
+(pgrep -f "/$modId -|/${modId}d.sh" | xargs kill -9 2>/dev/null) || :
 
-umask 022
-rm -rf $modId 2>/dev/null
-set -euo pipefail
-cp -R $srcDir/$modId/ .
-cp $srcDir/module.prop $modId/
+rm -rf $installDir/${modId:-_PLACEHOLDER_} 2>/dev/null
+cp -R $srcDir/$modId/ $installDir/
+installDir=$installDir/$modId
+cp $srcDir/module.prop $installDir/
+
 mkdir -p ${config%/*}/info
 cp -f $srcDir/*.md ${config%/*}/info
 
-if [ $PWD == /data/adb ]; then
-  mv $modId/service.sh $modId/${modId}-init.sh
+if [ $installDir == /data/adb ]; then
+  mv $installDir/service.sh $installDir/${modId}-init.sh
 else
-  ln $modId/service.sh $modId/post-fs-data.sh
-  if [ $PWD == /sbin/.core/img ]; then
-    sed -i s/\.magisk/\.core/ $modId/${modId}.sh
-    sed -i s/\.magisk/\.core/ $modId/${modId}d.sh
+  ln $installDir/service.sh $installDir/post-fs-data.sh
+  if [ $installDir == /sbin/.core/img ]; then
+    sed -i s/\.magisk/\.core/ $installDir/${modId}.sh
+    sed -i s/\.magisk/\.core/ $installDir/${modId}d.sh
   fi
 fi
-chmod 0755 $modId/*.sh
+chmod 0755 $installDir/*.sh
 
 # patch/upgrade config
 if [ -f $config ]; then
   if [ ${configVer:-0} -lt 201905110 ] \
-    || [ ${configVer:-0} -gt $(print versionCode $modId/config.txt) ]
+    || [ ${configVer:-0} -gt $(print versionCode $installDir/config.txt) ]
   then
     rm $config
   else
@@ -75,16 +76,21 @@ if [ -f $config ]; then
       && sed -i -e '/^capacitySync=/s/true/false/' -e '/^versionCode=/s/=.*/=201905130/' $config
     if [ $configVer -lt 201906020 ]; then
       echo >> $config
-      grep rebootOnUnplug $modId/config.txt >> $config
+      grep rebootOnUnplug $installDir/config.txt >> $config
       echo >> $config
-      grep "toggling interval" $modId/config.txt >> $config
-      grep chargingOnOffDelay $modId/config.txt >> $config
+      grep "toggling interval" $installDir/config.txt >> $config
+      grep chargingOnOffDelay $installDir/config.txt >> $config
       sed -i '/^versionCode=/s/=.*/=201906020/' $config
     fi
     if [ $configVer -lt 201906050 ]; then
       echo >> $config
-      grep language $modId/config.txt >> $config
+      grep language $installDir/config.txt >> $config
       sed -i '/^versionCode=/s/=.*/=201906050/' $config
+    fi
+    if [ $configVer -lt 201906200 ]; then
+      echo >> $config
+      grep -i wake $installDir/config.txt >> $config
+      sed -i '/^versionCode=/s/=.*/=201906200/' $config
     fi
   fi
 fi
@@ -133,12 +139,12 @@ cat << CAT
 CAT
 
 
-[ $PWD == /data/adb ] && echo -e "(i) Use init.d or an app to run /data/adb/$modId/${modId}-init.sh on boot to initialize ${modId}.\n"
+[ $installDir == /data/adb ] && echo -e "(i) Use init.d or an app to run $installDir/${modId}-init.sh on boot to initialize ${modId}.\n"
 
-if [ -f $modId/service.sh ]; then
-  $PWD/$modId/service.sh install
+if [ -f $installDir/service.sh ]; then
+  $installDir/service.sh install
 else
-  $PWD/$modId/${modId}-init.sh install
+  $installDir/${modId}-init.sh install
 fi
 
 exit 0
