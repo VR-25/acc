@@ -3,7 +3,7 @@
 # License: GPLv3+
 #
 # PWD=/sys/class/power_supply
-# Last updated: Thu, Jun 13, 2019
+# Last updated: Thu, Jun 20, 2019
 
 battery/charger_control 1 0
 battery/charge_disable 0 1
@@ -32,7 +32,7 @@ battery/battery_charging_enabled 1 0
 battery/batt_slate_mode 0 1
 battery/store_mode 0 1
 usb-parallel/charging_enabled 1 0
-dc-wireless/charging_enabled 1 0
+*wireless/charging_enabled 1 0
 *-charger/charging_enabled 1 0
 dc/input_suspend 0 1
 
@@ -47,10 +47,11 @@ dc/input_suspend 0 1
 /sys/power/pnpmgr/battery/charging_enabled 1 0
 /sys/devices/soc/soc:lge,cable_detect/lge_power/lge_cable_detect/charging_enabled 1 0
 /sys/devices/soc/soc:lge,charging_controller/lge_power/lge_cc/charging_enabled 1 0
+/sys/devices/qpnp-charger-*/power_supply/battery/charging_enabled 1 0
+/sys/devices/platform/lge-unified-nodes/charging_completed 0 1
+/sys/devices/platform/lge-unified-nodes/charging_enable 1 0
 
 # unconfirmed
-#battery/charge_control_limit_max 16 -- supposedly works with the next
-battery/charge_control_limit 0 1
 /sys/devices/soc.0/78b8000.i2c/i2c-4/4-006b/power_supply/ext-charger/charge_enabled 1 0
 /sys/devices/soc.0/qpnp-linear-charger-8/power_supply/battery_qpnp/charging_enabled 1 0
 
@@ -71,3 +72,8 @@ battery/charge_control_limit 0 1
 #/sys/devices/soc/soc:lge,charging_controller/lge_power/lge_cc/charge_done 0 1
 #/sys/devices/soc/soc:lge,cable_detect/lge_power/lge_cable_detect/charge_done 0 1
 #battery/wc_enable 1 0
+#/sys/devices/platform/lge-unified-nodes/charger_incompatible 0 1
+
+# advanced
+#applyOnBoot=battery/charge_control_limit_max:16 AND chargingSwitch=battery/charge_control_limit 0 1
+#applyOnBoot=/sys/class/qcom-battery/restricted_current:0 AND chargingSwitch=/sys/class/qcom-battery/restricted_charging 0 1

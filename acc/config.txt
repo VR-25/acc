@@ -56,3 +56,6 @@ chargingOnOffDelay=1
 
 # English (en) and Portuguese (pt) are the main languages supported. Refer to README.md for all available languages and translation information.
 language=en
+
+# Wakelocks to unlock after pausing charging
+wakeUnlock=SEC_BATTERY_VBUS f9200000.ssusb chg_wake_lock qcom_step_chg c440000.qcom,spmi:qcom,pmi8998@2:qcom,qpnp-smb2

@@ -176,6 +176,11 @@ on_install() {
         grep language $MODPATH/config.txt >> $config
         sed -i '/^versionCode=/s/=.*/=201906050/' $config
       fi
+      if [ $configVer -lt 201906200 ]; then
+        echo >> $config
+        grep -i wake $MODPATH/config.txt >> $config
+        sed -i '/^versionCode=/s/=.*/=201906200/' $config
+      fi
     fi
   fi
 
