@@ -71,8 +71,6 @@ set_value() {
   shift
   if grep -q "^$var=" $config; then
     sed -i "s|^$var=.*|$var=$*|" $config
-  elif grep -q "^#$var=" $config; then
-    sed -i "s|^#$var=.*|$var=$*|" $config
   else
     print_invalid_var
     exit 1
@@ -88,8 +86,7 @@ set_values() {
     5960|endurance) set_value capacity 5,60,59-60;;
     4041|endurance+) set_value capacity 5,60,40-41;;
     r|reset)
-      cp -f $modPath/config.txt $config
-      chmod 0777 $config
+      install -m 0777 $modPath/acc.conf $config
       print_config_reset
       /sbin/accd
       return 0
@@ -262,7 +259,7 @@ switch_loop() {
         break
       fi
     fi
-  done <<SWITCHES
+  done << SWITCHES
 $(grep -Ev '#|^$' $modPath/switches.txt)
 SWITCHES
 }
@@ -372,7 +369,7 @@ ls_charging_switches() {
   local file=""
   while IFS= read -r file; do
     [ ! -f $(echo $file | awk '{print $1}') ] || echo $file
-  done <<SWITCHES
+  done << SWITCHES
 $(grep -Ev '#|^$' $modPath/switches.txt)
 SWITCHES
 }
@@ -384,14 +381,12 @@ test_charging_switch() {
   local off=$(echo "$@" | awk '{print $3}')
   local file=$(echo "$@" | awk '{print $1}')
 
-  set +eo pipefail
   pgrep -f '/acc -|/accd.sh' | sed s/$$// | xargs kill -9 2>/dev/null
-  set -eo pipefail
 
   if not_charging; then
     print_unplugged
     /sbin/accd
-    return 2
+    exit 2
   fi
 
   if [ -n "${1:-}" ]; then
@@ -399,20 +394,19 @@ test_charging_switch() {
     sleep $(get_value chargingOnOffDelay)
     if not_charging; then
       print_file_works
+      grep -iq not $batt/status && echo "- battIdleMode=true" || echo "- battIdleMode=false"
       echo $on > $file
-      /sbin/accd
+      sleep $(get_value chargingOnOffDelay)
       return 0
     else
       print_file_fails
       echo $on > $file
-      /sbin/accd
       return 1
     fi
   else
     disable_charging > /dev/null
     if not_charging; then
       print_supported
-      /sbin/accd
       return 0
     else
       print_unsupported
@@ -437,7 +431,7 @@ trap exxit EXIT
 set -euo pipefail
 
 modPath=/sbin/.acc/acc
-config=/data/media/0/acc/config.txt
+config=/data/media/0/acc/acc.conf
 
 if [[ $PATH != */busybox* ]]; then
   if [ -d /sbin/.magisk/busybox ]; then
@@ -458,7 +452,7 @@ if ! ls /data/data > /dev/null 2>&1; then
 fi
 
 mkdir -p ${modPath%/*} ${config%/*}
-[ -f $config ] || install -m 0777 $modPath/config.txt $config
+[ -f $config ] || install -m 0777 $modPath/acc.conf $config
 
 . $modPath/strings.sh
 readmeSuffix=""
@@ -499,12 +493,11 @@ case ${1:-} in
       set +eo pipefail
       ls_charging_switches | grep -v '^$' > ${modPath%/*}/charging-ctrl-files.txt
       cd ${modPath%/*}
-      set_values > config.txt
       ls_voltage_ctrl_files | grep -v '^$' > charging-voltage-ctrl-files.txt
       for file in /cache/magisk.log /data/cache/magisk.log; do
         [ -f $file ] && cp $file ./ && break
       done
-      tar -c *.log *.txt magisk.log 2>/dev/null | bzip2 -9 > /data/media/0/acc-logs-$device.tar.bz2
+      tar -c $config *.log *.txt magisk.log 2>/dev/null | bzip2 -9 > /data/media/0/acc-logs-$device.tar.bz2
       rm *.txt magisk.log 2>/dev/null
       echo "(i) /sdcard/acc-logs-$device.tar.bz2"
     else
@@ -516,7 +509,7 @@ case ${1:-} in
 
   -p|--preset)
     shift
-
+    ###
   ;;
 
   -r|--readme) shift; edit ${config%/*}/info/README$readmeSuffix.md $@;;
@@ -530,11 +523,24 @@ case ${1:-} in
 
   -t|--test)
     shift
+    set +eo pipefail
     if [ -z "${1:-}" ]; then
       test_charging_switch $(get_value chargingSwitch)
+    elif [ $1 == -- ]; then
+      while IFS= read -r switch; do
+        [ -f $(echo "$switch" | awk '{print $1}') ] && echo && test_charging_switch $switch
+        [[ $? == [02] ]] && exitCode=0
+      done << SWITCHES
+$(grep -Ev '^#|^$' ${2:-$modPath/switches.txt})
+SWITCHES
+      echo
     else
       test_charging_switch $@
     fi
+    exitCode_=$?
+    [ -z "${exitCode:-}" ] && exitCode=$exitCode_
+    [[ $exitCode == [02] ]] && /sbin/accd
+    exit $exitCode
   ;;
 
   -v|--voltage) shift; set_charging_voltage $@;;

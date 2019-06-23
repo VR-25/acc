@@ -141,7 +141,8 @@ on_install() {
   set -euxo pipefail
   trap 'exxit $?' EXIT
 
-  config=/data/media/0/$MODID/config.txt
+  config=/data/media/0/$MODID/acc.conf
+  [ -f $config ] || mv ${config%/*}/config.txt $config 2>/dev/null || :
   local configVer=$(print versionCode $config)
 
   # extract module files
@@ -155,7 +156,7 @@ on_install() {
   # patch/upgrade config
   if [ -f $config ]; then
     if [ ${configVer:-0} -lt 201905110 ] \
-      || [ ${configVer:-0} -gt $(print versionCode $MODPATH/config.txt) ]
+      || [ ${configVer:-0} -gt $(print versionCode $MODPATH/acc.conf) ]
     then
       rm $config
     else
@@ -165,21 +166,26 @@ on_install() {
         && sed -i -e '/^capacitySync=/s/true/false/' -e '/^versionCode=/s/=.*/=201905130/' $config
       if [ $configVer -lt 201906020 ]; then
         echo >> $config
-        grep rebootOnUnplug $MODPATH/config.txt >> $config
+        grep rebootOnUnplug $MODPATH/acc.conf >> $config
         echo >> $config
-        grep "toggling interval" $MODPATH/config.txt >> $config
-        grep chargingOnOffDelay $MODPATH/config.txt >> $config
+        grep "toggling interval" $MODPATH/acc.conf >> $config
+        grep chargingOnOffDelay $MODPATH/acc.conf >> $config
         sed -i '/^versionCode=/s/=.*/=201906020/' $config
       fi
       if [ $configVer -lt 201906050 ]; then
         echo >> $config
-        grep language $MODPATH/config.txt >> $config
+        grep language $MODPATH/acc.conf >> $config
         sed -i '/^versionCode=/s/=.*/=201906050/' $config
       fi
       if [ $configVer -lt 201906200 ]; then
         echo >> $config
-        grep -i wake $MODPATH/config.txt >> $config
+        grep -i wake $MODPATH/acc.conf >> $config
         sed -i '/^versionCode=/s/=.*/=201906200/' $config
+      fi
+      if [ $configVer -lt 201906230 ]; then
+        sed -i -e '/^wakeU/d' -e '/^$/d' -e '/^#/d' $config
+        grep '^wakeU' $MODPATH/acc.conf >> $config
+        sed -i '/^versionCode=/s/=.*/=201906230/' $config
       fi
     fi
   fi
@@ -210,7 +216,7 @@ set_permissions() {
 
   # finishing touches
   chmod -R 0777 ${config%/*}
-  $BOOTMODE && $MODPATH/service.sh install
+  $BOOTMODE && $MODPATH/service.sh --override
 }
 
 # You can add more functions to assist your custom script code

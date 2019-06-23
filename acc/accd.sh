@@ -9,6 +9,7 @@ exxit() {
   set +euxo pipefail
   trap - EXIT
   { dumpsys battery reset
+  disable_charging # undoes applyOnPlug
   enable_charging
   /sbin/acc --voltage -; } > /dev/null 2>&1
   [ -n "$1" ] && echo -e "$2" && exitCode=$1
@@ -28,6 +29,7 @@ is_charging() {
 
   if $isCharging; then
     unplugged=false
+    secondsUnplugged=0
     # applyOnPlug
     for file in $(get_value applyOnPlug); do
       value=${file##*:}
@@ -35,7 +37,6 @@ is_charging() {
       [ -f $file ] && chmod +w $file && echo $value > $file || :
     done
   else
-    ${unplugged:=true}
     # resetBsOnUnplug
     if ! $unplugged && ! $coolDown && eval $(get_value resetBsOnUnplug); then
       sleep $(get_value loopDelay)
@@ -51,9 +52,22 @@ is_charging() {
     fi
     unplugged=true
     # wakeUnlock
-    for wakelock in $(get_value wakeUnlock); do
-      echo $wakelock > /sys/power/wake_unlock
-    done
+    # won't run under coolDown nor "battery idle" mode ("not charging" status)
+    if grep -iq dis $batt/status && ! $coolDown; then
+      for wakelock in $(get_value wakeUnlock); do
+        echo $wakelock > /sys/power/wake_unlock
+      done
+    fi
+    # dynamicPowerSaving
+    if ! $coolDown; then
+      secondsUnplugged=$(( secondsUnplugged + $(get_value loopDelay) ))
+      if [ $secondsUnplugged -ge 30 ]; then
+        sleep $secondsUnplugged
+      fi
+      [ $secondsUnplugged -ge 60 ] && secondsUnplugged=$(get_value loopDelay) || :
+    else
+      secondsUnplugged=0
+    fi
   fi
 
   # limit log size
@@ -192,7 +206,7 @@ check_compatibility() {
         compatible=true
         break
       fi
-    done <<SWITCHES
+    done << SWITCHES
 $(grep -Ev '#|^$' $modPath/switches.txt)
 SWITCHES
   else
@@ -235,7 +249,7 @@ switch_loop() {
         break
       fi
     fi
-  done <<SWITCHES
+  done << SWITCHES
 $(grep -Ev '#|^$' $modPath/switches.txt)
 SWITCHES
 }
@@ -246,8 +260,10 @@ set -euo pipefail
 
 modId=acc
 coolDown=false
+unplugged=true
 modPath=/sbin/.$modId/$modId
-config=/data/media/0/$modId/config.txt
+config=/data/media/0/$modId/${modId}.conf
+secondsUnplugged=$(get_value loopDelay)
 
 if [[ $PATH != */busybox* ]]; then
   if [ -d /sbin/.magisk/busybox ]; then
@@ -269,7 +285,7 @@ pgrep -f '/acc -|/accd.sh' | sed s/$$// | xargs kill -9 2>/dev/null
 set -e
 
 mkdir -p ${modPath%/*} ${config%/*}
-[ -f $config ] || install -m 0777 $modPath/config.txt $config
+[ -f $config ] || install -m 0777 $modPath/acc.conf $config
 cd /sys/class/power_supply/
 
 # diagnostics and cleanup

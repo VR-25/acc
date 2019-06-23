@@ -53,7 +53,7 @@ ACC is primarily intended for [extending battery service life](https://batteryun
 ## PREREQUISITES
 
 - Any root solution
-- Terminal emulator (running as root)
+- Terminal emulator
 - Text editor (optional)
 
 
@@ -71,7 +71,7 @@ Dependencies
 
 Steps
 
-1. `git clone <repo>`
+1. `git clone https://github.com/VR-25/acc.git`
 2. `cd acc`
 3. `sh build.sh` (or double-click `build.bat` on Windows, if you have Windows subsystem for Linux installed)
 
@@ -82,7 +82,7 @@ Notes
 
 - By default, `build.sh` auto-updates the [update-binary](https://raw.githubusercontent.com/topjohnwu/Magisk/master/scripts/module_installer.sh). To skip this, run `sh build.sh f` (or `buildf.bat` on Windows).
 
-- To update the local repo, run `git pull -f <repo>`.
+- To update the local repo, run `git pull -f`.
 
 - To install/upgrade straight from source, refer to the next section.
 
@@ -116,6 +116,7 @@ For non-Magisk install, `/data/adb/acc/acc-init.sh` must be executed on boot to 
 
 
 
+---
 ## DEFAULT CONFIGURATION
 ```
 # This is used to determine whether config should be patched. Do NOT modify!
@@ -143,7 +144,7 @@ resetBsOnPause=true
 # Reset battery stats every time charger is unplugged, as opposed to only when <pauseCapacity> is reached.
 resetBsOnUnplug=false
 
-# Seconds between loop iterations - this is essentially a sensitivity "slider". Do not touch it unless you know exactly what you're doing!
+# Seconds between loop iterations - this is essentially a sensitivity "slider". Do not touch it unless you know exactly what you're doing! A value lower than 5 may cause unexpected behavior (e.g., increased battery drain). Anything above 30 will lead to major delays in charging control, but it will dramatically improve acc energy efficiency.
 loopDelay=10
 
 # Custom charging switch parameters (<path> <onValue> <offValue>), e.g., chargingSwitch=/sys/class/power_supply/battery/charging_enabled 1 0, pro tip: </sys/class/power_supply/> can be omitted (e.g., chargingSwitch=battery/charging_enabled 1 0).
@@ -173,8 +174,9 @@ chargingOnOffDelay=1
 # English (en) and Portuguese (pt) are the main languages supported. Refer to the localization section below for all available languages and translation information.
 language=en
 
-# Wakelocks to unlock after pausing charging
-wakeUnlock=SEC_BATTERY_VBUS f9200000.ssusb chg_wake_lock qcom_step_chg c440000.qcom,spmi:qcom,pmi8998@2:qcom,qpnp-smb2
+# Wakelocks to unlock after pausing charging (e.g., wakeUnlock=chg_wake_lock qcom_step_chg)
+# Use this only if you known what you're doing. It may cause unexpected behavior.
+wakeUnlock=
 ```
 
 
@@ -186,7 +188,7 @@ ACC is designed to run out of the box, without user intervention. You can simply
 
 If you feel uncomfortable with the command line, skip this section and use the [ACC app](https://github.com/MatteCarra/AccA/releases/) to manage ACC.
 
-Alternatively, you can use a `text editor` to modify `/sdcard/acc/config.txt`. Changes to this file take effect almost instantly, and without a [daemon](https://en.wikipedia.org/wiki/Daemon_(computing)) restart.
+Alternatively, you can use a `text editor` to modify `/sdcard/acc/acc.conf`. Changes to this file take effect almost instantly, and without a [daemon](https://en.wikipedia.org/wiki/Daemon_(computing)) restart.
 
 
 ### Terminal Commands
@@ -202,10 +204,12 @@ acc <option(s)> <arg(s)>
     acc -d 1h (do not recharge until 1 hour has passed)
 
 -D|--daemon   Show current acc daemon (accd) state
-  e.g., acc -D
+  e.g., acc -D (alias: "accd,")
 
 -D|--daemon <start|stop|restart>   Manage accd state
-  e.g., acc -D restart
+  e.g.,
+    acc -D restart
+    accd -D stop (alias: "accd.")
 
 -e|--enable <#%, #s, #m or #h (optional)>   Enable charging or enable charging with <condition>
   e.g., acc -e 30m (recharge for 30 minutes)
@@ -238,10 +242,13 @@ s|--set <r|reset>   Restore default config
   e.g., acc -s r
 
 -s|--set <var> <value>   Set config parameters
-  e.g., acc -s capacity 5,60,80-85 (5: shutdown (default), 60: cool down (default), 80: resume, 85: pause)
+  e.g., acc -s capacity 5,60,80-85 (5: shutdown, 60: cool down, 80: resume, 85: pause)
 
 -s|--set <resume-stop preset>   Can be 4041|endurance+, 5960|endurance, 7080|default, 8090|lite 9095|travel
-  e.g., acc -s endurance+ (a.k.a, "the li-ion sweet spot"; best for GPS navigation and other long operations), acc -s travel (for when you need extra juice), acc -s 7080 (restore default capacity settings (5,60,70-80))
+  e.g.,
+    acc -s endurance+ (a.k.a, "the li-ion sweet spot"; best for GPS navigation and other long operations)
+    acc -s travel (for when you need extra juice)
+    acc -s 7080 (restore default capacity settings (5,60,70-80))
 
 -s|--set <s|chargingSwitch>   Set a different charging switch from the database
   e.g., acc -s s
@@ -253,12 +260,17 @@ s|--set <r|reset>   Restore default config
   e.g., acc -s s-
 
 -t|--test   Test currently set charging ctrl file
+  Exit codes: 0 (works), 1 (doesn't work) or 2 (battery must be charging)
   e.g., acc -t
-  Return codes: 0 (works), 1 (doesn't work) or 2 (battery must be charging)
 
 -t|--test <file on off>   Test custom charging ctrl file
+  Exit codes: 0 (works), 1 (doesn't work) or 2 (battery must be charging)
   e.g., acc -t battery/charging_enabled 1 0
-  Return codes: 0 (works), 1 (doesn't work) or 2 (battery must be charging)
+
+-t|--test -- <file (fallback: $modPath/switches.txt)>   Test charging switches from a file
+  This will also report whether "battery idle" mode is supported
+  Exit codes: 0 (works), 1 (doesn't work) or 2 (battery must be charging)
+  e.g., acc -t -- /sdcard/experimental_switches.txt
 
 -v|--voltage   Show current charging voltage
   e.g., acc -v
@@ -287,9 +299,10 @@ Tips
     e.g., acc 85 80
 
   That last command can be used for programming charging before bed. In this case, the daemon must be running.
-     e.g., acc 45 44 && acc --set applyOnPlug usb/current_max:500000 && sleep $((60*60*7)) && acc 80 70 && acc --set applyOnPlug usb/current_max:2000000
-     - "Keep battery capacity at ~45% and limit charging current to 500mA for 7 hours. Restore regular charging settings afterwards."
-    - You can write this to a file and run as "sh <file>".
+    e.g., acc 45 44 && acc --set applyOnPlug usb/current_max:500000 && sleep $((60*60*7)) && acc 80 70 && acc --set applyOnPlug usb/current_max:2000000
+    - "Keep battery capacity at ~45% and limit charging current to 500mA for 7 hours. Restore regular charging settings afterwards."
+    - For convenience, this can be written to a file and ran as "sh <file>".
+    - If your device supports custom charging voltage, it's better to use it instead: "acc -v 3920 && sleep $((60*60*7)) && acc -v -".
 
 Run acc --readme to see the full documentation.
 ```
@@ -368,7 +381,7 @@ Nullify coolDownRatio (`acc --set coolDownRatio`) or change its value. By defaul
 
 ### Logs
 
-Logs are stored at `/sbin/.acc/`. You can export all to `/sdcard/acc-logs-$device.tar.bz2` with `acc --log --export`. In addition to acc logs, the archive includes `charging-ctrl-files.txt`, `charging-voltage-ctrl-files.txt`, `config.txt` and `magisk.log`.
+Logs are stored at `/sbin/.acc/`. You can export all to `/sdcard/acc-logs-$device.tar.bz2` with `acc --log --export`. In addition to acc logs, the archive includes `charging-ctrl-files.txt`, `charging-voltage-ctrl-files.txt`, `acc.conf` and `magisk.log`.
 
 
 
@@ -396,6 +409,7 @@ See current submissions [here](https://www.dropbox.com/sh/rolzxvqxtdkfvfa/AABceZ
 
 
 
+---
 ## LOCALIZATION
 
 Currently Supported Languages
@@ -409,10 +423,13 @@ Translation Notes
 
 
 
+---
 ## TIPS
 
 
 ### Generic
+
+Control the max USB input current: `applyOnPlug=usb/current_max:MICRO_AMPS` (e.g., 1000000, that's 1A)
 
 Force fast charge: `applyOnBoot=/sys/kernel/fast_charge/force_fast_charge:1`
 
@@ -443,6 +460,31 @@ battery/batt_tune_float_voltage (max: 4350)
 
 
 ---
+## Frequently Asked Questions (FAQ)
+
+
+- How do I report issues?
+
+A: Open issues on GitHub or contact the developer on Telegram/XDA (linked below). Always provide as much information as possible, and attach the output file of `acc --log --export`.
+
+
+- What's "battery idle" mode?
+
+A: That's a device's ability to draw power directly from an external power supply when charging is disabled or the battery is pulled out. The Motorola Moto G4 Play and many other smartphones can do that. You can run `acc --t --` to test yours.
+
+
+- What's "cool down" capacity for?
+
+A: It's meant for reducing stress induced by prolonged high charging voltage (e.g., 4.20 Volts). It's a fair alternative to custom charging voltage limit.
+
+
+- Why won't you support my device? I've been waiting for ages!
+
+A: First, never lose hope! Second, several systems don't have intuitive charging control files; I have to dig deeper and improvise; this takes extra time and effort. Lastly, some systems don't support custom charging control at all;  in such cases, you have to keep trying different kernels and uploading the respective [power supply logs](LINK) - so I can check these for potential charging control files.
+
+
+
+---
 ## LINKS
 
 - [ACC app](https://github.com/MatteCarra/AccA/releases/)
@@ -460,6 +502,16 @@ battery/batt_tune_float_voltage (max: 4350)
 ---
 ## LATEST CHANGES
 
+**2019.6.23 (201906230)**
+- "acc -D|--daemon" alias: "accd,"
+- "acc -D|--daemon stop" alias: "accd."
+-  acc -t -- <file (fallback: $modPath/switches.txt)>: test charging switches from a file; this will also report whether "battery idle" mode is supported
+- General fixes & optimizations
+- Increased power efficiency
+- Striped down (for easier patching) and renamed config.txt --> acc.conf; comprehensive config information is in the README.md
+- Updated documentation: FAQ section and more
+- wakeUnlock is null by default
+
 **2019.6.20 (201906200)**
 - Additional charging control files
 - Enhanced daemon reliability
@@ -469,7 +521,3 @@ battery/batt_tune_float_voltage (max: 4350)
 
 **2019.6.17 (201906170)**
 - Fixed: "automatic" charging switch not working
-
-**2019.6.15 (201906150)**
-- Prioritize charging switches that put the battery on idle when charging is paused - allowing the device to draw power directly from the external power supply
-- Updated documentation

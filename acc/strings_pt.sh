@@ -145,10 +145,12 @@ Uso: acc <opções> <argumentos>
     acc -d 1h (do not recharge until 1 hour has passed)
 
 -D|--daemon   Show current acc daemon (accd) state
-  Exemplo: acc -D
+  Exemplo: acc -D (alias: "accd,")
 
 -D|--daemon <start|stop|restart>   Manage accd state
-  Exemplo: acc -D restart
+  Exemplos:
+    acc -D restart
+    accd -D stop (alias: "accd.")
 
 -e|--enable <#%, #s, #m or #h (optional)>   Enable charging or enable charging with <condition>
   Exemplo: acc -e 30m (recharge for 30 minutes)
@@ -181,10 +183,13 @@ s|--set <r|reset>   Restaurar configuração padrão
   Exemplo acc -s r
 
 -s|--set <var> <value>   Set config parameters
-  Exemplo: acc -s capacity 5,60,80-85 (5: shutdown (default), 60: cool down (default), 80: resume, 85: pause)
+  Exemplo: acc -s capacity 5,60,80-85 (5: shutdown, 60: cool down, 80: resume, 85: pause)
 
 -s|--set <resume-stop preset>   Can be 4041|endurance+, 5960|endurance, 7080|default, 8090|lite 9095|travel
-  Exemplo: acc -s endurance+ (a.k.a, "the li-ion sweet spot"; best for GPS navigation and other long operations), acc -s travel (for when you need extra juice), acc -s 7080 (restore default capacity settings (5,60,70-80))
+  Exemplos:
+    acc -s endurance+ (a.k.a, "the li-ion sweet spot"; best for GPS navigation and other long operations)
+    acc -s travel (for when you need extra juice)
+    acc -s 7080 (restore default capacity settings (5,60,70-80))
 
 -s|--set <s|chargingSwitch>   Set a different charging switch from the database
   Exemplo: acc -s s
@@ -196,12 +201,17 @@ s|--set <r|reset>   Restaurar configuração padrão
   Exemplo: acc -s s-
 
 -t|--test   Test currently set charging ctrl file
-  Exemplo: acc -t
-  Return codes: 0 (works), 1 (doesn't work) or 2 (battery must be charging)
+  Exit codes: 0 (works), 1 (doesn't work) or 2 (battery must be charging)
+  e.g., acc -t
 
 -t|--test <file on off>   Test custom charging ctrl file
-  Exemplo: acc -t battery/charging_enabled 1 0
-  Return codes: 0 (works), 1 (doesn't work) or 2 (battery must be charging)
+  Exit codes: 0 (works), 1 (doesn't work) or 2 (battery must be charging)
+  e.g., acc -t battery/charging_enabled 1 0
+
+-t|--test -- <file (fallback: $modPath/switches.txt)>   Test charging switches from a file
+  This will also report whether "battery idle" mode is supported
+  Exit codes: 0 (works), 1 (doesn't work) or 2 (battery must be charging)
+  e.g., acc -t -- /sdcard/experimental_switches.txt
 
 -v|--voltage   Show current charging voltage
   e.g., acc -v
@@ -223,16 +233,11 @@ s|--set <r|reset>   Restaurar configuração padrão
 
 Tips
 
-  Commands can be chained for extended functionality. Note that accd must be stopped first.
-    Exemplo: acc -D stop && acc -e 30m && acc -d 6h && acc -e 85 && accd (recharge for 30 minutes, halt charging for 6 hours, recharge to 85% capacity and restart daemon)
-
-  Pause and resume capacities can also be set with acc <pause%> <resume%>.
-    Exemplo: acc 85 80
-
   That last command can be used for programming charging before bed. In this case, the daemon must be running.
-     Exemplo: acc 45 44 && acc --set applyOnPlug usb/current_max:500000 && sleep $((60*60*7)) && acc 80 70 && acc --set applyOnPlug usb/current_max:2000000
-     - "Keep battery capacity at ~45% and limit charging current to 500mA for 7 hours. Restore regular charging settings afterwards."
-     - You can write this to a file and run as "sh <file>".
+    e.g., acc 45 44 && acc --set applyOnPlug usb/current_max:500000 && sleep $((60*60*7)) && acc 80 70 && acc --set applyOnPlug usb/current_max:2000000
+    - "Keep battery capacity at ~45% and limit charging current to 500mA for 7 hours. Restore regular charging settings afterwards."
+    - For convenience, this can be written to a file and ran as "sh <file>".
+    - If your device supports custom charging voltage, it's better to use it instead: "acc -v 3920 && sleep $((60*60*7)) && acc -v -".
 
 Execute "acc --readme" para ler a documentação completa.
 DELIMITADOR
