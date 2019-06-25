@@ -66,40 +66,13 @@ chmod 0755 $installDir/*.sh
 
 # patch/upgrade config
 if [ -f $config ]; then
-  if [ ${configVer:-0} -lt 201905110 ] \
-    || [ ${configVer:-0} -gt $(print versionCode $installDir/acc.conf) ]
-  then
-    rm $config
-  else
-    [ $configVer -lt 201905111 ] \
-      && sed -i -e '/CapacityOffset/s/C/c/' -e '/^versionCode=/s/=.*/=201905111/' $config
-    [ $configVer -lt 201905130 ] \
-      && sed -i -e '/^capacitySync=/s/true/false/' -e '/^versionCode=/s/=.*/=201905130/' $config
-    if [ $configVer -lt 201906020 ]; then
-      echo >> $config
-      grep rebootOnUnplug $installDir/acc.conf >> $config
-      echo >> $config
-      grep "toggling interval" $installDir/acc.conf >> $config
-      grep chargingOnOffDelay $installDir/acc.conf >> $config
-      sed -i '/^versionCode=/s/=.*/=201906020/' $config
-    fi
-    if [ $configVer -lt 201906050 ]; then
-      echo >> $config
-      grep language $installDir/acc.conf >> $config
-      sed -i '/^versionCode=/s/=.*/=201906050/' $config
-    fi
-    if [ $configVer -lt 201906200 ]; then
-      echo >> $config
-      grep -i wakel $installDir/acc.conf >> $config
-      sed -i '/^versionCode=/s/=.*/=201906200/' $config
-    fi
-    if [ $configVer -lt 201906230 ]; then
-      sed -i -e '/^wakeU/d' -e '/^$/d' -e '/^#/d' $config
-      grep '^wakeU' $installDir/acc.conf >> $config
-      sed -i '/^versionCode=/s/=.*/=201906230/' $config
-    fi
+  if [ ${configVer:-0} -lt 201906230 ] \
+      || [ ${configVer:-0} -gt $(print versionCode $installDir/acc.conf) ]
+    then
+      rm $config
   fi
 fi
+
 chmod -R 0777 ${config%/*}
 set +euo pipefail
 

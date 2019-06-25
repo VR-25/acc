@@ -9,7 +9,6 @@ exxit() {
   set +euxo pipefail
   trap - EXIT
   { dumpsys battery reset
-  disable_charging # undoes applyOnPlug
   enable_charging
   /sbin/acc --voltage -; } > /dev/null 2>&1
   [ -n "$1" ] && echo -e "$2" && exitCode=$1
@@ -40,7 +39,7 @@ is_charging() {
     # resetBsOnUnplug
     if ! $unplugged && ! $coolDown && eval $(get_value resetBsOnUnplug); then
       sleep $(get_value loopDelay)
-      if grep -Eiq 'dis|not' $batt/status; then
+      if grep -iq dis $batt/status; then
         dumpsys batterystats --reset > /dev/null 2>&1 || :
         rm /data/system/batterystats* 2>/dev/null || :
       fi
@@ -48,7 +47,7 @@ is_charging() {
     # rebootOnUnplug
     if ! $unplugged && [[ x$(get_value rebootOnUnplug) == x[0-9]* ]]; then
       sleep $(get_value rebootOnUnplug)
-      ! grep -Eiq 'dis|not' $batt/status || reboot
+      ! grep -iq dis $batt/status || reboot
     fi
     unplugged=true
     # wakeUnlock
@@ -58,7 +57,7 @@ is_charging() {
         echo $wakelock > /sys/power/wake_unlock
       done
     fi
-    # dynamicPowerSaving
+    # dynamic power saving
     if ! $coolDown; then
       secondsUnplugged=$(( secondsUnplugged + $(get_value loopDelay) ))
       if [ $secondsUnplugged -ge 30 ]; then
@@ -102,8 +101,8 @@ disable_charging() {
     else
       switch_loop off not
       ! is_charging || switch_loop off
-      ! is_charging || echo "(!) Failed to disable charging"
     fi
+    ! is_charging || echo "(!) Failed to disable charging"
   fi
   # cool down
   ! is_charging && [ $(( $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) / 10 )) -ge $(get_value temperature | cut -d- -f2 | cut -d_ -f1) ] \

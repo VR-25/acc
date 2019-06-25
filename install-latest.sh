@@ -8,13 +8,13 @@
 #
 # Run "which $modId > /dev/null || sh <this script>" to install $modId.
 
-set -euo pipefail
-echo
-echo "Downloading [module.prop], [update-binary] and [$modId-*.zip]..."
-
 modId=acc
 log=/sbin/.$modId/install-stderr.log
 [[ $PATH == "*magisk/busybox*" ]] || PATH=/sbin/.magisk/busybox:$PATH
+
+set -euo pipefail
+echo
+echo "Downloading [module.prop], [update-binary] and [$modId-*.zip]..."
 
 mkdir -p ${log%/*}
 

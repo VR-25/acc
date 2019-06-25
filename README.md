@@ -112,7 +112,7 @@ ACC supports live upgrades - meaning, rebooting after installing/upgrading is un
 
 The demon is automatically started ~30 seconds after installation.
 
-For non-Magisk install, `/data/adb/acc/acc-init.sh` must be executed on boot to initialize acc. Without this, acc commands won't work. Additionally, ff your system lacks executables such as `awk` and `grep`, [busybox](https://duckduckgo.com/?q=busybox+android) or similar binary must be installed prior to installing acc.
+For non-Magisk install, `/data/adb/acc/acc-init.sh` must be executed on boot to initialize acc. Without this, acc commands won't work. Additionally, if your system lacks executables such as `awk` and `grep`, [busybox](https://duckduckgo.com/?q=busybox+android) or similar binary must be installed prior to installing acc.
 
 
 
@@ -480,7 +480,7 @@ A: It's meant for reducing stress induced by prolonged high charging voltage (e.
 
 - Why won't you support my device? I've been waiting for ages!
 
-A: First, never lose hope! Second, several systems don't have intuitive charging control files; I have to dig deeper and improvise; this takes extra time and effort. Lastly, some systems don't support custom charging control at all;  in such cases, you have to keep trying different kernels and uploading the respective [power supply logs](LINK) - so I can check these for potential charging control files.
+A: First, never lose hope! Second, several systems don't have intuitive charging control files; I have to dig deeper and improvise; this takes extra time and effort. Lastly, some systems don't support custom charging control at all;  in such cases, you have to keep trying different kernels and uploading the respective [power supply logs](https://github.com/VR-25/acc#power-supply-log) - so I can check these for potential charging control files.
 
 
 
@@ -502,6 +502,13 @@ A: First, never lose hope! Second, several systems don't have intuitive charging
 ---
 ## LATEST CHANGES
 
+**2019.6.25 (201906250)**
+- Faster `acc -D|--daemon stop` (alias `accd.`)
+- Fixed config patching error
+- Fixed install-latest.sh unset parameter issue
+- General fixes & optimizations
+> Note: AccApp 1.0.10 is up; it brings a bunch of bug fixes.
+
 **2019.6.23 (201906230)**
 - "acc -D|--daemon" alias: "accd,"
 - "acc -D|--daemon stop" alias: "accd."
@@ -518,6 +525,3 @@ A: First, never lose hope! Second, several systems don't have intuitive charging
 - `install-current.sh` no longer requires absolute path
 - Updated documentation
 - wakeUnlock - auto-unlock select wakelocks after charging is disabled
-
-**2019.6.17 (201906170)**
-- Fixed: "automatic" charging switch not working

@@ -24,9 +24,11 @@ daemon() {
     ;;
     stop)
       if $isRunning; then
-        echo "$pid" | xargs kill 2>/dev/null || :
-        dumpsys battery reset > /dev/null 2>&1 || :
-        enable_charging > /dev/null
+        set +eo pipefail
+        echo "$pid" | xargs kill -9 2>/dev/null
+        ({ dumpsys battery reset
+        not_charging && enable_charging
+        set_charging_voltage -; } > /dev/null 2>&1 &) &
         print_stopped
       else
         print_not_running
@@ -132,7 +134,7 @@ disable_charging() {
     file=$(echo $(get_value chargingSwitch) | awk '{print $1}')
     value=$(get_value chargingSwitch | awk '{print $3}')
     if [ -f $file ]; then
-      chmod +w $file && echo $value > $file 2>/dev/null \
+      chmod +w $file && echo $value > $file && sleep $(get_value chargingOnOffDelay) 2>/dev/null \
         || { print_cs_fails
           set_value chargingSwitch
           exit 1; }
@@ -179,7 +181,7 @@ enable_charging() {
     file=$(echo $(get_value chargingSwitch) | awk '{print $1}')
     value=$(get_value chargingSwitch | awk '{print $2}')
     if [ -f $file ]; then
-      chmod +w $file && echo $value > $file 2>/dev/null \
+      chmod +w $file && echo $value > $file && sleep $(get_value chargingOnOffDelay) 2>/dev/null \
         || { print_cs_fails
           set_value chargingSwitch
           exit 1; }
@@ -390,13 +392,11 @@ test_charging_switch() {
   fi
 
   if [ -n "${1:-}" ]; then
-    chmod +w $file && echo $off > $file || :
-    sleep $(get_value chargingOnOffDelay)
+    chmod +w $file && echo $off > $file && sleep $(get_value chargingOnOffDelay) || :
     if not_charging; then
       print_file_works
       grep -iq not $batt/status && echo "- battIdleMode=true" || echo "- battIdleMode=false"
-      echo $on > $file
-      sleep $(get_value chargingOnOffDelay)
+      echo $on > $file && sleep $(get_value chargingOnOffDelay)
       return 0
     else
       print_file_fails
@@ -497,8 +497,9 @@ case ${1:-} in
       for file in /cache/magisk.log /data/cache/magisk.log; do
         [ -f $file ] && cp $file ./ && break
       done
-      tar -c $config *.log *.txt magisk.log 2>/dev/null | bzip2 -9 > /data/media/0/acc-logs-$device.tar.bz2
-      rm *.txt magisk.log 2>/dev/null
+      cp $config ./
+      tar -c acc.conf *.log *.txt magisk.log 2>/dev/null | bzip2 -9 > /data/media/0/acc-logs-$device.tar.bz2
+      rm *.txt magisk.log acc.conf 2>/dev/null
       echo "(i) /sdcard/acc-logs-$device.tar.bz2"
     else
       edit ${modPath%/*}/acc-daemon-*.log $@
