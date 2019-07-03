@@ -1,6 +1,6 @@
 #!/system/bin/sh
 # Advanced Charging Controller Daemon (accd)
-# Copyright (C) 2017-2019, VR25 @ xda-developers
+# Copyright (c) 2017-2019, VR25 (xda-developers.com)
 # License: GPLv3+
 
 
@@ -13,6 +13,7 @@ exxit() {
   /sbin/acc --voltage -; } > /dev/null 2>&1
   [ -n "$1" ] && echo -e "$2" && exitCode=$1
   echo "***EXIT $exitCode***"
+  [[ $exitCode == [12] ]] && /sbin/acc --log --export > /dev/null 2>&1
   exit $exitCode
 }
 
@@ -69,9 +70,6 @@ is_charging() {
     fi
   fi
 
-  # limit log size
-  [ $(du -m $log | awk '{print $1}') -gt 1 ] && : > $log || :
-
   # correct the battery capacity reported by Android
   if eval $(get_value capacitySync); then
     dumpsys battery reset || :
@@ -82,6 +80,7 @@ is_charging() {
   [ $(( $(cat $batt/capacity) $(get_value capacityOffset) )) -le $(get_value capacity | cut -d, -f3 | cut -d- -f1) ] \
     && rm ${config%/*}/.rebootedOnPause 2>/dev/null || :
 
+  [ $(du -m $log | awk '{print $1}') -gt 1 ] && : > $log || :
   $isCharging && return 0 || return 1
 }
 
@@ -94,12 +93,12 @@ disable_charging() {
       value=$(get_value chargingSwitch | awk '{print $3}')
       if [ -f $file ]; then
         chmod +w $file && echo $value > $file 2>/dev/null && sleep $(get_value chargingOnOffDelay) \
-          || /sbin/acc --set chargingSwitch- > /dev/null
+          || (/sbin/acc --set chargingSwitch- > /dev/null)
       else
-        /sbin/acc --set chargingSwitch- > /dev/null
+        (/sbin/acc --set chargingSwitch- > /dev/null)
       fi
     else
-      switch_loop off not
+      ! eval $(get_value prioritizeBattIdleMode) || switch_loop off not
       ! is_charging || switch_loop off
     fi
     ! is_charging || echo "(!) Failed to disable charging"
@@ -118,9 +117,9 @@ enable_charging() {
       value=$(get_value chargingSwitch | awk '{print $2}')
       if [ -f $file ]; then
         chmod +w $file && echo $value > $file 2>/dev/null && sleep $(get_value chargingOnOffDelay) \
-          || /sbin/acc --set chargingSwitch- > /dev/null
+          || (/sbin/acc --set chargingSwitch- > /dev/null)
       else
-        /sbin/acc --set chargingSwitch- > /dev/null
+        (/sbin/acc --set chargingSwitch- > /dev/null)
       fi
     else
       switch_loop on
@@ -197,30 +196,6 @@ ctrl_charging() {
 }
 
 
-check_compatibility() {
-  local file="" compatible=false
-  if [[ x$(get_value chargingSwitch) != */* ]]; then
-    while IFS= read -r file; do
-      if [ -f $(echo $file | awk '{print $1}') ]; then
-        compatible=true
-        break
-      fi
-    done << SWITCHES
-$(grep -Ev '#|^$' $modPath/switches.txt)
-SWITCHES
-  else
-    if [ -f $(get_value chargingSwitch | awk '{print $1}') ]; then
-      compatible=true
-    else
-      /sbin/acc --set chargingSwitch- > /dev/null
-      check_compatibility
-      return 0
-    fi
-  fi
-  $compatible || exxit 1 "(!) Unsupported device\n- Please, send the output file of acc --log --export to the developer"
-}
-
-
 apply_on_boot() {
   local file="" value=""
   for file in $(get_value applyOnBoot); do
@@ -255,50 +230,55 @@ SWITCHES
 
 
 umask 0
-set -euo pipefail
-
 modId=acc
 coolDown=false
 unplugged=true
+secondsUnplugged=0
 modPath=/sbin/.$modId/$modId
 config=/data/media/0/$modId/${modId}.conf
-secondsUnplugged=$(get_value loopDelay)
 
-if [[ $PATH != */busybox* ]]; then
+if [ ! -f $modPath/module.prop ]; then
+  touch /dev/${modId}-modpath-not-found
+  exit 1
+fi
+
+if ! which busybox > /dev/null; then
   if [ -d /sbin/.magisk/busybox ]; then
     PATH=/sbin/.magisk/busybox:$PATH
   elif [ -d /sbin/.core/busybox ]; then
     PATH=/sbin/.core/busybox:$PATH
+  else
+    touch $modPath/busybox-not-found
+    exit 1
   fi
 fi
 
-log=${modPath%/*}/acc-daemon-$(getprop ro.product.device | grep .. || getprop ro.build.product).log
+# wait for data decryption
+until [ -d /data/media/0/?ndroid ]; do sleep 15; done
+
+mkdir -p ${config%/*}
+cd /sys/class/power_supply/
+
+if [ ! -f $config ]; then
+  cp $modPath/acc.conf $config
+  chmod -R 0777 ${config%/*}
+fi
 
 batt=$(echo /sys/class/power_supply/*attery/capacity | awk '{print $1}' | sed 's|/capacity||')
+log=${modPath%/*}/acc-daemon-$(getprop ro.product.device | grep .. || getprop ro.build.product).log
 
-# wait until data is decrypted
-until [ -d /storage/emulated/0/?ndroid ]; do sleep 10; done
-
-set +e
-pgrep -f '/acc -|/accd.sh' | sed s/$$// | xargs kill -9 2>/dev/null
-set -e
-
-mkdir -p ${modPath%/*} ${config%/*}
-[ -f $config ] || install -m 0777 $modPath/acc.conf $config
-cd /sys/class/power_supply/
+pgrep -f '/acc (-|--)[def]|/accd.sh' | sed s/$$// | xargs kill -9 2>/dev/null\
 
 # diagnostics and cleanup
 echo "###$(date)###" >> $log
-echo "versionCode=$(sed -n s/versionCode=//p $modPath/module.prop 2>/dev/null || :)" >> $log
+echo "versionCode=$(sed -n s/versionCode=//p $modPath/module.prop 2>/dev/null)" >> $log
 exec >> $log 2>&1
-set -x
 trap exxit EXIT
+set -euxo pipefail
 
-[ -f $modPath/module.prop ] || exxit 1 "(!) modPath not found"
 apply_on_boot
-/sbin/acc --voltage apply > /dev/null 2>&1 || :
-check_compatibility
+(/sbin/acc --voltage apply > /dev/null 2>&1) || :
 unset modId
-unset -f apply_on_boot check_compatibility
+unset -f apply_on_boot
 ctrl_charging
 exit $?

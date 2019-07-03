@@ -182,8 +182,10 @@ Uso: acc <opções> <argumentos>
 s|--set <r|reset>   Restaurar configuração padrão
   Exemplo acc -s r
 
--s|--set <var> <value>   Set config parameters
-  Exemplo: acc -s capacity 5,60,80-85 (5: shutdown, 60: cool down, 80: resume, 85: pause)
+-s|--set <var> <value>   Set config parameters (alternative: -s|--set <regexp> <value> (interactive))
+  e.g.,
+    acc -s capacity 5,60,80-85 (5: shutdown, 60: cool down, 80: resume, 85: pause)
+    acc -s cool 55/15
 
 -s|--set <resume-stop preset>   Can be 4041|endurance+, 5960|endurance, 7080|default, 8090|lite 9095|travel
   Exemplos:
@@ -213,6 +215,11 @@ s|--set <r|reset>   Restaurar configuração padrão
   Exit codes: 0 (works), 1 (doesn't work) or 2 (battery must be charging)
   e.g., acc -t -- /sdcard/experimental_switches.txt
 
+-u|--upgrade <branch>   Upgrade to the latest "stable" ("master" branch, default) or "testing" ("dev" branch) version
+  e.g.,
+    acc -u dev
+    acc -u (same as acc -u master)
+
 -v|--voltage   Show current charging voltage
   e.g., acc -v
 
@@ -232,6 +239,12 @@ s|--set <r|reset>   Restaurar configuração padrão
   acc -x -i
 
 Tips
+
+  Commands can be chained for extended functionality.
+    e.g., acc -e 30m && acc -d 6h && acc -e 85 && accd (recharge for 30 minutes, halt charging for 6 hours, recharge to 85% capacity and restart daemon)
+
+  Pause and resume capacities can also be set with acc <pause%> <resume%>.
+    e.g., acc 85 80
 
   That last command can be used for programming charging before bed. In this case, the daemon must be running.
     e.g., acc 45 44 && acc --set applyOnPlug usb/current_max:500000 && sleep $((60*60*7)) && acc 80 70 && acc --set applyOnPlug usb/current_max:2000000

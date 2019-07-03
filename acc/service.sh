@@ -1,5 +1,18 @@
 #!/system/bin/sh
-# $modId/${modId}d initializer
+# Advanced Charging Controller (acc) Initializer
+# Copyright (c) 2017-2019, VR25 (xda-developers)
+# License: GPLv3+
+
+
+if ! which busybox > /dev/null; then
+  if [ -d /sbin/.magisk/busybox ]; then
+    PATH=/sbin/.magisk/busybox:$PATH
+  elif [ -d /sbin/.core/busybox ]; then
+    PATH=/sbin/.core/busybox:$PATH
+  else
+    exit 1
+  fi
+fi
 
 modId=$(sed -n 's/^id=//p' ${0%/*}/module.prop)
 

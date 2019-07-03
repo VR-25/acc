@@ -5,7 +5,7 @@
 ---
 ## LEGAL
 
-Copyright (C) 2017-2019, VR25 @ xda-developers
+Copyright (c) 2017-2019, VR25 (xda-developers.com)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -64,16 +64,15 @@ ACC is primarily intended for [extending battery service life](https://batteryun
 
 Dependencies
 
-- curl (optional)
-- git
+- git, wget or curl
 - zip
 
 
 Steps
 
-1. `git clone https://github.com/VR-25/acc.git`
-2. `cd acc`
-3. `sh build.sh` (or double-click `build.bat` on Windows, if you have Windows subsystem for Linux installed)
+1. Download the source code: `git clone https://github.com/VR-25/acc.git` or `wget  https://github.com/VR-25/acc/archive/master.tar.gz -O - | tar -xz` or `curl -L#  https://github.com/VR-25/acc/archive/master.tar.gz | tar -xz`
+2. `cd acc*`
+3. `sh build.sh` (or double-click `build.bat` on Windows 10, if you have Windows subsystem for Linux installed)
 
 
 Notes
@@ -144,8 +143,8 @@ resetBsOnPause=true
 # Reset battery stats every time charger is unplugged, as opposed to only when <pauseCapacity> is reached.
 resetBsOnUnplug=false
 
-# Seconds between loop iterations - this is essentially a sensitivity "slider". Do not touch it unless you know exactly what you're doing! A value lower than 5 may cause unexpected behavior (e.g., increased battery drain). Anything above 30 will lead to major delays in charging control, but it will dramatically improve acc energy efficiency.
-loopDelay=10
+# Seconds between loop iterations - this is essentially a sensitivity "slider". Do not touch it unless you know exactly what you're doing! A value lower than 5 may cause unexpected behavior (e.g., increased battery drain). A number above 30 may lead to significant delays in charging control; on the other hand, it will dramatically boost acc's energy efficiency.
+loopDelay=15
 
 # Custom charging switch parameters (<path> <onValue> <offValue>), e.g., chargingSwitch=/sys/class/power_supply/battery/charging_enabled 1 0, pro tip: </sys/class/power_supply/> can be omitted (e.g., chargingSwitch=battery/charging_enabled 1 0).
 chargingSwitch=
@@ -177,6 +176,9 @@ language=en
 # Wakelocks to unlock after pausing charging (e.g., wakeUnlock=chg_wake_lock qcom_step_chg)
 # Use this only if you known what you're doing. It may cause unexpected behavior.
 wakeUnlock=
+
+# Prioritize charging switches that support battery idle mode.
+prioritizeBattIdleMode=false
 ```
 
 
@@ -241,8 +243,10 @@ acc <option(s)> <arg(s)>
 s|--set <r|reset>   Restore default config
   e.g., acc -s r
 
--s|--set <var> <value>   Set config parameters
-  e.g., acc -s capacity 5,60,80-85 (5: shutdown, 60: cool down, 80: resume, 85: pause)
+-s|--set <var> <value>   Set config parameters (alternative: -s|--set <regexp> <value> (interactive))
+  e.g.,
+    acc -s capacity 5,60,80-85 (5: shutdown, 60: cool down, 80: resume, 85: pause)
+    acc -s cool 55/15
 
 -s|--set <resume-stop preset>   Can be 4041|endurance+, 5960|endurance, 7080|default, 8090|lite 9095|travel
   e.g.,
@@ -272,6 +276,11 @@ s|--set <r|reset>   Restore default config
   Exit codes: 0 (works), 1 (doesn't work) or 2 (battery must be charging)
   e.g., acc -t -- /sdcard/experimental_switches.txt
 
+-u|--upgrade <branch>   Upgrade to the latest "stable" ("master" branch, default) or "testing" ("dev" branch) version
+  e.g.,
+    acc -u dev
+    acc -u (same as acc -u master)
+
 -v|--voltage   Show current charging voltage
   e.g., acc -v
 
@@ -292,8 +301,8 @@ s|--set <r|reset>   Restore default config
 
 Tips
 
-  Commands can be chained for extended functionality. Note that accd must be stopped first.
-    e.g., acc -D stop && acc -e 30m && acc -d 6h && acc -e 85 && accd (recharge for 30 minutes, halt charging for 6 hours, recharge to 85% capacity and restart daemon)
+  Commands can be chained for extended functionality.
+    e.g., acc -e 30m && acc -d 6h && acc -e 85 && accd (recharge for 30 minutes, halt charging for 6 hours, recharge to 85% capacity and restart daemon)
 
   Pause and resume capacities can also be set with acc <pause%> <resume%>.
     e.g., acc 85 80
@@ -312,23 +321,21 @@ Run acc --readme to see the full documentation.
 ## NOTES/TIPS FOR FRONT-END DEVELOPERS
 
 
-It's best to use full commands over short equivalents - e.g., `--set chargingSwitch` instead of `-s s`.
+It's best to use full commands over short equivalents - e.g., `acc --set chargingSwitch` instead of `acc -s s`. This makes your code more readable (less cryptic).
 
 Use provided config descriptions for ACC settings in your app(s). Include additional information (trusted) where appropriate.
 
 
 ### Online ACC Install
 
-- The installer must run as root (obviously).
-- Log: /sbin/.acc/install-stderr.log
 ```
 1) Check whether ACC is installed (exit code 0)
 which acc > /dev/null
 
 2) Download the installer (https://raw.githubusercontent.com/VR-25/acc/master/install-latest.sh)
-- e.g., curl -#L [URL] > [output file] (progress is shown)
+- e.g., curl -#LO [URL] or wget -O install-latest.sh [URL]
 
-3) Run "sh [installer]" (progress is shown)
+3) Run "sh install-latest.sh" (installation progress is shown)
 ```
 
 ### Offline ACC Install
@@ -345,26 +352,28 @@ Refer to [SETUP > Any Root Solution (Advanced)](https://github.com/VR-25/acc/tre
 
 By default, ACC cycles through all available [charging control files](https://github.com/VR-25/acc/blob/master/acc/switches.txt) until it finds one that works.
 
-Charging switches that support battery idle mode take precedence - allowing the device to draw power directly from the external power supply when charging is paused.
+If `prioritizeBattIdleMode` is set to `true`, charging switches that support battery idle mode take precedence - allowing the device to draw power directly from the external power supply when charging is paused.
 
 However, things don't always go well.
-Some switches may be unreliable under certain conditions (e.g., screen off).
-Others may hold a [wakelock](https://duckduckgo.com/?q=wakelock) - causing faster battery drain - while in plugged in, not charging state.
 
-Run `acc --set chargingSwitch` (or `acc -s s` for short) to enforce a particular switch.
+- Some switches may be unreliable under certain conditions (e.g., screen off).
+- Others may hold a [wakelock](https://duckduckgo.com/?q=wakelock) - causing faster battery drain.
+- High CPU load and inability to reenable charging may also be experienced.
 
-Test default/set switch(es) with `acc --test`.
+In such situations, you have to find and enforce a switch that works as expected. Here's how to do it:
 
-Evaluate custom switches with `acc --test <file onValue offValue>`.
+1. Run `acc -test --` (or acc -t --) to see which switches work.
+2. Run `acc --set chargingSwitch` (or acc -s s) to enforce a working switch.
+3. Test the reliability of the set switch. If it doesn't work properly, try another one.
 
 
-### Charging Voltage Limit
+### Charging Voltage And Current Limits
 
-Unfortunately, not all devices/kernels support custom charging voltage limit.
+Unfortunately, not all devices/kernels support these features.
 Those that do are rare.
 Most OEMs don't care about that.
 
-The existence of a potential voltage control file doesn't necessarily mean it works.
+The existence of potential voltage/current control file doesn't necessarily mean the features are supported.
 
 
 ### Restore Default Config
@@ -460,7 +469,7 @@ battery/batt_tune_float_voltage (max: 4350)
 
 
 ---
-## Frequently Asked Questions (FAQ)
+## FREQUENTLY ASKED QUESTIONS (FAQ)
 
 
 - How do I report issues?
@@ -470,7 +479,7 @@ A: Open issues on GitHub or contact the developer on Telegram/XDA (linked below)
 
 - What's "battery idle" mode?
 
-A: That's a device's ability to draw power directly from an external power supply when charging is disabled or the battery is pulled out. The Motorola Moto G4 Play and many other smartphones can do that. You can run `acc --t --` to test yours.
+A: That's a device's ability to draw power directly from an external power supply when charging is disabled or the battery is pulled out. The Motorola Moto G4 Play and many other smartphones can do that. You can run `acc -t --` to test yours.
 
 
 - What's "cool down" capacity for?
@@ -502,6 +511,20 @@ A: First, never lose hope! Second, several systems don't have intuitive charging
 ---
 ## LATEST CHANGES
 
+**2019.7.3 (201907030)**
+- `--enable` and `--disable` options automatically stop accd
+- `acc -f` no longer hangs the shell (now runs as a daemon)
+- acc -u|--upgrade
+- Automatically export logs on [[ $exitCode == [12] ]]
+- Default loopDelay: 15 seconds
+- Enhanced efficiency and reliability
+- Major fixes & optimizations
+- Online installer uses `wget` over `curl`, and offline installer as back-end
+- prioritizeBattIdleMode=false (read the documentation's troubleshooting section for details)
+- Type less with acc -s <regexp> <value> (interactive)
+- Updated build.sh and documentation
+> Tip: push acc automation to the next level with the latest version of Daily Job Scheduler (djs).
+
 **2019.6.25 (201906250)**
 - Faster `acc -D|--daemon stop` (alias `accd.`)
 - Fixed config patching error
@@ -518,10 +541,3 @@ A: First, never lose hope! Second, several systems don't have intuitive charging
 - Striped down (for easier patching) and renamed config.txt --> acc.conf; comprehensive config information is in the README.md
 - Updated documentation: FAQ section and more
 - wakeUnlock is null by default
-
-**2019.6.20 (201906200)**
-- Additional charging control files
-- Enhanced daemon reliability
-- `install-current.sh` no longer requires absolute path
-- Updated documentation
-- wakeUnlock - auto-unlock select wakelocks after charging is disabled

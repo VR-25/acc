@@ -1,6 +1,6 @@
 #!/system/bin/sh
 # Advanced Charging Controller
-# Copyright (C) 2017-2019, VR25 @ xda-developers
+# Copyright (c) 2017-2019, VR25 (xda-developers.com)
 # License: GPLv3+
 
 
@@ -8,7 +8,7 @@ daemon() {
 
   local isRunning=true
   set +eo pipefail
-  local pid="$(pgrep -f '/acc -|/accd.sh' | sed s/$$//)"
+  local pid="$(pgrep -f '/acc (-|--)[def]|/accd.sh' | sed s/$$//)"
   set -eo pipefail
   [[ x$pid == *[0-9]* ]] || isRunning=false
 
@@ -16,22 +16,26 @@ daemon() {
     start)
       if $isRunning; then
         print_already_running
+        return 1
       else
         print_started
         set +x
         /sbin/accd
+        return 0
       fi
     ;;
     stop)
       if $isRunning; then
         set +eo pipefail
         echo "$pid" | xargs kill -9 2>/dev/null
-        ({ dumpsys battery reset
+        { dumpsys battery reset
         not_charging && enable_charging
-        set_charging_voltage -; } > /dev/null 2>&1 &) &
+        set_charging_voltage -; } > /dev/null 2>&1
         print_stopped
+        return 0
       else
         print_not_running
+        return 1
       fi
     ;;
     restart)
@@ -68,8 +72,19 @@ edit() {
 
 
 set_value() {
-  local var=$1
-  [ $var == s ] && var=chargingSwitch || :
+  local var=$1 PS3="- Which variable do you mean? "
+  if [ $var == s ]; then
+    var=chargingSwitch
+  else
+    if [ 0$(grep -Ec "$var.*=" $config) -ge 02 ]; then
+      eval 'select var in $(sed -n "/$var.*=/s/=.*//p" $config); do
+        var=$var
+        break
+      done'
+    else
+      var=$(sed -n "/$var.*=/s/=.*//p" $config)
+    fi
+  fi
   shift
   if grep -q "^$var=" $config; then
     sed -i "s|^$var=.*|$var=$*|" $config
@@ -88,9 +103,10 @@ set_values() {
     5960|endurance) set_value capacity 5,60,59-60;;
     4041|endurance+) set_value capacity 5,60,40-41;;
     r|reset)
+      daemon > /dev/null && daemonWasUp=true || daemonWasUp=false
       install -m 0777 $modPath/acc.conf $config
       print_config_reset
-      /sbin/accd
+      ! $daemonWasUp || /sbin/accd
       return 0
     ;;
     *)
@@ -206,7 +222,7 @@ enable_charging() {
       until [ $(( $(cat $batt/capacity) $(get_value capacityOffset) )) -ge ${1%\%} ]; do
         sleep $(get_value loopDelay)
       done
-      disable_charging
+      [ "${2:-x}" == --nodisable ] || disable_charging
     elif [[ $1 == *[smh] ]]; then
       print_ch_enabled_for $1
       echo
@@ -228,13 +244,6 @@ enable_charging() {
 
 
 get_value() { sed -n "s|^$1=||p" $config; }
-
-
-exxit() {
-  local exitCode=$?
-  echo
-  exit $exitCode
-}
 
 
 # acc <pause> <resume>
@@ -383,35 +392,46 @@ test_charging_switch() {
   local off=$(echo "$@" | awk '{print $3}')
   local file=$(echo "$@" | awk '{print $1}')
 
-  pgrep -f '/acc -|/accd.sh' | sed s/$$// | xargs kill -9 2>/dev/null
+  not_charging && enable_charging > /dev/null
 
   if not_charging; then
     print_unplugged
-    /sbin/accd
+    $daemonWasUp && /sbin/accd
     exit 2
   fi
 
   if [ -n "${1:-}" ]; then
-    chmod +w $file && echo $off > $file && sleep $(get_value chargingOnOffDelay) || :
-    if not_charging; then
+    chmod +w $file && echo $off > $file && sleep $(get_value chargingOnOffDelay)
+
+    grep -iq not $batt/status && battIdleMode=true || battIdleMode=false
+
+    if not_charging \
+      && echo $on > $file \
+      && sleep $(get_value chargingOnOffDelay) \
+      && ! not_charging
+    then
       print_file_works
-      grep -iq not $batt/status && echo "- battIdleMode=true" || echo "- battIdleMode=false"
-      echo $on > $file && sleep $(get_value chargingOnOffDelay)
+      echo "- battIdleMode=$battIdleMode"
       return 0
     else
       print_file_fails
       echo $on > $file
       return 1
     fi
+
   else
     disable_charging > /dev/null
-    if not_charging; then
+
+    if not_charging && enable_charging > /dev/null && ! not_charging; then
       print_supported
       return 0
     else
       print_unsupported
+      (enable_charging > /dev/null 2>&1 &) &
+
       return 1
     fi
+
   fi
 }
 
@@ -426,36 +446,31 @@ if echo "${1:-x}" | grep -Eq '\-x|\-\-xtrace'; then
 fi
 
 
+echo
 umask 0
-trap exxit EXIT
 set -euo pipefail
+trap 'e=$?; echo; exit $e' EXIT
 
 modPath=/sbin/.acc/acc
 config=/data/media/0/acc/acc.conf
 
-if [[ $PATH != */busybox* ]]; then
+if ! which busybox > /dev/null; then
   if [ -d /sbin/.magisk/busybox ]; then
     PATH=/sbin/.magisk/busybox:$PATH
   elif [ -d /sbin/.core/busybox ]; then
     PATH=/sbin/.core/busybox:$PATH
+  else
+    echo "(!) Install busybox binary first"
+    exit 1
   fi
 fi
 
+readmeSuffix=""
 device=$(getprop ro.product.device | grep .. || getprop ro.build.product)
 batt=$(echo /sys/class/power_supply/*attery/capacity | awk '{print $1}' | sed 's|/capacity||')
 
-# root check
-echo
-if ! ls /data/data > /dev/null 2>&1; then
-  echo "! su"
-  exit 1
-fi
-
-mkdir -p ${modPath%/*} ${config%/*}
-[ -f $config ] || install -m 0777 $modPath/acc.conf $config
-
 . $modPath/strings.sh
-readmeSuffix=""
+
 if [ -f $modPath/strings_$(get_value language).sh ]; then
   . $modPath/strings_$(get_value language).sh
   readmeSuffix=_$(get_value language)
@@ -467,22 +482,41 @@ if [ ! -f $modPath/module.prop ]; then
   exit 1
 fi
 
+mkdir -p ${config%/*}
 cd /sys/class/power_supply/
+
+if [ ! -f $config ]; then
+  cp $modPath/acc.conf $config
+  chmod -R 0777 ${config%/*}
+fi
+
 
 case ${1:-} in
   [0-9]*) set_capacity $@;;
   -c|--config) shift; edit $config $@;;
-  -d|--disable) shift; disable_charging $@;;
+
+  -d|--disable)
+    shift
+    daemon stop > /dev/null || :
+    set -eo pipefail
+    disable_charging $@
+  ;;
+
   -D|--daemon) shift; daemon $@;;
-  -e|--enable) shift; enable_charging $@;;
+
+  -e|--enable)
+    shift
+    daemon stop > /dev/null || :
+    set -eo pipefail
+    enable_charging $@
+  ;;
 
   -f|--force|--full)
-    set +eo pipefail
-    pgrep -f '/acc -|/accd.sh' | sed s/$$// | xargs kill -9 2>/dev/null
-    set_charging_voltage - > /dev/null
+    daemon stop > /dev/null && daemonWasUp=true daemonWasUp=false
     set -eo pipefail
-    enable_charging ${2:-100}%
-    /sbin/accd
+    print_ch_enabled_until ${2:-100}%
+    (enable_charging ${2:-100}% --nodisable > /dev/null 2>&1
+    ! $daemonWasUp || /sbin/.acc/acc/accd.sh &) &
   ;;
 
   -i|--info) sed s/POWER_SUPPLY_// $batt/uevent | sed "/^CAPACITY=/s/=.*/=$(( $(cat $batt/capacity) $(get_value capacityOffset) ))/";;
@@ -524,13 +558,17 @@ case ${1:-} in
 
   -t|--test)
     shift
+    daemon > /dev/null && daemonWasUp=true || daemonWasUp=false
     set +eo pipefail
+    pgrep -f '/acc (-|--)[def]|/accd.sh' | xargs kill -9 2>/dev/null
     if [ -z "${1:-}" ]; then
-      test_charging_switch $(get_value chargingSwitch)
+      test_charging_switch
     elif [ $1 == -- ]; then
       while IFS= read -r switch; do
         [ -f $(echo "$switch" | awk '{print $1}') ] && echo && test_charging_switch $switch
-        [[ $? == [02] ]] && exitCode=0
+        e=$?
+        [ $e -eq 0 ] && exitCode=0
+        [ -z "${exitCode:-}" ] && exitCode=$e
       done << SWITCHES
 $(grep -Ev '^#|^$' ${2:-$modPath/switches.txt})
 SWITCHES
@@ -540,8 +578,17 @@ SWITCHES
     fi
     exitCode_=$?
     [ -z "${exitCode:-}" ] && exitCode=$exitCode_
-    [[ $exitCode == [02] ]] && /sbin/accd
+    $daemonWasUp && /sbin/accd
+    [ $exitCode -eq 1 ] && (acc --log --export | grep -v '^$')
     exit $exitCode
+  ;;
+
+  -u|--upgrade)
+    wget https://raw.githubusercontent.com/VR-25/acc/${2:-master}/install-latest.sh \
+      --output-document ${modPath%/*}/install-latest.sh
+    trap - EXIT
+    set +euxo pipefail
+    sh ${modPath%/*}/install-latest.sh ${2:-master}
   ;;
 
   -v|--voltage) shift; set_charging_voltage $@;;

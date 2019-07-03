@@ -124,7 +124,7 @@ REPLACE="
 print_modname() {
   ui_print " "
   ui_print "$name $version"
-  ui_print "Copyright (C) 2017-2019, $author"
+  ui_print "Copyright (c) 2017-2019, $author"
   ui_print "License: GPLv3+"
   ui_print " "
 }
@@ -137,11 +137,11 @@ on_install() {
   #ui_print "- Extracting module files"
   #unzip -o "$ZIPFILE" 'system/*' -d $MODPATH >&2
 
-  $BOOTMODE && pgrep -f "/$MODID -|/${MODID}d.sh" | xargs kill -9 2>/dev/null
+  $BOOTMODE && pgrep -f "/$MODID (-|--)[def]|/${MODID}d.sh" | xargs kill -9 2>/dev/null
   set -euxo pipefail
   trap 'exxit $?' EXIT
 
-  config=/data/media/0/$MODID/acc.conf
+  config=/data/media/0/$MODID/${MODID}.conf
   [ -f $config ] || mv ${config%/*}/config.txt $config 2>/dev/null || :
   local configVer=$(print versionCode $config)
 
@@ -156,9 +156,18 @@ on_install() {
   # patch/upgrade config
   if [ -f $config ]; then
     if [ ${configVer:-0} -lt 201906230 ] \
-      || [ ${configVer:-0} -gt $(print versionCode $MODPATH/acc.conf) ]
+      || [ ${configVer:-0} -gt $(print versionCode $MODPATH/${MODID}.conf) ]
     then
       rm $config
+    else
+      if [ $configVer -lt 201906290 ]; then
+        echo prioritizeBattIdleMode=false >> $config
+        sed -i '/versionCode=/s/=.*/=201906290/' $config
+      fi
+      if [ $configVer -lt 201906300 ]; then
+        ! grep 'loopDelay=[0-14]' $config || sed -i '/^loopDelay=/s/=.*/=15/' $config
+        sed -i '/versionCode=/s/=.*/=201906300/' $config
+      fi
     fi
   fi
 
