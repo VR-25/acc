@@ -511,7 +511,11 @@ A: First, never lose hope! Second, several systems don't have intuitive charging
 ---
 ## LATEST CHANGES
 
-**2019.7.3 (201907030)**
+**2019.7.4-dev (201907040)**
+- Exclude charging switches with unknown values
+- Fixed `acc -s` and `acc -t --` issues
+
+**2019.7.3-dev (201907030)**
 - `--enable` and `--disable` options automatically stop accd
 - `acc -f` no longer hangs the shell (now runs as a daemon)
 - acc -u|--upgrade

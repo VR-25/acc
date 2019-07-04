@@ -76,15 +76,19 @@ set_value() {
   if [ $var == s ]; then
     var=chargingSwitch
   else
-    if [ 0$(grep -Ec "$var.*=" $config) -ge 02 ]; then
-      eval 'select var in $(sed -n "/$var.*=/s/=.*//p" $config); do
+    if grep -q "^$var=" $config; then
+      :
+    elif [ 0$(grep -Ec "$var.*=" $config) -ge 02 ]; then
+      eval 'select var in $(sed -n "/$var.*=/s/=.*//p" $config) "<EXIT>"; do
         var=$var
+        [ $var != "<EXIT>" ] || exit 0
         break
       done'
     else
       var=$(sed -n "/$var.*=/s/=.*//p" $config)
     fi
   fi
+  [ -n "$var" ] || var=$1
   shift
   if grep -q "^$var=" $config; then
     sed -i "s|^$var=.*|$var=$*|" $config
@@ -271,7 +275,7 @@ switch_loop() {
       fi
     fi
   done << SWITCHES
-$(grep -Ev '#|^$' $modPath/switches.txt)
+$(grep -Ev '#|^$' ${modPath%/*}/switches)
 SWITCHES
 }
 
@@ -381,7 +385,7 @@ ls_charging_switches() {
   while IFS= read -r file; do
     [ ! -f $(echo $file | awk '{print $1}') ] || echo $file
   done << SWITCHES
-$(grep -Ev '#|^$' $modPath/switches.txt)
+$(grep -Ev '#|^$' ${modPath%/*}/switches)
 SWITCHES
 }
 
@@ -570,7 +574,7 @@ case ${1:-} in
         [ $e -eq 0 ] && exitCode=0
         [ -z "${exitCode:-}" ] && exitCode=$e
       done << SWITCHES
-$(grep -Ev '^#|^$' ${2:-$modPath/switches.txt})
+$(grep -Ev '^#|^$' ${2:-${modPath%/*}/switches})
 SWITCHES
       echo
     else

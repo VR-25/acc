@@ -224,7 +224,7 @@ switch_loop() {
       fi
     fi
   done << SWITCHES
-$(grep -Ev '#|^$' $modPath/switches.txt)
+$(grep -Ev '#|^$' ${modPath%/*}/switches)
 SWITCHES
 }
 
