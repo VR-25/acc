@@ -130,7 +130,7 @@ print_no_modpath() {
 print_help() {
   cat << DELIMITADOR
 Advanced Charging Controller
-Copyright (C) 2017-2019, VR25 @ xda-developers
+Copyright (c) 2017-2019, VR25 (xda-developers.com)
 Licença: GPLv3+
 Versão: $(sed -n 's/versionCode=//p' $modPath/module.prop)
 
@@ -179,7 +179,7 @@ Uso: acc <opções> <argumentos>
 -s|--set   Show current config
   Exemplo: acc -s
 
-s|--set <r|reset>   Restaurar configuração padrão
+-s|--set <r|reset>   Restaurar configuração padrão
   Exemplo acc -s r
 
 -s|--set <var> <value>   Set config parameters (alternative: -s|--set <regexp> <value> (interactive))
@@ -215,10 +215,15 @@ s|--set <r|reset>   Restaurar configuração padrão
   Exit codes: 0 (works), 1 (doesn't work) or 2 (battery must be charging)
   e.g., acc -t -- /sdcard/experimental_switches.txt
 
--u|--upgrade <branch>   Upgrade to the latest "stable" ("master" branch, default) or "testing" ("dev" branch) version
+-u|--upgrade [-c|--changelog|-f|--force|-n|--non-interactive] [reference]   Upgrade/downgrade
   e.g.,
-    acc -u dev
-    acc -u (same as acc -u master)
+    acc -u dev (upgrade to the latest dev version)
+    acc -u (latest stable release)
+    acc -u master^1 -f (previous stable release)
+    acc -u -f dev^2 (two dev versions below the latest dev)
+    acc -u 201905110 --force (version 2019.5.11)
+
+-U|--uninstall
 
 -v|--voltage   Show current charging voltage
   e.g., acc -v

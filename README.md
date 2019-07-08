@@ -59,23 +59,22 @@ ACC is primarily intended for [extending battery service life](https://batteryun
 
 
 ---
-## BUILDING FROM SOURCE
+## BUILDING AND/OR INSTALLING FROM SOURCE
 
 
-Dependencies
+### Dependencies
 
 - git, wget or curl
 - zip
 
 
-Steps
+### Build for Magisk 18.2+
 
-1. Download the source code: `git clone https://github.com/VR-25/acc.git` or `wget  https://github.com/VR-25/acc/archive/master.tar.gz -O - | tar -xz` or `curl -L#  https://github.com/VR-25/acc/archive/master.tar.gz | tar -xz`
+1. Download the source code: `git clone https://github.com/VR-25/acc.git` or `wget  https://github.com/VR-25/acc/archive/$reference.tar.gz -O - | tar -xz` or `curl -L#  https://github.com/VR-25/acc/archive/$reference.tar.gz | tar -xz`
 2. `cd acc*`
 3. `sh build.sh` (or double-click `build.bat` on Windows 10, if you have Windows subsystem for Linux installed)
 
-
-Notes
+#### Notes
 
 - The output file is _builds/acc-$versionCode.zip.
 
@@ -83,7 +82,34 @@ Notes
 
 - To update the local repo, run `git pull -f`.
 
-- To install/upgrade straight from source, refer to the next section.
+
+### Install from Local Sources and GitHub
+
+- `sh install-tarball.sh` installs the tarball (acc*gz) sitting next to it. The archive must be downloaded from GitHub: https://github.com/VR-25/acc/archive/$reference.tar.gz
+
+- `sh install-current.sh` installs acc from the script's location.
+
+- `sh install-latest.sh [-c|--changelog|-f|--force|-n|--non-interactive] [%install dir%] [reference]` downloads and installs acc from GitHub. e.g., `sh install-latest.sh dev`
+
+#### Notes
+
+- `install-current.sh` and `install-tarball.sh` take an optional installation path argument (e.g., sh install-current.sh /data - this will install acc to /data/acc/).
+
+- `install-latest.sh` is a back-end to `acc --upgrade`.
+
+- The order of arguments doesn't matter.
+
+- The default installation paths, in order of priority, are: /data/data/mattecarra.accapp/files/, /sbin/.magisk/modules/, /sbin/.core/img/ and /data/adb/.
+
+- No argument/option is mandatory. The exception is `--non-interactive` for front-ends. Additionally, unofficially supported front-ends must specify the installation path.
+
+- Recall that unlike the other two installers, `install-latest.sh` requires the installation path to be enclosed in `%` (e.g., sh install-latest.sh %/data% --non-interactive).
+
+- The `--force` option is meant for reinstallation and downgrade.
+
+- `sh install-latest.sh --changelog --non-interactive` prints the version code (integer) and changelog URL (string) when an update is available. In interactive mode, it also asks the user whether they want to download and install the update.
+
+- You may want to take a look at `## NOTES/TIPS FOR FRONT-END DEVELOPERS > ### Exit Codes`, too.
 
 
 
@@ -95,14 +121,14 @@ Notes
 
 Install/upgrade: flash live (e.g., from Magisk Manager) or from custom recovery (e.g., TWRP).
 
-Uninstall: use Magisk Manager (app) or [Magisk Manager for Recovery Mode (utility)](https://github.com/VR-25/mm/).
+Uninstall: use Magisk Manager (app), [Magisk Manager for Recovery Mode (utility)](https://github.com/VR-25/mm/), or run `acc --uninstall`.
 
 
 ### Any Root Solution (Advanced)
 
-Install/upgrade: extract `acc-*.zip`, run `su`, then execute `sh /path/to/extracted/install-current.sh`.
+Install/upgrade: extract `acc-*.zip`, run `su`, then execute `sh /path/to/extracted/install-current.sh`. Refer to `## BUILDING AND/OR INSTALLING FROM SOURCE > ### Install from Local Sources and GitHub` for additional details.
 
-Uninstall: for Magisk install, use Magisk Manager (app); else, run `su -c rm -rf /data/adb/acc/`.
+Uninstall: run `acc --uninstall`.
 
 
 ### Notes
@@ -111,7 +137,7 @@ ACC supports live upgrades - meaning, rebooting after installing/upgrading is un
 
 The demon is automatically started ~30 seconds after installation.
 
-For non-Magisk install, `/data/adb/acc/acc-init.sh` must be executed on boot to initialize acc. Without this, acc commands won't work. Additionally, if your system lacks executables such as `awk` and `grep`, [busybox](https://duckduckgo.com/?q=busybox+android) or similar binary must be installed prior to installing acc.
+For non-Magisk install, `$installDir/acc/acc-init.sh` must be executed on `boot_completed` to initialize acc. Without this, acc commands won't work. Additionally, if your system lacks executables such as `awk` and `grep`, [busybox](https://duckduckgo.com/?q=busybox+android) binary must be installed prior to installing acc.
 
 
 
@@ -170,7 +196,7 @@ rebootOnUnplug=
 # Minimum charging on/off toggling interval (seconds)
 chargingOnOffDelay=1
 
-# English (en) and Portuguese (pt) are the main languages supported. Refer to the localization section below for all available languages and translation information.
+# English (en) and Portuguese (pt) are the main languages supported. Refer to the "## LOCALIZATION" section below for all available languages and translation information.
 language=en
 
 # Wakelocks to unlock after pausing charging (e.g., wakeUnlock=chg_wake_lock qcom_step_chg)
@@ -240,7 +266,7 @@ acc <option(s)> <arg(s)>
 -s|--set   Show current config
   e.g., acc -s
 
-s|--set <r|reset>   Restore default config
+-s|--set <r|reset>   Restore default config
   e.g., acc -s r
 
 -s|--set <var> <value>   Set config parameters (alternative: -s|--set <regexp> <value> (interactive))
@@ -276,10 +302,15 @@ s|--set <r|reset>   Restore default config
   Exit codes: 0 (works), 1 (doesn't work) or 2 (battery must be charging)
   e.g., acc -t -- /sdcard/experimental_switches.txt
 
--u|--upgrade <branch>   Upgrade to the latest "stable" ("master" branch, default) or "testing" ("dev" branch) version
+-u|--upgrade [-c|--changelog|-f|--force|-n|--non-interactive] [reference]   Upgrade/downgrade
   e.g.,
-    acc -u dev
-    acc -u (same as acc -u master)
+    acc -u dev (upgrade to the latest dev version)
+    acc -u (latest stable release)
+    acc -u master^1 -f (previous stable release)
+    acc -u -f dev^2 (two dev versions below the latest dev)
+    acc -u 201905110 --force (version 2019.5.11)
+
+-U|--uninstall
 
 -v|--voltage   Show current charging voltage
   e.g., acc -v
@@ -340,7 +371,25 @@ which acc > /dev/null
 
 ### Offline ACC Install
 
-Refer to [SETUP > Any Root Solution (Advanced)](https://github.com/VR-25/acc/tree/master#any-root-solution-advanced) and [SETUP > Notes ](https://github.com/VR-25/acc/tree/master#notes).
+Refer to `## SETUP > ### Any Root Solution (Advanced)` and `## SETUP > ### Notes`.
+
+
+### Officially Supported Front-ends
+
+- ACC App (installDir=/data/data/mattecarra.accapp/files/acc/)
+
+
+### Exit Codes
+
+0. True or success
+1. False or general failure
+2. Incorrect command usage, or battery must be charging (acc --test)
+3. Missing busybox binary
+4. Not root
+5. Update available
+6. No update available
+7. Installation path not found
+8. Daemon already running or not running (acc --daemon start|stop)
 
 
 
@@ -358,7 +407,7 @@ However, things don't always go well.
 
 - Some switches may be unreliable under certain conditions (e.g., screen off).
 - Others may hold a [wakelock](https://duckduckgo.com/?q=wakelock) - causing faster battery drain.
-- High CPU load and inability to reenable charging may also be experienced.
+- High CPU load and inability to re-enable charging may also be experienced.
 
 In such situations, you have to find and enforce a switch that works as expected. Here's how to do it:
 
@@ -373,7 +422,7 @@ Unfortunately, not all devices/kernels support these features.
 Those that do are rare.
 Most OEMs don't care about that.
 
-The existence of potential voltage/current control file doesn't necessarily mean the features are supported.
+The existence of potential voltage/current control file doesn't necessarily mean these features are supported.
 
 
 ### Restore Default Config
@@ -411,7 +460,7 @@ Privacy Notes
 
 Example
 - Name: `user .`
-- Email: `myemail@iscool.com`
+- Email: `myEmail@isCool.com`
 
 
 See current submissions [here](https://www.dropbox.com/sh/rolzxvqxtdkfvfa/AABceZM3BBUHUykBqOW-0DYIa?dl=0).
@@ -441,6 +490,8 @@ Translation Notes
 Control the max USB input current: `applyOnPlug=usb/current_max:MICRO_AMPS` (e.g., 1000000, that's 1A)
 
 Force fast charge: `applyOnBoot=/sys/kernel/fast_charge/force_fast_charge:1`
+
+Use voltage control file as charging switch file: `chagingSwitch=FILE DEFAULT_VOLTAGE STOP_VOLTAGE`
 
 
 ### Google Pixel Family
@@ -510,6 +561,16 @@ A: First, never lose hope! Second, several systems don't have intuitive charging
 
 ---
 ## LATEST CHANGES
+
+**2019.7.8-dev (201907080)**
+- `acc -U|--uninstall`
+- `acc -u|--upgrade [-c|--changelog|-f|--force|-n|--non-interactive] [reference]`: upgrade/downgrade
+- Backlisted switch `/sys/power/pnpmgr/battery/charging_enabled 1 0`
+- Enhanced efficiency and reliability
+- Formalized exit codes
+- Major optimizations
+- Source tarball installer (can be bundled into apps, along with acc*gz)
+- Updated documentation and "installers"
 
 **2019.7.4-dev (201907040)**
 - Exclude charging switches with unknown values

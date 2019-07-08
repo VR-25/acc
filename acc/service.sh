@@ -10,14 +10,14 @@ if ! which busybox > /dev/null; then
   elif [ -d /sbin/.core/busybox ]; then
     PATH=/sbin/.core/busybox:$PATH
   else
-    exit 1
+    exit 3
   fi
 fi
 
 modId=$(sed -n 's/^id=//p' ${0%/*}/module.prop)
 
 # prepare working directory
-([ -d /sbin/.$modId ] && [ ${1:-x} != --override ] && exit 0
+([ -d /sbin/.$modId ] && [[ ${1:-x} != -*o* ]] && exit 0
 if ! mount -o remount,rw /sbin 2>/dev/null; then
   cp -a /sbin /dev/.sbin
   mount -o bind,rw /dev/.sbin /sbin

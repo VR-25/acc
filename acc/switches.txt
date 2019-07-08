@@ -3,7 +3,7 @@
 # License: GPLv3+
 #
 # PWD=/sys/class/power_supply
-# Last updated: Sun, Jun 23, 2019
+# Last updated: Thu, Jul 4, 2019
 
 battery/charger_control 1 0
 battery/charge_disable 0 1
@@ -44,7 +44,6 @@ dc/input_suspend 0 1
 /sys/devices/platform/*/*/*/charging_state enabled disabled
 /sys/class/hw_power/charger/charge_data/enable_charger 1 0
 /sys/devices/platform/omap/omap_i2c.?/i2c-?/?-00??/charge_enable 1 0
-/sys/power/pnpmgr/battery/charging_enabled 1 0
 /sys/devices/soc/soc:lge,cable_detect/lge_power/lge_cable_detect/charging_enabled 1 0
 /sys/devices/soc/soc:lge,charging_controller/lge_power/lge_cc/charging_enabled 1 0
 /sys/devices/qpnp-charger-*/power_supply/battery/charging_enabled 1 0
@@ -77,3 +76,6 @@ dc/input_suspend 0 1
 # advanced
 #applyOnBoot=battery/charge_control_limit_max:16 AND chargingSwitch=battery/charge_control_limit 0 1
 #applyOnBoot=/sys/class/qcom-battery/restricted_current:0 AND chargingSwitch=/sys/class/qcom-battery/restricted_charging 0 1
+
+# troublesome
+#/sys/power/pnpmgr/battery/charging_enabled 1 0

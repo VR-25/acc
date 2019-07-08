@@ -11,6 +11,16 @@ if ! which busybox > /dev/null; then
   fi
 fi
 
-pgrep -f '/acc (-|--)[def]|/accd.sh' | xargs kill 2>/dev/null
+if [ $(id -u) -ne 0 ]; then
+  echo "(!) $0 must run as root (su)"
+  exit 4
+fi
+
+id=acc
 set -e
-rm -rf $(readlink -f ${0%/*})
+[ -f $PWD/${0##*/} ] || cd ${0%/*}
+[ -d $id/${id}-init.sh ] && exit 0
+tar -xf ${id}*gz
+export installDir0="$1"
+sh ${id}-*/install-current.sh
+rm -rf ${id}-*/

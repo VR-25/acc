@@ -14,13 +14,13 @@ if ! which busybox > /dev/null; then
     PATH=/sbin/.core/busybox:$PATH
   else
     echo "(!) Install busybox binary first"
-    exit 1
+    exit 3
   fi
 fi
 
 if [ $(id -u) -ne 0 ]; then
   echo "(!) $0 must run as root (su)"
-  exit 1
+  exit 4
 fi
 
 print() { sed -n "s|^$1=||p" ${2:-$srcDir/module.prop}; }
@@ -34,11 +34,12 @@ name=$(print name)
 author=$(print author)
 version=$(print version)
 versionCode=$(print versionCode)
-installDir=/sbin/.magisk/modules
+installDir=${installDir0:-/data/data/mattecarra.accapp/files}
 config=/data/media/0/$modId/${modId}.conf
 [ -f $config ] || mv ${config%/*}/config.txt $config 2>/dev/null || :
 configVer=$(print versionCode $config 2>/dev/null || :)
 
+[ -d $installDir ] || installDir=/sbin/.magisk/modules
 [ -d $installDir ] || installDir=/sbin/.core/img
 [ -d $installDir ] || installDir=/data/adb
 [ -d $installDir ] || { echo "(!) /data/adb/ not found\n"; exit 1; }
@@ -54,7 +55,7 @@ CAT
 
 (pgrep -f "/$modId (-|--)[def]|/${modId}d.sh" | xargs kill -9 2>/dev/null) || :
 
-rm -rf $installDir/${modId:-_PLACEHOLDER_} 2>/dev/null
+rm -rf $(readlink -f /sbin/.$modId/$modId) 2>/dev/null || :
 cp -R $srcDir/$modId/ $installDir/
 installDir=$installDir/$modId
 cp $srcDir/module.prop $installDir/
@@ -62,15 +63,13 @@ cp $srcDir/module.prop $installDir/
 mkdir -p ${config%/*}/info
 cp -f $srcDir/*.md ${config%/*}/info
 
-if [ $installDir == /data/adb ]; then
-  mv $installDir/service.sh $installDir/${modId}-init.sh
-else
-  ln $installDir/service.sh $installDir/post-fs-data.sh
-  if [ $installDir == /sbin/.core/img ]; then
-    sed -i s/\.magisk/\.core/ $installDir/${modId}.sh
-    sed -i s/\.magisk/\.core/ $installDir/${modId}d.sh
-  fi
-fi
+case $installDir in
+  /data/adb|${installDir0:-/data/data/mattecarra.accapp/files})
+    mv $installDir/service.sh $installDir/${modId}-init.sh;;
+  *)
+    ln $installDir/service.sh $installDir/post-fs-data.sh;;
+esac
+
 chmod -R 0600 $installDir
 chmod 0700 $installDir/*.sh
 

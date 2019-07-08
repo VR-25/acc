@@ -137,6 +137,8 @@ on_install() {
   #ui_print "- Extracting module files"
   #unzip -o "$ZIPFILE" 'system/*' -d $MODPATH >&2
 
+  [ -d /data/data/mattecarra.accapp/files/acc ] && cancel "(!) Upgrade within ACC App or run acc --upgrade"
+
   $BOOTMODE && pgrep -f "/$MODID (-|--)[def]|/${MODID}d.sh" | xargs kill -9 2>/dev/null
   set -euxo pipefail
   trap 'exxit $?' EXIT

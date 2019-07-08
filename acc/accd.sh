@@ -9,7 +9,7 @@ exxit() {
   set +euxo pipefail
   trap - EXIT
   { dumpsys battery reset
-  enable_charging
+  enable_charging --override
   /sbin/acc --voltage -; } > /dev/null 2>&1
   [ -n "$1" ] && echo -e "$2" && exitCode=$1
   echo "***EXIT $exitCode***"
@@ -111,7 +111,7 @@ disable_charging() {
 
 enable_charging() {
   local file="" value=""
-  if ! is_charging; then
+  if ! is_charging && { acpi -a | grep -iq on-line || [ ${1:-x} == --override ]; }; then
     if [[ x$(get_value chargingSwitch) == */* ]]; then
       file=$(echo $(get_value chargingSwitch) | awk '{print $1}')
       value=$(get_value chargingSwitch | awk '{print $2}')
@@ -239,7 +239,7 @@ config=/data/media/0/$modId/${modId}.conf
 
 if [ ! -f $modPath/module.prop ]; then
   touch /dev/${modId}-modpath-not-found
-  exit 1
+  exit 7
 fi
 
 if ! which busybox > /dev/null; then
@@ -249,7 +249,7 @@ if ! which busybox > /dev/null; then
     PATH=/sbin/.core/busybox:$PATH
   else
     touch $modPath/busybox-not-found
-    exit 1
+    exit 3
   fi
 fi
 

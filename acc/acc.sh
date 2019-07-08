@@ -16,7 +16,7 @@ daemon() {
     start)
       if $isRunning; then
         print_already_running
-        return 1
+        return 8
       else
         print_started
         set +x
@@ -35,7 +35,7 @@ daemon() {
         return 0
       else
         print_not_running
-        return 1
+        return 8
       fi
     ;;
     restart)
@@ -465,7 +465,7 @@ if ! which busybox > /dev/null; then
     PATH=/sbin/.core/busybox:$PATH
   else
     echo "(!) Install busybox binary first"
-    exit 1
+    exit 3
   fi
 fi
 
@@ -483,7 +483,7 @@ fi
 
 if [ ! -f $modPath/module.prop ]; then
   print_no_modpath
-  exit 1
+  exit 7
 fi
 
 mkdir -p ${config%/*}
@@ -588,11 +588,22 @@ SWITCHES
   ;;
 
   -u|--upgrade)
-    wget https://raw.githubusercontent.com/VR-25/acc/${2:-master}/install-latest.sh \
+    local reference="$(echo "$*" | sed -E 's/-c|--changelog|-f|--force|-n|--non-interactive| //g')"
+    case ${reference:-x} in
+      dev|master) :;;
+      *) reference=master;;
+    esac
+    shift
+    wget https://raw.githubusercontent.com/VR-25/acc/$reference/install-latest.sh \
       --output-document ${modPath%/*}/install-latest.sh
     trap - EXIT
     set +euxo pipefail
-    sh ${modPath%/*}/install-latest.sh ${2:-master}
+    sh ${modPath%/*}/install-latest.sh $@
+  ;;
+
+  -U|--uninstall)
+    set +euo pipefail
+    $modPath/uninstall.sh
   ;;
 
   -v|--voltage) shift; set_charging_voltage $@;;
