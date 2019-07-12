@@ -138,9 +138,9 @@ Copyright (c) 2017-2019, VR25 (xda-developers.com)
 License: GPLv3+
 Version code: $(sed -n 's/versionCode=//p' $modPath/module.prop)
 
-Usage: acc <option(s)> <arg(s)>
+Usage: acc <-x|--xtrace> <option(s)> <arg(s)>
 
--c|--config <editor [opts]>   Edit config w/ <editor [opts]> (default: vim|vi)
+-c|--config <editor [opts]>   Edit config w/ <editor [opts]> (default: nano|vim|vi)
   e.g., acc -c
 
 -d|--disable <#%, #s, #m or #h (optional)>   Disable charging (with or without <condition>)
@@ -165,13 +165,13 @@ Usage: acc <option(s)> <arg(s)>
 -i|--info   Show power supply info
   e.g., acc -i
 
+-l|--log <-a|--acc> <editor [opts]>   Open accd log (default) or acc log (-a) w/ <editor [opts]> (default: nano|vim|vi)
+  e.g., acc -l grep ': ' (show explicit errors only)
+
 -l|--log -e|--export   Export all logs to /sdcard/acc-logs-<device>.tar.bz2
   e.g., acc -l -e
 
--l|--log <editor [opts]>   Open <acc-daemon-deviceName.log> w/ <editor [opts]> (default: vim|vi)
-  e.g., acc -l grep ': ' (show explicit errors only)
-
--L|--logwatch   Monitor log
+-L|--logwatch   Monitor accd log in realtime
   e.g., acc -L
 
 -r|--readme   Open <README.md> w/ <editor [opts]> (default: vim|vi)
@@ -244,8 +244,11 @@ Usage: acc <option(s)> <arg(s)>
 -v|--voltage <file:millivolts>   Set charging voltage limit (custom ctrl file)
   e.g., acc -v battery/voltage_max:4100
 
--x|--xtrace <other option(s)>   Run under set -x (debugging)
-  acc -x -i
+-V|--version   Show acc version code
+  e.g., acc -V
+
+-x|--xtrace   Run in debug mode (verbose enabled)
+  e.g., acc -x -t --
 
 Tips
 

@@ -14,7 +14,8 @@ if ! which busybox > /dev/null; then
   fi
 fi
 
-modId=$(sed -n 's/^id=//p' ${0%/*}/module.prop)
+[ -f $PWD/${0##*/} ] && modPath=$PWD || modPath=${0%/*}
+modId=$(sed -n 's/^id=//p' $modPath/module.prop)
 
 # prepare working directory
 ([ -d /sbin/.$modId ] && [[ ${1:-x} != -*o* ]] && exit 0
@@ -26,15 +27,15 @@ mkdir -p /sbin/.$modId
 [ -h /sbin/.$modId/$modId ] && rm /sbin/.$modId/$modId \
   || rm -rf /sbin/.$modId/$modId 2>/dev/null
 [ ${MAGISK_VER_CODE:-18200} -gt 18100 ] \
-  && ln -s ${0%/*} /sbin/.$modId/$modId \
-  || cp -a ${0%/*} /sbin/.$modId/$modId
+  && ln -s $modPath /sbin/.$modId/$modId \
+  || cp -a $modPath /sbin/.$modId/$modId
 ln -fs /sbin/.$modId/$modId/$modId.sh /sbin/$modId
 ln -fs /sbin/.$modId/$modId/${modId}d-start.sh /sbin/${modId}d
 ln -fs /sbin/.$modId/$modId/${modId}d-status.sh /sbin/${modId}d,
 ln -fs /sbin/.$modId/$modId/${modId}d-stop.sh /sbin/${modId}d.
 
 # generate power supply log
-${0%/*}/psl.sh $(sed -n s/versionCode=//p ${0%/*}/module.prop) &
+$modPath/psl.sh $(sed -n s/versionCode=//p $modPath/module.prop) &
 
 # fix termux's PATH
 termuxSu=/data/data/com.termux/files/usr/bin/su
@@ -58,7 +59,7 @@ while IFS= read -r file; do
     fi > /dev/null 2>&1
   fi
 done << SWITCHES
-$(grep -Ev '#|^$' ${0%/*}/switches.txt)
+$(grep -Ev '#|^$' $modPath/switches.txt)
 SWITCHES
 )
 
@@ -66,6 +67,6 @@ SWITCHES
 sleep 30
 unset file termuxSu
 kill -9 $(pgrep -f /psl.sh) 2>/dev/null
-${0%/*}/${modId}d.sh &) &
+$modPath/${modId}d.sh &) &
 
 exit 0

@@ -66,7 +66,7 @@ edit() {
   if [ -n "${1:-}" ]; then
     $@ $file
   else
-    vim $file 2>/dev/null || vi $file
+    nano $file 2>/dev/null || vim $file 2>/dev/null || vi $file
   fi
 }
 
@@ -108,7 +108,7 @@ set_values() {
     4041|endurance+) set_value capacity 5,60,40-41;;
     r|reset)
       daemon > /dev/null && daemonWasUp=true || daemonWasUp=false
-      install -m 0777 $modPath/acc.conf $config
+      cp $defaultConfig $config
       print_config_reset
       ! $daemonWasUp || /sbin/accd
       return 0
@@ -140,8 +140,8 @@ $(print_choice_prompt)"
   print_supported_cs
   echo
   eval 'select chargingSwitch in $(print_auto) $(ls_charging_switches) $(print_exit); do
-    [ ${chargingSwitch:-x} == $(print_exit) ] && exit 0
-    [ ${chargingSwitch:-x} == $(print_auto) ] && set_values s- > /dev/null && exit 0
+    [ ${chargingSwitch:-x} != $(print_exit) ] || exit 0
+    [ ${chargingSwitch:-x} == $(print_auto) ] && set_values chargingSwitch- > /dev/null && exit 0 || :
     set_value chargingSwitch "$chargingSwitch"
     break
   done'
@@ -172,7 +172,7 @@ disable_charging() {
       print_ch_disabled_until $1
       echo
       until [ $(( $(cat $batt/capacity) $(get_value capacityOffset) )) -le ${1%\%} ]; do
-        sleep $(get_value loopDelay)
+        sleep $(get_value loopDelay | cut -d, -f2)
       done
       enable_charging
     elif [[ $1 == *[smh] ]]; then
@@ -224,7 +224,7 @@ enable_charging() {
      print_ch_enabled_until $1
       echo
       until [ $(( $(cat $batt/capacity) $(get_value capacityOffset) )) -ge ${1%\%} ]; do
-        sleep $(get_value loopDelay)
+        sleep $(get_value loopDelay | cut -d, -f1)
       done
       [ "${2:-x}" == --nodisable ] || disable_charging
     elif [[ $1 == *[smh] ]]; then
@@ -247,7 +247,7 @@ enable_charging() {
 }
 
 
-get_value() { sed -n "s|^$1=||p" $config; }
+get_value() { sed -n "s|^$1=||p" ${2:-$config}; }
 
 
 # acc <pause> <resume>
@@ -289,11 +289,11 @@ set_charging_voltage() {
   local oValue=""
   file=${file%:*}
 
-  if echo ${1:-} | grep -q '^[34]' && [ $1 -ge 3920 ] && [ $1 -le 4349 ] ; then
+  if echo ${1:-} | grep -q '^[34]' && [ $1 -ge 3500 ] && [ $1 -le 4350 ] ; then
     setVoltage=true
     value=$1
     [ -f ${file:-x} ] || v_ctrl_files_prompt $value
-  elif echo ${1:-} | grep -q ':[34]' && [ ${1##*:} -ge 3920 ] && [ ${1##*:} -le 4349 ]; then
+  elif echo ${1:-} | grep -q ':[34]' && [ ${1##*:} -ge 3500 ] && [ ${1##*:} -le 4350 ]; then
     setVoltage=true
     value=${1##*:}
     [[ $1 == */* ]] && file=$(echo ${1%:*}) || v_ctrl_files_prompt $value
@@ -352,7 +352,7 @@ set_charging_voltage() {
 
 ls_voltage_ctrl_files() {
   cat -v ${modPath%/*}/acc-power_supply-*.log \
-    | grep -E '/constant_charge_voltage$|/voltage_max$|/batt_tune_float_voltage$' \
+    | grep -E '/BatterySenseVoltage$|/ChargerVoltage$|/ADC_Charger_Voltage$|/ISenseVoltage$|/batt_vol$|/InstatVolt$|/constant_charge_voltage$|/voltage_max$|/batt_tune_float_voltage$' \
     | sed -e 's|^.*power_supply/||' -e 's/$/\n/'
 }
 
@@ -365,7 +365,7 @@ $(print_choice_prompt)"
   echo
   eval 'select file in $(ls_voltage_ctrl_files) $(print_exit); do
     echo
-    [ ${file:-x} == $(print_exit) ] && exit 0
+    [ ${file:-x} != $(print_exit) ] || exit 0
     set_charging_voltage $file:$1 && success=true || :
     if $success; then
       echo
@@ -443,20 +443,24 @@ test_charging_switch() {
 not_charging() { grep -Eiq 'dis|not' $batt/status; }
 
 
-if echo "${1:-x}" | grep -Eq '\-x|\-\-xtrace'; then
-  # run in debug mode
-  shift
-  set -x
-fi
+exxit() {
+  local exitCode=$?
+  echo
+  # config backup
+  [ /data/media/0/.acc-config-backup.txt -nt $config ] \
+    || cp $config /data/media/0/.acc-config-backup.txt 2>/dev/null 2>&1 || :
+  exit $exitCode
+}
 
 
 echo
 umask 0
 set -euo pipefail
-trap 'e=$?; echo; exit $e' EXIT
+trap exxit EXIT
 
 modPath=/sbin/.acc/acc
-config=/data/media/0/acc/acc.conf
+config=/data/adb/acc-data/config.txt
+defaultConfig=$modPath/default-config.txt
 
 if ! which busybox > /dev/null; then
   if [ -d /sbin/.magisk/busybox ]; then
@@ -471,6 +475,15 @@ fi
 
 readmeSuffix=""
 device=$(getprop ro.product.device | grep .. || getprop ro.build.product)
+log=${modPath%/*}/acc-${device}.log
+
+# verbose
+if [[ ${1:-x} == -*x* ]]; then
+  shift
+  [ $(du $log | awk '{print $1}') -lt 50 ] || : > $log
+  set -x 2>>$log
+fi
+
 batt=$(echo /sys/class/power_supply/*attery/capacity | awk '{print $1}' | sed 's|/capacity||')
 
 . $modPath/strings.sh
@@ -488,11 +501,7 @@ fi
 
 mkdir -p ${config%/*}
 cd /sys/class/power_supply/
-
-if [ ! -f $config ]; then
-  cp $modPath/acc.conf $config
-  chmod -R 0777 ${config%/*}
-fi
+[ -f $config ] || cp $modPath/default-config.txt $config
 
 
 case ${1:-} in
@@ -536,15 +545,19 @@ case ${1:-} in
         [ -f $file ] && cp $file ./ && break
       done
       cp $config ./
-      tar -c acc.conf *.log *.txt magisk.log 2>/dev/null | bzip2 -9 > /data/media/0/acc-logs-$device.tar.bz2
-      rm *.txt magisk.log acc.conf 2>/dev/null
+      tar -c *.log *.txt magisk.log 2>/dev/null | bzip2 -9 > /data/media/0/acc-logs-$device.tar.bz2
+      rm *.txt magisk.log 2>/dev/null
       echo "(i) /sdcard/acc-logs-$device.tar.bz2"
     else
-      edit ${modPath%/*}/acc-daemon-*.log $@
+      if [[ "${1:-x}" == -*a* ]]; then
+        edit ${modPath%/*}/acc-*.log $@
+      else
+        edit ${modPath%/*}/accd-*.log $@
+      fi
     fi
   ;;
 
-  -L|--logwatch) tail -F ${modPath%/*}/acc-daemon-*.log;;
+  -L|--logwatch) tail -F ${modPath%/*}/accd-*.log;;
 
   -p|--preset)
     shift
@@ -607,6 +620,9 @@ SWITCHES
   ;;
 
   -v|--voltage) shift; set_charging_voltage $@;;
+  -V|--version) get_value versionCode $modPath/module.prop;;
   *) print_help;;
+
 esac
-exit $?
+
+exit 0

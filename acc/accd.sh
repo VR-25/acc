@@ -9,11 +9,11 @@ exxit() {
   set +euxo pipefail
   trap - EXIT
   { dumpsys battery reset
-  enable_charging --override
-  /sbin/acc --voltage -; } > /dev/null 2>&1
+  enable_charging
+  (/sbin/acc --voltage -); } > /dev/null 2>&1
   [ -n "$1" ] && echo -e "$2" && exitCode=$1
   echo "***EXIT $exitCode***"
-  [[ $exitCode == [12] ]] && /sbin/acc --log --export > /dev/null 2>&1
+  [[ $exitCode == [12] ]] && (/sbin/acc --log --export > /dev/null 2>&1)
   exit $exitCode
 }
 
@@ -28,7 +28,7 @@ is_charging() {
   grep -Eiq 'dis|not' $batt/status && isCharging=false || :
 
   if $isCharging; then
-    unplugged=false
+    $coolDown || resetBsOnUnplug=true
     secondsUnplugged=0
     # applyOnPlug
     for file in $(get_value applyOnPlug); do
@@ -38,33 +38,19 @@ is_charging() {
     done
   else
     # resetBsOnUnplug
-    if ! $unplugged && ! $coolDown && eval $(get_value resetBsOnUnplug); then
-      sleep $(get_value loopDelay)
+    if $resetBsOnUnplug && eval $(get_value resetBsOnUnplug); then
+      sleep $(get_value loopDelay | cut -d, -f2)
       if grep -iq dis $batt/status; then
         dumpsys batterystats --reset > /dev/null 2>&1 || :
         rm /data/system/batterystats* 2>/dev/null || :
+        resetBsOnUnplug=false
       fi
-    fi
-    # rebootOnUnplug
-    if ! $unplugged && [[ x$(get_value rebootOnUnplug) == x[0-9]* ]]; then
-      sleep $(get_value rebootOnUnplug)
-      ! grep -iq dis $batt/status || reboot
-    fi
-    unplugged=true
-    # wakeUnlock
-    # won't run under coolDown nor "battery idle" mode ("not charging" status)
-    if grep -iq dis $batt/status && ! $coolDown; then
-      for wakelock in $(get_value wakeUnlock); do
-        echo $wakelock > /sys/power/wake_unlock
-      done
     fi
     # dynamic power saving
     if ! $coolDown; then
-      secondsUnplugged=$(( secondsUnplugged + $(get_value loopDelay) ))
-      if [ $secondsUnplugged -ge 30 ]; then
-        sleep $secondsUnplugged
-      fi
-      [ $secondsUnplugged -ge 60 ] && secondsUnplugged=$(get_value loopDelay) || :
+      secondsUnplugged=$(( secondsUnplugged + $(get_value loopDelay | cut -d, -f2) ))
+      sleep $secondsUnplugged
+      [ $secondsUnplugged -lt 60 ] || secondsUnplugged=0
     else
       secondsUnplugged=0
     fi
@@ -76,11 +62,9 @@ is_charging() {
     dumpsys battery set level $(cat $batt/capacity) || :
   fi > /dev/null 2>&1
 
-  # clear "rebooted on pause" flag
-  [ $(( $(cat $batt/capacity) $(get_value capacityOffset) )) -le $(get_value capacity | cut -d, -f3 | cut -d- -f1) ] \
-    && rm ${config%/*}/.rebootedOnPause 2>/dev/null || :
+  # log cleanup
+  [ $(du -m $log | awk '{print $1}') -lt 2 ] || : > $log
 
-  [ $(du -m $log | awk '{print $1}') -gt 1 ] && : > $log || :
   $isCharging && return 0 || return 1
 }
 
@@ -111,7 +95,7 @@ disable_charging() {
 
 enable_charging() {
   local file="" value=""
-  if ! is_charging && { acpi -a | grep -iq on-line || [ ${1:-x} == --override ]; }; then
+  if ! is_charging; then
     if [[ x$(get_value chargingSwitch) == */* ]]; then
       file=$(echo $(get_value chargingSwitch) | awk '{print $1}')
       value=$(get_value chargingSwitch | awk '{print $2}')
@@ -135,7 +119,7 @@ ctrl_charging() {
   while :; do
 
     if is_charging; then
-      # disable charging & clear battery stats if conditions apply
+      # disable charging & reset battery stats under <conditions>
       if [ $(( $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) / 10 )) -ge $(get_value temperature | cut -d- -f2 | cut -d_ -f1) ] \
         || [ $(( $(cat $batt/capacity) $(get_value capacityOffset) )) -ge $(get_value capacity | cut -d, -f3 | cut -d- -f2) ]
       then
@@ -148,9 +132,17 @@ ctrl_charging() {
         # rebootOnPause
         sleep $(get_value rebootOnPause) 2>/dev/null \
           && [ $(( $(cat $batt/capacity) $(get_value capacityOffset) )) -ge $(get_value capacity | cut -d, -f3 | cut -d- -f2) ] \
-            && [ ! -f ${config%/*}/.rebootedOnPause ] \
-              && touch ${config%/*}/.rebootedOnPause \
-               && reboot || :
+          && [ ! -f ${config%/*}/.rebootedOnPause ] \
+          && touch ${config%/*}/.rebootedOnPause \
+          && reboot || :
+        # wakeUnlock
+        # won't run under "battery idle" mode ("not charging" status)
+        if grep -iq dis $batt/status && ! $coolDown; then
+          chmod +w /sys/power/wake_unlock || :
+          for wakelock in $(get_value wakeUnlock); do
+            echo $wakelock > /sys/power/wake_unlock || :
+          done
+        fi
       fi
 
       # cool down
@@ -167,10 +159,10 @@ ctrl_charging() {
           enable_charging
           count=0
           while [ $count -lt $(get_value coolDownRatio | cut -d/ -f1) ]; do
-            sleep $(get_value loopDelay)
+            sleep $(get_value loopDelay | cut -d, -f1)
             [ $(( $(cat $batt/capacity) $(get_value capacityOffset) )) -lt $(get_value capacity | cut -d, -f3 | cut -d- -f2) ] \
               && [ $(( $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) / 10 )) -lt $(get_value temperature | cut -d- -f2 | cut -d_ -f1) ] \
-                && count=$((count + $(get_value loopDelay))) || break
+              && count=$(( count + $(get_value loopDelay | cut -d, -f1) )) || break
           done
         else
           break
@@ -179,11 +171,12 @@ ctrl_charging() {
       coolDown=false
 
     else
-      # enable charging if conditions apply
+      # enable charging under <conditions>
       if [ $(( $(cat $batt/capacity) $(get_value capacityOffset) )) -le $(get_value capacity | cut -d, -f3 | cut -d- -f1) ] \
         && [ $(( $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) / 10 )) -lt $(get_value temperature | cut -d- -f2 | cut -d_ -f1) ]
       then
         enable_charging
+        rm ${config%/*}/.rebootedOnPause 2>/dev/null || :
       fi
       # auto-shutdown if battery is not charging and capacity is less than <shutdownCapacity>
       if ! is_charging && [ $(( $(cat $batt/capacity) $(get_value capacityOffset) )) -le $(get_value capacity | cut -d, -f1) ]; then
@@ -191,7 +184,7 @@ ctrl_charging() {
       fi
     fi
 
-    sleep $(get_value loopDelay)
+    sleep $(get_value loopDelay | cut -d, -f2)
   done
 }
 
@@ -203,7 +196,7 @@ apply_on_boot() {
     file=${file%:*}
     [ -f $file ] && chmod +w $file && echo $value > $file || :
   done
-  [[ "x$(get_value applyOnBoot)" == *--exit ]] && exit 0 || :
+  [[ "x$(get_value applyOnBoot)" != *--exit ]] || exit 0
 }
 
 
@@ -230,15 +223,14 @@ SWITCHES
 
 
 umask 0
-modId=acc
 coolDown=false
-unplugged=true
 secondsUnplugged=0
-modPath=/sbin/.$modId/$modId
-config=/data/media/0/$modId/${modId}.conf
+resetBsOnUnplug=false
+modPath=/sbin/.acc/acc
+config=/data/adb/acc-data/config.txt
 
 if [ ! -f $modPath/module.prop ]; then
-  touch /dev/${modId}-modpath-not-found
+  touch /dev/acc-modpath-not-found
   exit 7
 fi
 
@@ -253,21 +245,18 @@ if ! which busybox > /dev/null; then
   fi
 fi
 
-# wait for data decryption
-until [ -d /data/media/0/?ndroid ]; do sleep 15; done
-
 mkdir -p ${config%/*}
 cd /sys/class/power_supply/
+[ -f $config ] || cp $modPath/default-config.txt $config
 
-if [ ! -f $config ]; then
-  cp $modPath/acc.conf $config
-  chmod -R 0777 ${config%/*}
-fi
+# config backup
+[ /data/media/0/.acc-config-backup.txt -nt $config ] \
+  || cp $config /data/media/0/.acc-config-backup.txt 2>/dev/null
 
 batt=$(echo /sys/class/power_supply/*attery/capacity | awk '{print $1}' | sed 's|/capacity||')
-log=${modPath%/*}/acc-daemon-$(getprop ro.product.device | grep .. || getprop ro.build.product).log
+log=${modPath%/*}/accd-$(getprop ro.product.device | grep .. || getprop ro.build.product).log
 
-pgrep -f '/acc (-|--)[def]|/accd.sh' | sed s/$$// | xargs kill -9 2>/dev/null\
+pgrep -f '/acc (-|--)[def]|/accd.sh' | sed s/$$// | xargs kill -9 2>/dev/null
 
 # diagnostics and cleanup
 echo "###$(date)###" >> $log
@@ -278,7 +267,11 @@ set -euxo pipefail
 
 apply_on_boot
 (/sbin/acc --voltage apply > /dev/null 2>&1) || :
-unset modId
 unset -f apply_on_boot
+
+# clear "rebooted on pause" flag
+[ $(( $(cat $batt/capacity) $(get_value capacityOffset) )) -gt $(get_value capacity | cut -d, -f3 | cut -d- -f1) ] \
+  || rm ${config%/*}/.rebootedOnPause 2>/dev/null || :
+
 ctrl_charging
 exit $?

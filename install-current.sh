@@ -37,6 +37,17 @@ versionCode=$(print versionCode)
 installDir=${installDir0:-/data/data/mattecarra.accapp/files}
 config=/data/media/0/$modId/${modId}.conf
 [ -f $config ] || mv ${config%/*}/config.txt $config 2>/dev/null || :
+
+# migrate/restore config
+if [ -d ${config%/*} ] && [ ! -d /data/adb/${modId}-data ]; then
+  mv $config ${config%/*}/config.txt 2>/dev/null || :
+  (cd /data/media/0; mv ${config%/*} ${modId}-data
+  tar -cf - ${modId}-data | tar -xf - -C /data/adb)
+  rm -rf ${modId}-data
+fi
+config=/data/adb/${modId}-data/config.txt
+[ -f $config ] || cp /data/media/0/.${modId}-config-backup.txt $config 2>/dev/null || :
+
 configVer=$(print versionCode $config 2>/dev/null || :)
 
 [ -d $installDir ] || installDir=/sbin/.magisk/modules
@@ -58,13 +69,14 @@ CAT
 rm -rf $(readlink -f /sbin/.$modId/$modId) 2>/dev/null || :
 cp -R $srcDir/$modId/ $installDir/
 installDir=$installDir/$modId
+[ ${installDir0:-x} == x ] && installDir0=/data/data/mattecarra.accapp/files/$modId || installDir0=$installDir0/$modId
 cp $srcDir/module.prop $installDir/
 
 mkdir -p ${config%/*}/info
 cp -f $srcDir/*.md ${config%/*}/info
 
 case $installDir in
-  /data/adb|${installDir0:-/data/data/mattecarra.accapp/files})
+  /data/adb/$modId|$installDir0)
     mv $installDir/service.sh $installDir/${modId}-init.sh;;
   *)
     ln $installDir/service.sh $installDir/post-fs-data.sh;;
@@ -76,17 +88,21 @@ chmod 0700 $installDir/*.sh
 # patch/upgrade config
 if [ -f $config ]; then
   if [ ${configVer:-0} -lt 201906230 ] \
-      || [ ${configVer:-0} -gt $(print versionCode $installDir/${modId}.conf) ]
+      || [ ${configVer:-0} -gt $(print versionCode $installDir/default-config.txt) ]
     then
       rm $config
   else
     if [ $configVer -lt 201906290 ]; then
       echo prioritizeBattIdleMode=false >> $config
-      sed -i '/versionCode=/s/=.*/=201906290/' $config
+      sed -i '/^versionCode=/s/=.*/=201906290/' $config
     fi
-    if [ $configVer -lt 201906300 ]; then
-      ! grep 'loopDelay=[0-14]' $config || sed -i '/^loopDelay=/s/=.*/=15/' $config
-      sed -i '/versionCode=/s/=.*/=201906300/' $config
+    if [ $configVer -lt 201907080 ]; then
+      sed -i '/^loopDelay=/s/=.*/=10,30/' $config
+      sed -i '/^versionCode=/s/=.*/=201907080/' $config
+    fi
+    if [ $configVer -lt 201907090 ]; then
+      sed -i '/^rebootOnUnplug=/d' $config
+      sed -i '/^versionCode=/s/=.*/=201907090/' $config
     fi
   fi
 fi

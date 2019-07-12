@@ -20,7 +20,9 @@ id=acc
 set -e
 [ -f $PWD/${0##*/} ] || cd ${0%/*}
 [ -d $id/${id}-init.sh ] && exit 0
+rm -rf ${id}-*/
 tar -xf ${id}*gz
 export installDir0="$1"
 sh ${id}-*/install-current.sh
 rm -rf ${id}-*/
+exit 0

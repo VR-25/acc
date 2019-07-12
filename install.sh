@@ -145,6 +145,17 @@ on_install() {
 
   config=/data/media/0/$MODID/${MODID}.conf
   [ -f $config ] || mv ${config%/*}/config.txt $config 2>/dev/null || :
+
+  # migrate/restore config
+  if [ -d ${config%/*} ] && [ ! -d /data/adb/${config%/*} ]; then
+    mv $config ${config%/*}/config.txt 2>/dev/null || :
+    (cd /data/media/0; mv ${config%/*} ${MODID}-data
+    tar -cf - ${MODID}-data | tar -xf - -C /data/adb)
+    rm -rf ${MODID}-data
+  fi
+  config=/data/adb/${MODID}-data/config.txt
+  [ -f $config ] || cp /data/media/0/.${MODID}-config-backup.txt $config 2>/dev/null || :
+
   local configVer=$(print versionCode $config)
 
   # extract module files
@@ -158,17 +169,21 @@ on_install() {
   # patch/upgrade config
   if [ -f $config ]; then
     if [ ${configVer:-0} -lt 201906230 ] \
-      || [ ${configVer:-0} -gt $(print versionCode $MODPATH/${MODID}.conf) ]
+      || [ ${configVer:-0} -gt $(print versionCode $MODPATH/default-config.txt) ]
     then
       rm $config
     else
       if [ $configVer -lt 201906290 ]; then
         echo prioritizeBattIdleMode=false >> $config
-        sed -i '/versionCode=/s/=.*/=201906290/' $config
+        sed -i '/^versionCode=/s/=.*/=201906290/' $config
       fi
-      if [ $configVer -lt 201906300 ]; then
-        ! grep 'loopDelay=[0-14]' $config || sed -i '/^loopDelay=/s/=.*/=15/' $config
-        sed -i '/versionCode=/s/=.*/=201906300/' $config
+      if [ $configVer -lt 201907080 ]; then
+        sed -i '/^loopDelay=/s/=.*/=10,30/' $config
+        sed -i '/^versionCode=/s/=.*/=201907080/' $config
+      fi
+      if [ $configVer -lt 201907090 ]; then
+        sed -i '/^rebootOnUnplug=/d' $config
+        sed -i '/^versionCode=/s/=.*/=201907090/' $config
       fi
     fi
   fi
@@ -184,7 +199,7 @@ on_install() {
 set_permissions() {
   local file=""
   # The following is the default rule, DO NOT remove
-  set_perm_recursive $MODPATH 0 0 0755 0644
+  set_perm_recursive $MODPATH 0 0 0700 0600
 
   # Here are some examples:
   # set_perm_recursive  $MODPATH/system/lib       0     0       0755      0644
@@ -194,7 +209,7 @@ set_permissions() {
 
   # permissions for executables
   for file in $MODPATH/*.sh; do
-    [ -f $file ] && set_perm $file  0  0  0755
+    [ -f $file ] && set_perm $file  0  0  0700
   done
 
   # finishing touches

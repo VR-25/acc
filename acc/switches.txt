@@ -1,9 +1,9 @@
 # ACC Charging Switches Database
-# Copyright (c) 2017-2019, VR25 @ xda-developers
+# Copyright (c) 2017-2019, VR25 (xda-developers)
 # License: GPLv3+
 #
 # PWD=/sys/class/power_supply
-# Last updated: Thu, Jul 4, 2019
+# Last updated: Fri, Jul 12, 2019
 
 battery/charger_control 1 0
 battery/charge_disable 0 1
@@ -49,6 +49,8 @@ dc/input_suspend 0 1
 /sys/devices/qpnp-charger-*/power_supply/battery/charging_enabled 1 0
 /sys/devices/platform/lge-unified-nodes/charging_completed 0 1
 /sys/devices/platform/lge-unified-nodes/charging_enable 1 0
+/sys/devices/platform/soc/a90000.i2c/i2c-4/4-0061/power_supply/wireless/charging_enabled 1 0
+/sys/devices/soc/800f000.qcom,spmi/spmi-0/spmi0-00/800f000.qcom,spmi:qcom,pm660@0:qcom,qpnp-smb2/power_supply/battery/charging_enabled 1 0
 
 # unconfirmed
 /sys/devices/soc.0/78b8000.i2c/i2c-4/4-006b/power_supply/ext-charger/charge_enabled 1 0
@@ -72,6 +74,7 @@ dc/input_suspend 0 1
 #/sys/devices/soc/soc:lge,cable_detect/lge_power/lge_cable_detect/charge_done 0 1
 #battery/wc_enable 1 0
 #/sys/devices/platform/lge-unified-nodes/charger_incompatible 0 1
+#/sys/devices/platform/battery/power_supply/battery/TempBattVoltage 558 0
 
 # advanced
 #applyOnBoot=battery/charge_control_limit_max:16 AND chargingSwitch=battery/charge_control_limit 0 1

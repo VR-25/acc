@@ -64,11 +64,11 @@ ACC is primarily intended for [extending battery service life](https://batteryun
 
 ### Dependencies
 
-- git, wget or curl
+- git, wget, or curl
 - zip
 
 
-### Build for Magisk 18.2+
+### Build
 
 1. Download the source code: `git clone https://github.com/VR-25/acc.git` or `wget  https://github.com/VR-25/acc/archive/$reference.tar.gz -O - | tar -xz` or `curl -L#  https://github.com/VR-25/acc/archive/$reference.tar.gz | tar -xz`
 2. `cd acc*`
@@ -76,16 +76,16 @@ ACC is primarily intended for [extending battery service life](https://batteryun
 
 #### Notes
 
-- The output file is _builds/acc-$versionCode.zip.
+- The output files are (in _builds/): `acc-$versionCode.zip`, `acc_bundle` (.tar.gz), and `install` (install-tarball.sh).
 
-- By default, `build.sh` auto-updates the [update-binary](https://raw.githubusercontent.com/topjohnwu/Magisk/master/scripts/module_installer.sh). To skip this, run `sh build.sh f` (or `buildf.bat` on Windows).
+- By default, `build.sh` auto-updates the .zip [update-binary](https://raw.githubusercontent.com/topjohnwu/Magisk/master/scripts/module_installer.sh). To skip this, run `sh build.sh -o|--offline` (or `build-offline.bat` on Windows 10).
 
 - To update the local repo, run `git pull -f`.
 
 
 ### Install from Local Sources and GitHub
 
-- `sh install-tarball.sh` installs the tarball (acc*gz) sitting next to it. The archive must be downloaded from GitHub: https://github.com/VR-25/acc/archive/$reference.tar.gz
+- `sh install-tarball.sh` installs the tarball (acc*gz) sitting next to it. The archive must be obtained from GitHub: https://github.com/VR-25/acc/archive/$reference.tar.gz
 
 - `sh install-current.sh` installs acc from the script's location.
 
@@ -159,7 +159,7 @@ capacitySync=false
 # <coolDown-pauseCharging_waitSeconds> - <waitSeconds> allow battery temperature to drop below <pauseCharging>. Temperature values are interpreted in Celsius degrees. To disable temperature control entirely, set absurdly high temperature values (e.g., temperature=90-95_90).
 temperature=40-45_90
 
-# Charge/pause ratio in seconds (e.g., coolDownRatio=50/10) - reduces battery stress induced by prolonged high temperature and high charging voltage by periodically pausing charging. If charging is too slow, turn this off (null value) or change the ratio. When set to null, <coolDown capacity> and <coolDown temperature> values are nullified.
+# Charging ON/OFF ratio in seconds (e.g., coolDownRatio=50/10) - reduces battery stress induced by prolonged high temperature and high charging voltage by periodically pausing charging. If charging is too slow, turn this off (null value) or change the ratio. When set to null, <coolDown capacity> and <coolDown temperature> values are nullified.
 # Generally, you don't need this if you're limiting the maximum charging voltage.
 coolDownRatio=
 
@@ -169,8 +169,8 @@ resetBsOnPause=true
 # Reset battery stats every time charger is unplugged, as opposed to only when <pauseCapacity> is reached.
 resetBsOnUnplug=false
 
-# Seconds between loop iterations - this is essentially a sensitivity "slider". Do not touch it unless you know exactly what you're doing! A value lower than 5 may cause unexpected behavior (e.g., increased battery drain). A number above 30 may lead to significant delays in charging control; on the other hand, it will dramatically boost acc's energy efficiency.
-loopDelay=15
+# Seconds (plugged,unplugged) between loop iterations - this is essentially a sensitivity "slider". Do not touch it unless you know exactly what you're doing! For Plugged seconds, a value lower than 5 may cause unexpected behavior (e.g., increased battery drain). A number above 30 may lead to significant delays in charging control; on the other hand, it will dramatically boost acc's energy efficiency.
+loopDelay=10,30
 
 # Custom charging switch parameters (<path> <onValue> <offValue>), e.g., chargingSwitch=/sys/class/power_supply/battery/charging_enabled 1 0, pro tip: </sys/class/power_supply/> can be omitted (e.g., chargingSwitch=battery/charging_enabled 1 0).
 chargingSwitch=
@@ -179,8 +179,8 @@ chargingSwitch=
 # --exit stops accd.
 applyOnBoot=
 
-# Settings applied every time an external power supply is connected - e.g., applyOnPlug=wireless/voltage_max:9000000 usb/current_max:2000000
-# Tip: applyOnPlug=wireless/voltage_max:9000000 forces fast wireless charging.
+# Settings to apply every time an external power supply is connected - e.g., applyOnPlug=wireless/voltage_max:9000000 usb/current_max:2000000
+# Tip: applyOnPlug=wireless/voltage_max:9000000 forces fast wireless charging on Pixel devices.
 applyOnPlug=
 
 # Charging voltage limit (file:millivolts, e.g., chargingVoltageLimit=?attery/voltage_max:4200)
@@ -190,9 +190,6 @@ chargingVoltageLimit=
 # Reboot after <pauseCapacity> is reached and <seconds> (e.g., rebootOnPause=60) have passed (disabled if null). If this doesn't make sense to you, you probably don't need it.
 rebootOnPause=
 
-# Reboot after charger is unplugged and <seconds> (e.g., rebootOnUnplug=60) have passed (disabled if null). This is a workaround for re-enabling charging.
-rebootOnUnplug=
-
 # Minimum charging on/off toggling interval (seconds)
 chargingOnOffDelay=1
 
@@ -200,7 +197,7 @@ chargingOnOffDelay=1
 language=en
 
 # Wakelocks to unlock after pausing charging (e.g., wakeUnlock=chg_wake_lock qcom_step_chg)
-# Use this only if you known what you're doing. It may cause unexpected behavior.
+# Use this only if you known what you're doing. Blocking certain wakelocks may cause unexpected behavior.
 wakeUnlock=
 
 # Prioritize charging switches that support battery idle mode.
@@ -221,10 +218,14 @@ Alternatively, you can use a `text editor` to modify `/sdcard/acc/acc.conf`. Cha
 
 ### Terminal Commands
 ```
-acc <option(s)> <arg(s)>
+acc <-x|--xtrace> <option(s)> <arg(s)>
 
--c|--config <editor [opts]>   Edit config w/ <editor [opts]> (default: vim|vi)
-  e.g., acc -c
+-c|--config <editor [opts]>   Edit config w/ <editor [opts]> (default: nano|vim|vi)
+  e.g.,
+    acc -c
+    acc -c cat
+    acc -c grep temperature
+    acc -c sed -n 's/^capacity=//p'
 
 -d|--disable <#%, #s, #m or #h (optional)>   Disable charging (with or without <condition>)
   e.g.,
@@ -248,13 +249,13 @@ acc <option(s)> <arg(s)>
 -i|--info   Show power supply info
   e.g., acc -i
 
+-l|--log <-a|--acc> <editor [opts]>   Open accd log (default) or acc log (-a) w/ <editor [opts]> (default: nano|vim|vi)
+  e.g., acc -l grep ': ' (show explicit errors only)
+
 -l|--log -e|--export   Export all logs to /sdcard/acc-logs-<device>.tar.bz2
   e.g., acc -l -e
 
--l|--log <editor [opts]>   Open <acc-daemon-deviceName.log> w/ <editor [opts]> (default: vim|vi)
-  e.g., acc -l grep ': ' (show explicit errors only)
-
--L|--logwatch   Monitor log
+-L|--logwatch   Monitor accd log in realtime
   e.g., acc -L
 
 -r|--readme   Open <README.md> w/ <editor [opts]> (default: vim|vi)
@@ -327,8 +328,11 @@ acc <option(s)> <arg(s)>
 -v|--voltage <file:millivolts>   Set charging voltage limit (custom ctrl file)
   e.g., acc -v battery/voltage_max:4100
 
--x|--xtrace <other option(s)>   Run under set -x (debugging)
-  acc -x -i
+-V|--version   Show acc version code
+  e.g., acc -V
+
+-x|--xtrace   Run in debug mode (verbose enabled)
+  e.g., acc -x -t --
 
 Tips
 
@@ -399,14 +403,14 @@ Refer to `## SETUP > ### Any Root Solution (Advanced)` and `## SETUP > ### Notes
 
 ### Charging Switch
 
-By default, ACC cycles through all available [charging control files](https://github.com/VR-25/acc/blob/master/acc/switches.txt) until it finds one that works.
+By default, ACC uses whatever [charging switch](https://github.com/VR-25/acc/blob/master/acc/switches.txt) works.
 
 If `prioritizeBattIdleMode` is set to `true`, charging switches that support battery idle mode take precedence - allowing the device to draw power directly from the external power supply when charging is paused.
 
 However, things don't always go well.
 
-- Some switches may be unreliable under certain conditions (e.g., screen off).
-- Others may hold a [wakelock](https://duckduckgo.com/?q=wakelock) - causing faster battery drain.
+- Some switches are unreliable under certain conditions (e.g., screen off).
+- Others hold a [wakelock](https://duckduckgo.com/?q=wakelock) - causing faster battery drain.
 - High CPU load and inability to re-enable charging may also be experienced.
 
 In such situations, you have to find and enforce a switch that works as expected. Here's how to do it:
@@ -434,12 +438,12 @@ The existence of potential voltage/current control file doesn't necessarily mean
 
 Check whether charging current in being limited by `applyOnPlug` or `applyOnBoot`.
 
-Nullify coolDownRatio (`acc --set coolDownRatio`) or change its value. By default, coolDownRatio is null.
+Set `coolDownCapacity` to `101`, nullify coolDownRatio (`acc --set coolDownRatio`), or change its value. By default, coolDownRatio is null.
 
 
 ### Logs
 
-Logs are stored at `/sbin/.acc/`. You can export all to `/sdcard/acc-logs-$device.tar.bz2` with `acc --log --export`. In addition to acc logs, the archive includes `charging-ctrl-files.txt`, `charging-voltage-ctrl-files.txt`, `acc.conf` and `magisk.log`.
+Logs are stored at `/sbin/.acc/`. You can export all to `/sdcard/acc-logs-$device.tar.bz2` with `acc --log --export`. In addition to acc logs, the archive includes `charging-ctrl-files.txt`, `charging-voltage-ctrl-files.txt`, `config.txt` and `magisk.log`.
 
 
 
@@ -525,22 +529,22 @@ battery/batt_tune_float_voltage (max: 4350)
 
 - How do I report issues?
 
-A: Open issues on GitHub or contact the developer on Telegram/XDA (linked below). Always provide as much information as possible, and attach the output file of `acc --log --export`.
+A: Open issues on GitHub or contact the developers on Telegram/XDA (linked below). Always provide as much information as possible, and attach `/sdcard/acc-logs-*tar.bz2`. This file is generated automatically. When this doesn't happen, run `acc --log --export` shortly after the problem occurs.
 
 
 - What's "battery idle" mode?
 
-A: That's a device's ability to draw power directly from an external power supply when charging is disabled or the battery is pulled out. The Motorola Moto G4 Play and many other smartphones can do that. You can run `acc -t --` to test yours.
+A: That's a device's ability to draw power directly from an external power supply when charging is disabled or the battery is pulled out. The Motorola Moto G4 Play and many other smartphones can do that. Run `acc -t --` to test yours.
 
 
 - What's "cool down" capacity for?
 
-A: It's meant for reducing stress induced by prolonged high charging voltage (e.g., 4.20 Volts). It's a fair alternative to custom charging voltage limit.
+A: It's meant for reducing stress induced by prolonged high charging voltage (e.g., 4.20 Volts). It's a fair alternative to the charging voltage limit feature.
 
 
 - Why won't you support my device? I've been waiting for ages!
 
-A: First, never lose hope! Second, several systems don't have intuitive charging control files; I have to dig deeper and improvise; this takes extra time and effort. Lastly, some systems don't support custom charging control at all;  in such cases, you have to keep trying different kernels and uploading the respective [power supply logs](https://github.com/VR-25/acc#power-supply-log) - so I can check these for potential charging control files.
+A: First, never lose hope! Second, several systems don't have intuitive charging control files; I have to dig deeper and improvise; this takes extra time and effort. Lastly, some systems don't support custom charging control at all;  in such cases, you have to keep trying different kernels and uploading the respective [power supply logs](https://github.com/VR-25/acc#power-supply-log).
 
 
 
@@ -561,6 +565,23 @@ A: First, never lose hope! Second, several systems don't have intuitive charging
 
 ---
 ## LATEST CHANGES
+
+**2019.7.12-dev (201907120)**
+- acc --log --acc cat (or -l -a cat): print acc log
+- acc -V|--version: prints acc version code
+- accd: reverted `acpi -a` usage (unreliable) in `enable_charging()`
+- Acceptable charging voltage limit range set to 3500-4350 millivolts
+- Additional charging switches and voltage control files
+- build.sh: automatically checks syntax; generates `acc_bundle` (.tar.gz) and its installer
+- Enhanced debugging features
+- FBE support: migrate config to /data/adb/acc-data/config.txt and auto-backup/restore it to/from internal storage as needed
+- Fixed `wakeUnlock` permissions
+- Initialization scripts also work without absolute paths
+- `loopDelay=10,30` (plugged,unplugged)
+- Major fixes and optimizations
+- Removed `rebootOnUnplug` (unreliable)
+- Updated documentation
+> Note: this is NOT compatible with AccA 1.0.11-.
 
 **2019.7.8-dev (201907080)**
 - `acc -U|--uninstall`

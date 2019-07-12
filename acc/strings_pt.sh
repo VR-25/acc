@@ -134,7 +134,7 @@ Copyright (c) 2017-2019, VR25 (xda-developers.com)
 Licença: GPLv3+
 Versão: $(sed -n 's/versionCode=//p' $modPath/module.prop)
 
-Uso: acc <opções> <argumentos>
+Uso: acc <-x|--xtrace> <opções> <argumentos>
 
 -c|--config <editor [opções]>   Editar config com <editor [opções]> (predefinição: vim|vi)
   Exemplo: acc -c
@@ -161,13 +161,13 @@ Uso: acc <opções> <argumentos>
 -i|--info   Show power supply info
   Exemplo: acc -i
 
+-l|--log <-a|--acc> <editor [opts]>   Open accd log (default) or acc log (-a) w/ <editor [opts]> (default: nano|vim|vi)
+  e.g., acc -l grep ': ' (show explicit errors only)
+
 -l|--log -e|--export   Export all logs to /sdcard/acc-logs-<device>.tar.bz2
-  Exemplo: acc -l -e
+  e.g., acc -l -e
 
--l|--log <editor [opts]>   Open <acc-daemon-deviceName.log> w/ <editor [opts]> (default: vim|vi)
-  Exemplo: acc -l grep ': ' (show explicit errors only)
-
--L|--logwatch   Monitor log
+-L|--logwatch   Monitor accd log in realtime
   Exemplo: acc -L
 
 -r|--readme   Open <README.md> w/ <editor [opts]> (default: vim|vi)
@@ -240,8 +240,11 @@ Uso: acc <opções> <argumentos>
 -v|--voltage <file:millivolts>   Set charging voltage limit (custom ctrl file)
   e.g., acc -v battery/voltage_max:4100
 
--x|--xtrace <other option(s)>   Run under set -x (debugging)
-  acc -x -i
+-V|--version   Show acc version code
+  e.g., acc -V
+
+-x|--xtrace   Run in debug mode (verbose enabled)
+  e.g., acc -x -t --
 
 Tips
 
