@@ -137,12 +137,11 @@ ctrl_charging() {
           && reboot || :
         # wakeUnlock
         # won't run under "battery idle" mode ("not charging" status)
-        if grep -iq dis $batt/status && ! $coolDown; then
-          chmod +w /sys/power/wake_unlock || :
+        if grep -iq dis $batt/status && chmod +w /sys/power/wake_unlock; then
           for wakelock in $(get_value wakeUnlock); do
             echo $wakelock > /sys/power/wake_unlock || :
           done
-        fi
+        fi 2>/dev/null
       fi
 
       # cool down

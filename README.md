@@ -197,7 +197,8 @@ chargingOnOffDelay=1
 language=en
 
 # Wakelocks to unlock after pausing charging (e.g., wakeUnlock=chg_wake_lock qcom_step_chg)
-# Use this only if you known what you're doing. Blocking certain wakelocks may cause unexpected behavior.
+# Use only if you known what you're doing. Blocking certain wakelocks may cause unexpected behavior.
+# If this doesn't work, you have to enforce a charging switch that doesn't hold wakelocks. Refer to "## TROUBLESHOOTING" > "### Charging Switch" below for details.
 wakeUnlock=
 
 # Prioritize charging switches that support battery idle mode.
@@ -213,7 +214,7 @@ ACC is designed to run out of the box, without user intervention. You can simply
 
 If you feel uncomfortable with the command line, skip this section and use the [ACC app](https://github.com/MatteCarra/AccA/releases/) to manage ACC.
 
-Alternatively, you can use a `text editor` to modify `/sdcard/acc/acc.conf`. Changes to this file take effect almost instantly, and without a [daemon](https://en.wikipedia.org/wiki/Daemon_(computing)) restart.
+Alternatively, you can use a `text editor` to modify `/data/adb/acc-*/config.txt`. Changes to this file take effect almost instantly, and without a [daemon](https://en.wikipedia.org/wiki/Daemon_(computing)) restart.
 
 
 ### Terminal Commands
@@ -565,6 +566,13 @@ A: First, never lose hope! Second, several systems don't have intuitive charging
 
 ---
 ## LATEST CHANGES
+
+**2019.7.18 (201907180)**
+- `acc -d`: use `prioritizeBattIdleMode` variable
+- Fixed: `acc -l -a`
+- `wakeUnlock` enhancements
+- Updated documentation
+> Note: this is NOT compatible with AccA 1.0.11-. A new version of the app will be up soon.
 
 **2019.7.12-dev (201907120)**
 - acc --log --acc cat (or -l -a cat): print acc log

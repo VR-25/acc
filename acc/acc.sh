@@ -164,7 +164,7 @@ disable_charging() {
       exit 1
     fi
   else
-    switch_loop off not
+    ! eval $(get_value prioritizeBattIdleMode) || switch_loop off not
     not_charging || switch_loop off
   fi
   if [ -n "${1:-}" ]; then
@@ -550,7 +550,8 @@ case ${1:-} in
       echo "(i) /sdcard/acc-logs-$device.tar.bz2"
     else
       if [[ "${1:-x}" == -*a* ]]; then
-        edit ${modPath%/*}/acc-*.log $@
+        shift
+        edit $log $@
       else
         edit ${modPath%/*}/accd-*.log $@
       fi
