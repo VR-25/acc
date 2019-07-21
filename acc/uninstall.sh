@@ -1,16 +1,6 @@
 #!/system/bin/sh
-
-if ! which busybox > /dev/null; then
-  if [ -d /sbin/.magisk/busybox ]; then
-    PATH=/sbin/.magisk/busybox:$PATH
-  elif [ -d /sbin/.core/busybox ]; then
-    PATH=/sbin/.core/busybox:$PATH
-  else
-    echo "(!) Install busybox binary first"
-    exit 3
-  fi
-fi
-
+[ -f $PWD/${0##*/} ] && modPath=$PWD || modPath=${0%/*}
+. $modPath/busybox.sh
 pgrep -f '/acc (-|--)[def]|/accd.sh' | xargs kill 2>/dev/null
 set -e
-rm -rf $(readlink -f ${0%/*})
+rm -rf $(readlink -f $modPath)

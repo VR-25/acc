@@ -1,4 +1,4 @@
-#!/system/bin/sh
+# Set up busybox
 
 if [[ $PATH != *busybox:* ]]; then
   if [ -d /sbin/.magisk/busybox ]; then
@@ -14,19 +14,3 @@ if [[ $PATH != *busybox:* ]]; then
     exit 3
   fi
 fi
-
-if [ $(id -u) -ne 0 ]; then
-  echo "(!) $0 must run as root (su)"
-  exit 4
-fi
-
-id=acc
-set -e
-[ -f $PWD/${0##*/} ] || cd ${0%/*}
-[ -d $id/${id}-init.sh ] && exit 0
-rm -rf ${id}-*/
-tar -xf ${id}*gz
-export installDir0="$1"
-sh ${id}-*/install-current.sh
-rm -rf ${id}-*/
-exit 0

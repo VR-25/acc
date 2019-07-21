@@ -462,16 +462,7 @@ modPath=/sbin/.acc/acc
 config=/data/adb/acc-data/config.txt
 defaultConfig=$modPath/default-config.txt
 
-if ! which busybox > /dev/null; then
-  if [ -d /sbin/.magisk/busybox ]; then
-    PATH=/sbin/.magisk/busybox:$PATH
-  elif [ -d /sbin/.core/busybox ]; then
-    PATH=/sbin/.core/busybox:$PATH
-  else
-    echo "(!) Install busybox binary first"
-    exit 3
-  fi
-fi
+. $modPath/busybox.sh
 
 readmeSuffix=""
 device=$(getprop ro.product.device | grep .. || getprop ro.build.product)
@@ -480,6 +471,7 @@ log=${modPath%/*}/acc-${device}.log
 # verbose
 if [[ ${1:-x} == -*x* ]]; then
   shift
+  touch $log
   [ $(du $log | awk '{print $1}') -lt 50 ] || : > $log
   set -x 2>>$log
 fi
@@ -525,7 +517,7 @@ case ${1:-} in
   ;;
 
   -f|--force|--full)
-    daemon stop > /dev/null && daemonWasUp=true daemonWasUp=false
+    daemon stop > /dev/null && daemonWasUp=true || daemonWasUp=false
     set -eo pipefail
     print_ch_enabled_until ${2:-100}%
     (enable_charging ${2:-100}% --nodisable > /dev/null 2>&1
@@ -602,17 +594,17 @@ SWITCHES
   ;;
 
   -u|--upgrade)
+    shift
     local reference="$(echo "$*" | sed -E 's/-c|--changelog|-f|--force|-n|--non-interactive| //g')"
     case ${reference:-x} in
       dev|master) :;;
       *) reference=master;;
     esac
-    shift
     wget https://raw.githubusercontent.com/VR-25/acc/$reference/install-latest.sh \
       --output-document ${modPath%/*}/install-latest.sh
     trap - EXIT
     set +euxo pipefail
-    sh ${modPath%/*}/install-latest.sh $@
+    . ${modPath%/*}/install-latest.sh $@
   ;;
 
   -U|--uninstall)

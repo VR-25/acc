@@ -233,17 +233,7 @@ if [ ! -f $modPath/module.prop ]; then
   exit 7
 fi
 
-if ! which busybox > /dev/null; then
-  if [ -d /sbin/.magisk/busybox ]; then
-    PATH=/sbin/.magisk/busybox:$PATH
-  elif [ -d /sbin/.core/busybox ]; then
-    PATH=/sbin/.core/busybox:$PATH
-  else
-    touch $modPath/busybox-not-found
-    exit 3
-  fi
-fi
-
+. $modPath/busybox.sh
 mkdir -p ${config%/*}
 cd /sys/class/power_supply/
 [ -f $config ] || cp $modPath/default-config.txt $config

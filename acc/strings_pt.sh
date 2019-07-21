@@ -84,7 +84,7 @@ print_invalid_input() {
 }
 
 print_accepted_volt() {
-  echo "- O intervalo permitido é 3920-4349mV"
+  echo "- O intervalo permitido é 3500-4350 millivolts"
 }
 
 print_cvolt_set() {

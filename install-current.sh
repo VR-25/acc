@@ -7,11 +7,15 @@
 echo
 trap 'e=$?; echo; exit $e' EXIT
 
-if ! which busybox > /dev/null; then
+if [[ $PATH != *busybox:* ]]; then
   if [ -d /sbin/.magisk/busybox ]; then
     PATH=/sbin/.magisk/busybox:$PATH
   elif [ -d /sbin/.core/busybox ]; then
     PATH=/sbin/.core/busybox:$PATH
+  elif which busybox > /dev/null; then
+    mkdir -p -m 700 /dev/.busybox
+    busybox install -s /dev/.busybox
+    PATH=/dev/.busybox:$PATH
   else
     echo "(!) Install busybox binary first"
     exit 3
@@ -139,7 +143,7 @@ cat << CAT
     - Facebook page: facebook.com/VR25-at-xda-developers-258150974794782/
     - Git repository: github.com/VR-25/$modId/
     - Telegram channel: t.me/vr25_xda/
-    - Telegram group: t.me/${modId}_magisk/
+    - Telegram group: t.me/${modId}/
     - Telegram profile: t.me/vr25xda/
     - XDA thread: forum.xda-developers.com/apps/magisk/module-magic-charging-switch-cs-v2017-9-t3668427/
 
@@ -147,7 +151,7 @@ cat << CAT
 
 (i) Rebooting is unnecessary.
 - $modId can be used right now.
-- $modId daemon is already initializing.
+- $modId daemon started.
 CAT
 
 

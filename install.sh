@@ -266,7 +266,7 @@ version_info() {
   ui_print "    - Facebook page: facebook.com/VR25-at-xda-developers-258150974794782/"
   ui_print "    - Git repository: github.com/VR-25/$MODID/"
   ui_print "    - Telegram channel: t.me/vr25_xda/"
-  ui_print "    - Telegram group: t.me/${MODID}_magisk/"
+  ui_print "    - Telegram group: t.me/${MODID}/"
   ui_print "    - Telegram profile: t.me/vr25xda/"
   ui_print "    - XDA thread: forum.xda-developers.com/apps/magisk/module-magic-charging-switch-cs-v2017-9-t3668427/"
   ui_print " "
@@ -276,7 +276,7 @@ version_info() {
   if $BOOTMODE; then
     ui_print "(i) Ignore the reboot button."
     ui_print "- $MODID can be used right now."
-    ui_print "- $MODID daemon is already initializing."
+    ui_print "- $MODID daemon started."
     ui_print " "
   fi
 }

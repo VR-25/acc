@@ -6,7 +6,7 @@
 # Copyright (c) 2019, VR25 (xda-developers.com)
 # License: GPLv3+
 #
-# Usage: sh install-latest.sh [-c|--changelog|-f|--force|-n|--non-interactive] [reference]
+# Usage: sh install-latest.sh [-c|--changelog|-f|--force|-n|--non-interactive] [%install dir%] [reference]
 #
 # Refer to README.md > NOTES/TIPS FOR FRONT-END DEVELOPERS for exit codes
 
@@ -15,11 +15,15 @@ echo
 modId=acc
 trap 'e=$?; echo; exit $e' EXIT
 
-if ! which busybox > /dev/null; then
+if [[ $PATH != *busybox:* ]]; then
   if [ -d /sbin/.magisk/busybox ]; then
     PATH=/sbin/.magisk/busybox:$PATH
   elif [ -d /sbin/.core/busybox ]; then
     PATH=/sbin/.core/busybox:$PATH
+  elif which busybox > /dev/null; then
+    mkdir -p -m 700 /dev/.busybox
+    busybox install -s /dev/.busybox
+    PATH=/dev/.busybox:$PATH
   else
     echo "(!) Install busybox binary first"
     exit 3
@@ -39,32 +43,41 @@ tarball=https://github.com/VR-25/$modId/archive/${reference:-master}.tar.gz
 instVer=$(get_ver /sbin/.$modId/$modId/module.prop 2>/dev/null || :)
 currVer=$(wget https://raw.githubusercontent.com/VR-25/$modId/${reference:-master}/module.prop --output-document - | get_ver)
 
-set +euo pipefail
+[ -f $PWD/${0##*/} ] || cd ${0%/*}
+rm -rf "./${modId}-${reference:-master}/" 2>/dev/null || :
 
-if [ ${instVer:-0} -lt ${currVer:-0} ] && [[ "$*" != *-*f* ]] \
-  && echo && wget $tarball --output-document - | tar -xz
-then
-  echo
-  trap - EXIT
-  if [[ "$*" != *-*c* ]]; then
-    if [[ "$*" != *-*n* ]]; then
-      echo "(i) $modId $currVer is available"
-      echo "- Changelog: https://github.com/VR-25/$modId/blob/${reference:-master}/README.md#latest-changes"
-      echo "- Would you like to download and install it now (Y/n)?"
-      read ans
-      [[ ${ans:-y} == [nN]* ]] && exit 0
-    else
-      echo $currVer
-      echo "https://github.com/VR-25/$modId/blob/${reference:-master}/README.md#latest-changes"
-      exit 5
-    fi
-  fi
+if [ ${instVer:-0} -lt ${currVer:-0} ] || [[ "$*" == *-f* ]] || [[ "$*" == *--force* ]]; then
+  case $* in
+    *--changelog*|*-c*)
+      case $* in
+        *--non-interactive*|*-n*)
+          echo $currVer
+          echo "https://github.com/VR-25/$modId/blob/${reference:-master}/README.md#latest-changes"
+          exit 5
+        ;;
+        *)
+          echo
+          echo "(i) $modId $currVer is available"
+          echo "- Changelog: https://github.com/VR-25/$modId/blob/${reference:-master}/README.md#latest-changes"
+          echo "- Would you like to download and install it now (Y/n)?"
+          read ans
+          [[ ${ans:-y} == [nN]* ]] && exit 0
+        ;;
+      esac
+    ;;
+  esac
   export installDir0="$(echo "$*" | sed -E "s/-c|--changelog|-f|--force|-n|--non-interactive|%|$reference| //g")"
-  sh ${modId}-${reference:-master}/install-current.sh
+  set +euo pipefail
+  trap - EXIT
+  echo
+  wget $tarball --output-document - | tar -xz \
+    && sh ${modId}-${reference:-master}/install-current.sh
 else
   echo
   echo "(i) No update available"
   exit 6
 fi
 
+set -eu
+rm -rf $0 "./${modId}-${reference:-master}/"
 exit 0

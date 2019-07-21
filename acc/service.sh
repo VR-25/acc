@@ -3,18 +3,8 @@
 # Copyright (c) 2017-2019, VR25 (xda-developers)
 # License: GPLv3+
 
-
-if ! which busybox > /dev/null; then
-  if [ -d /sbin/.magisk/busybox ]; then
-    PATH=/sbin/.magisk/busybox:$PATH
-  elif [ -d /sbin/.core/busybox ]; then
-    PATH=/sbin/.core/busybox:$PATH
-  else
-    exit 3
-  fi
-fi
-
 [ -f $PWD/${0##*/} ] && modPath=$PWD || modPath=${0%/*}
+. $modPath/busybox.sh
 modId=$(sed -n 's/^id=//p' $modPath/module.prop)
 
 # prepare working directory
@@ -35,7 +25,7 @@ ln -fs /sbin/.$modId/$modId/${modId}d-status.sh /sbin/${modId}d,
 ln -fs /sbin/.$modId/$modId/${modId}d-stop.sh /sbin/${modId}d.
 
 # generate power supply log
-$modPath/psl.sh $(sed -n s/versionCode=//p $modPath/module.prop) &
+($modPath/psl.sh $(sed -n s/versionCode=//p $modPath/module.prop) &) &
 
 # fix termux's PATH
 termuxSu=/data/data/com.termux/files/usr/bin/su
@@ -64,9 +54,9 @@ SWITCHES
 )
 
 # start ${modId}d
-sleep 30
 unset file termuxSu
-kill -9 $(pgrep -f /psl.sh) 2>/dev/null
+(sleep 30
+kill -9 $(pgrep -f /psl.sh) 2>/dev/null &) &
 $modPath/${modId}d.sh &) &
 
 exit 0

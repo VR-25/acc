@@ -84,7 +84,7 @@ print_invalid_input() {
 }
 
 print_accepted_volt() {
-  echo "- Recall that the accepted voltage range is 3920-4349mV"
+  echo "- Recall that the accepted voltage range is 3500-4350 millivolts"
 }
 
 print_cvolt_set() {
