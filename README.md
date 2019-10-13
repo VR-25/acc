@@ -55,6 +55,7 @@ ACC is primarily intended for [extending battery service life](https://batteryun
 - Android or Android based OS
 - Any root solution (e.g., Magisk)
 - Busybox (only if not rooted with Magisk)
+- curl (for `acc --upgrade`, your ROM may already have it; if not, there's the Magisk module `curl for Android` by Zackptg5)
 - Terminal emulator (e.g., Termux)
 - Text editor (optional)
 
@@ -621,6 +622,9 @@ It's a software (Android/kernel) issue. Use the `capacityOffset` feature.
 
 ---
 ## LATEST CHANGES
+
+**2019.10.13-r1-dev (201910131)**
+- `acc --upgrade`: use `curl` over `wget`
 
 **2019.10.13-dev (201910130)**
 - `acc-en` executable for front-ends (to ensure acc language is always English)

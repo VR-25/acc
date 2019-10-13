@@ -405,8 +405,8 @@ test_charging_switch() {
   fi
 
   if [ -n "${1:-}" ]; then
-    chmod +w $file && echo $off > $file && sleep $(get_value chargingOnOffDelay)
 
+    chmod +w $file && echo $off > $file && sleep $(get_value chargingOnOffDelay)
     grep -iq not $batt/status && battIdleMode=true || battIdleMode=false
 
     if not_charging \
@@ -424,6 +424,7 @@ test_charging_switch() {
     fi
 
   else
+
     disable_charging > /dev/null
 
     if not_charging && enable_charging > /dev/null && ! not_charging; then
@@ -432,7 +433,6 @@ test_charging_switch() {
     else
       print_unsupported
       (enable_charging > /dev/null 2>&1 &) &
-
       return 1
     fi
 
@@ -617,8 +617,7 @@ EOF
       dev|master) :;;
       *) reference=master;;
     esac
-    wget https://raw.githubusercontent.com/VR-25/acc/$reference/install-latest.sh \
-      --output-document ${modPath%/*}/install-latest.sh
+    curl -Lo ${modPath%/*}/install-latest.sh https://raw.githubusercontent.com/VR-25/acc/$reference/install-latest.sh
     trap - EXIT
     set +euo pipefail
     installDir=$(readlink -f $modPath)

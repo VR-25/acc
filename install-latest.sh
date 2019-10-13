@@ -54,7 +54,7 @@ get_ver() { sed -n 's/^versionCode=//p' ${1:-}; }
 reference="$(echo "$*" | sed -E 's/-c|--changelog|-f|--force|-n|--non-interactive|%.*%| //g')"
 tarball=https://github.com/VR-25/$id/archive/${reference:-master}.tar.gz
 instVer=$(get_ver /sbin/.$id/$id/module.prop 2>/dev/null || :)
-currVer=$(wget https://raw.githubusercontent.com/VR-25/$id/${reference:-master}/module.prop --output-document - | get_ver)
+currVer=$(curl -L https://raw.githubusercontent.com/VR-25/$id/${reference:-master}/module.prop | get_ver)
 
 [ -f $PWD/${0##*/} ] || cd ${0%/*}
 rm -rf "./${id}-${reference:-master}/" 2>/dev/null || :
@@ -83,7 +83,7 @@ if [ ${instVer:-0} -lt ${currVer:-0} ] || [[ "$*" == *-f* ]] || [[ "$*" == *--fo
   set +euo pipefail
   trap - EXIT
   echo
-  wget $tarball --output-document - | tar -xz \
+  curl -L $tarball | tar -xz \
     && sh ${id}-${reference:-master}/install-current.sh
 else
   echo
