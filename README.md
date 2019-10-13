@@ -623,6 +623,9 @@ It's a software (Android/kernel) issue. Use the `capacityOffset` feature.
 ---
 ## LATEST CHANGES
 
+**2019.10.13-r2-dev (201910132)**
+- `forceStatusAt100`: ensure the battery service is ready before freezing/unfreezing the charging status
+
 **2019.10.13-r1-dev (201910131)**
 - `acc --upgrade`: use `curl` over `wget`
 

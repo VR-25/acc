@@ -28,7 +28,7 @@ daemon() {
       if $isRunning; then
         set +eo pipefail
         echo "$pid" | xargs kill -9 2>/dev/null
-        { dumpsys battery reset
+        { dumpsys battery reset 2>/dev/null
         not_charging && enable_charging
         set_charging_voltage -; } > /dev/null 2>&1
         print_stopped
@@ -577,7 +577,7 @@ case ${1:-} in
   -r|--readme) shift; edit ${config%/*}/info/README$readmeSuffix.md $@;;
 
   -R|--resetbs)
-    dumpsys batterystats --reset > /dev/null 2>&1 || :
+    dumpsys batterystats --reset || :
     rm /data/system/batterystats* 2>/dev/null || :
   ;;
 

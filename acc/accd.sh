@@ -8,7 +8,7 @@ exxit() {
   local exitCode=$?
   set +euxo pipefail
   trap - EXIT
-  { dumpsys battery reset
+  { dumpsys battery reset 2>/dev/null
   enable_charging
   (/sbin/acc --voltage -); } > /dev/null 2>&1
   [ -n "$1" ] && echo -e "$2" && exitCode=$1
@@ -47,19 +47,19 @@ is_charging() {
 
     # forceStatusAt100
     if ! $forcedStatusAt100 && [[ "$(get_value forceStatusAt100)" == [0-9]* ]] && [ $(cat $batt/capacity) -gt 99 ]; then
-      dumpsys battery set level 100
-      dumpsys battery set status $(get_value forceStatusAt100)
-      forcedStatusAt100=true
-      frozenBattSvc=true
+      dumpsys battery set level 100 2>/dev/null \
+        && dumpsys battery set status $(get_value forceStatusAt100) 2>/dev/null \
+        && { forcedStatusAt100=true; frozenBattSvc=true; } \
+        || sleep $(get_value loopDelay | cut -d, -f1)
     fi
 
   else
 
     # revert forceStatusAt100
     if $frozenBattSvc; then
-      dumpsys battery reset
-      frozenBattSvc=false
-      forcedStatusAt100=false
+      dumpsys battery reset 2>/dev/null \
+        && { frozenBattSvc=false; forcedStatusAt100=false; } \
+        || sleep $(get_value loopDelay | cut -d, -f2)
     fi
 
     if ! $coolDown; then
@@ -68,7 +68,7 @@ is_charging() {
       if $resetBsOnUnplug && eval $(get_value resetBsOnUnplug); then
         sleep $(get_value loopDelay | cut -d, -f2)
         if grep -iq dis $batt/status; then
-          dumpsys batterystats --reset > /dev/null 2>&1 || :
+          dumpsys batterystats --reset 2>/dev/null || :
           rm /data/system/batterystats* 2>/dev/null || :
           resetBsOnUnplug=false
         fi
@@ -89,8 +89,8 @@ is_charging() {
 
   # correct the battery capacity reported by Android
   if eval $(get_value capacitySync); then
-    dumpsys battery reset || :
-    dumpsys battery set level $(cat $batt/capacity) || :
+    dumpsys battery reset 2>/dev/null || :
+    dumpsys battery set level $(cat $batt/capacity) 2>/dev/null || :
   fi > /dev/null 2>&1
 
   # log cleanup
@@ -164,7 +164,7 @@ ctrl_charging() {
           if eval $(get_value resetBsOnPause); then
 
             # reset battery stats
-            dumpsys batterystats --reset > /dev/null 2>&1 || :
+            dumpsys batterystats --reset 2>/dev/null || :
             rm /data/system/batterystats* 2>/dev/null || :
           fi
         fi
