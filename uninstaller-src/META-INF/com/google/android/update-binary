@@ -1,0 +1,38 @@
+#!/system/bin/sh
+# $id uninstaller
+# id is set/corrected by build.sh
+
+set -u
+id=acc
+
+# set up busybox
+PATH=/sbin/.magisk/busybox
+if [ -d /sbin/.core/busybox ]; then
+  PATH=/sbin/.core/busybox
+else
+  PATH=/dev/.busybox
+  if ! mkdir -m 700 /dev/.busybox 2>/dev/null; then
+    if [ -x /data/adb/magisk/busybox ]; then
+      /data/adb/magisk/busybox --install -s /dev/.busybox
+    elif which busybox > /dev/null; then
+      busybox --install -s /dev/.busybox
+    else
+      echo "(!) Install busybox binary first"
+      exit 3
+    fi
+  fi
+fi
+
+exec 2>/dev/null
+
+pkill -f "/$id (-|--)|/${id}d.sh"
+
+rm -rf $(readlink -f /sbin/.$id/$id/)
+
+rm -rf /data/adb/$id/ \
+  /data/adb/modules*/$id/ \
+  /data/data/mattecarra.accapp/files/$id/
+
+rm $3
+
+exit 0

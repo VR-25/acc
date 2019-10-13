@@ -23,34 +23,65 @@ get_value() { sed -n "s|^$1=||p" $config; }
 
 is_charging() {
 
-  local file="" value="" isCharging=true wakelock=""
+  local file="" value="" isCharging=false
 
-  grep -Eiq 'dis|not' $batt/status && isCharging=false || :
+  grep -Eiq 'dis|not' $batt/status || isCharging=true
 
   if $isCharging; then
     $coolDown || resetBsOnUnplug=true
     secondsUnplugged=0
+
     # applyOnPlug
     for file in $(get_value applyOnPlug); do
       value=${file##*:}
       file=${file%:*}
       [ -f $file ] && chmod +w $file && echo $value > $file || :
     done
-  else
-    # resetBsOnUnplug
-    if $resetBsOnUnplug && eval $(get_value resetBsOnUnplug); then
-      sleep $(get_value loopDelay | cut -d, -f2)
-      if grep -iq dis $batt/status; then
-        dumpsys batterystats --reset > /dev/null 2>&1 || :
-        rm /data/system/batterystats* 2>/dev/null || :
-        resetBsOnUnplug=false
-      fi
+    file=$(get_value maxChargingVoltage)
+    if [[ "$file" == */* ]]; then
+      value=${file##*:}
+      file=${file%:*}
+      value=$(sed "s/^..../$value/" $file)
+      chmod +w $file && echo $value > $file || :
     fi
-    # dynamic power saving
+
+    # forceStatusAt100
+    if ! $forcedStatusAt100 && [[ "$(get_value forceStatusAt100)" == [0-9]* ]] && [ $(cat $batt/capacity) -gt 99 ]; then
+      dumpsys battery set level 100
+      dumpsys battery set status $(get_value forceStatusAt100)
+      forcedStatusAt100=true
+      frozenBattSvc=true
+    fi
+
+  else
+
+    # revert forceStatusAt100
+    if $frozenBattSvc; then
+      dumpsys battery reset
+      frozenBattSvc=false
+      forcedStatusAt100=false
+    fi
+
     if ! $coolDown; then
+
+      # resetBsOnUnplug
+      if $resetBsOnUnplug && eval $(get_value resetBsOnUnplug); then
+        sleep $(get_value loopDelay | cut -d, -f2)
+        if grep -iq dis $batt/status; then
+          dumpsys batterystats --reset > /dev/null 2>&1 || :
+          rm /data/system/batterystats* 2>/dev/null || :
+          resetBsOnUnplug=false
+        fi
+      fi
+
+      # dynamic power saving
+      if [ $secondsUnplugged == 0 ]; then
+        [ $(( $(get_value capacity | cut -d, -f3 | cut -d- -f2) - $(get_value capacity | cut -d, -f3 | cut -d- -f1) )) -gt 4 ] \
+          && hibernate=true || hibernate=false
+      fi
       secondsUnplugged=$(( secondsUnplugged + $(get_value loopDelay | cut -d, -f2) ))
-      sleep $secondsUnplugged
-      [ $secondsUnplugged -lt 60 ] || secondsUnplugged=0
+      ! $hibernate || sleep $secondsUnplugged
+      [ $secondsUnplugged -lt 120 ] || secondsUnplugged=0
     else
       secondsUnplugged=0
     fi
@@ -87,7 +118,7 @@ disable_charging() {
     fi
     ! is_charging || echo "(!) Failed to disable charging"
   fi
-  # cool down
+  # if maxTemp is reached, pause charging regardless of coolDownRatio
   ! is_charging && [ $(( $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) / 10 )) -ge $(get_value temperature | cut -d- -f2 | cut -d_ -f1) ] \
     && sleep $(get_value temperature | cut -d- -f2 | cut -d_ -f2) || :
 }
@@ -114,60 +145,75 @@ enable_charging() {
 
 ctrl_charging() {
 
-  local count=0
+  local count=0 wakelock=""
 
   while :; do
 
     if is_charging; then
-      # disable charging & reset battery stats under <conditions>
+
+      # clear "rebooted on pause" flag
+    [ $(( $(cat $batt/capacity) $(get_value capacityOffset) )) -gt $(get_value capacity | cut -d, -f3 | cut -d- -f1) ] \
+      || rm ${config%/*}/.rebootedOnPause 2>/dev/null || :
+
+      # disable charging under <conditions>
       if [ $(( $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) / 10 )) -ge $(get_value temperature | cut -d- -f2 | cut -d_ -f1) ] \
         || [ $(( $(cat $batt/capacity) $(get_value capacityOffset) )) -ge $(get_value capacity | cut -d, -f3 | cut -d- -f2) ]
       then
-        disable_charging
-        if eval $(get_value resetBsOnPause); then
-          # reset battery stats
-          dumpsys batterystats --reset > /dev/null 2>&1 || :
-          rm /data/system/batterystats* 2>/dev/null || :
+        if [ ! -f ${config%/*}/.rebootedOnPause ]; then
+          disable_charging
+          if eval $(get_value resetBsOnPause); then
+
+            # reset battery stats
+            dumpsys batterystats --reset > /dev/null 2>&1 || :
+            rm /data/system/batterystats* 2>/dev/null || :
+          fi
         fi
+
         # rebootOnPause
         sleep $(get_value rebootOnPause) 2>/dev/null \
           && [ $(( $(cat $batt/capacity) $(get_value capacityOffset) )) -ge $(get_value capacity | cut -d, -f3 | cut -d- -f2) ] \
           && [ ! -f ${config%/*}/.rebootedOnPause ] \
           && touch ${config%/*}/.rebootedOnPause \
           && reboot || :
-        # wakeUnlock
-        # won't run under "battery idle" mode ("not charging" status)
-        if grep -iq dis $batt/status && chmod +w /sys/power/wake_unlock; then
-          for wakelock in $(get_value wakeUnlock); do
-            echo $wakelock > /sys/power/wake_unlock || :
-          done
-        fi 2>/dev/null
+
+        if [ ! -f ${config%/*}/.rebootedOnPause ]; then
+          # wakeUnlock
+          # won't run under "battery idle" mode ("not charging" status)
+          if grep -iq dis $batt/status && chmod +w /sys/power/wake_unlock; then
+            for wakelock in $(get_value wakeUnlock); do
+              echo $wakelock > /sys/power/wake_unlock || :
+            done
+          fi 2>/dev/null
+        fi
       fi
 
-      # cool down
-      while [[ x$(get_value coolDownRatio) == */* ]] && is_charging \
-        && [ $(( $(cat $batt/capacity) $(get_value capacityOffset) )) -lt $(get_value capacity | cut -d, -f3 | cut -d- -f2) ] \
-        && [ $(( $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) / 10 )) -lt $(get_value temperature | cut -d- -f2 | cut -d_ -f1) ]
-      do
-        coolDown=true
-        if [ $(( $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) / 10 )) -ge $(get_value temperature | cut -d- -f1) ] \
-          || [ $(( $(cat $batt/capacity) $(get_value capacityOffset) )) -ge $(get_value capacity | cut -d, -f2) ]
-        then
-          disable_charging
-          sleep $(get_value coolDownRatio | cut -d/ -f2)
-          enable_charging
-          count=0
-          while [ $count -lt $(get_value coolDownRatio | cut -d/ -f1) ]; do
-            sleep $(get_value loopDelay | cut -d, -f1)
-            [ $(( $(cat $batt/capacity) $(get_value capacityOffset) )) -lt $(get_value capacity | cut -d, -f3 | cut -d- -f2) ] \
-              && [ $(( $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) / 10 )) -lt $(get_value temperature | cut -d- -f2 | cut -d_ -f1) ] \
-              && count=$(( count + $(get_value loopDelay | cut -d, -f1) )) || break
-          done
-        else
-          break
-        fi
-      done
-      coolDown=false
+      if [ ! -f ${config%/*}/.rebootedOnPause ]; then
+        # cool down
+        while [[ x$(get_value coolDownRatio) == */* ]] && is_charging \
+          && [ $(( $(cat $batt/capacity) $(get_value capacityOffset) )) -lt $(get_value capacity | cut -d, -f3 | cut -d- -f2) ] \
+          && [ $(( $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) / 10 )) -lt $(get_value temperature | cut -d- -f2 | cut -d_ -f1) ]
+        do
+          coolDown=true
+          if [ $(( $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) / 10 )) -ge $(get_value temperature | cut -d- -f1) ] \
+            || [ $(( $(cat $batt/capacity) $(get_value capacityOffset) )) -ge $(get_value capacity | cut -d, -f2) ]
+          then
+            disable_charging
+            sleep $(get_value coolDownRatio | cut -d/ -f2)
+            enable_charging
+            count=0
+            while [ $count -lt $(get_value coolDownRatio | cut -d/ -f1) ]; do
+              sleep $(get_value loopDelay | cut -d, -f1)
+              [ $(( $(cat $batt/capacity) $(get_value capacityOffset) )) -lt $(get_value capacity | cut -d, -f3 | cut -d- -f2) ] \
+                && [ $(( $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) / 10 )) -lt $(get_value temperature | cut -d- -f2 | cut -d_ -f1) ] \
+                && count=$(( count + $(get_value loopDelay | cut -d, -f1) )) || break
+            done
+          else
+            break
+          fi
+        done
+        coolDown=false
+      fi
+      sleep $(get_value loopDelay | cut -d, -f1)
 
     else
       # enable charging under <conditions>
@@ -175,11 +221,13 @@ ctrl_charging() {
         && [ $(( $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) / 10 )) -lt $(get_value temperature | cut -d- -f2 | cut -d_ -f1) ]
       then
         enable_charging
-        rm ${config%/*}/.rebootedOnPause 2>/dev/null || :
       fi
       # auto-shutdown if battery is not charging and capacity is less than <shutdownCapacity>
       if ! is_charging && [ $(( $(cat $batt/capacity) $(get_value capacityOffset) )) -le $(get_value capacity | cut -d, -f1) ]; then
-        reboot -p || :
+        sleep $(get_value loopDelay | cut -d, -f2)
+        is_charging \
+          || am start -n android/com.android.internal.app.ShutdownActivity 2>/dev/null \
+          || reboot -p || :
       fi
     fi
 
@@ -215,17 +263,20 @@ switch_loop() {
         break
       fi
     fi
-  done << SWITCHES
+  done << EOF
 $(grep -Ev '#|^$' ${modPath%/*}/switches)
-SWITCHES
+EOF
 }
 
 
-umask 0
+umask 077
 coolDown=false
+hibernate=true
 secondsUnplugged=0
+frozenBattSvc=false
 resetBsOnUnplug=false
 modPath=/sbin/.acc/acc
+forcedStatusAt100=false
 config=/data/adb/acc-data/config.txt
 
 if [ ! -f $modPath/module.prop ]; then
@@ -239,8 +290,10 @@ cd /sys/class/power_supply/
 [ -f $config ] || cp $modPath/default-config.txt $config
 
 # config backup
-[ /data/media/0/.acc-config-backup.txt -nt $config ] \
-  || cp $config /data/media/0/.acc-config-backup.txt 2>/dev/null
+if [ -d /data/media/0/?ndroid ]; then
+  [ /data/media/0/.acc-config-backup.txt -nt $config ] \
+    || install -m 0777 $config /data/media/0/.acc-config-backup.txt 2>/dev/null
+fi
 
 batt=$(echo /sys/class/power_supply/*attery/capacity | awk '{print $1}' | sed 's|/capacity||')
 log=${modPath%/*}/accd-$(getprop ro.product.device | grep .. || getprop ro.build.product).log
@@ -257,10 +310,6 @@ set -euxo pipefail
 apply_on_boot
 (/sbin/acc --voltage apply > /dev/null 2>&1) || :
 unset -f apply_on_boot
-
-# clear "rebooted on pause" flag
-[ $(( $(cat $batt/capacity) $(get_value capacityOffset) )) -gt $(get_value capacity | cut -d, -f3 | cut -d- -f1) ] \
-  || rm ${config%/*}/.rebootedOnPause 2>/dev/null || :
 
 ctrl_charging
 exit $?

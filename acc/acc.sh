@@ -66,13 +66,13 @@ edit() {
   if [ -n "${1:-}" ]; then
     $@ $file
   else
-    nano $file 2>/dev/null || vim $file 2>/dev/null || vi $file
+    nano -l $file 2>/dev/null || vim $file 2>/dev/null || vi $file
   fi
 }
 
 
 set_value() {
-  local var=$1 PS3="- Which variable do you mean? "
+  local var=$1 PS3="$(print_var_prompt)"
   if [ $var == s ]; then
     var=chargingSwitch
   else
@@ -103,7 +103,7 @@ set_values() {
   case ${1:-} in
     8090|lite) set_value capacity 5,60,80-90;;
     9095|travel) set_value capacity 5,60,90-95;;
-    7080|default) set_value capacity 5,60,70-80;;
+    7580|default) set_value capacity 5,60,75-80;;
     5960|endurance) set_value capacity 5,60,59-60;;
     4041|endurance+) set_value capacity 5,60,40-41;;
     r|reset)
@@ -274,9 +274,9 @@ switch_loop() {
         break
       fi
     fi
-  done << SWITCHES
+  done << EOF
 $(grep -Ev '#|^$' ${modPath%/*}/switches)
-SWITCHES
+EOF
 }
 
 
@@ -284,7 +284,7 @@ set_charging_voltage() {
 
   local setVoltage=false
   local dVolt=${modPath%/*}/default_voltage
-  local file=$(get_value chargingVoltageLimit)
+  local file=$(get_value maxChargingVoltage)
   local value=${file##*:}
   local oValue=""
   file=${file%:*}
@@ -334,7 +334,7 @@ set_charging_voltage() {
       value=$(sed "s/^..../$value/" $file)
       [ -f $dVolt ] || echo "$file $(sed -n 1p $file)" > $dVolt
       if chmod +w $file && echo $value > $file 2>/dev/null && grep -q "^$oValue" $file; then
-        [ x$(get_value chargingVoltageLimit) == x$file:$oValue ] || set_value chargingVoltageLimit $file:$oValue
+        [ x$(get_value maxChargingVoltage) == x$file:$oValue ] || set_value maxChargingVoltage $file:$oValue
         print_cvolt_set
       else
         print_cvolt_unsupported
@@ -369,7 +369,7 @@ $(print_choice_prompt)"
     set_charging_voltage $file:$1 && success=true || :
     if $success; then
       echo
-      set_value chargingVoltageLimit $file:$1
+      set_value maxChargingVoltage $file:$1
       print_cvolt_limit_set
       exit 0
     else
@@ -384,9 +384,9 @@ ls_charging_switches() {
   local file=""
   while IFS= read -r file; do
     [ ! -f $(echo $file | awk '{print $1}') ] || echo $file
-  done << SWITCHES
+  done << EOF
 $(grep -Ev '#|^$' ${modPath%/*}/switches)
-SWITCHES
+EOF
 }
 
 
@@ -447,14 +447,16 @@ exxit() {
   local exitCode=$?
   echo
   # config backup
-  [ /data/media/0/.acc-config-backup.txt -nt $config ] \
-    || cp $config /data/media/0/.acc-config-backup.txt 2>/dev/null 2>&1 || :
+  if [ -d /data/media/0/?ndroid ]; then
+    [ /data/media/0/.acc-config-backup.txt -nt $config ] \
+      || install -m 0777 $config /data/media/0/.acc-config-backup.txt 2>/dev/null || :
+  fi
   exit $exitCode
 }
 
 
 echo
-umask 0
+umask 077
 set -euo pipefail
 trap exxit EXIT
 
@@ -471,16 +473,17 @@ log=${modPath%/*}/acc-${device}.log
 # verbose
 if [[ ${1:-x} == -*x* ]]; then
   shift
-  touch $log
-  [ $(du $log | awk '{print $1}') -lt 50 ] || : > $log
-  set -x 2>>$log
+  exec 2>$log
+  set -x
 fi
 
 batt=$(echo /sys/class/power_supply/*attery/capacity | awk '{print $1}' | sed 's|/capacity||')
 
+# load default strings (English)
 . $modPath/strings.sh
 
-if [ -f $modPath/strings_$(get_value language).sh ]; then
+# load translations
+if [[ $0 != *acc-en ]] && [ -f $modPath/strings_$(get_value language).sh ]; then
   . $modPath/strings_$(get_value language).sh
   readmeSuffix=_$(get_value language)
   [ -f ${config%/*}/info/README$readmeSuffix.md ] || readmeSuffix=""
@@ -526,6 +529,14 @@ case ${1:-} in
 
   -i|--info) sed s/POWER_SUPPLY_// $batt/uevent | sed "/^CAPACITY=/s/=.*/=$(( $(cat $batt/capacity) $(get_value capacityOffset) ))/";;
 
+  -I|--lang)
+    [ $(get_value language) == en ] && echo "- en (default, set)" \
+      || echo "- en (default)"
+    ls -1 $modPath/strings_*.sh \
+      | sed -e 's/^.*strings_/- /' -e 's/.sh$//' -e "/$(get_value language)/s/$/ (set)/"
+    print_set_lang
+  ;;
+
   -l|--log)
     shift
     if [[ "${1:-x}" == -*e* ]]; then
@@ -536,9 +547,10 @@ case ${1:-} in
       for file in /cache/magisk.log /data/cache/magisk.log; do
         [ -f $file ] && cp $file ./ && break
       done
-      cp $config ./
+      cp $config ${config%/*}/logs/* ./
       tar -c *.log *.txt magisk.log 2>/dev/null | bzip2 -9 > /data/media/0/acc-logs-$device.tar.bz2
-      rm *.txt magisk.log 2>/dev/null
+      chmod 0777 /data/media/0/acc-logs-$device.tar.bz2
+      rm *.txt magisk.log in*.log 2>/dev/null
       echo "(i) /sdcard/acc-logs-$device.tar.bz2"
     else
       if [[ "${1:-x}" == -*a* ]]; then
@@ -554,7 +566,12 @@ case ${1:-} in
 
   -p|--preset)
     shift
-    ###
+  ;;
+
+  -P|--performance)
+    print_quit
+    sleep 1.5
+    htop -p $(pgrep -f accd.sh)
   ;;
 
   -r|--readme) shift; edit ${config%/*}/info/README$readmeSuffix.md $@;;
@@ -570,7 +587,7 @@ case ${1:-} in
     shift
     daemon > /dev/null && daemonWasUp=true || daemonWasUp=false
     set +eo pipefail
-    pgrep -f '/acc (-|--)[def]|/accd.sh' | xargs kill -9 2>/dev/null
+    pkill -f '/acc (-|--)[def]|/accd.sh'
     if [ -z "${1:-}" ]; then
       test_charging_switch
     elif [ $1 == -- ]; then
@@ -579,9 +596,9 @@ case ${1:-} in
         e=$?
         [ $e -eq 0 ] && exitCode=0
         [ -z "${exitCode:-}" ] && exitCode=$e
-      done << SWITCHES
+      done << EOF
 $(grep -Ev '^#|^$' ${2:-${modPath%/*}/switches})
-SWITCHES
+EOF
       echo
     else
       test_charging_switch $@
@@ -603,8 +620,10 @@ SWITCHES
     wget https://raw.githubusercontent.com/VR-25/acc/$reference/install-latest.sh \
       --output-document ${modPath%/*}/install-latest.sh
     trap - EXIT
-    set +euxo pipefail
-    . ${modPath%/*}/install-latest.sh $@
+    set +euo pipefail
+    installDir=$(readlink -f $modPath)
+    installDir=${installDir%/*}
+    . ${modPath%/*}/install-latest.sh $@ %$installDir%
   ;;
 
   -U|--uninstall)

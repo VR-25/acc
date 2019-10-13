@@ -59,7 +59,7 @@ print_ch_disabled() {
 }
 
 print_ch_enabled_until() {
-  echo "(i) Charging enabled until battery capacity <= $1"
+  echo "(i) Charging enabled until battery capacity >= $1"
 }
 
 print_ch_enabled_for() {
@@ -132,7 +132,7 @@ print_no_modpath() {
 }
 
 print_help() {
-  cat << HELP
+  cat << EOF
 Advanced Charging Controller
 Copyright (c) 2017-2019, VR25 (xda-developers.com)
 License: GPLv3+
@@ -165,6 +165,9 @@ Usage: acc <-x|--xtrace> <option(s)> <arg(s)>
 -i|--info   Show power supply info
   e.g., acc -i
 
+-I|--lang   Show available, as well as the default and currently set languages
+  e.g., acc -I
+
 -l|--log <-a|--acc> <editor [opts]>   Open accd log (default) or acc log (-a) w/ <editor [opts]> (default: nano|vim|vi)
   e.g., acc -l grep ': ' (show explicit errors only)
 
@@ -173,6 +176,9 @@ Usage: acc <-x|--xtrace> <option(s)> <arg(s)>
 
 -L|--logwatch   Monitor accd log in realtime
   e.g., acc -L
+
+-P|--performance   Monitor de performance do accd (htop)
+  e.g., acc -P
 
 -r|--readme   Open <README.md> w/ <editor [opts]> (default: vim|vi)
   e.g., acc -r
@@ -191,11 +197,11 @@ Usage: acc <-x|--xtrace> <option(s)> <arg(s)>
     acc -s capacity 5,60,80-85 (5: shutdown, 60: cool down, 80: resume, 85: pause)
     acc -s cool 55/15
 
--s|--set <resume-stop preset>   Can be 4041|endurance+, 5960|endurance, 7080|default, 8090|lite 9095|travel
+-s|--set <resume-stop preset>   Can be 4041|endurance+, 5960|endurance, 7580|default, 8090|lite, 9095|travel
   e.g.,
     acc -s endurance+ (a.k.a, "the li-ion sweet spot"; best for GPS navigation and other long operations)
     acc -s travel (for when you need extra juice)
-    acc -s 7080 (restore default capacity settings (5,60,70-80))
+    acc -s 7580 (restore default capacity settings (5,60,75-80))
 
 -s|--set <s|chargingSwitch>   Set a different charging switch from the database
   e.g., acc -s s
@@ -219,7 +225,7 @@ Usage: acc <-x|--xtrace> <option(s)> <arg(s)>
   Exit codes: 0 (works), 1 (doesn't work) or 2 (battery must be charging)
   e.g., acc -t -- /sdcard/experimental_switches.txt
 
--u|--upgrade [-c|--changelog|-f|--force|-n|--non-interactive] [reference]   Upgrade/downgrade
+-u|--upgrade [-c|--changelog] [-f|--force] [-n|--non-interactive]   Upgrade/downgrade
   e.g.,
     acc -u dev (upgrade to the latest dev version)
     acc -u (latest stable release)
@@ -259,13 +265,13 @@ Tips
     e.g., acc 85 80
 
   That last command can be used for programming charging before bed. In this case, the daemon must be running.
-    e.g., acc 45 44 && acc --set applyOnPlug usb/current_max:500000 && sleep $((60*60*7)) && acc 80 70 && acc --set applyOnPlug usb/current_max:2000000
+    e.g., acc 45 44 && acc --set applyOnPlug usb/current_max:500000 && sleep $((60*60*7)) && acc 80 75 && acc --set applyOnPlug usb/current_max:2000000
     - "Keep battery capacity at ~45% and limit charging current to 500mA for 7 hours. Restore regular charging settings afterwards."
     - For convenience, this can be written to a file and ran as "sh <file>".
     - If your device supports custom charging voltage, it's better to use it instead: "acc -v 3920 && sleep $((60*60*7)) && acc -v -".
 
 Run acc --readme to see the full documentation.
-HELP
+EOF
 }
 
 print_exit() {
@@ -282,4 +288,16 @@ print_auto() {
 
 print_default() {
  echo Default
+}
+
+print_quit() {
+  echo "(i) Press q to quit"
+}
+
+print_set_lang() {
+    echo -e "\n(i) Run \"acc -s lang STRING\" to change (e.g., \"acc -s lang fr\")"
+}
+
+print_var_prompt() {
+  echo "- Which variable do you mean? "
 }
