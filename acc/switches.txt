@@ -35,6 +35,7 @@ usb-parallel/charging_enabled 1 0
 *wireless/charging_enabled 1 0
 *-charger/charging_enabled 1 0
 dc/input_suspend 0 1
+battery/device/smartchg_stop_charging 0 1
 
 /proc/smb*_disable_chrg 0 1
 /sys/devices/platform/battery/ChargerEnable 1 0
