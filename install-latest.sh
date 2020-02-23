@@ -1,6 +1,6 @@
 #!/system/bin/sh
 #
-# $id Installer/Upgrader/Downgrader
+# $id Online Installer
 # https://raw.githubusercontent.com/VR-25/$id/$branch/install-latest.sh
 #
 # Copyright (c) 2019, VR25 (xda-developers.com)
@@ -24,23 +24,25 @@ set -x
 trap 'e=$?; echo; exit $e' EXIT
 
 # set up busybox
+#BB#
 if [ -d /sbin/.magisk/busybox ]; then
-  [[ $PATH == /sbin/.magisk/busybox* ]] || PATH=/sbin/.magisk/busybox:$PATH
-elif [ -d /sbin/.core/busybox ]; then
-  [[ $PATH == /sbin/.core/busybox* ]] || PATH=/sbin/.core/busybox:$PATH
+  [[ $PATH == /sbin/.magisk/busybox:* ]] || PATH=/sbin/.magisk/busybox:$PATH
 else
-  [[ $PATH == /dev/.busybox* ]] || PATH=/dev/.busybox:$PATH
-  if ! mkdir -m 700 /dev/.busybox 2>/dev/null; then
-    if [ -x /data/adb/magisk/busybox ]; then
-      /data/adb/magisk/busybox --install -s /dev/.busybox
-    elif which busybox > /dev/null; then
+  mkdir -p -m 700 /dev/.busybox
+  [[ $PATH == /dev/.busybox:* ]] || PATH=/dev/.busybox:$PATH
+  if [ ! -x /dev/.busybox/busybox ]; then
+    if which busybox > /dev/null; then
       busybox --install -s /dev/.busybox
+    elif [ -f /data/adb/busybox ]; then
+      chmod 700 /data/adb/busybox
+      /data/adb/busybox --install -s /dev/.busybox
     else
       echo "(!) Install busybox binary first"
       exit 3
     fi
   fi
 fi
+#/BB#
 
 # root check
 if [ $(id -u) -ne 0 ]; then
@@ -48,7 +50,7 @@ if [ $(id -u) -ne 0 ]; then
   exit 4
 fi
 
-set -euo pipefail
+set -euo pipefail 2>/dev/null || :
 get_ver() { sed -n 's/^versionCode=//p' ${1:-}; }
 
 reference="$(echo "$*" | sed -E 's/-c|--changelog|-f|--force|-n|--non-interactive|%.*%| //g')"
@@ -80,11 +82,11 @@ if [ ${instVer:-0} -lt ${currVer:-0} ] || [[ "$*" == *-f* ]] || [[ "$*" == *--fo
     ;;
   esac
   export installDir0="$(echo "$*" | sed -E "s/-c|--changelog|-f|--force|-n|--non-interactive|%|$reference| //g")"
-  set +euo pipefail
+  set +euo pipefail 2>/dev/null || :
   trap - EXIT
   echo
   curl -L $tarball | tar -xz \
-    && sh ${id}-${reference:-master}/install-current.sh
+    && /system/bin/sh ${id}-${reference:-master}/install-current.sh
 else
   echo
   echo "(i) No update available"

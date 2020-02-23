@@ -1,12 +1,13 @@
 # ACC Charging Switches Database
-# Copyright (c) 2017-2019, VR25 (xda-developers)
+# Copyright (c) 2017-2020, VR25 (xda-developers)
 # License: GPLv3+
 #
+# "::" == " "
 # PWD=/sys/class/power_supply
-# Last updated: Fri, Jul 12, 2019
+# Last updated: Sat, Feb 22, 2020
 
 battery/charger_control 1 0
-battery/charge_disable 0 1
+*/charge_disable 0 1
 battery/input_suspend 0 1
 manta-battery/charge_enabled 1 0
 battery/charge_enabled 1 0
@@ -35,6 +36,8 @@ usb-parallel/charging_enabled 1 0
 *wireless/charging_enabled 1 0
 *-charger/charging_enabled 1 0
 dc/input_suspend 0 1
+battery/op_disable_charge 0 1
+battery/device/smartchg_stop_charging 0 1
 
 /proc/smb*_disable_chrg 0 1
 /sys/devices/platform/battery/ChargerEnable 1 0
@@ -46,15 +49,17 @@ dc/input_suspend 0 1
 /sys/devices/platform/omap/omap_i2c.?/i2c-?/?-00??/charge_enable 1 0
 /sys/devices/soc/soc:lge,cable_detect/lge_power/lge_cable_detect/charging_enabled 1 0
 /sys/devices/soc/soc:lge,charging_controller/lge_power/lge_cc/charging_enabled 1 0
-/sys/devices/qpnp-charger-*/power_supply/battery/charging_enabled 1 0
 /sys/devices/platform/lge-unified-nodes/charging_completed 0 1
 /sys/devices/platform/lge-unified-nodes/charging_enable 1 0
-/sys/devices/platform/soc/a90000.i2c/i2c-4/4-0061/power_supply/wireless/charging_enabled 1 0
-/sys/devices/soc/800f000.qcom,spmi/spmi-0/spmi0-00/800f000.qcom,spmi:qcom,pm660@0:qcom,qpnp-smb2/power_supply/battery/charging_enabled 1 0
+/sys/kernel/debug/google_charger/chg_suspend 0 1
+/sys/kernel/debug/google_charger/input_suspend 0 1
+/proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0
+/proc/driver/charger_limit_enable 0 1 /proc/driver/charger_limit 100 5
 
-# unconfirmed
-/sys/devices/soc.0/78b8000.i2c/i2c-4/4-006b/power_supply/ext-charger/charge_enabled 1 0
-/sys/devices/soc.0/qpnp-linear-charger-8/power_supply/battery_qpnp/charging_enabled 1 0
+# Razer
+# acc/oem_custom.sh handles /sys/devices/platform/soc/*/*/*/razer_charge_limit_dropdown 65 30 and usb/razer_charge_limit_dropdown 65 30
+usb/razer_charge_limit_max 70 35 usb/razer_charge_limit_enable 0 1
+/sys/devices/platform/soc/*/*/*/razer_charge_limit_max 70 35 /sys/devices/platform/soc/*/*/*/razer_charge_limit_enable 0 1
 
 # EXPERIMENTAL
 #battery/charger_temp_max 803 0
@@ -64,21 +69,28 @@ dc/input_suspend 0 1
 #bms/temp_cold 0 500
 #bms/temp_hot 500 0
 #battery/system_temp_level 0 9
-#battery/charge_done 0 1
+battery/charge_done 0 1
 #dc/power/control auto disabled (or off)
 #bms/power/control auto disabled (or off)
 #battery/power/control auto disabled (or off)
 #usb/present 1 0
-#dc-wireless/charge_done 1 0
-#/sys/devices/soc/soc:lge,charging_controller/lge_power/lge_cc/charge_done 0 1
-#/sys/devices/soc/soc:lge,cable_detect/lge_power/lge_cable_detect/charge_done 0 1
+dc-wireless/charge_done 1 0
+/sys/devices/soc/soc:lge,charging_controller/lge_power/lge_cc/charge_done 0 1
+/sys/devices/soc/soc:lge,cable_detect/lge_power/lge_cable_detect/charge_done 0 1
 #battery/wc_enable 1 0
 #/sys/devices/platform/lge-unified-nodes/charger_incompatible 0 1
-#/sys/devices/platform/battery/power_supply/battery/TempBattVoltage 558 0
-
-# advanced
-#applyOnBoot=battery/charge_control_limit_max:16 AND chargingSwitch=battery/charge_control_limit 0 1
-#applyOnBoot=/sys/class/qcom-battery/restricted_current:0 AND chargingSwitch=/sys/class/qcom-battery/restricted_charging 0 1
+#battery/TempBattVoltage 558 0
+battery/charge_control_limit 0 1 battery/charge_control_limit_max 100 5
+battery/charge_control_limit 0 1 /sys/devices/platform/soc/soc:google,charger/charge_stop_level 100 5
+main/toggle_stat 0 1
+battery/charge_done 0 1
+usb/moisture_detected 0 1
+battery/mmi_charging_enable 1 0
+battery/ship_mode 0 1
+battery/input_current_settled 0 1
 
 # troublesome
 #/sys/power/pnpmgr/battery/charging_enabled 1 0
+#/sys/class/qcom-battery/restrict*_cur* 1000000 0 /sys/class/qcom-battery/restrict*_ch*g* 0 1
+#/sys/devices/i2c*/*/battery_smbus 1 0
+#battery/connect_disable 0 1

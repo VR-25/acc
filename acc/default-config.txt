@@ -1,19 +1,235 @@
-versionCode=201910130
-capacity=0,60,75-80
-capacityOffset=+0
-capacitySync=false
-temperature=70-80_90
-coolDownRatio=
-resetBsOnPause=false
-resetBsOnUnplug=false
-loopDelay=10,15
-chargingSwitch=
-applyOnBoot=
-applyOnPlug=
-maxChargingVoltage=
+configVerCode=202002220
+capacity=(-1 60 70 75 +0 false)
+temperature=(70 80 90)
+coolDownRatio=()
+resetBattStats=(false false)
+loopDelay=(10 15)
+chargingSwitch=()
+applyOnBoot=()
+applyOnPlug=()
+maxChargingCurrent=()
+maxChargingVoltage=()
 rebootOnPause=
-chargingOnOffDelay=1
+switchDelay=2
 language=en
-wakeUnlock=
+wakeUnlock=()
 prioritizeBattIdleMode=false
-forceStatusAt100=
+forceFullStatusAt100=
+runCmdOnPause=()
+dynPowerSaving=120
+
+
+# BASIC EXPLANATION
+
+# capacity=(shutdown_capacity cooldown_capacity resume_capacity pause_capacity capacity_offset capacity_sync)
+
+# temperature=(cooldown_temp max_temp max_temp_pause)
+
+# coolDownRatio=(cooldown_charge cooldown_pause)
+
+# resetBattStats=(reset_batt_stats_on_pause reset_batt_stats_on_unplug)
+
+# loopDelay=(loop_delay_charging loop_delay_discharging)
+
+# chargingSwitch=charging_switch=(file1 on off file2 on off)
+
+# applyOnBoot=apply_on_boot=(file1::value1::default1 file2::value2::default2 fileN::valueN::defaultN --exit)
+
+# applyOnPlug=apply_on_plug=(file1::value1::default1 file2::value2::default2 fileN::valueN::defaultN)
+
+# maxChargingCurrent=max_charging_current=(file1::value1::default1 file2::value2::default2 fileN::valueN::defaultN)
+
+# maxChargingVoltage=max_charging_voltage=(file1::value1::default1 file2::value2::default2 fileN::valueN::defaultN --exit)
+
+# rebootOnPause=reboot_on_pause
+
+# switchDelay=switch_delay
+
+# language=lang
+
+# wakeUnlock=wake_unlock=(wakelock1 wakelock2 wakelockN)
+
+# prioritizeBattIdleMode=prioritize_batt_idle_mode
+
+# forceFullStatusAt100=force_full_status_at_100
+
+# runCmdOnPause=run_cmd_on_pause=(sh|. script)
+
+# dynPowerSaving=dyn_power_saving
+
+
+# VARIABLE ALIASES (SORTCUTS)
+
+# sc shutdown_capacity
+# cc cooldown_capacity
+# rc resume_capacity
+# pc pause_capacity
+# co capacity_offset
+# cs capacity_sync
+
+# ct cooldown_temp
+# mt max_temp
+# mtp max_temp_pause
+
+# cch cooldown_charge
+# cp cooldown_pause
+
+# rbsp reset_batt_stats_on_pause
+# rbsu reset_batt_stats_on_unplug
+
+# ldc loop_delay_charging
+# ldd loop_delay_discharging
+
+# s charging_switch
+
+# ab apply_on_boot
+# ap apply_on_plug
+
+# mcc max_charging_current
+# mcv max_charging_voltage
+
+# rp reboot_on_pause
+# sd switch_delay
+# l lang
+# wu wake_unlock
+# pbim prioritize_batt_idle_mode
+# fs force_full_status_at_100
+# rcp run_cmd_on_pause
+# dps dyn_power_saving
+
+
+# COMMAND EXAMPLES
+
+# acc 85 80
+# acc -s rc=80 pc=85
+# acc -s capacity[2]=80 capacity[3]=85
+# acc --set resume_capacity=80 pause_capacity=85
+
+# acc -s "s=battery/charging_enabled 1 0"
+# acc --set "charging_switch=/proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0" ("::" == " ")
+
+# acc -s sd=5
+# acc -s switch_delay=5
+
+# acc -s -v 3920 (millivolts)
+# acc -s -c 500 (milliamps)
+
+
+# FINE, BUT WHAT DOES EACH OF THESE VARIABLES ACTUALLY MEAN?
+
+# configVerCode #
+# This is checked during updates - to determine whether config should be patched. Do NOT modify.
+
+# shutdown_capacity (sc) #
+# When the battery is discharging and its capacity <= sc, acc daemon turns the phone off to reduce the discharge rate and protect the battery from pottential damage induced by voltages below the operating range.
+
+# cooldown_capacity (cc) #
+# Capacity at which the cooldown cycle starts.
+# Cooldown reduces battery stress induced by prolonged exposure to high temperature and high charging voltage.
+# It does so through periodically pausing charging for a few seconds (more details below).
+
+# resume_capacity (rc) #
+# Capacity at which charging should resume.
+
+# pause_capacity (pc) #
+# Capacity at which charging should pause.
+
+# capacity_offset (co) #
+# Change this only if your system reports incorrect battery capacity ("acc -i" (BMS) vs "dumpsys battery" (system)).
+# Pixel devices are know for having this issue.
+
+# capacity_sync (cs) #
+# This is an alternative to capacity_offset.
+# It tells acc whether the battery capacity reported by Android should be updated every few seconds to reflect the actual value from the battery management system.
+# Most users would prefer this over capacity_offset.
+# It's more powerful, but has a cosmetic nuisance: delays in charging status reports.
+# Such inconvenience is not a bug, nor can it be eliminated at this point.
+
+# cooldown_temp (ct) #
+# Temperature (°C) at which the cooldown cycle starts.
+# Cooldown reduces the battery degradation rate by lowering the device's temperature.
+# Refer back to cooldown_capacity for more details.
+
+# max_temp (mt) #
+# mtp or max_temp_pause #
+# These two work together and are NOT tied to the cooldown cycle.
+# On max_temp (°C), charging is paused for max_temp_pause (seconds).
+# Unlike the cooldown cycle, which aims at reducing BOTH high temperature and high voltage induced stress - this is ONLY meant specifically for reducing high temperature induced stress.
+# Even though both are separate features, this complements the cooldown cycle when environmental temperatures are off the charts.
+
+# cooldown_charge (cch) #
+# cooldown_pause (cp) #
+# These two dictate the cooldown cycle intervals (seconds).
+# When not set, the cycle is disabled.
+# Note that cooldown_capacity and cooldown_temp can be disabled individually by assigning them values that would never be reached under normal circumstances.
+
+# reset_batt_stats_on_pause (rbsp) #
+# Reset battery stats after pausing charging.
+
+# reset_batt_stats_on_unplug (rbsu) #
+# Reset battery stats after unplugging the charger and loop_delay_discharging (seconds) have passed.
+# If the charger is plugged within the first loop_delay_discharging (seconds) interval, the operation is aborted.
+
+# loop_delay_charging (ldc) #
+# loop_delay_discharging (ldd) #
+# These are delays (seconds) between loop iterations.
+# The lower they are, the faster acc responsiveness is - but possibly at the cost of more CPU time.
+# Don't touch these (particularly ldd), unless you know exactly what you're doing.
+
+# charging_switch (s) #
+# If unset, acc cycles through its database and uses whatever works.
+
+# apply_on_boot (ab) #
+# Settings to apply on boot or daemon start/restart.
+# The --exit flag (refer back to applyOnBoot=...) tells the daemon to stop after applying settings.
+# When the --exit flag is not set, default values are restored when the daemon stops.
+
+# apply_on_plug (ap) #
+# Settings to apply on plug.
+# This exists because some /sys files (e.g., current_max) are reset on charger replug.
+# Default values are restored on unplug and when the daemon stops.
+
+# max_charging_current (mcc) #
+# apply_on_plug dedicated to current control
+# This is managed with "acc --set --current" commmands.
+# Refer back to the command examples.
+
+# max_charging_voltage (mcv) #
+# apply_on_boot dedicated to voltage control
+# This is managed with "acc --set --voltage" commmands.
+
+# reboot_on_pause (rp) #
+# If this doesn't make sense to you, you probably don't need it.
+# Essentially, this is a timeout (seconds) before rebooting (after pausing charging).
+# This reboot is a workaround for a firmware issue that causes abnormally fast battery drain after charging is paused on certain devices.
+# The issue has reportedly been fixed by the OEM. So, this could just as well not be here.
+
+# switch_delay (sd) #
+# Delay (seconds) between charging status checks after togling charging switches
+# Most devices work with a value of 1.
+# If a charging switch seems to work intermittently, or fail completely, increasing this value may fix the issue.
+
+# lang (l) #
+# acc language, managed with "acc --set --lang".
+
+# wake_unlock (wu) #
+# This is an attempt to release wakelocks acquired after disabling charging.
+# It may or may not work - and may even cause unexpected side effects. More testing is needed.
+
+# prioritize_batt_idle_mode (pbim) #
+# Several devices can draw power directly from the external power supply when charging is paused.
+# Test yours with "acc -t --".
+# This setting dictates whether charging switches that support such feature should take precedence.
+
+# force_full_status_at_100 (fs) #
+# Some Pixel devices were found to never report "full" status after the battery capacity reaches 100%.
+# This setting forces Android to behave as intended.
+# For Pixel devices, the status code of "full" is 5 (fs=5).
+# The status code is found through trial and error, with the commmands "dumpsys battery", "dumpsys battery set status #" and "dumpsys battery reset".
+
+# run_cmd_on_pause (rcp)
+# Run commmands* after pausing charging.
+# * Usually a script ("sh some_file" or ". some_file")
+
+# dyn_power_saving (dps) #
+# This is the maximum number of seconds accd will dynamically sleep for (while unplugged) to save resources.

@@ -1,0 +1,9 @@
+monkey -p mattecarra.accapp -c android.intent.category.LAUNCHER 1
+
+Hangs and reboots
+  Samsung GT-I9082
+  Android 4.2.2
+  Busybox: v1.28.3-Stericson installed in /system/xbin
+  Root: SuperSU
+
+check --test (&& exitCode=0) in acc.sh

@@ -1,1 +1,2 @@
 bash build.sh
+PAUSE

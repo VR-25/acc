@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
-# ${1:-id} Bundler for Front-end App
-# Copyright (c) 2019, VR25 (xda-developers.com)
+# $id Bundler for Front-end Apps
+# Copyright (c) 2019-2020, VR25 (xda-developers)
 # License: GPLv3+
 
 
@@ -15,5 +15,4 @@ versionCode=$(sed -n "s/^versionCode=//p" module.prop)
 cp -u install-tarball.sh $destination/$installerName
 cp -u _builds/${id}-${versionCode}/${id}-${versionCode}.tar.gz $destination/$tarballName)
 
-read -p "(i) Press ENTER to continue..."
 echo

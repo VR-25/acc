@@ -1,14 +1,7 @@
-#!/system/bin/sh
-# $id uninstaller
-# id is set/corrected by build.sh
+# Busybox Setup
 # Copyright (c) 2019-2020, VR25 (xda-developers)
 # License: GPLv3+
 
-set -u
-id=acc
-
-# set up busybox
-#BB#
 if [ -d /sbin/.magisk/busybox ]; then
   [[ $PATH == /sbin/.magisk/busybox:* ]] || PATH=/sbin/.magisk/busybox:$PATH
 else
@@ -26,20 +19,3 @@ else
     fi
   fi
 fi
-#/BB#
-
-exec 2>/dev/null
-
-pkill -f "/$id (-|--)[def]|/${id}d\.sh"
-
-rm -rf $(readlink -f /sbin/.$id/$id/) \
-  /data/adb/$id \
-  /data/adb/${id}-data \
-  /data/adb/modules/$id \
-  /data/*/mattecarra.accapp \
-  /data/adb/service.d/${id}-*.sh \
-  /data/media/0/${id}-logs-*.tar.*
-
-rm $3
-
-exit 0

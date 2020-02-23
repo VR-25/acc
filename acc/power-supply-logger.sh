@@ -1,5 +1,5 @@
 # Advanced Charging Controller Power Supply Logger
-# Copyright (c) 2019, VR25 @ xda-developers
+# Copyright (c) 2019-2020, VR25 (xda-developers)
 # License: GPLv3+
 
 gather_ps_data() {
@@ -8,7 +8,7 @@ gather_ps_data() {
     if [ -f $1/$target ]; then
       if echo $1/$target | grep -Ev 'logg|(/|_|-)log' | grep -Eq 'batt|charg|power_supply'; then
         echo $1/$target
-        sed 's/^/  /' $1/$target 2>/dev/null
+        { cat -v $1/$target | sed 's#^#  #'; } 2>/dev/null
         echo
       fi
     elif [ -d $1/$target ]; then
@@ -18,7 +18,7 @@ gather_ps_data() {
       do
         if [ -f $target2 ]; then
           echo $target2
-          sed 's/^/  /' $target2 2>/dev/null
+          { cat -v $target2 | sed 's#^#  #'; } 2>/dev/null
           echo
         fi
       done
@@ -26,8 +26,10 @@ gather_ps_data() {
   done
 }
 
+# log
 umask 077
-log=/sbin/.acc/acc-power_supply-$(getprop ro.product.device | grep .. || getprop ro.build.product).log
+exec 2>/data/adb/${id}-data/logs/power-supply-logger.sh.log
+set -x
 
 {
   date
@@ -42,6 +44,6 @@ log=/sbin/.acc/acc-power_supply-$(getprop ro.product.device | grep .. || getprop
   gather_ps_data /sys
   echo
   gather_ps_data /proc
-} > $log
+} > /sbin/.acc/acc-power_supply-$(getprop ro.product.device | grep .. || getprop ro.build.product).log
 
 exit 0

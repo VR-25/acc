@@ -1,3 +1,5 @@
+# English (en)
+
 print_already_running() {
   echo "(i) accd is already running"
 }
@@ -19,104 +21,59 @@ print_restarted() {
 }
 
 print_is_running() {
-  echo "(i) accd is running"
-}
-
-print_invalid_var() {
-  echo "(!) Invalid variable, [$var]"
+  echo "(i) accd $1 is running $2"
 }
 
 print_config_reset() {
   echo "(i) Config reset"
 }
 
-print_cs_reset() {
-  echo "(i) Charging switch set to \"automatic\""
+print_known_switch() {
+  echo "(i) Known charging switches"
 }
 
-print_supported_cs() {
-  echo "(i) Supported charging switches"
+print_switch_fails() {
+  echo "(!) [${chargingSwitch[@]}] won't work"
 }
 
-print_cs_fails() {
-  echo "(!) [$(get_value chargingSwitch)] doesn't work"
+print_invalid_switch() {
+  echo "(!) Invalid charging switch, [${chargingSwitch[@]}]"
 }
 
-print_invalid_cs() {
-  echo "(!) Invalid charging switch, [$(get_value chargingSwitch)]"
-}
-
-print_ch_disabled_until() {
+print_charging_disabled_until() {
   echo "(i) Charging disabled until battery capacity <= $1"
 }
 
-print_ch_disabled_for() {
+print_charging_disabled_for() {
   echo "(i) Charging disabled for $1"
 }
 
-print_ch_disabled() {
+print_charging_disabled() {
   echo "(i) Charging disabled"
 }
 
-print_ch_enabled_until() {
+print_charging_enabled_until() {
   echo "(i) Charging enabled until battery capacity >= $1"
 }
 
-print_ch_enabled_for() {
+print_charging_enabled_for() {
   echo "(i) Charging enabled for $1"
 }
 
-print_ch_enabled() {
+print_charging_enabled() {
   echo "(i) Charging enabled"
-}
-
-
-print_dvolt_restored() {
-  echo "(i) Default charging voltage limit ($(grep -o '^....' $file)mV) successfully restored"
-}
-
-print_dvolt_already_set() {
-  echo "(i) Default charging voltage limit is already set"
-}
-
-print_invalid_input() {
-  echo "(!) Invalid input, [$@]"
-}
-
-print_accepted_volt() {
-  echo "- Recall that the accepted voltage range is 3500-4350 millivolts"
-}
-
-print_cvolt_set() {
-  echo "(i) Charging voltage limited to $(grep -o '^....' $file)mV"
-}
-
-print_cvolt_unsupported() {
-  echo "(!) Either [$(echo -n $file)] is not the right file or your kernel doesn't support custom charging voltage"
-}
-
-print_no_such_file() {
-  echo "(!) No such file, [$file]"
-}
-
-print_supported_cvolt_files() {
-  echo "(i) Supported charging voltage ctrl files"
-}
-
-print_cvolt_limit_set() {
-  echo "(i) chargingVoltageLimit=$file:$1 --> config.txt"
 }
 
 print_unplugged() {
   echo "(!) Battery must be charging"
 }
 
-print_file_works() {
-  echo "(i) [$file $on $off] works"
+print_switch_works() {
+  echo "(i) [$@] works"
 }
 
-print_file_fails() {
-  echo "(!) [$file $on $off] doesn't work"
+print_switch_fails() {
+  echo "(!) [$@] won't work"
 }
 
 print_supported() {
@@ -127,177 +84,272 @@ print_unsupported() {
   echo "(!) Unsupported device"
 }
 
-print_no_modpath() {
-  echo "(!) modPath not found"
+print_not_found() {
+  echo "(!) $1 not found"
 }
+
 
 print_help() {
   cat << EOF
-Advanced Charging Controller
-Copyright (c) 2017-2019, VR25 (xda-developers.com)
-License: GPLv3+
-Version code: $(sed -n 's/versionCode=//p' $modPath/module.prop)
+Advanced Charging Controller $accVer ($accVerCode)
+(c) 2017-2020, VR25 (patreon.com/vr25)
+GPLv3+
 
-Usage: acc <-x|--xtrace> <option(s)> <arg(s)>
+Usage
 
--c|--config <editor [opts]>   Edit config w/ <editor [opts]> (default: nano|vim|vi)
-  e.g., acc -c
+  acc [options] [args]
+  .acc-en [options] [args] (for front-ends)
+  acc [pause_capacity] [resume_capacity] (e.g., acc 75 70)
 
--d|--disable <#%, #s, #m or #h (optional)>   Disable charging (with or without <condition>)
-  e.g.,
-    acc -d 70% (do not recharge until capacity drops to 70%)
-    acc -d 1h (do not recharge until 1 hour has passed)
+Options
 
--D|--daemon   Show current acc daemon (accd) state
-  e.g., acc -D (alias: "accd,")
+  -c|--config [editor] [editor_opts]   Edit config (default editor: vim/vi)
+    e.g.,
+      acc -c (edit w/ vim/vi)
+      acc -c nano -l$
+      acc -c cat
 
--D|--daemon <start|stop|restart>   Manage accd state
-  e.g.,
-    acc -D restart
-    accd -D stop (alias: "accd.")
+  -d|--disable [#%, #s, #m or #h (optional)]   Disable charging
+    e.g.,
+      acc -d 70% (do not recharge until capacity <= 70%)
+      acc -d 1h (do not recharge until 1 hour has passed)
 
--e|--enable <#%, #s, #m or #h (optional)>   Enable charging or enable charging with <condition>
-  e.g., acc -e 30m (recharge for 30 minutes)
+  -D|--daemon   Print daemon status, (and if running) version and PID
+    e.g., acc -D (alias: "accd,")
 
--f|--force|--full <capacity>   Charge to a given capacity (fallback: 100) once and uninterrupted
-  e.g., acc -f 95
+  -D|--daemon [start|stop|restart]   Manage daemon
+    e.g.,
+      acc -D start (alias: accd)
+      acc -D restart (alias: accd)
+      accd -D stop (alias: "accd.")
 
--i|--info   Show power supply info
-  e.g., acc -i
+  -e|--enable [#%, #s, #m or #h (optional)]   Enable charging
+    e.g.,
+      acc -e 75% (recharge to 75%)
+      acc -e 30m (recharge for 30 minutes)
 
--I|--lang   Show available, as well as the default and currently set languages
-  e.g., acc -I
+  -f|--force|--full [capacity]   Charge to a given capacity (default: 100) once and uninterrupted
+    e.g.,
+      acc -f 95 (charge to 95%)
+      acc -f (charge to 100%)
 
--l|--log <-a|--acc> <editor [opts]>   Open accd log (default) or acc log (-a) w/ <editor [opts]> (default: nano|vim|vi)
-  e.g., acc -l grep ': ' (show explicit errors only)
+  -F|--flash "zip_file"   Flash any zip file whose update-binary is a shell script
+    e.g., acc -F "/sdcard/Download/Magisk-v20.0(20000).zip"
 
--l|--log -e|--export   Export all logs to /sdcard/acc-logs-<device>.tar.bz2
-  e.g., acc -l -e
+  -i|--info [case insentive egrep regex (default: ".")]   Show battery info
+    e.g.,
+      acc -i
+      acc -i volt
+      acc -i 'volt\|curr'
 
--L|--logwatch   Monitor accd log in realtime
-  e.g., acc -L
+  -l|--log [-a|--acc] [editor] [editor_opts]>   Print/edit accd log (default) or acc log (-a|--acc) (default editor: vim/vi
+    e.g.,
+      acc -l
+      acc -l -a cat
+      acc -l grep ': ' (show explicit errors only)
 
--P|--performance   Monitor de performance do accd (htop)
-  e.g., acc -P
+  -la   Same as -l -a
 
--r|--readme   Open <README.md> w/ <editor [opts]> (default: vim|vi)
-  e.g., acc -r
+  -l|--log -e|--export   Export all logs to /sdcard/acc-logs-\$deviceName.tar.gz
+    e.g., acc -l -e
 
--R|--resetbs   Reset battery stats
-  e.g., acc -R
+  -le   Same as -l -e
 
--s|--set   Show current config
-  e.g., acc -s
+  -p|--performance   Monitor accd resources usage (htop)
+    e.g., acc -p
 
--s|--set <r|reset>   Restore default config
-  e.g., acc -s r
+  -r|--readme   Display README.md (default editor: vim/vi)
+    e.g.,
+      acc -r
+      acc -r cat
 
--s|--set <var> <value>   Set config parameters (alternative: -s|--set <regexp> <value> (interactive))
-  e.g.,
-    acc -s capacity 5,60,80-85 (5: shutdown, 60: cool down, 80: resume, 85: pause)
-    acc -s cool 55/15
+  -R|--resetbs   Reset battery stats
+    e.g., acc -R
 
--s|--set <resume-stop preset>   Can be 4041|endurance+, 5960|endurance, 7580|default, 8090|lite, 9095|travel
-  e.g.,
-    acc -s endurance+ (a.k.a, "the li-ion sweet spot"; best for GPS navigation and other long operations)
-    acc -s travel (for when you need extra juice)
-    acc -s 7580 (restore default capacity settings (5,60,75-80))
+  -s|--set   Print current config
+    e.g., acc -s
 
--s|--set <s|chargingSwitch>   Set a different charging switch from the database
-  e.g., acc -s s
+  -s|--set prop1=value "prop2=value1 value2"   Set [multiple] properties
+    e.g.,
+      acc -s charging_switch=
+      acc -s pause_capacity=60 resume_capacity=55 (shortcuts: acc -s pc=60 rc=55, acc 60 55)
+      acc -s "charging_switch=battery/charging_enabled 1 0" resume_capacity=55 pause_capacity=60
+    Note: all properties have short aliases for faster typing; run "acc -c cat" to see these
 
--s|--set <s:|chargingSwitch:>   List available charging switches
-  e.g., acc -s s:
+  -s|--set c|--current [-]   Set/print/restore_default max charging current ($(print_mA))
+    e.g.,
+      acc -s c (print)
+      acc -s c 500 (set)
+      acc -s c - (restore default)
 
--s|--set <s-|chargingSwitch->   Unset charging switch
-  e.g., acc -s s-
+  -s|--set l|--lang   Change language
+    e.g., acc -s l
 
--t|--test   Test currently set charging ctrl file
-  Exit codes: 0 (works), 1 (doesn't work) or 2 (battery must be charging)
-  e.g., acc -t
+  -s|--set d|--print-default [egrep regex (default: ".")]   Print default config without blank lines
+    e.g.,
+      acc -s d (print entire defaul config)
+      acc -s d cap (print only entries matching "cap")
 
--t|--test <file on off>   Test custom charging ctrl file
-  Exit codes: 0 (works), 1 (doesn't work) or 2 (battery must be charging)
-  e.g., acc -t battery/charging_enabled 1 0
+  -s|--set p|--print [egrep regex (default: ".")]   Print current config without blank lines (refer to previous examples)
 
--t|--test -- <file (fallback: $modPath/switches.txt)>   Test charging switches from a file
-  This will also report whether "battery idle" mode is supported
-  Exit codes: 0 (works), 1 (doesn't work) or 2 (battery must be charging)
-  e.g., acc -t -- /sdcard/experimental_switches.txt
+  -s|--set r|--reset   Restore default config
+    e.g., acc -s r
 
--u|--upgrade [-c|--changelog] [-f|--force] [-n|--non-interactive]   Upgrade/downgrade
-  e.g.,
-    acc -u dev (upgrade to the latest dev version)
-    acc -u (latest stable release)
-    acc -u master^1 -f (previous stable release)
-    acc -u -f dev^2 (two dev versions below the latest dev)
-    acc -u 201905110 --force (version 2019.5.11)
+  -s|--set s|charging_switch   Enforce a specific charging switch
+    e.g., acc -s s
 
--U|--uninstall
+  -s|--set s:|chargingSwitch:   List known charging switches
+    e.g., acc -s s:
 
--v|--voltage   Show current charging voltage
-  e.g., acc -v
+  -s|--set v|--voltage [-] [--exit]   Set/print/restore_default max charging voltage ($(print_mV))
+    e.g.,
+      acc -s v (print)
+      acc -s v 3920 (set)
+      acc -s v - (restore default)
+      acc -s v 3920 --exit (stop the daemon after applying settings)
 
--v|--voltage :   List available/default charging voltage ctrl files
-  e.g., acc -v :
+  -t|--test   Test charging control (on/off)
+    e.g., acc -t
 
--v|--voltage -   Restore default charging voltage limit
-  e.g., acc -v -
+  -t|--test [file on off file2 on off]   Test custom charging switches
+    e.g.,
+      acc -t battery/charging_enabled 1 0
+      acc -t /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0 ("::" == " ")
 
--v|--voltage <millivolts>   Set charging voltage limit (default/set ctrl file)
-  e.g., acc -v 4100
+  -t|--test -- [file]   Test charging switches from a file (default: $TMPDIR/charging-switches)
+    This will also report whether "battery idle" mode is supported
+    e.g.,
+      acc -t -- (test known switches)
+      acc -t -- /sdcard/experimental_switches.txt (test custom/foreign switches)
 
--v|--voltage <file:millivolts>   Set charging voltage limit (custom ctrl file)
-  e.g., acc -v battery/voltage_max:4100
+  -T|--logtail   Monitor accd log (tail -F)
+    e.g., acc -T
 
--V|--version   Show acc version code
-  e.g., acc -V
+  -u|--upgrade [-c|--changelog] [-f|--force] [-n|--non-interactive]   Upgrade/downgrade
+    e.g.,
+      acc -u dev (upgrade to the latest dev version)
+      acc -u (latest stable release)
+      acc -u master^1 -f (previous stable release)
+      acc -u -f dev^2 (two dev versions below the latest dev)
+      acc -u 201905110 --force (version 2019.5.11)
 
--x|--xtrace   Run in debug mode (verbose enabled)
-  e.g., acc -x -t --
+  -U|--uninstall   Completelly remove acc and AccA
+    e.g., acc -U
+
+  -v|--version   Print acc version and version code
+    e.g., acc -v
 
 Tips
 
   Commands can be chained for extended functionality.
-    e.g., acc -e 30m && acc -d 6h && acc -e 85 && accd (recharge for 30 minutes, halt charging for 6 hours, recharge to 85% capacity and restart daemon)
+    e.g., acc -e 30m && acc -d 6h && acc -e 85 && accd (recharge for 30 minutes, halt charging for 6 hours, recharge to 85% capacity and restart the daemon)
 
-  Pause and resume capacities can also be set with acc <pause%> <resume%>.
-    e.g., acc 85 80
+  Programming charging before going to sleep...
+    acc 45 43 && acc -s c 500 && sleep \$((60*60*7)) && acc 80 75 && acc -s c -
+      - "Keep battery capacity bouncing between 43-45% and limit charging current to 500 mA for 7 hours. Restore regular charging settings afterwards."
+      - For convenience, this can be written to a file and ran as "sh /path/to/file".
+      - If the kernel supports custom max charging voltage, it's best to use that feature over the above chain, like so: "acc -s v 3920 && sleep \$((60*60*7)) && acc -s v -".
 
-  That last command can be used for programming charging before bed. In this case, the daemon must be running.
-    e.g., acc 45 44 && acc --set applyOnPlug usb/current_max:500000 && sleep $((60*60*7)) && acc 80 75 && acc --set applyOnPlug usb/current_max:2000000
-    - "Keep battery capacity at ~45% and limit charging current to 500mA for 7 hours. Restore regular charging settings afterwards."
-    - For convenience, this can be written to a file and ran as "sh <file>".
-    - If your device supports custom charging voltage, it's better to use it instead: "acc -v 3920 && sleep $((60*60*7)) && acc -v -".
-
-Run acc --readme to see the full documentation.
+Run acc -r (or --readme) to see the full documentation.
 EOF
 }
 
+
 print_exit() {
-  echo Exit
+  echo "Exit"
 }
 
 print_choice_prompt() {
-  echo "(?) Choice, [Enter]: "
+  echo "(?) Choice, [enter]: "
 }
 
 print_auto() {
-  echo Automatic
+  echo "Automatic"
 }
 
 print_default() {
- echo Default
+ echo "Default"
 }
 
 print_quit() {
-  echo "(i) Press q to quit"
+  echo "(i) Press $1 to quit"
 }
 
-print_set_lang() {
-    echo -e "\n(i) Run \"acc -s lang STRING\" to change (e.g., \"acc -s lang fr\")"
+print_curr_restored() {
+  echo "(i) Default max charging current restored"
 }
 
-print_var_prompt() {
-  echo "- Which variable do you mean? "
+print_volt_restored() {
+  echo "(i) Default max charging voltage restored"
+}
+
+print_read_curr() {
+  echo "(i) Need to read default max charging current value(s) first"
+  print_unplugged
+  echo -n "- Waiting... (press CTRL-C to abort)"
+}
+
+print_curr_set() {
+  echo "(i) Max charging current set to $1 $(print_mA)"
+}
+
+print_volt_set() {
+  echo "(i) Max charging voltage set to $1 $(print_mV)"
+}
+
+print_curr_range() {
+  echo "(!) [$1] ($(print_mA)) only"
+}
+
+print_volt_range() {
+  echo "(!) [$1] ($(print_mV)) only"
+}
+
+print_wip() {
+  echo "(i) Work in progress"
+  echo "- Run acc -h or -r for help"
+}
+
+print_press_enter() {
+  echo -n "(i) Press [enter] to continue..."
+}
+
+print_lang() {
+  echo "Language"
+}
+
+print_doc() {
+  echo "Documentation"
+}
+
+print_cmds() {
+  echo "All commands"
+}
+
+print_re_start_daemon() {
+  echo "Start/restart daemon"
+}
+
+print_stop_daemon() {
+  echo "Stop daemon"
+}
+
+print_export_logs() {
+  echo "Export logs"
+}
+
+print_1shot() {
+  echo "Charge once to a given level (default: 100%), without other restrictions"
+}
+
+print_charge_once() {
+  echo "Charge once to #%"
+}
+
+print_mA() {
+  echo "milliamps"
+}
+
+print_mV() {
+  echo "millivolts"
 }
