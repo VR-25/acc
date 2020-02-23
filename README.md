@@ -18,7 +18,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
+along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
 
@@ -63,7 +63,7 @@ Once there, if you're lazy, jump to the quick start section.
 - Terminal emulator (e.g., [Termux](https://f-droid.org/en/packages/com.termux/))
 - Text editor (optional)
 
-> * Instead of a regular install, the binary can simply be placed in /data/adb/. That's a fallback path. ACC sets permissions (rwx------) as needed.
+> \* Instead of a regular install, the binary can simply be placed in /data/adb/. That's a fallback path. ACC sets permissions (rwx------) as needed.
 
 
 
@@ -73,7 +73,7 @@ Once there, if you're lazy, jump to the quick start section.
 
 1. Unless Magisk is not installed, always install/upgrade from Magisk Manager or ACC front-end (e.g. AccA).
 Apps such as EX/Franco Kernel Managers are also good options.
-There are yet two more ways of upgrading: `acc -u` (online) and `acc -F zip_file` (zip flasher).
+There are yet two more ways of upgrading: `acc -u` (online) and `acc -F` (zip flasher).
 Rebooting after installation/removal is unnecessary.
 
 2. [Optional] run `su -c acc pause_capacity resume_capacity` (default `75 70`) or use a front-end app to change settings.
@@ -84,6 +84,8 @@ Oftentimes, solutions will be right before your eyes.
 
 
 ### Notes
+
+- ACC cannot be installed/upgraded from recovery (e.g., TWRP).
 
 - Step `2` is optional, because there are default settings.
 For details, refer to the `DEFAULT CONFIGURATION` section below.
@@ -167,13 +169,15 @@ In interactive mode, it also asks the user whether they want to download and ins
 
 Install/upgrade: unless Magisk is not installed, always install/upgrade from Magisk Manager or ACC front-end (e.g. AccA).
 Apps such as EX/Franco Kernel Managers are also good options.
-There are yet two more ways of upgrading: `acc -u` (online) and `acc -F zip_file` (zip flasher).
+There are yet two more ways of upgrading: `acc -u` (online) and `acc -F` (zip flasher).
 
 Uninstall: depending on the installed variant (e.g., app back-end or Magisk module), you can use Magisk Manager (app), [Magisk Manager for Recovery Mode (utility)](https://github.com/VR-25/mm/), or clear the front-end app's data.
 Two universal methods are: `su -c acc --uninstall` and `/sdcard/acc-uninstaller.zip` (flashable uninstaller).
 
 
 ### Notes
+
+- ACC cannot be installed/upgraded from recovery (e.g., TWRP).
 
 Rebooting after installing, upgrading or uninstalling is unnecessary.
 
@@ -488,8 +492,10 @@ Options
       acc -f 95 (charge to 95%)
       acc -f (charge to 100%)
 
-  -F|--flash "zip_file"   Flash any zip file whose update-binary is a shell script
-    e.g., acc -F "/sdcard/Download/Magisk-v20.0(20000).zip"
+  -F|--flash ["zip_file"]   Flash any zip file whose update-binary is a shell script
+    e.g.,
+      acc -F (lauches a zip picking wizard)
+      acc -F "/sdcard/Download/Magisk-v20.0(20000).zip"
 
   -i|--info [case insentive egrep regex (default: ".")]   Show battery info
     e.g.,
@@ -716,7 +722,7 @@ While custom current is supported by most (at least to some degree), voltage twe
 
 That said, the existence of potential voltage/current control file doesn't necessarily mean these are writable* or the features are supported.
 
-* Root is not enough. Kernel level permissions forbid write access to certain interfaces.
+\* Root is not enough. Kernel level permissions forbid write access to certain interfaces.
 
 
 ### Diagnostics/Logs
@@ -861,6 +867,11 @@ It's a software (Android/kernel) issue. Use the `capacity_offset` or `capacity_s
 
 ---
 ## LATEST CHANGES
+
+**2020.2.23-r1-dev (202002231)**
+- acc -F: call pick_zip() when there's no arg
+- Fixed typos
+> Note: incompatible with AccA versions lower than 1.0.21
 
 **2020.2.23-dev (202002230)**
 - Updated strings

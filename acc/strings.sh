@@ -133,8 +133,10 @@ Options
       acc -f 95 (charge to 95%)
       acc -f (charge to 100%)
 
-  -F|--flash "zip_file"   Flash any zip file whose update-binary is a shell script
-    e.g., acc -F "/sdcard/Download/Magisk-v20.0(20000).zip"
+  -F|--flash ["zip_file"]   Flash any zip file whose update-binary is a shell script
+    e.g.,
+      acc -F (lauches a zip picking wizard)
+      acc -F "/sdcard/Download/Magisk-v20.0(20000).zip"
 
   -i|--info [case insentive egrep regex (default: ".")]   Show battery info
     e.g.,
