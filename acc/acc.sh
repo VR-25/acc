@@ -71,14 +71,17 @@ daemon_ctrl() {
 
 
 edit() {
+  [ "$1" != no-quit-msg ] || { local noQuitMsg=true; shift; }
   local file="$1"
   shift
   if [ -n "${1-}" ]; then
     eval "$@ $file"
   else
-    print_quit ":q [enter]"
-    sleep 1.5
-    clear
+    if ! ${noQuitMsg:-false}; then
+      print_quit ":q [enter]"
+      sleep 1.5
+      echo
+    fi
     { vim $file || vi $file; } 2>/dev/null
   fi
 }
@@ -404,8 +407,8 @@ case ${1-} in
   ;;
 
   -F|--flash)
-    trap - EXIT
     set +euxo pipefail 2>/dev/null
+    trap - EXIT
     $modPath/install-zip.sh "$2"
     echo
   ;;
@@ -420,7 +423,7 @@ case ${1-} in
     shift
     logf --acc "$@"
   ;;
-  
+
   -le)
     logf --export
   ;;
@@ -500,7 +503,7 @@ case ${1-} in
     local reference="$(echo "$@" | sed -E 's/-c|--changelog|-f|--force|-n|--non-interactive| //g')"
     case ${reference:-x} in
       dev|master) :;;
-      *) reference=master;;
+      *) grep -q 'version=.*-dev' $modPath/module.prop && reference=dev || reference=master;;
     esac
     curl -Lo $TMPDIR/install-latest.sh https://raw.githubusercontent.com/VR-25/acc/$reference/install-latest.sh
     trap - EXIT

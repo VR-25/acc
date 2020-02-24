@@ -7,3 +7,5 @@ Hangs and reboots
   Root: SuperSU
 
 check --test (&& exitCode=0) in acc.sh
+
+write framework implementation/usage details

@@ -355,3 +355,27 @@ print_mA() {
 print_mV() {
   echo "millivolts"
 }
+
+print_uninstall() {
+  echo "Uninstall"
+}
+
+print_edit() {
+  echo "Edit $1"
+}
+
+print_flash_zip() {
+  echo "Fash zip"
+}
+
+print_reset_bs() {
+  echo "Reset battery stats"
+}
+
+print_test_cs() {
+  echo "Test charging switches"
+}
+
+print_update() {
+  echo "Check for update"
+}

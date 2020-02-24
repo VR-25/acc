@@ -2,11 +2,13 @@
 # Installation Archives Builder
 # Copyright (c) 2018-2020, VR25 (xda-developers)
 # License: GPLv3+
-
+#
 # usage: $0 [any_random_arg]
 #   e.g.,
 #     build.sh (builds $id and generates installable archives)
 #     build.sh any_random_arg (only builds $id)
+#
+# devs: triple hashtags (###) mark custom code
 
 
 (cd ${0%/*} 2>/dev/null
@@ -43,7 +45,7 @@ do
 done
 
 
-# update README
+# update README ###
 
 if [ README.md -ot acc/default-config.txt ] \
   || [ README.md -ot acc/strings.sh ]

@@ -3,6 +3,8 @@
 # id is set/corrected by build.sh
 # Copyright (c) 2019-2020, VR25 (xda-developers)
 # License: GPLv3+
+#
+# devs: triple hashtags (###) mark custom code
 
 set -u
 id=acc
@@ -30,15 +32,15 @@ fi
 
 exec 2>/dev/null
 
-pkill -f "/$id (-|--)[def]|/${id}d\.sh"
+pkill -f "/$id (-|--)[def]|/${id}d\.sh" ###
 
 rm -rf $(readlink -f /sbin/.$id/$id/) \
   /data/adb/$id \
   /data/adb/${id}-data \
   /data/adb/modules/$id \
-  /data/*/mattecarra.accapp \
   /data/adb/service.d/${id}-*.sh \
-  /data/media/0/${id}-logs-*.tar.*
+  /data/media/0/${id}-logs-*.tar.* \
+  /data/*/mattecarra.${id}app ###
 
 rm $3
 

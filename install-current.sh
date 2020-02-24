@@ -2,6 +2,9 @@
 # $id Installer/Upgrader
 # Copyright (c) 2019-2020, VR25 (xda-developers)
 # License: GPLv3+
+#
+# devs: triple hashtags (###) mark custom code
+
 
 # override the official Magisk module installer
 SKIPUNZIP=1
@@ -45,7 +48,7 @@ if [ $(id -u) -ne 0 ]; then
   exit 4
 fi
 
-print() { sed -n "s|^$1=||p" ${2:-$srcDir/module.prop}; }
+get_prop() { sed -n "s|^$1=||p" ${2:-$srcDir/module.prop}; }
 
 set_perms() {
   local owner=${2:-0} perms=600 target=$(readlink -f $1)
@@ -74,17 +77,17 @@ if [ ! -f $srcDir/module.prop ]; then
   unzip ${ZIP:-${3-}} -d $srcDir/ >&2
 fi
 
-name=$(print name)
-author=$(print author)
-version=$(print version)
-versionCode=$(print versionCode)
-installDir=${installDir0:=/data/data/mattecarra.accapp/files}
+name=$(get_prop name)
+author=$(get_prop author)
+version=$(get_prop version)
+versionCode=$(get_prop versionCode)
+installDir=${installDir0:=/data/data/mattecarra.${id}app/files} ###
 config=/data/adb/${id}-data/config.txt
 
 # restore config backup
 [ -f $config ] || cp /data/media/0/.${id}-config-backup.txt $config 2>/dev/null || :
 
-configVer=$(print configVerCode $config 2>/dev/null || :)
+configVer=$(get_prop configVerCode $config 2>/dev/null || :)
 
 # check/set parent installation directory
 [ -d $installDir ] || installDir=/sbin/.magisk/modules
@@ -92,27 +95,29 @@ configVer=$(print configVerCode $config 2>/dev/null || :)
 [ -d $installDir ] || { echo "(!) /data/adb/ not found\n"; exit 1; }
 
 
-# install
-
+###
 cat << EOF
-$name $version
+$name $version (versionCode)
 Copyright (c) 2017-2020, $author
 License: GPLv3+
 
 (i) Installing in $installDir/$id/...
 EOF
 
-/sbin/.acc-en --daemon stop > /dev/null 2>&1 || :
 
+# stop $id daemon ###
+/sbin/.${id}-en --daemon stop > /dev/null 2>&1 || :
+
+# remove old version
 rm -rf $(readlink -f /sbin/.$id/$id || :) $installDir/$id \
   /data/adb/$id /sbin/.magisk/modules/$id 2>/dev/null || :
 
+# install
 cp -R $srcDir/$id/ $installDir/
 installDir=$(readlink -f $installDir/$id)
 installDir0=$installDir0/$id
 [ ! -d $installDir0 ] || installDir0=$(readlink -f $installDir0)
 cp $srcDir/module.prop $installDir/
-
 mkdir -p ${config%/*}/info
 cp -f $srcDir/*.md ${config%/*}/info
 [ $installDir == /data/adb/$id ] || ln -s $installDir /data/adb/
@@ -124,8 +129,10 @@ if [ $installDir != /sbin/.magisk/modules/$id ]; then
   # enable upgrading through Magisk Manager
   ln -s $installDir /sbin/.magisk/modules/$id 2>/dev/null || :
 
-  # set up alternate initializer (Magisk service.d)
-  cat << EOF > /data/adb/service.d/${id}-init.sh
+  if [ -d /data/adb/service.d ]; then
+
+# alternate initialization script
+cat << EOF > /data/adb/service.d/${id}-init.sh
 #!/system/bin/sh
 # alternate $id initializer
 (until [ -d /storage/emulated/0/?ndroid ]; do sleep 10; done
@@ -137,10 +144,9 @@ fi
 exit 0 &) &
 exit 0
 EOF
-  chmod 700 /data/adb/service.d/${id}-init.sh
 
-  # set up cleanup script
-  cat << EOF > /data/adb/service.d/${id}-cleanup.sh
+# post-uninstall cleanup script
+cat << EOF > /data/adb/service.d/${id}-cleanup.sh
 #!/system/bin/sh
 # $id post-uninstall cleanup
 (until [ -d /storage/emulated/0/?ndroid ]; do sleep 15; done
@@ -150,17 +156,20 @@ fi
 exit 0 &) &
 exit 0
 EOF
-  chmod 700 /data/adb/service.d/${id}-cleanup.sh
+
+    chmod 700 /data/adb/service.d/${id}-*.sh
+  fi
 fi
 
 
+# disable magic mount (Magisk)
 touch /sbin/.magisk/modules/$id/skip_mount 2>/dev/null || :
 
-# patch/reset config
+# patch/reset config ###
 if [ -f $config ]; then
-  dConfVer=$(print configVerCode $installDir/default-config.txt)
+  dConfVer=$(get_prop configVerCode $installDir/default-config.txt)
   if [[ ${configVer:-0} -gt $dConfVer || ${configVer:-0} -lt 202002220 ]]; then
-    rm $config /sdcard/acc-logs-*.tar.bz2 2>/dev/null || :
+    rm $config /sdcard/${id}-logs-*.tar.bz2 2>/dev/null || :
   # else
     # if [ $configVer -lt 201906290 ]; then
       # echo prioritizeBattIdleMode=false >> $config
@@ -203,6 +212,7 @@ EOF
 sed -n "\|\($versionCode\)|,\$s|^|    |p" ${config%/*}/info/README.md
 
 
+###
 cat << EOF
 
   LINKS

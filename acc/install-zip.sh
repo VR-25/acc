@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# Zip flasher
+# Universal Shell-Based-Zip flasher
 # Copyright (c) 2020, VR25 (xda-developers)
 # License: GPLv3+
 #
@@ -8,7 +8,7 @@
 
 
 pick_zip() {
-  local PS3="
+  local target="" PS3="
 (?) *.zip... "
   select target in $(ls -Ap ${1:-/storage} | grep -Ei '.*.zip$|/$') \< x; do
     cd ${1:-/storage}
@@ -46,7 +46,7 @@ mkdir -p /dev/.install-zip
 # call pick_zip() if there's no arg
 [ -n "$zipFile" ] || pick_zip
 
-# verbose
+# log
 exec 2>"${zipFile}.log"
 set -x
 
@@ -55,9 +55,8 @@ unzip -o "$zipFile" 'META-INF/*' -d /dev/.install-zip >&2 || exit $?
 
 # flash zip
 # $3 == outfd
-# $4 == zip_file
-echo
 clear
+echo
 sh /dev/.install-zip/META-INF/*/*/*/update-binary dummy 1 "$zipFile"
 
 # cleanup

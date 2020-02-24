@@ -2,6 +2,8 @@
 # Advanced Charging Controller (ACC) Initializer
 # Copyright (c) 2017-2020, VR25 (xda-developers)
 # License: GPLv3+
+#
+# devs: triple hashtags (###) mark custom code
 
 (set +x
 id=acc
@@ -30,6 +32,7 @@ if ! mount -o remount,rw /sbin 2>/dev/null; then
   restorecon -R /sbin > /dev/null 2>&1
 fi
 mkdir -p /sbin/.$id
+###
 ln -fs $modPath /sbin/.$id/$id
 ln -fs /sbin/.$id/$id/${id}.sh /sbin/$id
 ln -fs /sbin/.$id/$id/${id}.sh /sbin/${id}d,
@@ -37,7 +40,7 @@ ln -fs /sbin/.$id/$id/${id}.sh /sbin/${id}d.
 ln -fs /sbin/.$id/$id/${id}.sh /sbin/.${id}-en
 ln -fs /sbin/.$id/$id/start-${id}d.sh /sbin/${id}d
 
-# generate power supply log
+# generate power supply log ###
 (set +x
 . $modPath/power-supply-logger.sh $(sed -n s/versionCode=//p $modPath/module.prop) &) &
 
@@ -50,7 +53,7 @@ if [ -f $termuxSu ] && grep -q 'PATH=.*/sbin/su' $termuxSu; then
 fi
 
 
-# filter out missing and problematic charging switches (those with unrecognized values)
+# filter out missing and problematic charging switches (those with unrecognized values) ###
 (cd /sys/class/power_supply/
 : > /sbin/.$id/charging-switches
 grep -Ev '^#|^$' $modPath/charging-switches.txt | \
@@ -69,7 +72,7 @@ grep -Ev '^#|^$' $modPath/charging-switches.txt | \
     fi
   done
 
-# read charging voltage control files
+# read charging voltage control files ###
 : > /sbin/.$id/ch-volt-ctrl-files
 ls -1 */BatterySenseVoltage */ISenseVoltage */batt_vol */InstatVolt \
   */constant_charge_voltage* */voltage_max */batt_tune_float_voltage 2>/dev/null | \
@@ -79,7 +82,7 @@ ls -1 */BatterySenseVoltage */ISenseVoltage */batt_vol */InstatVolt \
         >> /sbin/.$id/ch-volt-ctrl-files
     done
 
-# read charging current control files (part 1)
+# read charging current control files (part 1) ###
 # part 2 is handled by accd - while charging only
 : > /sbin/.$id/ch-curr-ctrl-files
 ls -1 */input_current_limited */restrict*_ch*g* \
@@ -92,7 +95,7 @@ ls -1 */input_current_limited */restrict*_ch*g* \
    done)
 
 
-# remove bootloop lock file and kill potentially stuck processes
+# remove bootloop lock file and kill potentially stuck processes ###
 (set +x
 sleep 15
 rm /data/adb/${id}-data/logs/.bootlooped

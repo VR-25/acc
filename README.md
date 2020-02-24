@@ -868,6 +868,11 @@ It's a software (Android/kernel) issue. Use the `capacity_offset` or `capacity_s
 ---
 ## LATEST CHANGES
 
+**2020.2.24-dev (202002240)**
+- Enhanced general wizard ("acc" command)
+- Stripped untranslated strings
+- Updated zip flasher and module framework
+
 **2020.2.23-r1-dev (202002231)**
 - acc -F: call pick_zip() when there's no arg
 - Fixed typos

@@ -3,12 +3,12 @@
 # $id Online Installer
 # https://raw.githubusercontent.com/VR-25/$id/$branch/install-latest.sh
 #
-# Copyright (c) 2019, VR25 (xda-developers.com)
+# Copyright (c) 2019-2020, VR25 (xda-developers)
 # License: GPLv3+
 #
 # Usage: sh install-latest.sh [-c|--changelog] [-f|--force] [-n|--non-interactive] [%install dir%] [reference]
 #
-# Refer to README.md > NOTES/TIPS FOR FRONT-END DEVELOPERS for exit codes
+# Also refer to README.md > NOTES/TIPS FOR FRONT-END DEVELOPERS for > Exit Codes
 
 
 set +x
