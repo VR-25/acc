@@ -19,14 +19,18 @@ if grep -q '^chargingSwitch=.*/op_disable_charge' $config; then
   grep -q "^runCmdOnPause=.*$TMPDIR/oem-custom" $config \
     || sed -i "\|^runCmdOnPause=|s|=.*|=\(. $TMPDIR/oem-custom\)|" $config
 else
-  grep -q '1 \> .*/op_disable_charge' $TMPDIR/oem-custom 2>/dev/null \
-    && rm $TMPDIR/oem-custom || :
-  grep -q "^runCmdOnPause=.*$TMPDIR/oem-custom" $config 2>/dev/null \
-    && sed -i "\|^runCmdOnPause=|s|=.*|=\(\)|" $config || :
+  ! grep -q '1 \> .*/op_disable_charge' $TMPDIR/oem-custom 2>/dev/null \
+    || rm $TMPDIR/oem-custom
+  ! grep -q "^runCmdOnPause=.*$TMPDIR/oem-custom" $config 2>/dev/null \
+    || sed -i "\|^runCmdOnPause=|s|=.*|=\(\)|" $config
 fi
 
 # Razer
 # default value: 65
 { echo 30 > /sys/devices/platform/soc/*/*/*/razer_charge_limit_dropdown || :
 echo 30 > usb/razer_charge_limit_dropdown || :; } 2>/dev/null
+
+# 202002250, patch config, switchDelay=2
+! grep -q '^switchDelay=2$' $config \
+  || /sbin/.acc-en --set switch_delay=3.5
 )

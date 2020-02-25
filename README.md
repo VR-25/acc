@@ -59,12 +59,22 @@ Once there, if you're lazy, jump to the quick start section.
 - Android or Android based OS
 - Any root solution (e.g., [Magisk](https://github.com/topjohnwu/Magisk/))
 - [Busybox*](https://github.com/search?o=desc&q=busybox+android&s=updated&type=Repositories/) (only if not rooted with Magisk)
-- curl (for `acc --upgrade`, your ROM may already have it; if not, there's the Magisk module [curl for Android](https://github.com/Zackptg5/Curl-For-Android/) by [Zackptg5](https://github.com/Zackptg5/))
-- Terminal emulator (e.g., [Termux](https://f-droid.org/en/packages/com.termux/))
+- Terminal emulator (recommended: [Termux](https://f-droid.org/en/packages/com.termux/))
+- [curl**](https://github.com/search?o=desc&q=curl+android&s=updated&type=Repositories/) (for acc --upgrade)
 - Text editor (optional)
 
-> \* Instead of a regular install, the binary can simply be placed in /data/adb/. That's a fallback path. ACC sets permissions (rwx------) as needed.
+\* Instead of a regular install, the binary can simply be placed in /data/adb/.
+That's a fallback path. ACC sets permissions (rwx------) as needed.
 
+\*\* Termux has it. Paste and run the following to set it up for acc --upgrade:
+
+`pkg install tsu && echo -e "\nalias acc=/sbin/acc" >> ~/.bashrc && . ~/.bashrc`
+
+Then, whenever you need `acc --upgrade`, run it as follows:
+```
+$ tsu
+# acc -u
+```
 
 
 ---
@@ -193,7 +203,7 @@ Additionally, `$installDir/acc/acc-init.sh` must be executed on boot to initiali
 ```
 #DC#
 
-configVerCode=202002220
+configVerCode=20200250
 capacity=(-1 60 70 75 +0 false)
 temperature=(70 80 90)
 coolDownRatio=()
@@ -205,7 +215,7 @@ applyOnPlug=()
 maxChargingCurrent=()
 maxChargingVoltage=()
 rebootOnPause=
-switchDelay=2
+switchDelay=3.5
 language=en
 wakeUnlock=()
 prioritizeBattIdleMode=false
@@ -402,7 +412,9 @@ dynPowerSaving=120
 # switch_delay (sd) #
 # Delay (seconds) between charging status checks after togling charging switches
 # Most devices work with a value of 1.
-# If a charging switch seems to work intermittently, or fail completely, increasing this value may fix the issue.
+# Some devices may require a delay as high as 3. The optimal max is probably 3.5.
+# If a charging switch seems to work intermittently, or fails completely, increasing this value may fix the issue.
+# You absolutelly should increase this value if "acc -t --" reports total failure.
 
 # lang (l) #
 # acc language, managed with "acc --set --lang".
@@ -672,6 +684,11 @@ Logs are exported automatically (`acc --log --export`) on exit codes `1`, `2` an
 ## TROUBLESHOOTING
 
 
+### `acc -t --` Reports Total Failure
+
+Refer back to `DEFAULT CONFIGURATION (switch_delay)`.
+
+
 ### Battery Capacity (% Level) is Misreported
 
 The "smart" battery must be calibrated. Refer to the `FAQ` section below for details.
@@ -868,10 +885,18 @@ It's a software (Android/kernel) issue. Use the `capacity_offset` or `capacity_s
 ---
 ## LATEST CHANGES
 
+**2020.2.25-dev (202002250)**
+- Added alternate `curl` setup instructions to README.md
+- Default switch_delay: 3.5 seconds
+- Fixed typos
+- Updated module framework
+> Note: incompatible with AccA versions lower than 1.0.21
+
 **2020.2.24-dev (202002240)**
 - Enhanced general wizard ("acc" command)
 - Stripped untranslated strings
 - Updated zip flasher and module framework
+> Note: incompatible with AccA versions lower than 1.0.21
 
 **2020.2.23-r1-dev (202002231)**
 - acc -F: call pick_zip() when there's no arg

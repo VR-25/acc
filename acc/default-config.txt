@@ -1,4 +1,4 @@
-configVerCode=202002220
+configVerCode=20200250
 capacity=(-1 60 70 75 +0 false)
 temperature=(70 80 90)
 coolDownRatio=()
@@ -10,7 +10,7 @@ applyOnPlug=()
 maxChargingCurrent=()
 maxChargingVoltage=()
 rebootOnPause=
-switchDelay=2
+switchDelay=3.5
 language=en
 wakeUnlock=()
 prioritizeBattIdleMode=false
@@ -207,7 +207,9 @@ dynPowerSaving=120
 # switch_delay (sd) #
 # Delay (seconds) between charging status checks after togling charging switches
 # Most devices work with a value of 1.
-# If a charging switch seems to work intermittently, or fail completely, increasing this value may fix the issue.
+# Some devices may require a delay as high as 3. The optimal max is probably 3.5.
+# If a charging switch seems to work intermittently, or fails completely, increasing this value may fix the issue.
+# You absolutelly should increase this value if "acc -t --" reports total failure.
 
 # lang (l) #
 # acc language, managed with "acc --set --lang".

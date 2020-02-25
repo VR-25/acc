@@ -168,7 +168,7 @@ touch /sbin/.magisk/modules/$id/skip_mount 2>/dev/null || :
 # patch/reset config ###
 if [ -f $config ]; then
   dConfVer=$(get_prop configVerCode $installDir/default-config.txt)
-  if [[ ${configVer:-0} -gt $dConfVer || ${configVer:-0} -lt 202002220 ]]; then
+  if [ ${configVer:-0} -gt $dConfVer ] || [ ${configVer:-0} -lt 202002220 ]; then
     rm $config /sdcard/${id}-logs-*.tar.bz2 2>/dev/null || :
   # else
     # if [ $configVer -lt 201906290 ]; then

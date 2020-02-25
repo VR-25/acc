@@ -4,7 +4,7 @@
 #
 # "::" == " "
 # PWD=/sys/class/power_supply
-# Last updated: Sat, Feb 22, 2020
+# Last updated: Tue, Feb 25, 2020
 
 battery/charger_control 1 0
 */charge_disable 0 1

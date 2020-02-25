@@ -1,4 +1,4 @@
-#!/system/bin/sh -u
+#!/system/bin/sh
 # $id uninstaller
 # id is set/corrected by build.sh
 # Copyright (c) 2019-2020, VR25 (xda-developers)
@@ -6,24 +6,45 @@
 #
 # devs: triple hashtags (###) mark custom code
 
+set -u
 id=acc
 
-[ -f $PWD/${0##*/} ] && modPath=$PWD || modPath=${0%/*}
+# set up busybox
+#BB#
+if [ -d /sbin/.magisk/busybox ]; then
+  [[ $PATH == /sbin/.magisk/busybox:* ]] || PATH=/sbin/.magisk/busybox:$PATH
+else
+  mkdir -p -m 700 /dev/.busybox
+  [[ $PATH == /dev/.busybox:* ]] || PATH=/dev/.busybox:$PATH
+  if [ ! -x /dev/.busybox/busybox ]; then
+    if which busybox > /dev/null; then
+      busybox --install -s /dev/.busybox
+    elif [ -f /data/adb/busybox ]; then
+      chmod 700 /data/adb/busybox
+      /data/adb/busybox --install -s /dev/.busybox
+    else
+      echo "(!) Install busybox binary first"
+      exit 3
+    fi
+  fi
+fi
+#/BB#
 
-. $modPath/setup-busybox.sh
+exec 2>/dev/null
+
+# interrupt $id processes
 pkill -f "/$id (-|--)[def]|/${id}d\.sh" ###
 
-exec > /dev/null 2>&1
-
-rm -rf $(readlink -f $modPath) \
+# uninstall $id
+rm -rf $(readlink -f /sbin/.$id/$id/) \
   /data/adb/$id \
   /data/adb/${id}-data \
   /data/adb/modules/$id \
   /data/adb/service.d/${id}-*.sh \
-  /data/media/0/${id}-logs-*.tar.*
+  /data/media/0/${id}-logs-*.tar.* \
+  /data/data/mattecarra.accapp/files/$id ###
 
-###
-pm uninstall mattecarra.accapp \
-  || rm -rf /data/*/mattecarra.accapp
+# remove flashable uninstaller
+rm ${3:-/data/media/0/${id}-uninstaller.zip}
 
 exit 0

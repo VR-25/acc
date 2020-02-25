@@ -365,7 +365,7 @@ print_edit() {
 }
 
 print_flash_zip() {
-  echo "Fash zip"
+  echo "Flash zip"
 }
 
 print_reset_bs() {
