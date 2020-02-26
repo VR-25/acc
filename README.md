@@ -203,7 +203,7 @@ Additionally, `$installDir/acc/acc-init.sh` must be executed on boot to initiali
 ```
 #DC#
 
-configVerCode=20200250
+configVerCode=20200260
 capacity=(-1 60 70 75 +0 false)
 temperature=(70 80 90)
 coolDownRatio=()
@@ -222,6 +222,7 @@ prioritizeBattIdleMode=false
 forceFullStatusAt100=
 runCmdOnPause=()
 dynPowerSaving=120
+ghostCharging=false
 
 
 # BASIC EXPLANATION
@@ -262,6 +263,8 @@ dynPowerSaving=120
 
 # dynPowerSaving=dyn_power_saving
 
+# ghostCharging=ghost_charging
+
 
 # VARIABLE ALIASES (SORTCUTS)
 
@@ -301,6 +304,7 @@ dynPowerSaving=120
 # fs force_full_status_at_100
 # rcp run_cmd_on_pause
 # dps dyn_power_saving
+# gc ghost_charging
 
 
 # COMMAND EXAMPLES
@@ -318,6 +322,11 @@ dynPowerSaving=120
 
 # acc -s -v 3920 (millivolts)
 # acc -s -c 500 (milliamps)
+
+# custom config path
+# acc /data/acc-night-config.txt 45 43
+# acc /data/acc-night-config.txt -s c 500
+# accd /data/acc-night-config.txt
 
 
 # FINE, BUT WHAT DOES EACH OF THESE VARIABLES ACTUALLY MEAN?
@@ -441,6 +450,9 @@ dynPowerSaving=120
 # dyn_power_saving (dps) #
 # This is the maximum number of seconds accd will dynamically sleep for (while unplugged) to save resources.
 
+# ghost_charging (gc) #
+# Enable this if you experience the weird issue of "charging while UNPLUGGED".
+
 #/DC#
 ```
 
@@ -468,9 +480,17 @@ The config file itself has configuration instructions for humans as well.
 
 Usage
 
+  acc (wizard)
   acc [options] [args]
   .acc-en [options] [args] (for front-ends)
   acc [pause_capacity] [resume_capacity] (e.g., acc 75 70)
+
+  A custom config path can be specified as first parameter. If the file doesn't exist, the current config is cloned.
+    e.g.,
+      acc /data/acc-night-config.txt --set pause_capacity=45 resume_capacity=43
+      acc /data/acc-night-config.txt --set --current 500
+      accd /data/acc-night-config.txt
+
 
 Options
 
@@ -612,6 +632,7 @@ Options
   -v|--version   Print acc version and version code
     e.g., acc -v
 
+
 Tips
 
   Commands can be chained for extended functionality.
@@ -623,7 +644,7 @@ Tips
       - For convenience, this can be written to a file and ran as "sh /path/to/file".
       - If the kernel supports custom max charging voltage, it's best to use that feature over the above chain, like so: "acc -s v 3920 && sleep \$((60*60*7)) && acc -s v -".
 
-Run acc -r (or --readme) to see the full documentation.
+  Run acc -r (or --readme) to see the full documentation.
 
 #/TC#
 ```
@@ -672,9 +693,8 @@ Refer back to the `BUILDING AND/OR INSTALLING FROM SOURCE` section.
 4. Not running as root
 5. Update available
 6. No update available
-7. Installation path not found
+7. Daemon couldn't disable charging
 8. Daemon already running (acc --daemon start) or not running (acc --daemon stop)
-9. Daemon couldn't disable charging
 
 Logs are exported automatically (`acc --log --export`) on exit codes `1`, `2` and `9`.
 
@@ -732,6 +752,11 @@ These settings are in `acc/oem-custom.sh`.
 Note: switches that fail to disable charging are automatically blacklisted.
 
 
+### Charging While UNPLUGGED
+
+Refer back to `DEFAULT CONFIGURATION (ghost_charging)`.
+
+
 ### Custom Max Charging Voltage And Current Limits
 
 Unfortunately, not all kernels support these features.
@@ -746,8 +771,6 @@ That said, the existence of potential voltage/current control file doesn't neces
 
 Volatile logs are in `/sbin/.acc/`.
 Persistent logs are found at `/data/adb/acc-data/logs/`.
-
-The existence of `/dev/acc-modpath-not-found` indicates a fatal ACC initialization error.
 
 `/data/adb/acc-data/logs/.bootlooped` is created automatically after a bootloop event - and it prevents acc initialization.
 
@@ -885,34 +908,38 @@ It's a software (Android/kernel) issue. Use the `capacity_offset` or `capacity_s
 ---
 ## LATEST CHANGES
 
+**2020.2.26-dev (202002260)**
+- acc -i: htc_himauhl, read VOLTAGE_NOW from bms/uevent
+- acc -i: print current_now, temp and voltage_now over MediaTek's odd property names
+- Fixed `acc -d`
+- General optimizations
+- ghost_charging toggle (refer to "README.md > DEFAULT CONFIGURATION > ghost_charging" for details)
+- Updated busybox configuration, documentation and framework-detais.txt
+
 **2020.2.25-dev (202002250)**
 - Added alternate `curl` setup instructions to README.md
 - Default switch_delay: 3.5 seconds
 - Fixed typos
+- General optimizations
 - Updated module framework
-> Note: incompatible with AccA versions lower than 1.0.21
 
 **2020.2.24-dev (202002240)**
 - Enhanced general wizard ("acc" command)
 - Stripped untranslated strings
 - Updated zip flasher and module framework
-> Note: incompatible with AccA versions lower than 1.0.21
 
 **2020.2.23-r1-dev (202002231)**
 - acc -F: call pick_zip() when there's no arg
 - Fixed typos
-> Note: incompatible with AccA versions lower than 1.0.21
 
 **2020.2.23-dev (202002230)**
 - Updated strings
-> Note: incompatible with AccA versions lower than 1.0.21
 
 **2020.2.22-r1-dev (202002221)**
 - acc -D: show accd version and PID as well
 - acc -F: optimizations
 - acc -s s: fixed "print_known_cs: not found"
 - acc -v: new output format - `version (version_code)`
-> Note: incompatible with AccA versions lower than 1.0.21
 
 **2020.2.22-dev (202002220)**
 - Ability to set/nullify multiple properties with a single command (e.g., `acc -s prop1=value "prop2=value1 value2 ..." prop3=`)

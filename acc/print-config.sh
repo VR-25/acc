@@ -41,4 +41,5 @@ force_status_at_100=$forceStatusAt100
 run_cmd_on_pause=${runCmdOnPause[@]}
 
 dyn_power_saving=${dynPowerSaving}
+ghost_charging=$ghostCharging
 EOF

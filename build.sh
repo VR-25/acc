@@ -57,7 +57,7 @@ then
     echo; sed -n '/^#\/DC#/,$p' README.md; } > README.md.tmp
 # terminal commands
   { sed -n '1,/#TC#/p' README.md.tmp; \
-    echo; sed -n '/^Usage/,/^Run a/p' $id/strings.sh; \
+    echo; sed -n '/^Usage/,/^  Run a/p' $id/strings.sh; \
     echo; sed -n '/^#\/TC#/,$p' README.md.tmp; } > README.md
     rm README.md.tmp
   set +e

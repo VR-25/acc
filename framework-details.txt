@@ -28,6 +28,8 @@ META-INF/com/google/android/
   update-binary (copy of install-current.sh)
   updater-script
 
+.gitattributes
+.gitignore
 build.bat
 build.sh
 bundle.bat
@@ -96,6 +98,8 @@ META-INF/com/google/android/
   update-binary (copy of install-current.sh)
   updater-script
 
+.gitattributes
+.gitignore
 build.bat
 build.sh
 bundle.bat

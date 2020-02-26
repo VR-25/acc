@@ -95,11 +95,20 @@ Advanced Charging Controller $accVer ($accVerCode)
 (c) 2017-2020, VR25 (patreon.com/vr25)
 GPLv3+
 
+
 Usage
 
+  acc (wizard)
   acc [options] [args]
   .acc-en [options] [args] (for front-ends)
   acc [pause_capacity] [resume_capacity] (e.g., acc 75 70)
+
+  A custom config path can be specified as first parameter. If the file doesn't exist, the current config is cloned.
+    e.g.,
+      acc /data/acc-night-config.txt --set pause_capacity=45 resume_capacity=43
+      acc /data/acc-night-config.txt --set --current 500
+      accd /data/acc-night-config.txt
+
 
 Options
 
@@ -241,6 +250,7 @@ Options
   -v|--version   Print acc version and version code
     e.g., acc -v
 
+
 Tips
 
   Commands can be chained for extended functionality.
@@ -252,7 +262,7 @@ Tips
       - For convenience, this can be written to a file and ran as "sh /path/to/file".
       - If the kernel supports custom max charging voltage, it's best to use that feature over the above chain, like so: "acc -s v 3920 && sleep \$((60*60*7)) && acc -s v -".
 
-Run acc -r (or --readme) to see the full documentation.
+  Run acc -r (or --readme) to see the full documentation.
 EOF
 }
 

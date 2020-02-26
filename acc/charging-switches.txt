@@ -4,7 +4,7 @@
 #
 # "::" == " "
 # PWD=/sys/class/power_supply
-# Last updated: Tue, Feb 25, 2020
+# Last updated: Wed, Feb 26, 2020
 
 battery/charger_control 1 0
 */charge_disable 0 1
@@ -94,3 +94,4 @@ battery/input_current_settled 0 1
 #/sys/class/qcom-battery/restrict*_cur* 1000000 0 /sys/class/qcom-battery/restrict*_ch*g* 0 1
 #/sys/devices/i2c*/*/battery_smbus 1 0
 #battery/connect_disable 0 1
+#/proc/mtk_battery_cmd/current_cmd 0::0 0::1

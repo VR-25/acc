@@ -24,6 +24,7 @@ prioritizeBattIdleMode=${prioritize_batt_idle_mode-${pbim-$(pcd "prioritizeBattI
 forceFullStatusAt100=${force_full_status_at_100-${fs-$(pcd "forceFullStatusAt100")}}
 runCmdOnPause=(${run_cmd_on_pause-${rcp-$(pcd "runCmdOnPause[@]")}})
 dynPowerSaving=${dyn_power_saving-${dps-$(pcd "dynPowerSaving")}}
+ghostCharging=${ghost_charging-${gc-$(pcd "ghostCharging")}}
 
 
 $(sed -n '/^# /,$p' $defaultConfig)

@@ -45,12 +45,12 @@ is_charging() {
     applyOnUnplug=true
 
     # forceFullStatusAt100
-    if ! $forcedStatusAt100 && [[ ${forceFullStatusAt100:-x} == [0-9]* ]] \
+    if ! $forcedFullStatusAt100 && [[ ${forceFullStatusAt100:-x} == [0-9]* ]] \
       && [ $(cat $batt/capacity) -gt 99 ]
     then
       dumpsys battery set level 100 \
         && dumpsys battery set status $forceFullStatusAt100 \
-        && { forcedStatusAt100=true; frozenBattSvc=true; } \
+        && { forcedFullStatusAt100=true; frozenBattSvc=true; } \
         || sleep ${loopDelay[0]}
     fi
 
@@ -71,7 +71,7 @@ is_charging() {
       # revert forceFullStatusAt100
       if $frozenBattSvc; then
         dumpsys battery reset \
-          && { frozenBattSvc=false; forcedStatusAt100=false; } \
+          && { frozenBattSvc=false; forcedFullStatusAt100=false; } \
           || sleep ${loopDelay[1]}
       fi
 
@@ -131,13 +131,14 @@ disable_charging() {
         /sbin/.acc-en $config --set charging_switch= > /dev/null
       fi
     else
+      [[ ${chargingSwitch[0]:-x} != */* ]] || /sbin/.acc-en $config --set charging_switch= > /dev/null
       ! $prioritizeBattIdleMode || cycle_switches off not
       ! is_charging || cycle_switches off
     fi
     if is_charging; then
       [[ ${chargingSwitch[0]:-x} != */* ]] || /sbin/.acc-en $config --set charging_switch= > /dev/null
       echo "(!) Failed to disable charging"
-      exit 9
+      exit 7
     fi
   fi
   # if maxTemp is reached, pause charging regardless of coolDownRatio
@@ -149,7 +150,7 @@ disable_charging() {
 
 enable_charging() {
   if ! is_charging; then
-    if ! $mtkMadness || { $mtkMadness && [[ "$(acpi -a)" == *on* ]]; }; then
+    if ! $ghostCharging || { $ghostCharging && [[ "$(acpi -a)" == *on* ]]; }; then
       if [ -f "${chargingSwitch[0]-}" ]; then
         if chmod +w ${chargingSwitch[0]} && echo "${chargingSwitch[1]//::/ }" > ${chargingSwitch[0]}; then
           # secondary switch
@@ -162,6 +163,7 @@ enable_charging() {
           /sbin/.acc-en $config --set charging_switch= > /dev/null
         fi
       else
+        [[ ${chargingSwitch[0]:-x} != */* ]] || /sbin/.acc-en $config --set charging_switch= > /dev/null
         cycle_switches on
       fi
     fi
@@ -294,17 +296,25 @@ applyOnUnplug=false
 resetBattStatsOnUnplug=false
 modPath=/sbin/.acc/acc
 export TMPDIR=${modPath%/*}
-forcedStatusAt100=false
+forcedFullStatusAt100=false
 config=/data/adb/acc-data/config.txt
 
-if [ ! -f $modPath/module.prop ]; then
-  touch /dev/acc-modpath-not-found
-  exit 7
-fi
 
 . $modPath/setup-busybox.sh
-mkdir -p ${config%/*}
+
+log=$TMPDIR/accd-$(getprop ro.product.device | grep .. || getprop ro.build.product).log
+
+# verbose
+echo "###$(date)###" >> $log
+echo "versionCode=$(sed -n s/versionCode=//p $modPath/module.prop 2>/dev/null)" >> $log
+exec >> $log 2>&1
+trap exxit EXIT
+set -x
+
+pgrep -f '/acc (-|--)[def]|/accd\.sh' | sed s/$$// | xargs kill -9 2>/dev/null
+set -euo pipefail 2>/dev/null || :
 cd /sys/class/power_supply/
+mkdir -p ${config%/*}
 [ -f $config ] || cp $modPath/default-config.txt $config
 
 # config backup
@@ -313,41 +323,19 @@ if [ -d /data/media/0/?ndroid ]; then
     || install -m 777 $config /data/media/0/.acc-config-backup.txt 2>/dev/null
 fi
 
-batt=$(echo /sys/class/power_supply/*attery/capacity | cut -d ' ' -f 1 | sed 's|/capacity||')
-log=$TMPDIR/accd-$(getprop ro.product.device | grep .. || getprop ro.build.product).log
-
-pgrep -f '/acc (-|--)[def]|/accd\.sh' | sed s/$$// | xargs kill -9 2>/dev/null
-
-# diagnostics and cleanup
-echo "###$(date)###" >> $log
-echo "versionCode=$(sed -n s/versionCode=//p $modPath/module.prop 2>/dev/null)" >> $log
-exec >> $log 2>&1
-trap exxit EXIT
-set -euo pipefail 2>/dev/null || :
-set -x
-
 # custom config path
 if [[ "${1:-x}" == */* ]]; then
   [ -f $1 ] || cp $config $1
   config=$1
 fi
 
+batt=$(echo *attery/capacity | cut -d ' ' -f 1 | sed 's|/capacity||')
+
 . $modPath/oem-custom.sh
 . $config
 
 apply_on_boot
 unset -f apply_on_boot
-
-# unset chargingSwitch if ctrl file doesn't exist
-if [[ ${chargingSwitch[0]:-x} == */* ]]; then
-  if [ ! -f "${chargingSwitch[0]-}" ]; then
-    /sbin/.acc-en $config --set charging_switch= > /dev/null
-    . $modPath/oem-custom.sh
-    . $config
-  fi
-fi
-
-. $modPath/mtk-madness.sh
 
 ctrl_charging
 exit $?

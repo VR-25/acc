@@ -33,4 +33,8 @@ echo 30 > usb/razer_charge_limit_dropdown || :; } 2>/dev/null
 # 202002250, patch config, switchDelay=2
 ! grep -q '^switchDelay=2$' $config \
   || /sbin/.acc-en --set switch_delay=3.5
+ 
+ # 202002260, patch config, ghostCharging
+! grep -q '^ghostCharging=' $config \
+  || /sbin/.acc-en --set ghost_charging=false
 )

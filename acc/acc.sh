@@ -147,9 +147,8 @@ disable_charging() {
 
 enable_charging() {
   . $modPath/apply-on-plug.sh; apply_on_plug
-  . $modPath/mtk-madness.sh
   . $modPath/set-prop.sh
-  if ! $mtkMadness || { $mtkMadness && [[ "$(acpi -a)" == *on* ]]; }; then
+  if ! $ghostCharging || { $ghostCharging && [[ "$(acpi -a)" == *on* ]]; }; then
     if [[ ${chargingSwitch[0]:-x} == */* ]]; then
       if [ -f ${chargingSwitch[0]} ]; then
         if chmod +w ${chargingSwitch[0]} && echo "${chargingSwitch[1]//::/ }" > ${chargingSwitch[0]}; then
@@ -288,17 +287,34 @@ logf() {
 }
 
 
-echo
 umask 077
-set -euo pipefail 2>/dev/null || :
-trap exxit EXIT
-
 modPath=/sbin/.acc/acc
 export TMPDIR=${modPath%/*}
 config=/data/adb/acc-data/config.txt
 defaultConfig=$modPath/default-config.txt
 
+
+echo
 . $modPath/setup-busybox.sh
+
+device=$(getprop ro.product.device | grep .. || getprop ro.build.product)
+log=$TMPDIR/acc-${device}.log
+
+# verbose
+if [[ $0 != *.acc-en && "${1-}" != *-w* ]]; then
+    touch $log
+    trap exxit EXIT
+    if [ $(du -m $log | cut -f 1) -lt 2 ]; then
+      echo "###$(date)###" >> $log
+      set -x 2>>$log
+    else
+      set -x 2>$log
+    fi
+fi
+
+set -euo pipefail 2>/dev/null || :
+cd /sys/class/power_supply/
+mkdir -p ${config%/*}
 [ -f $config ] || cp $defaultConfig $config
 . $config
 
@@ -316,24 +332,10 @@ if [[ "${1:-x}" == */* ]]; then
   shift
 fi
 
-device=$(getprop ro.product.device | grep .. || getprop ro.build.product)
-log=$TMPDIR/acc-${device}.log
-
 accVer=$(get_prop version $modPath/module.prop)
 accVerCode=$(get_prop versionCode $modPath/module.prop)
 
-# verbose
-if [[ $0 != *.acc-en && "${1-}" != *-w* ]]; then
-    touch $log
-    if [ $(du -m $log | cut -f 1) -lt 2 ]; then
-      echo "###$(date)###" >> $log
-      set -x 2>>$log
-    else
-      set -x 2>$log
-    fi
-fi
-
-batt=$(echo /sys/class/power_supply/*attery/capacity | cut -d ' ' -f 1 | sed 's|/capacity||')
+batt=$(echo *attery/capacity | cut -d ' ' -f 1 | sed 's|/capacity||')
 
 # load default language (English)
 . $modPath/strings.sh
@@ -344,15 +346,7 @@ grep -q .. $modPath/translations/$language/README.md 2>/dev/null \
     && readMe=$modPath/translations/$language/README.md \
     || readMe=${config%/*}/info/README.md
 
-if [ ! -f $modPath/module.prop ]; then
-  print_not_found \$modPath
-  exit 7
-fi
-
-mkdir -p ${config%/*}
-cd /sys/class/power_supply/
-
-# shortcuts
+# aliases/shortcuts
 # daemon_ctrl status (acc -D|--daemon): "accd,"
 # daemon_ctrl stop (acc -D|--daemon stop): "accd."
 if [[ $0 == *accd* ]]; then
@@ -386,7 +380,7 @@ case ${1-} in
   -d|--disable)
     shift
     ! daemon_ctrl || daemon_ctrl stop
-    disable_chargi	ng "$@"
+    disable_charging "$@"
   ;;
 
   -D|--daemon)
@@ -414,9 +408,10 @@ case ${1-} in
   ;;
 
   -i|--info)
-    sed -e s/POWER_SUPPLY_// \
-    -e "/^CAPACITY=/s/=.*/=$(( $(cat $batt/capacity) ${capacity[4]} ))/" $batt/uevent \
-    | grep -Ei "${2:-.}"
+    { sed -e 's/POWER_SUPPLY_//' -e 's/^BATTERYAVERAGECURRENT=/CURRENT_NOW=/' \
+      -e 's/^BATT_VOL=/VOLTAGE_NOW=/' -e 's/^BATT_TEMP=/_TEMP=/' \
+      -e "/^CAPACITY=/s/=.*/=$(( $(cat $batt/capacity) ${capacity[4]} ))/" $batt/uevent
+    [ ! -f $TMPDIR/acc-power_supply-htc_himauhl.log ] || grep -o 'VOLTAGE_NOW=.*' bms/uevent; } | grep -Ei "${2:-.}"
   ;;
 
   -la)
