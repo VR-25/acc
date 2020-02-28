@@ -541,17 +541,16 @@ case ${1-} in
 
   -u|--upgrade)
     shift
-    local reference="$(echo "$@" | sed -E 's/-c|--changelog|-f|--force|-n|--non-interactive| //g')"
-    case ${reference:-x} in
-      dev|master) :;;
-      *) grep -q 'version=.*-dev' $modPath/module.prop && reference=dev || reference=master;;
-    esac
+    local reference=$(echo "$@" | sed -E 's/-c|--changelog|-f|--force|-n|--non-interactive| //g')
+    if ! echo "${reference:-x}" | grep -Eq 'dev|master'; then
+      grep -q '^version=.*-dev' $modPath/module.prop && reference=dev || reference=master
+    fi
     curl -Lo $TMPDIR/install-latest.sh https://raw.githubusercontent.com/VR-25/acc/$reference/install-latest.sh
     trap - EXIT
     set +euo pipefail 2>/dev/null
     installDir=$(readlink -f $modPath)
     installDir=${installDir%/*}
-    . $TMPDIR/install-latest.sh "$@" %$installDir%
+    . $TMPDIR/install-latest.sh "$@" %$installDir% $reference
   ;;
 
   -U|--uninstall)

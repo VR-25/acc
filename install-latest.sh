@@ -23,6 +23,7 @@ set -x
 
 trap 'e=$?; echo; exit $e' EXIT
 
+
 # set up busybox
 #BB#
 if [ -d /sbin/.magisk/busybox ]; then
@@ -47,55 +48,67 @@ else
 fi
 #/BB#
 
+
 # root check
 if [ $(id -u) -ne 0 ]; then
   echo "(!) $0 must run as root (su)"
   exit 4
 fi
 
+
 set -euo pipefail 2>/dev/null || :
 get_ver() { sed -n 's/^versionCode=//p' ${1:-}; }
 
-reference="$(echo "$*" | sed -E 's/-c|--changelog|-f|--force|-n|--non-interactive|%.*%| //g')"
-tarball=https://github.com/VR-25/$id/archive/${reference:-master}.tar.gz
-instVer=$(get_ver /sbin/.$id/$id/module.prop 2>/dev/null || :)
-currVer=$(curl -L https://raw.githubusercontent.com/VR-25/$id/${reference:-master}/module.prop | get_ver)
+
+reference=$(echo "$@" | sed -E 's/-c|--changelog|-f|--force|-n|--non-interactive| //g')
+reference=${reference//%*%/}
+: ${reference:=master}
+
+tarball=https://github.com/VR-25/$id/archive/${reference}.tar.gz
+
+installedVersion=$(get_ver /sbin/.$id/$id/module.prop 2>/dev/null || :)
+
+onlineVersion=$(curl -L https://raw.githubusercontent.com/VR-25/$id/${reference}/module.prop | get_ver)
+
 
 [ -f $PWD/${0##*/} ] || cd ${0%/*}
-rm -rf "./${id}-${reference:-master}/" 2>/dev/null || :
+rm -rf "./${id}-${reference}/" 2>/dev/null || :
 
-if [ ${instVer:-0} -lt ${currVer:-0} ] || [[ "$*" == *-f* ]] || [[ "$*" == *--force* ]]; then
-  case $* in
-    *--changelog*|*-c*)
-      case $* in
-        *--non-interactive*|*-n*)
-          echo $currVer
-          echo "https://github.com/VR-25/$id/blob/${reference:-master}/README.md#latest-changes"
-          exit 5
-        ;;
-        *)
-          echo
-          echo "(i) $id $currVer is available"
-          echo "- Changelog: https://github.com/VR-25/$id/blob/${reference:-master}/README.md#latest-changes"
-          echo "- Would you like to download and install it now (Y/n)?"
-          read ans
-          [[ ${ans:-y} == [nN]* ]] && exit 0
-        ;;
-      esac
-    ;;
-  esac
-  export installDir0="$(echo "$*" | sed -E "s/-c|--changelog|-f|--force|-n|--non-interactive|%|$reference| //g")"
+
+if [ ${installedVersion:-0} -lt ${onlineVersion:-0} ] \
+  || [[ "$*" == *-f* ]] || [[ "$*" == *--force* ]]
+then
+
+  if echo "$@" | grep -Eq '\-\-changelog|\-c'; then
+    if echo "$@" | grep -Eq '\-\-non-interactive|\-n'; then
+      echo $onlineVersion
+      echo "https://github.com/VR-25/$id/blob/${reference}/README.md#latest-changes"
+      exit 5 # no update available
+    else
+      echo
+      echo "(i) $id $onlineVersion is available"
+      echo "- Changelog: https://github.com/VR-25/$id/blob/${reference}/README.md#latest-changes"
+      echo -n "- Would you like to download and install it now (Y/n)? "
+      read ans
+      [[ ${ans:-y} == [nN]* ]] && echo && exit 0
+    fi
+  fi
+
+  # download and install tarball
+  export installDir0=$(echo "$@" | sed -E "s/-c|--changelog|-f|--force|-n|--non-interactive|%|$reference| //g")
   set +euo pipefail 2>/dev/null || :
   trap - EXIT
   echo
   curl -L $tarball | tar -xz \
-    && /system/bin/sh ${id}-${reference:-master}/install-current.sh
+    && /system/bin/sh ${id}-${reference}/install-current.sh
+
 else
   echo
   echo "(i) No update available"
   exit 6
 fi
 
+
 set -eu
-rm -rf $0 "./${id}-${reference:-master}/"
+rm -rf $0 "./${id}-${reference}/"
 exit 0

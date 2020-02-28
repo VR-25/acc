@@ -623,10 +623,12 @@ Options
   -u|--upgrade [-c|--changelog] [-f|--force] [-n|--non-interactive]   Upgrade/downgrade
     e.g.,
       acc -u dev (upgrade to the latest dev version)
-      acc -u (latest stable release)
+      acc -u (latest version from the current branch)
       acc -u master^1 -f (previous stable release)
       acc -u -f dev^2 (two dev versions below the latest dev)
       acc -u 201905110 --force (version 2019.5.11)
+      acc -u -c -n (if update is available, prints version code (integer) and changelog link)
+      acc -u -c (same as above, but with install prompt)
 
   -U|--uninstall   Completelly remove acc and AccA
     e.g., acc -U
@@ -909,6 +911,10 @@ It's a software (Android/kernel) issue. Use the `capacity_offset` or `capacity_s
 
 ---
 ## LATEST CHANGES
+
+**2020.2.28-r1-dev (202002281)**
+- `acc -u` optimizations
+- Updated `acc -u` help text
 
 **2020.2.28-dev (202002280)**
 - acc -i: fixes for MTK and HTC One M9, print battery power in/out (Watts)

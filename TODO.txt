@@ -8,17 +8,7 @@ check --test (&& exitCode=0) in acc.sh
 
 cooldown_current (plus a dedicated ratio for it)
 
-realme x
-
-op7pro
-
 spreadtrum
+mtk
 
-
-MTK
-
-echo 20 > /sys/devices/platform/mt-pmic/battery_percent_protect_level
-
-echo > 0 /sys/devices/platform/mt-pmic/battery_percent_protect_ut
-
-echo 10 > /sys/devices/platform/mt-pmic/battery_percent_protect_stop
+add acc -u strings to strings.sh
