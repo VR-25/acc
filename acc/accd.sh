@@ -44,13 +44,13 @@ is_charging() {
     $applyOnUnplug || apply_on_plug
     applyOnUnplug=true
 
-    # forceFullStatusAt100
-    if ! $forcedFullStatusAt100 && [[ ${forceFullStatusAt100:-x} == [0-9]* ]] \
+    # forceChargingStatusFullAt100
+    if ! $forcedChargingStatusFullAt100 && [[ ${forceChargingStatusFullAt100:-x} == [0-9]* ]] \
       && [ $(cat $batt/capacity) -gt 99 ]
     then
       dumpsys battery set level 100 \
-        && dumpsys battery set status $forceFullStatusAt100 \
-        && { forcedFullStatusAt100=true; frozenBattSvc=true; } \
+        && dumpsys battery set status $forceChargingStatusFullAt100 \
+        && { forcedChargingStatusFullAt100=true; frozenBattSvc=true; } \
         || sleep ${loopDelay[0]}
     fi
 
@@ -68,17 +68,17 @@ is_charging() {
         applyOnUnplug=false
       fi
 
-      # revert forceFullStatusAt100
+      # revert forceChargingStatusFullAt100
       if $frozenBattSvc; then
         dumpsys battery reset \
-          && { frozenBattSvc=false; forcedFullStatusAt100=false; } \
+          && { frozenBattSvc=false; forcedChargingStatusFullAt100=false; } \
           || sleep ${loopDelay[1]}
       fi
 
       # resetBattStatsOnUnplug
       if $resetBattStatsOnUnplug && ${resetBattStats[1]}; then
         sleep ${loopDelay[1]}
-        if grep -iq dis $batt/status || [[ "$(acpi -a)" != *on* ]]; then
+        if grep -iq dis $batt/status || [[ "$(acpi -a)" != *on-line* ]]; then
           dumpsys batterystats --reset || :
           rm /data/system/batterystats* || :
           resetBattStatsOnUnplug=false
@@ -88,7 +88,7 @@ is_charging() {
       # dynamic power saving
       # while unplugged, this keeps accd asleep most of the time to save resources
       # detecting plugged/unplugged states is possible (with acpi -a), but not universally
-      if grep -iq dis $batt/status || [[ "$(acpi -a)" != *on* ]]; then
+      if grep -iq dis $batt/status || [[ "$(acpi -a)" != *on-line* ]]; then
         if [ $secondsUnplugged == 0 ]; then
           [ $(( ${capacity[3]} - ${capacity[2]} )) -gt 4 ] \
             && hibernate=true || hibernate=false
@@ -150,7 +150,7 @@ disable_charging() {
 
 enable_charging() {
   if ! is_charging; then
-    if ! $ghostCharging || { $ghostCharging && [[ "$(acpi -a)" == *on* ]]; }; then
+    if ! $ghostCharging || { $ghostCharging && [[ "$(acpi -a)" == *on-line* ]]; }; then
       if [ -f "${chargingSwitch[0]-}" ]; then
         if chmod +w ${chargingSwitch[0]} && echo "${chargingSwitch[1]//::/ }" > ${chargingSwitch[0]}; then
           # secondary switch
@@ -165,6 +165,12 @@ enable_charging() {
       else
         [[ ${chargingSwitch[0]:-x} != */* ]] || /sbin/.acc-en $config --set charging_switch= > /dev/null
         cycle_switches on
+      fi
+      # detect and block ghost charging
+      if [[ "$(acpi -a)" != *on-line* ]]; then
+        disable_charging
+        /sbin/.acc-en $config --set ghost_charging=true > /dev/null
+        echo "(i) ghost_charging=true"
       fi
     fi
   fi
@@ -211,7 +217,7 @@ ctrl_charging() {
         if [ ! -f ${config%/*}/.rebootedOnPause ]; then
           # wakeUnlock
           # won't run under "battery idle" mode ("not charging" status)
-          if { grep -iq dis $batt/status || [[ "$(acpi -a)" != *on* ]]; } \
+          if { grep -iq dis $batt/status || [[ "$(acpi -a)" != *on-line* ]]; } \
             && chmod +w /sys/power/wake_unlock
           then
             for wakelock in "${wakeUnlock[@]-}"; do
@@ -296,7 +302,7 @@ applyOnUnplug=false
 resetBattStatsOnUnplug=false
 modPath=/sbin/.acc/acc
 export TMPDIR=${modPath%/*}
-forcedFullStatusAt100=false
+forcedChargingStatusFullAt100=false
 config=/data/adb/acc-data/config.txt
 
 

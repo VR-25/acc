@@ -203,7 +203,7 @@ Additionally, `$installDir/acc/acc-init.sh` must be executed on boot to initiali
 ```
 #DC#
 
-configVerCode=20200260
+configVerCode=202002280
 capacity=(-1 60 70 75 +0 false)
 temperature=(70 80 90)
 coolDownRatio=()
@@ -219,7 +219,7 @@ switchDelay=3.5
 language=en
 wakeUnlock=()
 prioritizeBattIdleMode=false
-forceFullStatusAt100=
+forceChargingStatusFullAt100=
 runCmdOnPause=()
 dynPowerSaving=120
 ghostCharging=false
@@ -257,7 +257,7 @@ ghostCharging=false
 
 # prioritizeBattIdleMode=prioritize_batt_idle_mode
 
-# forceFullStatusAt100=force_full_status_at_100
+# forceChargingStatusFullAt100=force_charging_status_full_at_100
 
 # runCmdOnPause=run_cmd_on_pause=(sh|. script)
 
@@ -301,7 +301,7 @@ ghostCharging=false
 # l lang
 # wu wake_unlock
 # pbim prioritize_batt_idle_mode
-# fs force_full_status_at_100
+# fs force_charging_status_full_at_100
 # rcp run_cmd_on_pause
 # dps dyn_power_saving
 # gc ghost_charging
@@ -405,12 +405,12 @@ ghostCharging=false
 
 # max_charging_current (mcc) #
 # apply_on_plug dedicated to current control
-# This is managed with "acc --set --current" commmands.
+# This is managed with "acc --set --current" conmands.
 # Refer back to the command examples.
 
 # max_charging_voltage (mcv) #
 # apply_on_boot dedicated to voltage control
-# This is managed with "acc --set --voltage" commmands.
+# This is managed with "acc --set --voltage" conmands.
 
 # reboot_on_pause (rp) #
 # If this doesn't make sense to you, you probably don't need it.
@@ -437,21 +437,23 @@ ghostCharging=false
 # Test yours with "acc -t --".
 # This setting dictates whether charging switches that support such feature should take precedence.
 
-# force_full_status_at_100 (fs) #
+# force_charging_status_full_at_100 (fs) #
 # Some Pixel devices were found to never report "full" status after the battery capacity reaches 100%.
 # This setting forces Android to behave as intended.
 # For Pixel devices, the status code of "full" is 5 (fs=5).
-# The status code is found through trial and error, with the commmands "dumpsys battery", "dumpsys battery set status #" and "dumpsys battery reset".
+# The status code is found through trial and error, with the conmands "dumpsys battery", "dumpsys battery set status #" and "dumpsys battery reset".
 
 # run_cmd_on_pause (rcp)
-# Run commmands* after pausing charging.
+# Run conmands* after pausing charging.
 # * Usually a script ("sh some_file" or ". some_file")
 
 # dyn_power_saving (dps) #
 # This is the maximum number of seconds accd will dynamically sleep for (while unplugged) to save resources.
 
 # ghost_charging (gc) #
-# Enable this if you experience the weird issue of "charging while UNPLUGGED".
+# This is a flag for the issue of "charging while UNPLUGGED".
+# If ACC daemon detects that, it sets the flag to "true".
+# If ghost_charging=true, acc/d won't toggle charging switches until an external power supply is detected.
 
 #/DC#
 ```
@@ -688,7 +690,7 @@ Refer back to the `BUILDING AND/OR INSTALLING FROM SOURCE` section.
 
 0. True or success
 1. False or general failure
-2. Incorrect command usage, or battery must be charging (acc --test)
+2. [Contextual] incorrect command usage or external power supply not detected
 3. Missing busybox binary
 4. Not running as root
 5. Update available
@@ -908,6 +910,12 @@ It's a software (Android/kernel) issue. Use the `capacity_offset` or `capacity_s
 ---
 ## LATEST CHANGES
 
+**2020.2.28-dev (202002280)**
+- acc -i: fixes for MTK and HTC One M9, print battery power in/out (Watts)
+- Autodetect and block ghost charging (refer to "README.md > DEFAULT CONFIGURATION > ghost_charging" for details)
+- Fixed config reset issues
+- General optimizations
+
 **2020.2.26-dev (202002260)**
 - acc -i: htc_himauhl, read VOLTAGE_NOW from bms/uevent
 - acc -i: print current_now, temp and voltage_now over MediaTek's odd property names
@@ -948,7 +956,7 @@ It's a software (Android/kernel) issue. Use the `capacity_offset` or `capacity_s
 - capacity_sync and cooldown cycle improvements
 - Changes made by `apply_on_boot()` and `apply_on_plug()` are reverted automatically when appropriate
 - config.txt contains a comprehensive help text as well
-- Dedicated current control commmands
+- Dedicated current control conmands
 - Custom configuration for specific devices (`acc/oem-custom.sh`)
 - Enhanced commmand list and examples (`acc -h`)
 - Extended device support (ASUS, MediaTek, Pixel 4/XL, Razer, 1+7 and more)

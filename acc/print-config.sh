@@ -36,7 +36,7 @@ switch_delay=$switchDelay
 lang=$language
 wake_unlock=${wakeUnlock[@]}
 prioritize_batt_idle_mode=$prioritizeBattIdleMode
-force_status_at_100=$forceStatusAt100
+force_charging_status_full_at_100=$forceChargingStatusFullAt100
 
 run_cmd_on_pause=${runCmdOnPause[@]}
 

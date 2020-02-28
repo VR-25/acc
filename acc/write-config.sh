@@ -4,6 +4,7 @@ pcd() {
  eval "echo "\${$1-}"")
 }
 
+# update config
 cat << EOF > $config
 configVerCode=$(get_prop configVerCode $defaultConfig)
 capacity=(${shutdown_capacity-${sc-$(pcd "capacity[0]")}} ${cooldown_capacity-${cc-$(pcd "capacity[1]")}} ${resume_capacity-${rc-$(pcd "capacity[2]")}} ${pause_capacity-${pc-$(pcd "capacity[3]")}} ${capacity_offset-${co-$(pcd "capacity[4]")}} ${capacity_sync-${cs-$(pcd "capacity[5]")}})
@@ -21,7 +22,7 @@ switchDelay=${switch_delay-${sd-$(pcd "switchDelay")}}
 language=${lang-${l-$(pcd "language")}}
 wakeUnlock=(${wake_unlock-${wu-$(pcd "wakeUnlock[@]")}})
 prioritizeBattIdleMode=${prioritize_batt_idle_mode-${pbim-$(pcd "prioritizeBattIdleMode")}}
-forceFullStatusAt100=${force_full_status_at_100-${fs-$(pcd "forceFullStatusAt100")}}
+forceChargingStatusFullAt100=${force_charging_status_full_at_100-${fs-$(pcd "forceChargingStatusFullAt100")}}
 runCmdOnPause=(${run_cmd_on_pause-${rcp-$(pcd "runCmdOnPause[@]")}})
 dynPowerSaving=${dyn_power_saving-${dps-$(pcd "dynPowerSaving")}}
 ghostCharging=${ghost_charging-${gc-$(pcd "ghostCharging")}}

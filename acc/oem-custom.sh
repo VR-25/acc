@@ -31,10 +31,16 @@ fi
 echo 30 > usb/razer_charge_limit_dropdown || :; } 2>/dev/null
 
 # 202002250, patch config, switchDelay=2
-! grep -q '^switchDelay=2$' $config \
-  || /sbin/.acc-en --set switch_delay=3.5
+if grep -q '=202002250$' $config; then
+  ! grep -q '^switchDelay=2$' $config \
+    || /sbin/.acc-en --set switch_delay=3.5
+fi
  
  # 202002260, patch config, ghostCharging
-! grep -q '^ghostCharging=' $config \
+grep -q '^ghostCharging=' $config \
   || /sbin/.acc-en --set ghost_charging=false
+
+ # 202002280, patch config, forceFullStatusAt100
+! grep -q '^forceFullStatusAt100=' $config \
+  || /sbin/.acc-en --set force_charging_status_full_at_100=$(grep '^forceFullStatusAt100=' $config | sed 's/.*=//')
 )

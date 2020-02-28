@@ -88,9 +88,11 @@ edit() {
 
 
 disable_charging() {
+
   . $modPath/apply-on-boot.sh; apply_on_boot default
   . $modPath/apply-on-plug.sh; apply_on_plug default
   . $modPath/set-prop.sh
+
   if [[ ${chargingSwitch[0]:-x} == */* ]]; then
     if [ -f ${chargingSwitch[0]} ]; then
       if chmod +w ${chargingSwitch[0]} && echo "${chargingSwitch[2]//::/ }" > ${chargingSwitch[0]}; then
@@ -146,9 +148,12 @@ disable_charging() {
 
 
 enable_charging() {
-  . $modPath/apply-on-plug.sh; apply_on_plug
-  . $modPath/set-prop.sh
-  if ! $ghostCharging || { $ghostCharging && [[ "$(acpi -a)" == *on* ]]; }; then
+
+  if ! $ghostCharging || { $ghostCharging && [[ "$(acpi -a)" == *on-line* ]]; }; then
+
+    . $modPath/apply-on-plug.sh; apply_on_plug
+    . $modPath/set-prop.sh
+
     if [[ ${chargingSwitch[0]:-x} == */* ]]; then
       if [ -f ${chargingSwitch[0]} ]; then
         if chmod +w ${chargingSwitch[0]} && echo "${chargingSwitch[1]//::/ }" > ${chargingSwitch[0]}; then
@@ -172,33 +177,47 @@ enable_charging() {
       . $modPath/cycle-switches.sh
       cycle_switches on
     fi
-  fi
 
-  if [ -n "${1:-}" ]; then
-    if [[ $1 == *% ]]; then
-     print_charging_enabled_until $1
-      echo
-      (until [ $(( $(cat $batt/capacity) ${capacity[4]} )) -ge ${1%\%} ]; do
-        sleep ${loopDelay[0]}
-        set +x
-      done)
-      [ "${2:-x}" == --no-disable ] || disable_charging
-    elif [[ $1 == *[smh] ]]; then
-      print_charging_enabled_for $1
-      echo
-      if [[ $1 == *s ]]; then
-        sleep ${1%s}
-      elif [[ $1 == *m ]]; then
-        sleep $(( ${1%m} * 60 ))
+    # detect and block ghost charging
+    if [[ "$(acpi -a)" != *on-line* ]]; then
+      disable_charging > /dev/null
+      set_prop ghost_charging=true
+      echo "(i) ghost_charging=true"
+      print_unplugged
+      exit 2
+    fi
+
+    if [ -n "${1:-}" ]; then
+      if [[ $1 == *% ]]; then
+       print_charging_enabled_until $1
+        echo
+        (until [ $(( $(cat $batt/capacity) ${capacity[4]} )) -ge ${1%\%} ]; do
+          sleep ${loopDelay[0]}
+          set +x
+        done)
+        [ "${2:-x}" == --no-disable ] || disable_charging
+      elif [[ $1 == *[smh] ]]; then
+        print_charging_enabled_for $1
+        echo
+        if [[ $1 == *s ]]; then
+          sleep ${1%s}
+        elif [[ $1 == *m ]]; then
+          sleep $(( ${1%m} * 60 ))
+        else
+          sleep $(( ${1%h} * 3600 ))
+        fi
+        disable_charging
       else
-        sleep $(( ${1%h} * 3600 ))
+        print_charging_enabled
       fi
-      disable_charging
     else
       print_charging_enabled
     fi
+
   else
-    print_charging_enabled
+    echo "(i) ghost_charging=true"
+    print_unplugged
+    exit 2
   fi
 }
 
@@ -407,12 +426,39 @@ case ${1-} in
     echo
   ;;
 
+
   -i|--info)
-    { sed -e 's/POWER_SUPPLY_//' -e 's/^BATTERYAVERAGECURRENT=/CURRENT_NOW=/' \
-      -e 's/^BATT_VOL=/VOLTAGE_NOW=/' -e 's/^BATT_TEMP=/_TEMP=/' \
-      -e "/^CAPACITY=/s/=.*/=$(( $(cat $batt/capacity) ${capacity[4]} ))/" $batt/uevent
-    [ ! -f $TMPDIR/acc-power_supply-htc_himauhl.log ] || grep -o 'VOLTAGE_NOW=.*' bms/uevent; } | grep -Ei "${2:-.}"
+
+    set +euo pipefail 2>/dev/null || :
+
+    info="$(
+      sed -e 's/POWER_SUPPLY_//' -e 's/^BATTERYAVERAGECURRENT=/CURRENT_NOW=/' \
+        -e 's/^BATT_VOL=/VOLTAGE_NOW=/' -e 's/^BATT_TEMP=/TEMP=/' \
+        -e "/^CAPACITY=/s/=.*/=$(( $(cat $batt/capacity) ${capacity[4]} ))/" \
+        $batt/uevent
+
+      if [ -f bms/uevent ]; then
+        grep -q 'Y_TEMP=' $batt/uevent \
+          || { grep 'Y_TEMP=' bms/uevent | grep -o 'TEMP=.*'; }
+        grep -q 'Y_VOLTAGE_NOW=' $batt/uevent \
+          || { grep 'Y_VOLTAGE_NOW=' bms/uevent | grep -o 'VOLTAGE_NOW=.*'; }
+      fi
+    )"
+
+    voltNow=$(echo "$info" | sed -n "s/VOLTAGE_NOW=//p")
+
+    currNow=$(echo "$info" | sed -n "s/CURRENT_NOW=//p")
+
+    [ $(echo $voltNow | wc -m) == 5 ] && factor=1000 || factor=1000000
+
+    powerW="POWER=$(awk "BEGIN { print ( ${currNow:-0} / $factor ) * ( ${voltNow:-0} / $factor ) }" ) W"
+
+    {
+      echo "$info"
+      echo "$powerW"
+    } | grep -Ei "${2:-.}"
   ;;
+
 
   -la)
     shift

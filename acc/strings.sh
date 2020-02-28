@@ -65,7 +65,7 @@ print_charging_enabled() {
 }
 
 print_unplugged() {
-  echo "(!) Battery must be charging"
+  echo "(!) External power supply not detected"
 }
 
 print_switch_works() {
