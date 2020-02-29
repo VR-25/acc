@@ -10,5 +10,9 @@ cooldown_current (plus a dedicated ratio for it)
 
 spreadtrum
 mtk
+flare s5
 
-add acc -u strings to strings.sh
+cooldown
+   (coolDownCapacity=(capacity charge/pause)
+   coolDownCurrent=(current charge/pause)
+   coolDownTemp=(temp charge/pause)

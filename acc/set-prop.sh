@@ -121,7 +121,7 @@ set_prop() {
 
       else
         # print current value
-        echo "${maxChargingCurrent[0]:-$(print_default)} $(print_mA)"
+        echo "${maxChargingCurrent[0]:-$(print_default)}$(print_mA)"
         return 0
       fi
     ;;
@@ -166,7 +166,7 @@ set_prop() {
 
       else
         # print current value
-        echo "${maxChargingVoltage[0]:-$(print_default)} $(print_mV)"
+        echo "${maxChargingVoltage[0]:-$(print_default)}$(print_mV)"
         return 0
       fi
     ;;

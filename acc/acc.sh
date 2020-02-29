@@ -8,7 +8,7 @@ daemon_ctrl() {
 
   local isRunning=true
   set +eo pipefail 2>/dev/null
-  local pid="$(pgrep -f '/acc (-|--)[def]|/accd\.sh' | sed s/$$//)"
+  local pid="$(pgrep -f '/ac(c|ca) (-|--)[def]|/accd\.sh' | sed s/$$//)"
   set -eo pipefail 2>/dev/null || :
   [[ ${pid:-x} == *[0-9]* ]] || isRunning=false
 
@@ -179,10 +179,10 @@ enable_charging() {
     fi
 
     # detect and block ghost charging
-    if [[ "$(acpi -a)" != *on-line* ]]; then
+    if ! $ghostCharging && ! not_charging && [[ "$(acpi -a)" != *on-line* ]]; then
       disable_charging > /dev/null
-      set_prop ghost_charging=true
-      echo "(i) ghost_charging=true"
+      ghostCharging=true
+      echo "(i) ghostCharging=true"
       print_unplugged
       exit 2
     fi
@@ -307,6 +307,7 @@ logf() {
 
 
 umask 077
+ghostCharging=false
 modPath=/sbin/.acc/acc
 export TMPDIR=${modPath%/*}
 config=/data/adb/acc-data/config.txt
@@ -320,7 +321,7 @@ device=$(getprop ro.product.device | grep .. || getprop ro.build.product)
 log=$TMPDIR/acc-${device}.log
 
 # verbose
-if [[ $0 != *.acc-en && "${1-}" != *-w* ]]; then
+if [[ ${verbose:-true} && "${1-}" != *-w* ]]; then
     touch $log
     trap exxit EXIT
     if [ $(du -m $log | cut -f 1) -lt 2 ]; then
@@ -360,7 +361,7 @@ batt=$(echo *attery/capacity | cut -d ' ' -f 1 | sed 's|/capacity||')
 . $modPath/strings.sh
 
 # load translations
-! [[ $0 != *acc-en && -f $modPath/translations/$language/strings.sh ]] || . $modPath/translations/$language/strings.sh
+! [[ ${verbose:-true} && -f $modPath/translations/$language/strings.sh ]] || . $modPath/translations/$language/strings.sh
 grep -q .. $modPath/translations/$language/README.md 2>/dev/null \
     && readMe=$modPath/translations/$language/README.md \
     || readMe=${config%/*}/info/README.md
@@ -420,43 +421,16 @@ case ${1-} in
   ;;
 
   -F|--flash)
+    shift
     set +euxo pipefail 2>/dev/null
     trap - EXIT
-    $modPath/install-zip.sh "$2"
-    echo
+    $modPath/install-zip.sh "$@"
   ;;
 
 
   -i|--info)
-
-    set +euo pipefail 2>/dev/null || :
-
-    info="$(
-      sed -e 's/POWER_SUPPLY_//' -e 's/^BATTERYAVERAGECURRENT=/CURRENT_NOW=/' \
-        -e 's/^BATT_VOL=/VOLTAGE_NOW=/' -e 's/^BATT_TEMP=/TEMP=/' \
-        -e "/^CAPACITY=/s/=.*/=$(( $(cat $batt/capacity) ${capacity[4]} ))/" \
-        $batt/uevent
-
-      if [ -f bms/uevent ]; then
-        grep -q 'Y_TEMP=' $batt/uevent \
-          || { grep 'Y_TEMP=' bms/uevent | grep -o 'TEMP=.*'; }
-        grep -q 'Y_VOLTAGE_NOW=' $batt/uevent \
-          || { grep 'Y_VOLTAGE_NOW=' bms/uevent | grep -o 'VOLTAGE_NOW=.*'; }
-      fi
-    )"
-
-    voltNow=$(echo "$info" | sed -n "s/VOLTAGE_NOW=//p")
-
-    currNow=$(echo "$info" | sed -n "s/CURRENT_NOW=//p")
-
-    [ $(echo $voltNow | wc -m) == 5 ] && factor=1000 || factor=1000000
-
-    powerW="POWER=$(awk "BEGIN { print ( ${currNow:-0} / $factor ) * ( ${voltNow:-0} / $factor ) }" ) W"
-
-    {
-      echo "$info"
-      echo "$powerW"
-    } | grep -Ei "${2:-.}"
+    . $modPath/batt-info.sh
+    batt_info "${2-}"
   ;;
 
 
@@ -562,11 +536,19 @@ case ${1-} in
     echo "$accVer ($accVerCode)"
   ;;
 
-  -w|--watch)
+  -w*|--watch*)
+    sleepSeconds=${1#*h}
+    sleepSeconds=${sleepSeconds#*w}
+    : ${sleepSeconds:=3}
+    . $modPath/batt-info.sh
     print_quit CTRL-C
     sleep 1.5
-    shift
-    watch -n 1 /sbin/.acc-en --info "$@" | grep -v '^$'
+    while :; do
+      clear
+      batt_info "${2-}"
+      sleep $sleepSeconds
+      set +x
+    done
   ;;
 
   *)

@@ -37,7 +37,7 @@ ln -fs $modPath /sbin/.$id/$id
 ln -fs /sbin/.$id/$id/${id}.sh /sbin/$id
 ln -fs /sbin/.$id/$id/${id}.sh /sbin/${id}d,
 ln -fs /sbin/.$id/$id/${id}.sh /sbin/${id}d.
-ln -fs /sbin/.$id/$id/${id}.sh /sbin/.${id}-en
+ln -fs /sbin/.$id/$id/${id}a.sh /sbin/${id}a
 ln -fs /sbin/.$id/$id/start-${id}d.sh /sbin/${id}d
 
 # generate power supply log ###
@@ -86,7 +86,7 @@ ls -1 */BatterySenseVoltage */ISenseVoltage */batt_vol */InstatVolt \
 # part 2 is handled by accd - while charging only
 : > /sbin/.$id/ch-curr-ctrl-files
 ls -1 */input_current_limited */restrict*_ch*g* \
-  /sys/class/qcom-battery/restrict*_ch*g* | \
+  /sys/class/qcom-battery/restrict*_ch*g* 2>/dev/null | \
     while read file; do
       chmod +r $file || continue
       if grep -q '^0$' $file; then

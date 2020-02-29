@@ -100,8 +100,8 @@ Usage
 
   acc (wizard)
   acc [options] [args]
-  .acc-en [options] [args] (for front-ends)
   acc [pause_capacity] [resume_capacity] (e.g., acc 75 70)
+  /sbin/acca [options] [args] (acc optimized for front-ends)
 
   A custom config path can be specified as first parameter. If the file doesn't exist, the current config is cloned.
     e.g.,
@@ -142,9 +142,10 @@ Options
       acc -f 95 (charge to 95%)
       acc -f (charge to 100%)
 
-  -F|--flash ["zip_file"]   Flash any zip file whose update-binary is a shell script
+  -F|--flash ["zip_file"]   Flash any zip files whose update-binary is a shell script
     e.g.,
-      acc -F (lauches a zip picking wizard)
+      acc -F (lauches a zip flashing wizard)
+      acc -F "file1" "file2" "fileN" ... (install multiple zips)
       acc -F "/sdcard/Download/Magisk-v20.0(20000).zip"
 
   -i|--info [case insentive egrep regex (default: ".")]   Show battery info
@@ -251,6 +252,12 @@ Options
 
   -v|--version   Print acc version and version code
     e.g., acc -v
+
+  -w#|--watch#   Monitor battery uevent
+    e.g.,
+      acc -w (update every 3 seconds, default)
+      acc -w2.5 (update every 2.5 seconds)
+      acc -w0 (no extra delay)
 
 
 Tips
@@ -361,11 +368,11 @@ print_charge_once() {
 }
 
 print_mA() {
-  echo "milliamps"
+  echo " Milliamps"
 }
 
 print_mV() {
-  echo "millivolts"
+  echo " Millivolts"
 }
 
 print_uninstall() {
@@ -390,4 +397,24 @@ print_test_cs() {
 
 print_update() {
   echo "Check for update"
+}
+
+print_W() {
+  echo " Watts"
+}
+
+print_V() {
+  echo " Volts"
+}
+
+print_available() {
+  echo "(i) $@ is available"
+}
+
+print_install_prompt() {
+  echo -n "- Should I download and install it ([enter]: yes, CTRL-C: no)? "
+}
+
+print_no_update() {
+  echo "(i) No update available"
 }

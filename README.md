@@ -484,8 +484,8 @@ Usage
 
   acc (wizard)
   acc [options] [args]
-  .acc-en [options] [args] (for front-ends)
   acc [pause_capacity] [resume_capacity] (e.g., acc 75 70)
+  /sbin/acca [options] [args] (acc optimized for front-ends)
 
   A custom config path can be specified as first parameter. If the file doesn't exist, the current config is cloned.
     e.g.,
@@ -526,9 +526,10 @@ Options
       acc -f 95 (charge to 95%)
       acc -f (charge to 100%)
 
-  -F|--flash ["zip_file"]   Flash any zip file whose update-binary is a shell script
+  -F|--flash ["zip_file"]   Flash any zip files whose update-binary is a shell script
     e.g.,
-      acc -F (lauches a zip picking wizard)
+      acc -F (lauches a zip flashing wizard)
+      acc -F "file1" "file2" "fileN" ... (install multiple zips)
       acc -F "/sdcard/Download/Magisk-v20.0(20000).zip"
 
   -i|--info [case insentive egrep regex (default: ".")]   Show battery info
@@ -636,6 +637,12 @@ Options
   -v|--version   Print acc version and version code
     e.g., acc -v
 
+  -w#|--watch#   Monitor battery uevent
+    e.g.,
+      acc -w (update every 3 seconds, default)
+      acc -w2.5 (update every 2.5 seconds)
+      acc -w0 (no extra delay)
+
 
 Tips
 
@@ -658,11 +665,11 @@ Tips
 ## NOTES/TIPS FOR FRONT-END DEVELOPERS
 
 
-_Always_ use `.acc-en` over `acc`. This ensures acc language is always English - and offers greater efficiency (less verbose).
+_Always_ use `/sbin/acca` over `acc`. This ensures acc language is always English - and offers greater efficiency (less overhead and verbose).
 
-It's best to write full commands over short equivalents - e.g., `acc --set charging_switch=` instead of `acc -s s=`. This makes your code more readable (less cryptic). Don't be lazy!
+It's best to write full commands over short equivalents - e.g., `/sbin/acca --set charging_switch=` instead of `/sbin/acca -s s=`. This makes your code more readable (less cryptic). Don't be lazy!
 
-Include provided descriptions for ACC settings in your app(s). Provide additional information (trusted) where appropriate.
+Include provided descriptions for ACC features/settings in your app(s). Provide additional information (trusted) where appropriate.
 Explain settings/concepts as clearly and with as few words as possible.
 
 
@@ -698,9 +705,9 @@ Refer back to the `BUILDING AND/OR INSTALLING FROM SOURCE` section.
 5. Update available
 6. No update available
 7. Daemon couldn't disable charging
-8. Daemon already running (acc --daemon start) or not running (acc --daemon stop)
+8. [Contextual] Daemon already running (--daemon start) or not running (--daemon stop)
 
-Logs are exported automatically (`acc --log --export`) on exit codes `1`, `2` and `9`.
+Logs are exported automatically (`--log --export`) on exit codes `1`, `2` and `9`.
 
 
 
@@ -912,9 +919,16 @@ It's a software (Android/kernel) issue. Use the `capacity_offset` or `capacity_s
 ---
 ## LATEST CHANGES
 
-**2020.2.28-r1-dev (202002281)**
-- `acc -u` optimizations
-- Updated `acc -u` help text
+**2020.2.29-dev (202002290)**
+- `/sbin/acca`: acc executable for front-ends (more efficient than /sbin/acc)
+- `acc -F|--flash`: added support for batch zip flashing, custom path in interactive mode, and more
+- `acc -w#|--watch#`: monitor battery uevent (# == update time in secs, can be zero or decimal, default 3)
+- General optimizations
+- Ghost charging issue management is fully automatic
+- Initial work on cooldown cycle redesign (coolDownCapacity=(capacity charge/pause), coolDownCurrent=(current charge/pause), coolDownTemp=(temp charge/pause))
+- Translation strings for `acc --upgrade`
+- Updated help text (`acc --help`)
+- Updated `README.md > NOTES/TIPS FOR FRONT-END DEVELOPERS`
 
 **2020.2.28-dev (202002280)**
 - acc -i: fixes for MTK and HTC One M9, print battery power in/out (Watts)

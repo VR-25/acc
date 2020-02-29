@@ -3,35 +3,72 @@
 # Copyright (c) 2020, VR25 (xda-developers)
 # License: GPLv3+
 #
-# usage: $0 or $0 "zip_file"
+# usage: $0 or $0 "file1 file2 ..."
 # the installation log file is stored in the zip_file directory
 
 
-pick_zip() {
-  local target="" PS3="
-(?) *.zip... "
-  select target in $(ls -Ap ${1:-/storage} | grep -Ei '.*.zip$|/$') \< x; do
-    cd ${1:-/storage}
+pick_zips() {
+  clear
+  echo
+  cd ${1:-/storage}
+  echo ": $PWD"
+  echo
+  select target in $(ls -Ap | grep -Ei '.*.zip$|/$') ... ^ X; do
     if [ -f "$target" ]; then
-     zipFile="$target"; zipPicked=true
+     zipFiles="$zipFiles $target"
+     echo
+     select target in + ">>>" X; do
+      case $target in
+        "+") pick_zips .;;
+        X) exit 0;;
+      esac
+      break
+     done
     elif [ -d "$target" ]; then
       echo
-      pick_zip "$target"
-    elif [ "$target" == \< ]; then
+      pick_zips "$target"
+    elif [ "$target" == ^ ]; then
      cd ..
      echo
-     pick_zip .
-    elif [ "$target" == x ]; then
+     pick_zips .
+    elif [ "$target" == X ]; then
       exit 0
+    elif [ "$target" == ... ]; then
+      echo -n "> "
+      read target
+      cd ${target:-.}
+      echo
+      pick_zips .
+    else
+      echo
+      pick_zips .
     fi
     break
   done
-  [ -n "$zipFile" ] || exit 0
+  [ -n "$zipFiles" ] || exit 0
 }
 
-zipFile=$1
 
+exxit() {
+  local exitCode=$?
+  echo
+  exit $exitCode
+}
+
+
+trap exxit EXIT
+zipFiles="$@"
 . ${0%/*}/setup-busybox.sh
+
+if [[ -z "$zipFiles" ]]; then
+  PS3="
+(?) *.zip: "
+  pick_zips
+  unset target
+fi
+
+[[ "$zipFiles" == *" "* ]] && noClear=true
+
 
 # root check
 if [ $(id -u) -ne 0 ]; then
@@ -39,25 +76,39 @@ if [ $(id -u) -ne 0 ]; then
   exit 4
 fi
 
-# prepare tmpdir
-rm -rf /dev/.install-zip 2>/dev/null
-mkdir -p /dev/.install-zip
 
-# call pick_zip() if there's no arg
-[ -n "$zipFile" ] || pick_zip
+for zipFile in $zipFiles; do
 
-# log
-exec 2>"${zipFile}.log"
-set -x
+  # prepare tmpdir
+  rm -rf /dev/.install-zip 2>/dev/null
+  mkdir -p /dev/.install-zip
 
-# extract update-binary
-unzip -o "$zipFile" 'META-INF/*' -d /dev/.install-zip >&2 || exit $?
+  # log
+  exec 2>"${zipFile}.log"
+  set -x
 
-# flash zip
-# $3 == outfd
-clear
-echo
-sh /dev/.install-zip/META-INF/*/*/*/update-binary dummy 1 "$zipFile"
+  # extract update-binary
+  unzip -o "$zipFile" 'META-INF/*' -d /dev/.install-zip >&2 || exit $?
 
-# cleanup
-rm -rf /dev/.install-zip 2>/dev/null
+  # flash zip
+  # $3 == outfd
+  $noClear && echo || clear
+  echo
+  sh /dev/.install-zip/META-INF/*/*/*/update-binary dummy 1 "$zipFile"
+  exitCode=$?
+
+  # cleanup
+  rm -rf /dev/.install-zip 2>/dev/null
+
+  # on failure: next or abort
+  if [ $exitCode -ne 0 ]; then
+    echo
+    echo "(!) $zipFile"
+    echo "CTRL-C == X"
+    echo "(i) [enter] == >>>"
+    read
+  fi
+
+done
+
+exit $exitCode

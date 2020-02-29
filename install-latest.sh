@@ -86,11 +86,12 @@ then
       exit 5 # no update available
     else
       echo
-      echo "(i) $id $onlineVersion is available"
-      echo "- Changelog: https://github.com/VR-25/$id/blob/${reference}/README.md#latest-changes"
-      echo -n "- Would you like to download and install it now (Y/n)? "
-      read ans
-      [[ ${ans:-y} == [nN]* ]] && echo && exit 0
+      print_available $id $onlineVersion 2>/dev/null \
+        || echo "(i) $id $onlineVersion is available"
+      echo "- https://github.com/VR-25/$id/blob/${reference}/README.md#latest-changes"
+      print_install_prompt 2>/dev/null \
+        || echo -n "- Should I download and install it ([enter]: yes, CTRL-C: no)? "
+      read
     fi
   fi
 
@@ -104,11 +105,11 @@ then
 
 else
   echo
-  echo "(i) No update available"
+  print_no_update 2>/dev/null || echo "(i) No update available"
   exit 6
 fi
 
 
 set -eu
-rm -rf $0 "./${id}-${reference}/"
+rm -rf "./${id}-${reference}/" 2>/dev/null
 exit 0

@@ -16,7 +16,7 @@ exxit() {
   [ -n "$1" ] && exitCode=$1
   [ -n "$2" ] && echo -e "$2"
   echo "***EXIT $exitCode***"
-  [[ $exitCode == [129] ]] && /sbin/.acc-en $config --log --export > /dev/null 2>&1
+  [[ $exitCode == [129] ]] && /sbin/acca $config --log --export > /dev/null 2>&1
   exit $exitCode
 }
 
@@ -124,19 +124,19 @@ disable_charging() {
         # secondary switch
         if [ -f "${chargingSwitch[3]-}" ]; then
           chmod +w ${chargingSwitch[3]} && echo "${chargingSwitch[5]//::/ }" > ${chargingSwitch[3]} \
-            || /sbin/.acc-en $config --set charging_switch= > /dev/null
+            || /sbin/acca $config --set charging_switch= > /dev/null
         fi
         sleep $switchDelay
       else
-        /sbin/.acc-en $config --set charging_switch= > /dev/null
+        /sbin/acca $config --set charging_switch= > /dev/null
       fi
     else
-      [[ ${chargingSwitch[0]:-x} != */* ]] || /sbin/.acc-en $config --set charging_switch= > /dev/null
+      [[ ${chargingSwitch[0]:-x} != */* ]] || /sbin/acca $config --set charging_switch= > /dev/null
       ! $prioritizeBattIdleMode || cycle_switches off not
       ! is_charging || cycle_switches off
     fi
     if is_charging; then
-      [[ ${chargingSwitch[0]:-x} != */* ]] || /sbin/.acc-en $config --set charging_switch= > /dev/null
+      [[ ${chargingSwitch[0]:-x} != */* ]] || /sbin/acca $config --set charging_switch= > /dev/null
       echo "(!) Failed to disable charging"
       exit 7
     fi
@@ -152,25 +152,27 @@ enable_charging() {
   if ! is_charging; then
     if ! $ghostCharging || { $ghostCharging && [[ "$(acpi -a)" == *on-line* ]]; }; then
       if [ -f "${chargingSwitch[0]-}" ]; then
-        if chmod +w ${chargingSwitch[0]} && echo "${chargingSwitch[1]//::/ }" > ${chargingSwitch[0]}; then
+        if chmod +w ${chargingSwitch[0]} \
+          && echo "${chargingSwitch[1]//::/ }" > ${chargingSwitch[0]}
+        then
           # secondary switch
           if [ -f "${chargingSwitch[3]-}" ]; then
             chmod +w ${chargingSwitch[3]} && echo "${chargingSwitch[4]//::/ }" > ${chargingSwitch[3]} \
-              || /sbin/.acc-en $config --set charging_switch= > /dev/null
+              || /sbin/acca $config --set charging_switch= > /dev/null
           fi
           sleep $switchDelay
         else
-          /sbin/.acc-en $config --set charging_switch= > /dev/null
+          /sbin/acca $config --set charging_switch= > /dev/null
         fi
       else
-        [[ ${chargingSwitch[0]:-x} != */* ]] || /sbin/.acc-en $config --set charging_switch= > /dev/null
+        [[ ${chargingSwitch[0]:-x} != */* ]] \
+          || /sbin/acca $config --set charging_switch= > /dev/null
         cycle_switches on
       fi
       # detect and block ghost charging
-      if [[ "$(acpi -a)" != *on-line* ]]; then
+      if ! $ghostCharging && ! grep -Eiq 'dis|not' $batt/status && [[ "$(acpi -a)" != *on-line* ]]; then
         disable_charging
-        /sbin/.acc-en $config --set ghost_charging=true > /dev/null
-        echo "(i) ghost_charging=true"
+        ghostCharging=true
       fi
     fi
   fi
@@ -295,6 +297,7 @@ coolDown=false
 hibernate=true
 readChCurr=true
 chgStatusCode=""
+ghostCharging=false
 dischgStatusCode=""
 secondsUnplugged=0
 frozenBattSvc=false
@@ -317,7 +320,7 @@ exec >> $log 2>&1
 trap exxit EXIT
 set -x
 
-pgrep -f '/acc (-|--)[def]|/accd\.sh' | sed s/$$// | xargs kill -9 2>/dev/null
+pgrep -f '/ac(c|ca) (-|--)[def]|/accd\.sh' | sed s/$$// | xargs kill -9 2>/dev/null
 set -euo pipefail 2>/dev/null || :
 cd /sys/class/power_supply/
 mkdir -p ${config%/*}

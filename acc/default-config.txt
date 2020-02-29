@@ -1,7 +1,10 @@
-configVerCode=202002280
+configVerCode=202002290
 capacity=(-1 60 70 75 +0 false)
 temperature=(70 80 90)
 coolDownRatio=()
+coolDownCapacity=()
+coolDownCurrent=()
+coolDownTemp=()
 resetBattStats=(false false)
 loopDelay=(10 15)
 chargingSwitch=()
@@ -17,7 +20,6 @@ prioritizeBattIdleMode=false
 forceChargingStatusFullAt100=
 runCmdOnPause=()
 dynPowerSaving=120
-ghostCharging=false
 
 
 # BASIC EXPLANATION
@@ -99,7 +101,6 @@ ghostCharging=false
 # fs force_charging_status_full_at_100
 # rcp run_cmd_on_pause
 # dps dyn_power_saving
-# gc ghost_charging
 
 
 # COMMAND EXAMPLES
@@ -244,8 +245,3 @@ ghostCharging=false
 
 # dyn_power_saving (dps) #
 # This is the maximum number of seconds accd will dynamically sleep for (while unplugged) to save resources.
-
-# ghost_charging (gc) #
-# This is a flag for the issue of "charging while UNPLUGGED".
-# If ACC daemon detects that, it sets the flag to "true".
-# If ghost_charging=true, acc/d won't toggle charging switches until an external power supply is detected.

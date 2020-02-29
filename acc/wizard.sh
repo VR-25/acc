@@ -25,7 +25,7 @@ GPLv3+"
       "$(print_doc)")
         echo
         edit $readMe
-        wizard
+        exec wizard
       ;;
 
       "$(print_cmds)")
@@ -33,7 +33,7 @@ GPLv3+"
         echo
         edit $TMPDIR/.help
         rm $TMPDIR/.help
-        wizard
+        exec wizard
       ;;
 
       "$(print_lang)")
@@ -44,12 +44,12 @@ GPLv3+"
 
       "$(print_re_start_daemon)")
         /sbin/accd
-        wizard
+        exec wizard
       ;;
 
       "$(print_stop_daemon)")
         daemon_ctrl stop > /dev/null || :
-        wizard
+        exec wizard
       ;;
 
       "$(print_export_logs)")
@@ -58,7 +58,7 @@ GPLv3+"
         echo
         print_press_enter
         read
-        wizard
+        exec wizard
       ;;
 
       "$(print_charge_once)")
@@ -88,7 +88,7 @@ GPLv3+"
     "$(print_edit config.txt)")
       echo
       edit no-quit-msg $config
-      wizard
+      exec wizard
     ;;
 
     "$(print_flash_zip)")
@@ -99,34 +99,34 @@ GPLv3+"
       echo
       print_press_enter
       read
-      wizard
+      exec wizard
     ;;
 
     "$(print_reset_bs)")
       dumpsys batterystats --reset || :
       rm /data/system/batterystats* 2>/dev/null || :
-      wizard
+      exec wizard
     ;;
 
      "$(print_test_cs)")
       /sbin/acc --test -- || :
       print_press_enter
       read
-      wizard
+      exec wizard
     ;;
 
      "$(print_update)")
       /sbin/acc --upgrade || :
       print_press_enter
       read
-      wizard
+      exec wizard
     ;;
 
       *)
         echo
         print_wip
         sleep 1.5
-        wizard
+        exec wizard
       ;;
     esac
   done

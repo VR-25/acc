@@ -107,7 +107,9 @@ EOF
 
 
 # stop $id daemon ###
-/sbin/.${id}-en --daemon stop > /dev/null 2>&1 || :
+export verbose=false
+/sbin/$id --daemon stop > /dev/null 2>&1 || :
+unset verbose
 
 # remove old version
 rm -rf $(readlink -f /sbin/.$id/$id || :) $installDir/$id \

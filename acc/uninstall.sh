@@ -36,7 +36,7 @@ fi
 exec 2>/dev/null
 
 # interrupt $id processes
-pkill -f "/$id (-|--)[def]|/${id}d\.sh" ###
+pkill -f "/($id|${id}a) (-|--)[def]|/${id}d\.sh" ###
 
 # uninstall $id
 rm -rf $(readlink -f /sbin/.$id/$id/) \
