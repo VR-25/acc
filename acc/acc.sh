@@ -271,7 +271,7 @@ not_charging() { grep -Eiq 'dis|not' $batt/status; }
 exxit() {
   local exitCode=$?
   ${noEcho-false} || echo
-  [[ $exitCode != [129] ]] || logf --export > /dev/null 2>&1
+  [[ $exitCode != [127] ]] || logf --export > /dev/null 2>&1
   exit $exitCode
 }
 

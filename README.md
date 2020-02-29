@@ -707,7 +707,7 @@ Refer back to the `BUILDING AND/OR INSTALLING FROM SOURCE` section.
 7. Daemon couldn't disable charging
 8. [Contextual] Daemon already running (--daemon start) or not running (--daemon stop)
 
-Logs are exported automatically (`--log --export`) on exit codes `1`, `2` and `9`.
+Logs are exported automatically (`--log --export`) on exit codes `1`, `2` and `7`.
 
 
 
@@ -918,6 +918,9 @@ It's a software (Android/kernel) issue. Use the `capacity_offset` or `capacity_s
 
 ---
 ## LATEST CHANGES
+
+**2020.2.29-r1-dev (202002291)**
+- Fixed typos and reset_batt_stats_on_unplug
 
 **2020.2.29-dev (202002290)**
 - `/sbin/acca`: acc executable for front-ends (more efficient than /sbin/acc)

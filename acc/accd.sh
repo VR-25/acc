@@ -16,7 +16,7 @@ exxit() {
   [ -n "$1" ] && exitCode=$1
   [ -n "$2" ] && echo -e "$2"
   echo "***EXIT $exitCode***"
-  [[ $exitCode == [129] ]] && /sbin/acca $config --log --export > /dev/null 2>&1
+  [[ $exitCode == [127] ]] && /sbin/acca $config --log --export > /dev/null 2>&1
   exit $exitCode
 }
 
