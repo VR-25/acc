@@ -1,7 +1,6 @@
 set +u
 
-cat << EOF
-shutdown_capacity=${capacity[0]}
+echo "shutdown_capacity=${capacity[0]}
 cooldown_capacity=${capacity[1]}
 resume_capacity=${capacity[2]}
 pause_capacity=${capacity[3]}
@@ -40,5 +39,4 @@ force_charging_status_full_at_100=$forceChargingStatusFullAt100
 
 run_cmd_on_pause=${runCmdOnPause[@]}
 
-dyn_power_saving=${dynPowerSaving}
-EOF
+dyn_power_saving=${dynPowerSaving}"

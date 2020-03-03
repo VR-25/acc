@@ -65,8 +65,9 @@ Once there, if you're lazy, jump to the quick start section.
 
 \* Instead of a regular install, the binary can simply be placed in /data/adb/.
 That's a fallback path. ACC sets permissions (rwx------) as needed.
+Precedence: Magisk busybox > system busybox > /data/adb/busybox
 
-\*\* Termux has it. Paste and run the following to set it up for acc --upgrade:
+\*\* Termux has it. Paste and run the following to set it up for `acc --upgrade`:
 
 `pkg install tsu && echo -e "\nalias acc=/sbin/acc" >> ~/.bashrc && . ~/.bashrc`
 
@@ -203,10 +204,13 @@ Additionally, `$installDir/acc/acc-init.sh` must be executed on boot to initiali
 ```
 #DC#
 
-configVerCode=202002280
+configVerCode=202003030
 capacity=(-1 60 70 75 +0 false)
 temperature=(70 80 90)
 coolDownRatio=()
+coolDownCapacity=()
+coolDownCurrent=()
+coolDownTemp=()
 resetBattStats=(false false)
 loopDelay=(10 15)
 chargingSwitch=()
@@ -215,14 +219,13 @@ applyOnPlug=()
 maxChargingCurrent=()
 maxChargingVoltage=()
 rebootOnPause=
-switchDelay=3.5
+switchDelay=1.5
 language=en
 wakeUnlock=()
 prioritizeBattIdleMode=false
 forceChargingStatusFullAt100=
 runCmdOnPause=()
-dynPowerSaving=120
-ghostCharging=false
+dynPowerSaving=0
 
 
 # BASIC EXPLANATION
@@ -263,8 +266,6 @@ ghostCharging=false
 
 # dynPowerSaving=dyn_power_saving
 
-# ghostCharging=ghost_charging
-
 
 # VARIABLE ALIASES (SORTCUTS)
 
@@ -304,7 +305,6 @@ ghostCharging=false
 # fs force_charging_status_full_at_100
 # rcp run_cmd_on_pause
 # dps dyn_power_saving
-# gc ghost_charging
 
 
 # COMMAND EXAMPLES
@@ -400,17 +400,17 @@ ghostCharging=false
 
 # apply_on_plug (ap) #
 # Settings to apply on plug.
-# This exists because some /sys files (e.g., current_max) are reset on charger replug.
+# This exists because some /sys files (e.g., current_max) are reset on charger re-plug.
 # Default values are restored on unplug and when the daemon stops.
 
 # max_charging_current (mcc) #
 # apply_on_plug dedicated to current control
-# This is managed with "acc --set --current" conmands.
+# This is managed with "acc --set --current" commands.
 # Refer back to the command examples.
 
 # max_charging_voltage (mcv) #
 # apply_on_boot dedicated to voltage control
-# This is managed with "acc --set --voltage" conmands.
+# This is managed with "acc --set --voltage" commands.
 
 # reboot_on_pause (rp) #
 # If this doesn't make sense to you, you probably don't need it.
@@ -419,11 +419,11 @@ ghostCharging=false
 # The issue has reportedly been fixed by the OEM. So, this could just as well not be here.
 
 # switch_delay (sd) #
-# Delay (seconds) between charging status checks after togling charging switches
+# Delay (seconds) between charging status checks after toggling charging switches
 # Most devices work with a value of 1.
 # Some devices may require a delay as high as 3. The optimal max is probably 3.5.
 # If a charging switch seems to work intermittently, or fails completely, increasing this value may fix the issue.
-# You absolutelly should increase this value if "acc -t --" reports total failure.
+# You absolutely should increase this value if "acc -t --" reports total failure.
 
 # lang (l) #
 # acc language, managed with "acc --set --lang".
@@ -441,19 +441,14 @@ ghostCharging=false
 # Some Pixel devices were found to never report "full" status after the battery capacity reaches 100%.
 # This setting forces Android to behave as intended.
 # For Pixel devices, the status code of "full" is 5 (fs=5).
-# The status code is found through trial and error, with the conmands "dumpsys battery", "dumpsys battery set status #" and "dumpsys battery reset".
+# The status code is found through trial and error, with the commands "dumpsys battery", "dumpsys battery set status #" and "dumpsys battery reset".
 
 # run_cmd_on_pause (rcp)
-# Run conmands* after pausing charging.
+# Run commands* after pausing charging.
 # * Usually a script ("sh some_file" or ". some_file")
 
 # dyn_power_saving (dps) #
 # This is the maximum number of seconds accd will dynamically sleep for (while unplugged) to save resources.
-
-# ghost_charging (gc) #
-# This is a flag for the issue of "charging while UNPLUGGED".
-# If ACC daemon detects that, it sets the flag to "true".
-# If ghost_charging=true, acc/d won't toggle charging switches until an external power supply is detected.
 
 #/DC#
 ```
@@ -706,6 +701,7 @@ Refer back to the `BUILDING AND/OR INSTALLING FROM SOURCE` section.
 6. No update available
 7. Daemon couldn't disable charging
 8. [Contextual] Daemon already running (--daemon start) or not running (--daemon stop)
+9. [Contextual] Current/Voltage unit could not be determined
 
 Logs are exported automatically (`--log --export`) on exit codes `1`, `2` and `7`.
 
@@ -761,11 +757,6 @@ ACC daemon applies dedicated settings for specific devices (e.g., MTK, Asus, 1+7
 These settings are in `acc/oem-custom.sh`.
 
 Note: switches that fail to disable charging are automatically blacklisted.
-
-
-### Charging While UNPLUGGED
-
-Refer back to `DEFAULT CONFIGURATION (ghost_charging)`.
 
 
 ### Custom Max Charging Voltage And Current Limits
@@ -918,6 +909,14 @@ It's a software (Android/kernel) issue. Use the `capacity_offset` or `capacity_s
 
 ---
 ## LATEST CHANGES
+
+**2020.3.3-dev (202003030)**
+- `/sbin/acca`: fixed file path issues; ~90%+ faster than version 2020.2.29-r1-dev
+- `acc -i`: fixed current/voltage conversion and power calculation issues
+- `acc -i`: output current in Amps
+- Include kernel details in power supply logs
+- Major optimizations
+- MediaTek specific fixes
 
 **2020.2.29-r1-dev (202002291)**
 - Fixed typos and reset_batt_stats_on_unplug

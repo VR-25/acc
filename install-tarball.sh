@@ -14,10 +14,16 @@ set -x
 # set up busybox
 #BB#
 if [ -d /sbin/.magisk/busybox ]; then
-  [[ $PATH == /sbin/.magisk/busybox:* ]] || PATH=/sbin/.magisk/busybox:$PATH
+  case $PATH in
+    /sbin/.magisk/busybox:*) :;;
+    *) PATH=/sbin/.magisk/busybox:$PATH;;
+  esac
 else
   mkdir -p -m 700 /dev/.busybox
-  [[ $PATH == /dev/.busybox:* ]] || PATH=/dev/.busybox:$PATH
+  case $PATH in
+    /dev/.busybox:*) :;;
+    *) PATH=/dev/busybox:$PATH;;
+  esac
   if [ ! -x /dev/.busybox/busybox ]; then
     if [ -f /data/adb/magisk/busybox ]; then
       chmod 700 /data/adb/magisk/busybox

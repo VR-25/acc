@@ -33,9 +33,13 @@ set -x
 
 {
   date
-  echo versionCode=$1
+  echo accVerCode=$1
   echo
   echo
+  cat /proc/version 2>/dev/null && {
+    echo
+    echo
+  }
   getprop | grep product
   echo
   getprop | grep version

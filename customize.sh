@@ -24,10 +24,16 @@ trap 'e=$?; echo; exit $e' EXIT
 # set up busybox
 #BB#
 if [ -d /sbin/.magisk/busybox ]; then
-  [[ $PATH == /sbin/.magisk/busybox:* ]] || PATH=/sbin/.magisk/busybox:$PATH
+  case $PATH in
+    /sbin/.magisk/busybox:*) :;;
+    *) PATH=/sbin/.magisk/busybox:$PATH;;
+  esac
 else
   mkdir -p -m 700 /dev/.busybox
-  [[ $PATH == /dev/.busybox:* ]] || PATH=/dev/.busybox:$PATH
+  case $PATH in
+    /dev/.busybox:*) :;;
+    *) PATH=/dev/busybox:$PATH;;
+  esac
   if [ ! -x /dev/.busybox/busybox ]; then
     if [ -f /data/adb/magisk/busybox ]; then
       chmod 700 /data/adb/magisk/busybox
@@ -97,13 +103,11 @@ config=/data/adb/${id}-data/config.txt
 
 
 ###
-cat << EOF
-$name $version ($versionCode)
+echo "$name $version ($versionCode)
 Copyright (c) 2017-2020, $author
 License: GPLv3+
 
-(i) Installing in $installDir/$id/...
-EOF
+(i) Installing in $installDir/$id/..."
 
 
 # stop $id daemon ###
@@ -135,8 +139,7 @@ if [ $installDir != /sbin/.magisk/modules/$id ]; then
   if [ -d /data/adb/service.d ]; then
 
 # alternate initialization script
-cat << EOF > /data/adb/service.d/${id}-init.sh
-#!/system/bin/sh
+echo "#!/system/bin/sh
 # alternate $id initializer
 (until [ -d /storage/emulated/0/?ndroid ]; do sleep 10; done
 if [ -f $installDir/${id}-init.sh ]; then
@@ -145,20 +148,17 @@ else
   rm \$0
 fi
 exit 0 &) &
-exit 0
-EOF
+exit 0" > /data/adb/service.d/${id}-init.sh
 
 # post-uninstall cleanup script
-cat << EOF > /data/adb/service.d/${id}-cleanup.sh
-#!/system/bin/sh
+echo "#!/system/bin/sh
 # $id post-uninstall cleanup
 (until [ -d /storage/emulated/0/?ndroid ]; do sleep 15; done
 if [ ! -f $installDir/module.prop ]; then
   rm /data/adb/$id /data/adb/${id}-data /data/adb/modules/$id \$0 2>/dev/null
 fi
 exit 0 &) &
-exit 0
-EOF
+exit 0"  > /data/adb/service.d/${id}-cleanup.sh
 
     chmod 700 /data/adb/service.d/${id}-*.sh
   fi
@@ -206,12 +206,11 @@ esac
 set +euo pipefail 2>/dev/null || :
 
 
-cat << EOF
-- Done
+echo "- Done
 
   LATEST CHANGES
 
-EOF
+"
 
 
 # print changelog
@@ -219,8 +218,7 @@ sed -n "\|\($versionCode\)|,\$s|^|    |p" ${config%/*}/info/README.md
 
 
 ###
-cat << EOF
-
+echo "
   LINKS
     - ACC app: GitHub.com/MatteCarra/AccA/
     - Battery University: batteryuniversity.com/learn/article/how_to_prolong_lithium_based_batteries/
@@ -239,8 +237,7 @@ cat << EOF
 
 (i) Rebooting is unnecessary.
 - $id can be used right now.
-- $id daemon started.
-EOF
+- $id daemon started."
 
 
 [ $installDir == /data/adb ] && echo -e "\n(i) Use init.d or an app to run $installDir/${id}-init.sh on boot to initialize ${id}."

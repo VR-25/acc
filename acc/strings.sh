@@ -418,3 +418,7 @@ print_install_prompt() {
 print_no_update() {
   echo "(i) No update available"
 }
+
+print_A() {
+  echo " Amps"
+}

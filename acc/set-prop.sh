@@ -6,8 +6,12 @@ set_prop() {
 
   (case ${1-} in
 
-    # batch variable handling
-    *=*) export "$@";;
+    # set multiple properties
+    *=*)
+      . $defaultConfig
+      . $config
+      export "$@"
+    ;;
 
     # reset config
     r|--reset)
@@ -102,16 +106,16 @@ set_prop() {
           # == [100-999] milliamps
           if [[ $2 -ge 100 && $2 -le 999 ]]; then
             apply_current 0${2}00 $2 || return 1
-  
+
           # == [1000-9999] milliamps
           elif [[ $2 -ge 1000 && $2 -le 9999 ]]; then
             apply_current ${2}00 $2 || return 1
-  
+
           # < 100 milliamps
           elif [ $2 -lt 100 ]; then
             print_curr_range 100-9999
             apply_current 010000 100 || return 1
-  
+
           # > 9999 milliamps
           elif [ $2 -gt 9999 ]; then
             print_curr_range 100-9999
@@ -151,12 +155,12 @@ set_prop() {
           # == [3700-4200] millivolts
           if [[ $2 -ge 3700 && $2 -le 4200 ]]; then
             apply_voltage $2 $2 ${3-} || return 1
-  
+
           # < 3700 millivolts
           elif [ $2 -lt 3700 ]; then
             print_volt_range 3700-4200
             apply_voltage 3700 3700 ${3-} || return 1
-  
+
           # > 4200 millivolts
           elif [ $2 -gt 4200 ]; then
             print_volt_range 3700-4200
@@ -197,7 +201,7 @@ set_prop() {
 
   esac
 
-  # update the config file
+  # update config.txt
   . $modPath/write-config.sh
   ! $restartDaemon || { ! $daemonWasUp || /sbin/accd; })
 }

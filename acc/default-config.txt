@@ -1,4 +1,4 @@
-configVerCode=202002290
+configVerCode=202003030
 capacity=(-1 60 70 75 +0 false)
 temperature=(70 80 90)
 coolDownRatio=()
@@ -13,13 +13,13 @@ applyOnPlug=()
 maxChargingCurrent=()
 maxChargingVoltage=()
 rebootOnPause=
-switchDelay=3.5
+switchDelay=1.5
 language=en
 wakeUnlock=()
 prioritizeBattIdleMode=false
 forceChargingStatusFullAt100=
 runCmdOnPause=()
-dynPowerSaving=120
+dynPowerSaving=0
 
 
 # BASIC EXPLANATION
@@ -59,8 +59,6 @@ dynPowerSaving=120
 # runCmdOnPause=run_cmd_on_pause=(sh|. script)
 
 # dynPowerSaving=dyn_power_saving
-
-# ghostCharging=ghost_charging
 
 
 # VARIABLE ALIASES (SORTCUTS)
@@ -196,17 +194,17 @@ dynPowerSaving=120
 
 # apply_on_plug (ap) #
 # Settings to apply on plug.
-# This exists because some /sys files (e.g., current_max) are reset on charger replug.
+# This exists because some /sys files (e.g., current_max) are reset on charger re-plug.
 # Default values are restored on unplug and when the daemon stops.
 
 # max_charging_current (mcc) #
 # apply_on_plug dedicated to current control
-# This is managed with "acc --set --current" conmands.
+# This is managed with "acc --set --current" commands.
 # Refer back to the command examples.
 
 # max_charging_voltage (mcv) #
 # apply_on_boot dedicated to voltage control
-# This is managed with "acc --set --voltage" conmands.
+# This is managed with "acc --set --voltage" commands.
 
 # reboot_on_pause (rp) #
 # If this doesn't make sense to you, you probably don't need it.
@@ -215,11 +213,11 @@ dynPowerSaving=120
 # The issue has reportedly been fixed by the OEM. So, this could just as well not be here.
 
 # switch_delay (sd) #
-# Delay (seconds) between charging status checks after togling charging switches
+# Delay (seconds) between charging status checks after toggling charging switches
 # Most devices work with a value of 1.
 # Some devices may require a delay as high as 3. The optimal max is probably 3.5.
 # If a charging switch seems to work intermittently, or fails completely, increasing this value may fix the issue.
-# You absolutelly should increase this value if "acc -t --" reports total failure.
+# You absolutely should increase this value if "acc -t --" reports total failure.
 
 # lang (l) #
 # acc language, managed with "acc --set --lang".
@@ -237,10 +235,10 @@ dynPowerSaving=120
 # Some Pixel devices were found to never report "full" status after the battery capacity reaches 100%.
 # This setting forces Android to behave as intended.
 # For Pixel devices, the status code of "full" is 5 (fs=5).
-# The status code is found through trial and error, with the conmands "dumpsys battery", "dumpsys battery set status #" and "dumpsys battery reset".
+# The status code is found through trial and error, with the commands "dumpsys battery", "dumpsys battery set status #" and "dumpsys battery reset".
 
 # run_cmd_on_pause (rcp)
-# Run conmands* after pausing charging.
+# Run commands* after pausing charging.
 # * Usually a script ("sh some_file" or ". some_file")
 
 # dyn_power_saving (dps) #

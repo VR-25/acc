@@ -78,7 +78,7 @@ is_charging() {
       # resetBattStatsOnUnplug
       if $resetBattStatsOnUnplug && ${resetBattStats[1]}; then
         sleep ${loopDelay[1]}
-        if grep -iq dis $batt/status || [[ "$(acpi -a)" != *on-line* ]]; then
+        if grep -iq dis $batt/status; then
           dumpsys batterystats --reset || :
           rm /data/system/batterystats* || :
           resetBattStatsOnUnplug=false
@@ -88,7 +88,7 @@ is_charging() {
       # dynamic power saving
       # while unplugged, this keeps accd asleep most of the time to save resources
       # detecting plugged/unplugged states is possible (with acpi -a), but not universally
-      if grep -iq dis $batt/status || [[ "$(acpi -a)" != *on-line* ]]; then
+      if [ "$dynPowerSaving" != 0 ] && grep -iq dis $batt/status; then
         if [ $secondsUnplugged == 0 ]; then
           [ $(( ${capacity[3]} - ${capacity[2]} )) -gt 4 ] \
             && hibernate=true || hibernate=false
@@ -173,6 +173,7 @@ enable_charging() {
       if ! $ghostCharging && ! grep -Eiq 'dis|not' $batt/status && [[ "$(acpi -a)" != *on-line* ]]; then
         disable_charging
         ghostCharging=true
+        touch $TMPDIR/.ghost-charging
       fi
     fi
   fi
@@ -219,9 +220,7 @@ ctrl_charging() {
         if [ ! -f ${config%/*}/.rebootedOnPause ]; then
           # wakeUnlock
           # won't run under "battery idle" mode ("not charging" status)
-          if { grep -iq dis $batt/status || [[ "$(acpi -a)" != *on-line* ]]; } \
-            && chmod +w /sys/power/wake_unlock
-          then
+          if grep -iq dis $batt/status && chmod +w /sys/power/wake_unlock; then
             for wakelock in "${wakeUnlock[@]-}"; do
               echo $wakelock > /sys/power/wake_unlock || :
             done
@@ -297,7 +296,6 @@ coolDown=false
 hibernate=true
 readChCurr=true
 chgStatusCode=""
-ghostCharging=false
 dischgStatusCode=""
 secondsUnplugged=0
 frozenBattSvc=false
@@ -307,6 +305,7 @@ modPath=/sbin/.acc/acc
 export TMPDIR=${modPath%/*}
 forcedChargingStatusFullAt100=false
 config=/data/adb/acc-data/config.txt
+[ -f $TMPDIR/.ghost-charging ] && ghostCharging=true || ghostCharging=false
 
 
 . $modPath/setup-busybox.sh
@@ -333,10 +332,12 @@ if [ -d /data/media/0/?ndroid ]; then
 fi
 
 # custom config path
-if [[ "${1:-x}" == */* ]]; then
-  [ -f $1 ] || cp $config $1
-  config=$1
-fi
+case "${1-}" in
+  */*)
+    [ -f $1 ] || cp $config $1
+    config=$1
+  ;;
+esac
 
 batt=$(echo *attery/capacity | cut -d ' ' -f 1 | sed 's|/capacity||')
 

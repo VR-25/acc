@@ -12,7 +12,7 @@ daemon_ctrl() {
   set -eo pipefail 2>/dev/null || :
   [[ ${pid:-x} == *[0-9]* ]] || isRunning=false
 
-  case ${1:-} in
+  case "${1-}" in
 
     start)
       if $isRunning; then
@@ -33,7 +33,7 @@ daemon_ctrl() {
         not_charging && enable_charging
         if [ ${2:-x} != skipab ]; then
           . $modPath/apply-on-boot.sh
-          case ${2-} in
+          case "${2-}" in
             forceab) apply_on_boot default force;;
             *) apply_on_boot default;;
           esac
@@ -181,7 +181,7 @@ enable_charging() {
     # detect and block ghost charging
     if ! $ghostCharging && ! not_charging && [[ "$(acpi -a)" != *on-line* ]]; then
       disable_charging > /dev/null
-      ghostCharging=true
+      touch $TMPDIR/.ghost-charging
       echo "(i) ghostCharging=true"
       print_unplugged
       exit 2
@@ -215,7 +215,7 @@ enable_charging() {
     fi
 
   else
-    echo "(i) ghost_charging=true"
+    echo "(i) ghostCharging=true"
     print_unplugged
     exit 2
   fi
@@ -307,11 +307,11 @@ logf() {
 
 
 umask 077
-ghostCharging=false
 modPath=/sbin/.acc/acc
 export TMPDIR=${modPath%/*}
 config=/data/adb/acc-data/config.txt
 defaultConfig=$modPath/default-config.txt
+[ -f $TMPDIR/.ghost-charging ] && ghostCharging=true || ghostCharging=false
 
 
 echo
@@ -321,7 +321,7 @@ device=$(getprop ro.product.device | grep .. || getprop ro.build.product)
 log=$TMPDIR/acc-${device}.log
 
 # verbose
-if [[ ${verbose:-true} && "${1-}" != *-w* ]]; then
+if ${verbose:-true} && [[ "${1-}" != *-w* ]]; then
     touch $log
     trap exxit EXIT
     if [ $(du -m $log | cut -f 1) -lt 2 ]; then
@@ -345,15 +345,19 @@ if [ -d /data/media/0/?ndroid ]; then
 fi
 
 # load config from a custom path
-if [[ "${1:-x}" == */* ]]; then
-  [ -f $1 ] || cp $config $1
-  config=$1
-  . $config
-  shift
-fi
+case "${1-}" in
+  */*)
+    [ -f $1 ] || cp $config $1
+    config=$1
+    . $config
+    shift
+  ;;
+esac
 
 accVer=$(get_prop version $modPath/module.prop)
 accVerCode=$(get_prop versionCode $modPath/module.prop)
+
+unset -f get_prop
 
 batt=$(echo *attery/capacity | cut -d ' ' -f 1 | sed 's|/capacity||')
 
@@ -361,10 +365,12 @@ batt=$(echo *attery/capacity | cut -d ' ' -f 1 | sed 's|/capacity||')
 . $modPath/strings.sh
 
 # load translations
-! [[ ${verbose:-true} && -f $modPath/translations/$language/strings.sh ]] || . $modPath/translations/$language/strings.sh
+if ${verbose:-true} && [ -f $modPath/translations/$language/strings.sh ]; then
+  . $modPath/translations/$language/strings.sh
+fi
 grep -q .. $modPath/translations/$language/README.md 2>/dev/null \
-    && readMe=$modPath/translations/$language/README.md \
-    || readMe=${config%/*}/info/README.md
+  && readMe=$modPath/translations/$language/README.md \
+  || readMe=${config%/*}/info/README.md
 
 # aliases/shortcuts
 # daemon_ctrl status (acc -D|--daemon): "accd,"
@@ -379,7 +385,7 @@ if [[ $0 == *accd* ]]; then
 fi
 
 
-case ${1-} in
+case "${1-}" in
 
   "")
     PS3="$(echo; print_choice_prompt)"
@@ -491,10 +497,11 @@ case ${1-} in
     elif [ $1 == -- ]; then
       exitCode=1
       while read chargingSwitch; do
-        [ -f "$(echo "$chargingSwitch" | cut -d ' ' -f 1)" ] \
-          && echo && test_charging_switch $chargingSwitch
-        tmpExitCode=$?
-        [ $tmpExitCode -eq 0 ] && exitCode=0
+        [ -f "$(echo "$chargingSwitch" | cut -d ' ' -f 1)" ] && {
+          echo
+          test_charging_switch $chargingSwitch
+        }
+        [ $? -eq 0 ] && exitCode=0
       done < ${2:-$TMPDIR/charging-switches}
       echo
     else
