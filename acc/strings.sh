@@ -112,10 +112,10 @@ Usage
 
 Options
 
-  -c|--config [editor] [editor_opts]   Edit config (default editor: vim/vi)
+  -c|--config [editor] [editor_opts]   Edit config (default editor: nano/vim/vi)
     e.g.,
-      acc -c (edit w/ vim/vi)
-      acc -c nano -l$
+      acc -c (edit w/ nano/vim/vi)
+      acc -c less
       acc -c cat
 
   -d|--disable [#%, #s, #m or #h (optional)]   Disable charging
@@ -154,9 +154,10 @@ Options
       acc -i volt
       acc -i 'volt\|curr'
 
-  -l|--log [-a|--acc] [editor] [editor_opts]>   Print/edit accd log (default) or acc log (-a|--acc) (default editor: vim/vi
+  -l|--log [-a|--acc] [editor] [editor_opts]   Print/edit accd log (default) or acc log (-a|--acc)
     e.g.,
-      acc -l
+      acc -l (same as acc -l less)
+      acc -l rm
       acc -l -a cat
       acc -l grep ': ' (show explicit errors only)
 
@@ -170,9 +171,9 @@ Options
   -p|--performance   Monitor accd resources usage (htop)
     e.g., acc -p
 
-  -r|--readme   Display README.md (default editor: vim/vi)
+  -r|--readme [editor] [editor_opts]   Print/edit README.md
     e.g.,
-      acc -r
+      acc -r (same as acc -r less)
       acc -r cat
 
   -R|--resetbs   Reset battery stats
@@ -294,6 +295,7 @@ print_default() {
 
 print_quit() {
   echo "(i) Press $1 to quit"
+  [ -z "${2-}" ] || echo "- Or $2 to save and quit"
 }
 
 print_curr_restored() {
@@ -421,4 +423,8 @@ print_no_update() {
 
 print_A() {
   echo " Amps"
+}
+
+print_more() {
+  echo "(i) Press the space key to load more text"
 }

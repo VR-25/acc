@@ -214,7 +214,7 @@ dynPowerSaving=0
 
 # switch_delay (sd) #
 # Delay (seconds) between charging status checks after toggling charging switches
-# Most devices work with a value of 1.
+# Most devices/switches work with a value of 1.
 # Some devices may require a delay as high as 3. The optimal max is probably 3.5.
 # If a charging switch seems to work intermittently, or fails completely, increasing this value may fix the issue.
 # You absolutely should increase this value if "acc -t --" reports total failure.

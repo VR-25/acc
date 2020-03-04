@@ -10,16 +10,12 @@
 pick_zips() {
   clear
   echo
-  IFS=$'\n'
-  cd ${1:-/storage} 2>/dev/null || cd ${1%/*}
+  cd ${1:-/storage}
   echo ": $PWD"
   echo
-  select target in $(ls -1Ap | grep -Ei '.*.zip$|/$') ... ^ X; do
-    unset IFS
+  select target in $(ls -Ap | grep -Ei '.*.zip$|/$') ... ^ X; do
     if [ -f "$target" ]; then
-     zipFiles="$(echo "$zipFiles\n$target")"
-     echo
-     echo ":$zipFiles"
+     zipFiles="$zipFiles $target"
      echo
      select target in + ">>>" X; do
       case $target in
@@ -53,18 +49,11 @@ pick_zips() {
 }
 
 
-IFS=$'\n'
 trap 'e=$?; echo; exit $e' EXIT
+zipFiles="$@"
 . ${0%/*}/setup-busybox.sh
 
-
-for zipFile in "$@"; do
-  zipFiles="$zipFiles
-$zipFile"
-done
-
-
-if [ -z "$zipFiles" ]; then
+if [[ -z "$zipFiles" ]]; then
   PS3="
 (?) *.zip: "
   pick_zips
@@ -81,14 +70,14 @@ if [ $(id -u) -ne 0 ]; then
 fi
 
 
-for zipFile in "$zipFiles"; do
+for zipFile in $zipFiles; do
 
   # prepare tmpdir
   rm -rf /dev/.install-zip 2>/dev/null
   mkdir -p /dev/.install-zip
 
   # log
-  exec 2 > "${zipFile}.log"
+  exec 2>"${zipFile}.log"
   set -x
 
   # extract update-binary

@@ -60,7 +60,7 @@ echo 30 > usb/razer_charge_limit_dropdown || :; } 2>/dev/null
 if [ $(get_prop configVerCode) -lt 202003030 ]; then
   sed -i -e "/^configVerCode=/s/=.*/=202003030/" \
     -e "/^switchDelay=/s/=.*/=1.5/" \
-    -e "/^dynPowerSaving=/s/=.*/=0" $config
+    -e "/^dynPowerSaving=/s/=.*/=0/" $config
   . $modPath/oem-custom.sh
 fi
 )

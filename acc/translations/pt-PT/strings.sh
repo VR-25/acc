@@ -107,7 +107,7 @@ print_default() {
 }
 
 print_quit() {
-  echo "(i) Pressione $1 para sair"
+  echo "(i) Pressione $1 para sair/guardar"
 }
 
 print_curr_restored() {

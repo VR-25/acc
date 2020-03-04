@@ -71,18 +71,32 @@ daemon_ctrl() {
 
 
 edit() {
-  [ "$1" != no-quit-msg ] || { local noQuitMsg=true; shift; }
   local file="$1"
   shift
   if [ -n "${1-}" ]; then
     eval "$@ $file"
   else
-    if ! ${noQuitMsg:-false}; then
-      print_quit ":q [enter]"
-      sleep 1.5
+    ! ${verbose:-true} || {
+      case $file in
+        *.txt)
+          if which nano > /dev/null; then
+            print_quit CTRL-X
+          else
+            print_quit "[esc] :q [enter]" "[esc] :wq [enter]"
+          fi
+        ;;
+        *.log|*.md|*.help)
+          print_quit q
+          print_more
+        ;;
+      esac
+      sleep 2
       echo
-    fi
-    { vim $file || vi $file; } 2>/dev/null
+    }
+    case $file in
+     *.txt) nano -$ $file || vim $file || vi $file;;
+     *.log|*.md|*.help) less $file;;
+    esac 2>/dev/null
   fi
 }
 
@@ -388,7 +402,6 @@ fi
 case "${1-}" in
 
   "")
-    PS3="$(echo; print_choice_prompt)"
     . $modPath/wizard.sh
     wizard
   ;;
@@ -455,8 +468,10 @@ case "${1-}" in
   ;;
 
   -T|--logtail)
-    print_quit CTRL-C
-    sleep 1.5
+    ! ${verbose:-true} || {
+      print_quit CTRL-C
+      sleep 1.5
+    }
     tail -F $TMPDIR/accd-*.log
   ;;
 
@@ -561,7 +576,7 @@ case "${1-}" in
   *)
     shift
     print_help > $TMPDIR/.help
-    edit $TMPDIR/.help "$@"
+    edit $TMPDIR/.help
     rm $TMPDIR/.help
   ;;
 

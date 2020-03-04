@@ -420,7 +420,7 @@ dynPowerSaving=0
 
 # switch_delay (sd) #
 # Delay (seconds) between charging status checks after toggling charging switches
-# Most devices work with a value of 1.
+# Most devices/switches work with a value of 1.
 # Some devices may require a delay as high as 3. The optimal max is probably 3.5.
 # If a charging switch seems to work intermittently, or fails completely, increasing this value may fix the issue.
 # You absolutely should increase this value if "acc -t --" reports total failure.
@@ -491,10 +491,10 @@ Usage
 
 Options
 
-  -c|--config [editor] [editor_opts]   Edit config (default editor: vim/vi)
+  -c|--config [editor] [editor_opts]   Edit config (default editor: nano/vim/vi)
     e.g.,
-      acc -c (edit w/ vim/vi)
-      acc -c nano -l$
+      acc -c (edit w/ nano/vim/vi)
+      acc -c less
       acc -c cat
 
   -d|--disable [#%, #s, #m or #h (optional)]   Disable charging
@@ -533,9 +533,10 @@ Options
       acc -i volt
       acc -i 'volt\|curr'
 
-  -l|--log [-a|--acc] [editor] [editor_opts]>   Print/edit accd log (default) or acc log (-a|--acc) (default editor: vim/vi
+  -l|--log [-a|--acc] [editor] [editor_opts]   Print/edit accd log (default) or acc log (-a|--acc)
     e.g.,
-      acc -l
+      acc -l (same as acc -l less)
+      acc -l rm
       acc -l -a cat
       acc -l grep ': ' (show explicit errors only)
 
@@ -549,9 +550,9 @@ Options
   -p|--performance   Monitor accd resources usage (htop)
     e.g., acc -p
 
-  -r|--readme   Display README.md (default editor: vim/vi)
+  -r|--readme [editor] [editor_opts]   Print/edit README.md
     e.g.,
-      acc -r
+      acc -r (same as acc -r less)
       acc -r cat
 
   -R|--resetbs   Reset battery stats
@@ -909,6 +910,15 @@ It's a software (Android/kernel) issue. Use the `capacity_offset` or `capacity_s
 
 ---
 ## LATEST CHANGES
+
+**2020.3.4-r1-dev (202003041)**
+- /sbin/acca optimizations
+- `acc` (wizard): every option is mapped to a single ASCII character (letter or number); pressing [enter] is no longer required for confirming most operations
+- Default editor: nano/vim/vi
+- Fixed oem-custom "mismatched /" error
+- Fixed zip flasher
+- Use `less` instead of `vim/vi` to open files in read-only mode (e.g., *.log, *.md)
+- Updated help text
 
 **2020.3.4-dev (202003040)**
 - Hotfix: get_prop() in oem-custom.sh
