@@ -1,7 +1,7 @@
 (
 _grep() { grep -Eq "$1" ${2:-$config}; }
 
-get_prop() { sed -n "\|^$1=|s|.*=|p" $config; }
+get_prop() { sed -n "\|^$1=|s|.*=||p" $config; }
 
 set_prop() { sed -i "\|^${1}=|s|=.*|=$2|" ${3:-$config}; }
 

@@ -910,6 +910,9 @@ It's a software (Android/kernel) issue. Use the `capacity_offset` or `capacity_s
 ---
 ## LATEST CHANGES
 
+**2020.3.4-dev (202003040)**
+- Hotfix: get_prop() in oem-custom.sh
+
 **2020.3.3-dev (202003030)**
 - `/sbin/acca`: fixed file path issues; ~90%+ faster than version 2020.2.29-r1-dev
 - `acc -i`: fixed current/voltage conversion and power calculation issues
