@@ -108,6 +108,31 @@
         fi
       done
 
+  ls -1 */constant_charge_current_max \
+    */input_current_max */restrict*_cur* \
+    /sys/class/qcom-battery/restrict*_cur* \
+    */batt_tune_*_charge_current */ac_input \
+    */mhl_2000_charge */mhl_2000_input \
+    */hv_charge battery  */ac_charge \
+    */batt_tune_chg_limit_cur */so_limit_input \
+    */so_limit_charge */car_input */sdp_input \
+    */aca_charge */sdp_charge */aca_input \
+    *dcp_input */wc_input */car_charge \
+    */dcp_charge */wc_charge 2>/dev/null | \
+      while read file; do
+        chmod +r $file || continue
+        defaultValue=$(cat $file)
+        if [ $defaultValue -lt 10000 -a $defaultValue -ne 0 ]; then
+          # milliamps
+          echo ${file}::v::$defaultValue \
+            >> $TMPDIR/ch-curr-ctrl-files
+        else
+          # microamps
+          echo ${file}::v000::$defaultValue \
+            >> $TMPDIR/ch-curr-ctrl-files
+       fi
+     done
+
 
   # prepare default config help text and version code for write-config.sh
   sed -n '/^# /,$p' $modPath/default-config.txt > $TMPDIR/.default-config-help

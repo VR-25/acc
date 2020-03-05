@@ -98,34 +98,23 @@ set_prop() {
         else
 
           apply_current() {
-            eval "maxChargingCurrent=($2 $(sed "s|vvvvvv|$1|" $TMPDIR/ch-curr-ctrl-files))" \
+            eval "maxChargingCurrent=($1 $(sed "s|::v|::$1|" $TMPDIR/ch-curr-ctrl-files))" \
               && { . $modPath/apply-on-plug.sh; apply_on_plug; } \
-              && { noEcho=true; print_curr_set $2; } || return 1
+              && { noEcho=true; print_curr_set $1; } || return 1
           }
 
-          # == [100-999] milliamps
-          if [[ $2 -ge 100 && $2 -le 999 ]]; then
-            apply_current 0${2}00 $2 || return 1
-
-          # == [1000-9999] milliamps
-          elif [[ $2 -ge 1000 && $2 -le 9999 ]]; then
-            apply_current ${2}00 $2 || return 1
-
-          # < 100 milliamps
-          elif [ $2 -lt 100 ]; then
-            print_curr_range 100-9999
-            apply_current 010000 100 || return 1
-
-          # > 9999 milliamps
-          elif [ $2 -gt 9999 ]; then
-            print_curr_range 100-9999
-            apply_current 999900 9999 || return 1
+          # [0-9999] milliamps range
+          if [ $2 -ge 0 -a $2 -le 9999 ]; then
+            apply_current $2 || return 1
+          else
+            echo "(!) [0-9999] ($(print_mA | sed 's/^ //')) $(print_only)"
+            return 1
           fi
         fi
 
       else
         # print current value
-        echo "${maxChargingCurrent[0]:-$(print_default)}$(print_mA)"
+        echo "${maxChargingCurrent[0]:-$(print_default)}$(${verbose:-true} || print_mA)"
         return 0
       fi
     ;;
@@ -146,31 +135,31 @@ set_prop() {
         else
 
           apply_voltage() {
-            [ ${3:-x} != --exit ] || { ! $daemonWasUp || daemon_ctrl stop; }
-            eval "maxChargingVoltage=($2 $(sed "s|vvvv|$1|" $TMPDIR/ch-volt-ctrl-files) ${3-})" \
+            [ ${2:-x} != --exit ] || { ! $daemonWasUp || daemon_ctrl stop; }
+            eval "maxChargingVoltage=($1 $(sed "s|vvvv|$1|" $TMPDIR/ch-volt-ctrl-files) ${2-})" \
               && { . $modPath/apply-on-boot.sh; (apply_on_boot); } \
-              && { noEcho=true; print_volt_set $2; } || return 1
+              && { noEcho=true; print_volt_set $1; } || return 1
           }
 
           # == [3700-4200] millivolts
-          if [[ $2 -ge 3700 && $2 -le 4200 ]]; then
-            apply_voltage $2 $2 ${3-} || return 1
+          if [ $2 -ge 3700 -a $2 -le 4200 ]; then
+            apply_voltage $2 ${2-} || return 1
 
           # < 3700 millivolts
           elif [ $2 -lt 3700 ]; then
-            print_volt_range 3700-4200
-            apply_voltage 3700 3700 ${3-} || return 1
+            echo "(!) [3700-4200] ($(print_mV | sed 's/^ //')) $(print_only)"
+            apply_voltage 3700 ${2-} || return 1
 
           # > 4200 millivolts
           elif [ $2 -gt 4200 ]; then
-            print_volt_range 3700-4200
-            apply_voltage 4200 4200 ${3-} || return 1
+            echo "(!) [3700-4200] ($(print_mV | sed 's/^ //')) $(print_only)"
+            apply_voltage 4200 ${2-} || return 1
           fi
         fi
 
       else
         # print current value
-        echo "${maxChargingVoltage[0]:-$(print_default)}$(print_mV)"
+        echo "${maxChargingVoltage[0]:-$(print_default)}$(! ${verbose:-true} || print_mV)"
         return 0
       fi
     ;;

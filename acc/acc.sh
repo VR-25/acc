@@ -284,7 +284,7 @@ not_charging() { grep -Eiq 'dis|not' $batt/status; }
 
 exxit() {
   local exitCode=$?
-  ${noEcho-false} || echo
+  ! { ! ${noEcho:-false} && ${verbose:-true}; } || echo
   [[ $exitCode != [127] ]] || logf --export > /dev/null 2>&1
   exit $exitCode
 }
@@ -328,7 +328,7 @@ defaultConfig=$modPath/default-config.txt
 [ -f $TMPDIR/.ghost-charging ] && ghostCharging=true || ghostCharging=false
 
 
-echo
+! ${verbose:-true} || echo
 . $modPath/setup-busybox.sh
 
 device=$(getprop ro.product.device | grep .. || getprop ro.build.product)

@@ -911,6 +911,12 @@ It's a software (Android/kernel) issue. Use the `capacity_offset` or `capacity_s
 ---
 ## LATEST CHANGES
 
+**2020.3.5-dev (202003050)**
+- Added Galaxy S7 current control files
+- General optimizations
+- Milliamps current control support
+- Wizard (`acc`) option `c` (check for update) is fully interactive (won't download updates without confirmation)
+
 **2020.3.4-r1-dev (202003041)**
 - /sbin/acca optimizations
 - `acc` (wizard): every option is mapped to a single ASCII character (letter or number); pressing [enter] is no longer required for confirming most operations

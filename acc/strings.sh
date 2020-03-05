@@ -189,7 +189,7 @@ Options
       acc -s "charging_switch=battery/charging_enabled 1 0" resume_capacity=55 pause_capacity=60
     Note: all properties have short aliases for faster typing; run "acc -c cat" to see these
 
-  -s|--set c|--current [-]   Set/print/restore_default max charging current ($(print_mA))
+  -s|--set c|--current [-]   Set/print/restore_default max charging current (range: 0-9999$(print_mA))
     e.g.,
       acc -s c (print)
       acc -s c 500 (set)
@@ -214,7 +214,7 @@ Options
   -s|--set s:|chargingSwitch:   List known charging switches
     e.g., acc -s s:
 
-  -s|--set v|--voltage [-] [--exit]   Set/print/restore_default max charging voltage ($(print_mV))
+  -s|--set v|--voltage [-] [--exit]   Set/print/restore_default max charging voltage (range: 3700-4200$(print_mV))
     e.g.,
       acc -s v (print)
       acc -s v 3920 (set)
@@ -313,19 +313,11 @@ print_read_curr() {
 }
 
 print_curr_set() {
-  echo "(i) Max charging current set to $1 $(print_mA)"
+  echo "(i) Max charging current set to $1$(print_mA)"
 }
 
 print_volt_set() {
-  echo "(i) Max charging voltage set to $1 $(print_mV)"
-}
-
-print_curr_range() {
-  echo "(!) [$1] ($(print_mA)) only"
-}
-
-print_volt_range() {
-  echo "(!) [$1] ($(print_mV)) only"
+  echo "(i) Max charging voltage set to $1$(print_mV)"
 }
 
 print_wip() {
@@ -427,4 +419,8 @@ print_A() {
 
 print_more() {
   echo "(i) Press the space key to load more text"
+}
+
+print_only() {
+  echo "only"
 }

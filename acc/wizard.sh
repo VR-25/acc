@@ -109,7 +109,7 @@ e) $(print_exit)
   ;;
 
    c)
-    /sbin/acc --upgrade || :
+    /sbin/acc --upgrade --changelog || :
     print_press_enter
     read
     exec wizard
