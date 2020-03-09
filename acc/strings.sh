@@ -168,9 +168,6 @@ Options
 
   -le   Same as -l -e
 
-  -p|--performance   Monitor accd resources usage (htop)
-    e.g., acc -p
-
   -r|--readme [editor] [editor_opts]   Print/edit README.md
     e.g.,
       acc -r (same as acc -r less)
@@ -423,4 +420,8 @@ print_more() {
 
 print_only() {
   echo "only"
+}
+
+print_m_mode() {
+  echo "(i) Manual mode"
 }

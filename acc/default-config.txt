@@ -218,6 +218,7 @@ dynPowerSaving=0
 # Some devices may require a delay as high as 3. The optimal max is probably 3.5.
 # If a charging switch seems to work intermittently, or fails completely, increasing this value may fix the issue.
 # You absolutely should increase this value if "acc -t --" reports total failure.
+# Some MediaTek devices require a delay as high as 15!
 
 # lang (l) #
 # acc language, managed with "acc --set --lang".
@@ -242,4 +243,6 @@ dynPowerSaving=0
 # * Usually a script ("sh some_file" or ". some_file")
 
 # dyn_power_saving (dps) #
-# This is the maximum number of seconds accd will dynamically sleep for (while unplugged) to save resources.
+# This is the maximum number of seconds accd will dynamically sleep* for (while unplugged) to save resources.
+# If dyn_power_saving == 0, the feature is disabled.
+# * On top of loop_delay_discharging

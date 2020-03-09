@@ -8,11 +8,8 @@ spreadtrum
 flare s5
 
 cooldown
-   coolDownCapacity=(capacity charge/pause)
-   coolDownCurrent=(current charge/pause)
-   coolDownTemp=(temp charge/pause)
+   cooldownCapacity=(capacity charge/pause)
+   cooldownCurrent=(current charge/pause)
+   cooldownTemp=(temp charge/pause)
 
 flasher - spaces
-
-current limit
-  add millivolt unit and SGS7 support

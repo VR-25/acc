@@ -63,4 +63,7 @@ if [ $(get_prop configVerCode) -lt 202003030 ]; then
     -e "/^dynPowerSaving=/s/=.*/=0/" $config
   . $modPath/oem-custom.sh
 fi
+
+# block ghost charging on steroids (Xiaomi Redmi 3 - ido)
+[ ! -f $TMPDIR/accd-ido.log ] || touch $TMPDIR/.ghost-charging
 )

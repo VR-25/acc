@@ -162,6 +162,10 @@ exit 0"  > /data/adb/service.d/${id}-cleanup.sh
 
     chmod 700 /data/adb/service.d/${id}-*.sh
   fi
+
+else
+  # workaround for Magisk "forgetting service.sh" issue
+  ln $installDir/service.sh $installDir/post-fs-data.sh
 fi
 
 

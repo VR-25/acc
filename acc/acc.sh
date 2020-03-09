@@ -132,29 +132,31 @@ disable_charging() {
     not_charging || cycle_switches off
   fi
 
-  if [ -n "${1:-}" ]; then
-    if [[ $1 == *% ]]; then
-      print_charging_disabled_until $1
-      echo
-      (until [ $(( $(cat $batt/capacity) ${capacity[4]} )) -le ${1%\%} ]; do
-        sleep ${loopDelay[1]}
-        set +x
-      done)
-      enable_charging
-    elif [[ $1 == *[smh] ]]; then
-      print_charging_disabled_for $1
-      echo
-      if [[ $1 == *s ]]; then
-        sleep ${1%s}
-      elif [[ $1 == *m ]]; then
-        sleep $(( ${1%m} * 60 ))
-      else
-        sleep $(( ${1%h} * 3600 ))
-      fi
-      enable_charging
-    else
-      print_charging_disabled
-    fi
+  if [ -n "${1-}" ]; then
+    case $1 in
+      *%)
+        print_charging_disabled_until $1
+        echo
+        (until [ $(( $(cat $batt/capacity) ${capacity[4]} )) -le ${1%\%} ]; do
+          sleep ${loopDelay[1]}
+          set +x
+        done)
+        enable_charging
+      ;;
+      *[hms])
+        print_charging_disabled_for $1
+        echo
+        case $1 in
+          *h) sleep $(( ${1%h} * 3600 ));;
+          *m) sleep $(( ${1%m} * 60 ));;
+          *s) sleep ${1%s};;
+        esac
+        enable_charging
+      ;;
+      *)
+        print_charging_disabled
+      ;;
+    esac
   else
     print_charging_disabled
   fi
@@ -201,29 +203,31 @@ enable_charging() {
       exit 2
     fi
 
-    if [ -n "${1:-}" ]; then
-      if [[ $1 == *% ]]; then
-       print_charging_enabled_until $1
-        echo
-        (until [ $(( $(cat $batt/capacity) ${capacity[4]} )) -ge ${1%\%} ]; do
-          sleep ${loopDelay[0]}
-          set +x
-        done)
-        [ "${2:-x}" == --no-disable ] || disable_charging
-      elif [[ $1 == *[smh] ]]; then
-        print_charging_enabled_for $1
-        echo
-        if [[ $1 == *s ]]; then
-          sleep ${1%s}
-        elif [[ $1 == *m ]]; then
-          sleep $(( ${1%m} * 60 ))
-        else
-          sleep $(( ${1%h} * 3600 ))
-        fi
-        disable_charging
-      else
-        print_charging_enabled
-      fi
+    if [ -n "${1-}" ]; then
+      case $1 in
+        *%)
+          print_charging_enabled_until $1
+          echo
+          (until [ $(( $(cat $batt/capacity) ${capacity[4]} )) -ge ${1%\%} ]; do
+            sleep ${loopDelay[1]}
+            set +x
+          done)
+          [ -n "${2-}" ] || disable_charging
+        ;;
+        *[hms])
+          print_charging_enabled_for $1
+          echo
+          case $1 in
+            *h) sleep $(( ${1%h} * 3600 ));;
+            *m) sleep $(( ${1%m} * 60 ));;
+            *s) sleep ${1%s};;
+          esac
+          disable_charging
+        ;;
+        *)
+          print_charging_enabled
+        ;;
+      esac
     else
       print_charging_enabled
     fi
@@ -418,7 +422,8 @@ case "${1-}" in
 
   -d|--disable)
     shift
-    ! daemon_ctrl || daemon_ctrl stop
+    print_m_mode
+    ! daemon_ctrl stop > /dev/null || print_stopped
     disable_charging "$@"
   ;;
 
@@ -428,15 +433,16 @@ case "${1-}" in
 
   -e|--enable)
     shift
-    ! daemon_ctrl || daemon_ctrl stop
+    print_m_mode
+    ! daemon_ctrl stop > /dev/null || print_stopped
     enable_charging "$@"
   ;;
 
   -f|--force|--full)
     daemon_ctrl stop > /dev/null && daemonWasUp=true || daemonWasUp=false
     print_charging_enabled_until ${2:-100}%
-    (enable_charging ${2:-100}% --no-disable > /dev/null 2>&1
-    ! $daemonWasUp || /sbin/.acc/acc/accd.sh $config &) &
+    (enable_charging ${2:-100}% nodisable
+    ! $daemonWasUp || /sbin/accd $config &) > /dev/null 2>&1 &
   ;;
 
   -F|--flash)
@@ -446,12 +452,10 @@ case "${1-}" in
     $modPath/install-zip.sh "$@"
   ;;
 
-
   -i|--info)
     . $modPath/batt-info.sh
     batt_info "${2-}"
   ;;
-
 
   -la)
     shift
@@ -473,12 +477,6 @@ case "${1-}" in
       sleep 1.5
     }
     tail -F $TMPDIR/accd-*.log
-  ;;
-
-  -p|--performance)
-    print_quit q
-    sleep 1.5
-    htop -p $(pgrep -f '/accd\.sh')
   ;;
 
   -r|--readme)
@@ -507,21 +505,25 @@ case "${1-}" in
       exit 2
     fi
 
-    if [ -z "${1-}" ]; then
-      test_charging_switch
-    elif [ $1 == -- ]; then
-      exitCode=1
-      while read chargingSwitch; do
-        [ -f "$(echo "$chargingSwitch" | cut -d ' ' -f 1)" ] && {
-          echo
-          test_charging_switch $chargingSwitch
-        }
-        [ $? -eq 0 ] && exitCode=0
-      done < ${2:-$TMPDIR/charging-switches}
-      echo
-    else
-      test_charging_switch "$@"
-    fi
+    case "${1-}" in
+      --)
+        exitCode=1
+        while read chargingSwitch; do
+          [ -f "$(echo "$chargingSwitch" | cut -d ' ' -f 1)" ] && {
+            echo
+            test_charging_switch $chargingSwitch
+          }
+          [ $? -eq 0 ] && exitCode=0
+        done < ${2:-$TMPDIR/charging-switches}
+        echo
+      ;;
+      "")
+        test_charging_switch
+      ;;
+      *)
+        test_charging_switch "$@"
+      ;;
+    esac
 
     : ${exitCode=$?}
     $daemonWasUp && /sbin/accd $config

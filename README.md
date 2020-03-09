@@ -67,15 +67,8 @@ Once there, if you're lazy, jump to the quick start section.
 That's a fallback path. ACC sets permissions (rwx------) as needed.
 Precedence: Magisk busybox > system busybox > /data/adb/busybox
 
-\*\* Termux has it. Paste and run the following to set it up for `acc --upgrade`:
+\*\* The Magisk module [ccbins](https://github.com/Magisk-Modules-Repo/ccbins/) by [Zackptg5](https://github.com/Zackptg5/) installs `curl`.
 
-`pkg install tsu && echo -e "\nalias acc=/sbin/acc" >> ~/.bashrc && . ~/.bashrc`
-
-Then, whenever you need `acc --upgrade`, run it as follows:
-```
-$ tsu
-# acc -u
-```
 
 
 ---
@@ -424,6 +417,7 @@ dynPowerSaving=0
 # Some devices may require a delay as high as 3. The optimal max is probably 3.5.
 # If a charging switch seems to work intermittently, or fails completely, increasing this value may fix the issue.
 # You absolutely should increase this value if "acc -t --" reports total failure.
+# Some MediaTek devices require a delay as high as 15!
 
 # lang (l) #
 # acc language, managed with "acc --set --lang".
@@ -448,7 +442,9 @@ dynPowerSaving=0
 # * Usually a script ("sh some_file" or ". some_file")
 
 # dyn_power_saving (dps) #
-# This is the maximum number of seconds accd will dynamically sleep for (while unplugged) to save resources.
+# This is the maximum number of seconds accd will dynamically sleep* for (while unplugged) to save resources.
+# If dyn_power_saving == 0, the feature is disabled.
+# * On top of loop_delay_discharging
 
 #/DC#
 ```
@@ -547,9 +543,6 @@ Options
 
   -le   Same as -l -e
 
-  -p|--performance   Monitor accd resources usage (htop)
-    e.g., acc -p
-
   -r|--readme [editor] [editor_opts]   Print/edit README.md
     e.g.,
       acc -r (same as acc -r less)
@@ -568,7 +561,7 @@ Options
       acc -s "charging_switch=battery/charging_enabled 1 0" resume_capacity=55 pause_capacity=60
     Note: all properties have short aliases for faster typing; run "acc -c cat" to see these
 
-  -s|--set c|--current [-]   Set/print/restore_default max charging current ($(print_mA))
+  -s|--set c|--current [-]   Set/print/restore_default max charging current (range: 0-9999$(print_mA))
     e.g.,
       acc -s c (print)
       acc -s c 500 (set)
@@ -593,7 +586,7 @@ Options
   -s|--set s:|chargingSwitch:   List known charging switches
     e.g., acc -s s:
 
-  -s|--set v|--voltage [-] [--exit]   Set/print/restore_default max charging voltage ($(print_mV))
+  -s|--set v|--voltage [-] [--exit]   Set/print/restore_default max charging voltage (range: 3700-4200$(print_mV))
     e.g.,
       acc -s v (print)
       acc -s v 3920 (set)
@@ -757,7 +750,7 @@ In such situations, you have to find and enforce a switch that works as expected
 ACC daemon applies dedicated settings for specific devices (e.g., MTK, Asus, 1+7pro) to prevent charging switch issues.
 These settings are in `acc/oem-custom.sh`.
 
-Note: switches that fail to disable charging are automatically blacklisted.
+Note: also refer to `DEFAULT CONFIGURATION (switch_delay)` for charging switch issues.
 
 
 ### Custom Max Charging Voltage And Current Limits
@@ -850,7 +843,7 @@ Limit charging current to 500 milliamps: `acc -s c 500`
 
 Force fast charge: `appy_on_boot=/sys/kernel/fast_charge/force_fast_charge::1::0 usb/boost_current::1::0 charger/boost_current::1::0`
 
-Use voltage control file as charging switch file (beta, battery idle mode support): `chaging_switch=FILE DEFAULT_VOLTAGE LOW_VOLTAGE` (e.g., `chaging_switch=battery/voltage_max 4380000 3500000`)
+Use voltage control file as charging switch file (experimental, battery idle mode support): `chaging_switch=FILE DEFAULT_VOLTAGE LOW_VOLTAGE` (e.g., `chaging_switch=battery/voltage_max 4380000 3500000`)
 
 
 ### Google Pixel Devices
@@ -910,6 +903,11 @@ It's a software (Android/kernel) issue. Use the `capacity_offset` or `capacity_s
 
 ---
 ## LATEST CHANGES
+
+**2020.3.9-dev (202003090)**
+- Block "ghost charging on steroids" (Xiaomi Redmi 3 - ido)
+- General optimizations
+- Workaround for "Magisk forgetting service.sh" issue
 
 **2020.3.5-dev (202003050)**
 - Added Galaxy S7 current control files
