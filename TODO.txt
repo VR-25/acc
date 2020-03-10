@@ -12,4 +12,8 @@ cooldown
    cooldownCurrent=(current charge/pause)
    cooldownTemp=(temp charge/pause)
 
-flasher - spaces
+capacity_sync inconsistencies
+  incorrect battery status
+  dumpsys
+
+auto-shutdown not happening

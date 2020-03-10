@@ -66,4 +66,10 @@ fi
 
 # block ghost charging on steroids (Xiaomi Redmi 3 - ido)
 [ ! -f $TMPDIR/accd-ido.log ] || touch $TMPDIR/.ghost-charging
+
+# 202003110, patch config, /coolDown/cooldown
+! _grep coolDown || {
+  set_prop configVerCode 202003110
+  sed -i 's/coolDown/cooldown/' $config
+}
 )

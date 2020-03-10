@@ -11,8 +11,8 @@ cooldown_temp=${temperature[0]}
 max_temp=${temperature[1]}
 max_temp_pause=${temperature[2]}
 
-cooldown_charge=${coolDownRatio[0]}
-cooldown_pause=${coolDownRatio[1]}
+cooldown_charge=${cooldownRatio[0]}
+cooldown_pause=${cooldownRatio[1]}
 
 reset_batt_stats_on_pause=${resetBattStats[0]}
 reset_batt_stats_on_unplug=${resetBattStats[1]}

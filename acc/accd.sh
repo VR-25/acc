@@ -32,13 +32,15 @@ is_charging() {
   if $isCharging; then
 
     # read chgStatusCode once
-    [ -z "$chgStatusCode" ] \
-      || chgStatusCode=$(dumpsys battery 2>/dev/null | sed -n 's/^  status: //p') || :
+    [ -n "$chgStatusCode" ] || {
+      dumpsys battery reset \
+        && chgStatusCode=$(dumpsys battery 2>/dev/null | sed -n 's/^  status: //p') || :
+    }
 
     # read charging current ctrl files (part 2) once
     ! $readChCurr || . $modPath/read-ch-curr-ctrl-files-p2.sh
 
-    $coolDown || resetBattStatsOnUnplug=true
+    $cooldown || resetBattStatsOnUnplug=true
     secondsUnplugged=0
 
     $applyOnUnplug || apply_on_plug
@@ -56,11 +58,13 @@ is_charging() {
 
   else
 
-    # read dischgStatusCode once
-    [ -z "$dischgStatusCode" ] \
-      || dischgStatusCode=$(dumpsys battery 2>/dev/null | sed -n 's/^  status: //p') || :
+    # read chgStatusCode once
+    [ -n "$dischgStatusCode" ] || {
+      dumpsys battery reset \
+        && dischgStatusCode=$(dumpsys battery 2>/dev/null | sed -n 's/^  status: //p') || :
+    }
 
-    if ! $coolDown; then
+    if ! $cooldown; then
 
       # applyOnUnplug
       if $applyOnUnplug; then
@@ -104,11 +108,18 @@ is_charging() {
   fi
 
   # capacitySync: corrects the battery capacity reported by Android
-  if ${capacity[5]}; then
-    ($isCharging || chgStatusCode=$dischgStatusCode
-    $coolDown || dumpsys battery set status $chgStatusCode || :)
+  ! ${capacity[5]} || {
+    $cooldown || {
+      if $isCharging; then
+        dumpsys battery set ac 1 \
+         && dumpsys battery set status $chgStatusCode || :
+      else
+        dumpsys battery unplug \
+          && dumpsys battery set status $dischgStatusCode || :
+      fi
+    }
     dumpsys battery set level $(cat $batt/capacity) || :
-  fi > /dev/null 2>&1
+  }
 
   # log buffer reset
   [ $(du -m $log | cut -f 1) -lt 2 ] || : > $log
@@ -141,7 +152,7 @@ disable_charging() {
       exit 7
     fi
   fi
-  # if maxTemp is reached, pause charging regardless of coolDownRatio
+  # if maxTemp is reached, pause charging regardless of cooldownRatio
   ! is_charging && [ $(( $(cat $batt/temp 2>/dev/null \
     || cat $batt/batt_temp) / 10 )) -ge ${temperature[1]} ] \
     && sleep ${temperature[2]} || :
@@ -229,27 +240,23 @@ ctrl_charging() {
       fi
 
       if [ ! -f ${config%/*}/.rebootedOnPause ]; then
-        # cool down
-        while [ -n "${coolDownRatio[0]:-}" ] && [ $(( ${capacity[3]} - ${capacity[2]} )) -gt 2 ] \
+        # cooldown
+        while [ -n "${cooldownRatio[0]:-}" ] && [ $(( ${capacity[3]} - ${capacity[2]} )) -gt 2 ] \
           && is_charging && [ $(( $(cat $batt/capacity) ${capacity[4]} )) -lt ${capacity[3]} ] \
           && [ $(( $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) / 10 )) -lt ${temperature[1]} ]
         do
-          coolDown=true
+          cooldown=true
           if [ $(( $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) / 10 )) -ge ${temperature[0]} ] \
             || [ $(( $(cat $batt/capacity) ${capacity[4]} )) -ge ${capacity[1]} ]
           then
-            dumpsys battery set status $chgStatusCode || :
+            dumpsys battery set status $chgStatusCode || : # to block unwanted display wakeups
             disable_charging
-            sleep ${coolDownRatio[1]:-1}
+            sleep ${cooldownRatio[1]:-1}
             enable_charging
-            if ${capacity[5]}; then
-              dumpsys battery set status $chgStatusCode || :
-            else
-              dumpsys battery reset || :
-            fi
+            ${capacity[5]} || dumpsys battery reset || :
             count=0
             while ! grep -Eiq 'dis|not' $batt/status \
-              && [ $count -lt ${coolDownRatio[0]:-1} ]
+              && [ $count -lt ${cooldownRatio[0]:-1} ]
             do
               sleep ${loopDelay[0]}
               [ $(( $(cat $batt/capacity) ${capacity[4]} )) -lt ${capacity[3]} ] \
@@ -260,7 +267,7 @@ ctrl_charging() {
             break
           fi
         done
-        coolDown=false
+        cooldown=false
       fi
 
     else
@@ -292,7 +299,7 @@ ctrl_charging() {
 
 
 umask 077
-coolDown=false
+cooldown=false
 hibernate=true
 readChCurr=true
 chgStatusCode=""

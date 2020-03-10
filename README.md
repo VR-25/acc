@@ -197,13 +197,10 @@ Additionally, `$installDir/acc/acc-init.sh` must be executed on boot to initiali
 ```
 #DC#
 
-configVerCode=202003030
+configVerCode=202003110
 capacity=(-1 60 70 75 +0 false)
 temperature=(70 80 90)
-coolDownRatio=()
-coolDownCapacity=()
-coolDownCurrent=()
-coolDownTemp=()
+cooldownRatio=()
 resetBattStats=(false false)
 loopDelay=(10 15)
 chargingSwitch=()
@@ -227,7 +224,7 @@ dynPowerSaving=0
 
 # temperature=(cooldown_temp max_temp max_temp_pause)
 
-# coolDownRatio=(cooldown_charge cooldown_pause)
+# cooldownRatio=(cooldown_charge cooldown_pause)
 
 # resetBattStats=(reset_batt_stats_on_pause reset_batt_stats_on_unplug)
 
@@ -903,6 +900,9 @@ It's a software (Android/kernel) issue. Use the `capacity_offset` or `capacity_s
 
 ---
 ## LATEST CHANGES
+
+**2020.3.11-dev (202003110)**
+- Fixed capacity_sync issues
 
 **2020.3.10-dev (202003100)**
 - ACC Wizard: auto-restart after upgrade
