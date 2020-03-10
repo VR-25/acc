@@ -112,19 +112,19 @@ e) $(print_exit)
     /sbin/acc --upgrade --changelog || :
     print_press_enter
     read
-    exec wizard
+    exec /sbin/acc
   ;;
 
   d)
     (
       set +euxo pipefail 2>/dev/null
       trap - EXIT
-      $modPath/install-zip.sh "$2"
+      $modPath/install-zip.sh
     ) || :
     echo
     print_press_enter
     read
-    exec wizard
+    exec /sbin/acc
   ;;
 
   e)

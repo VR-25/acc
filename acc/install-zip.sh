@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# Universal Shell-Based-Zip flasher
+# Universal shell-based-zip flasher
 # Copyright (c) 2020, VR25 (xda-developers)
 # License: GPLv3+
 #
@@ -10,33 +10,33 @@
 pick_zips() {
   clear
   echo
-  cd ${1:-/storage}
-  echo ": $PWD"
+  cd "${1:-/storage/emulated/0/Download/}"
+  echo ": $PWD/"
   echo
-  select target in $(ls -Ap | grep -Ei '.*.zip$|/$') ... ^ X; do
+  IFS=$'\n'
+  select target in $(ls -1Ap | grep -Ei '.*.zip$|/$') "<Path>" "<Back>" "<Exit>"; do
+    unset IFS
     if [ -f "$target" ]; then
-     zipFiles="$zipFiles $target"
+     zipFiles="$zipFiles ${target// /__}"
      echo
-     select target in + ">>>" X; do
-      case $target in
-        "+") pick_zips .;;
-        X) exit 0;;
-      esac
-      break
-     done
+     echo -e "${zipFiles// /'\n'> }" | sed 's/__/ /'
+     echo
+     echo -en "+ zip: 1\n<Continue>: [enter]\n<Exit>: CTRL-C\n> "
+     read -n1 target
+     [ "$target" == 1 ] && pick_zips .
     elif [ -d "$target" ]; then
       echo
       pick_zips "$target"
-    elif [ "$target" == ^ ]; then
+    elif [ "$target" == "<Back>" ]; then
      cd ..
      echo
      pick_zips .
-    elif [ "$target" == X ]; then
+    elif [ "$target" == "<Exit>" ]; then
       exit 0
-    elif [ "$target" == ... ]; then
+    elif [ "$target" == "<Path>" ]; then
       echo -n "> "
       read target
-      cd ${target:-.}
+      cd "${target:-.}"
       echo
       pick_zips .
     else
@@ -50,24 +50,28 @@ pick_zips() {
 
 
 trap 'e=$?; echo; exit $e' EXIT
-zipFiles="$@"
 . ${0%/*}/setup-busybox.sh
 
-if [[ -z "$zipFiles" ]]; then
+
+# parse file names
+[ -n "$1" ] && {
+  zipFiles="${1// /__}"
+  shift
+  while [ -n "$1" ]; do
+    zipFiles="$zipFiles ${1// /__}"
+    shift
+  done
+}
+
+
+[ -z "$zipFiles" ] && {
   PS3="
-(?) *.zip: "
+*.zip: "
   pick_zips
   unset target
-fi
+}
 
 [[ "$zipFiles" == *" "* ]] && noClear=true
-
-
-# root check
-if [ $(id -u) -ne 0 ]; then
-  echo "(!) $0 must run as root (su)"
-  exit 4
-fi
 
 
 for zipFile in $zipFiles; do
@@ -77,30 +81,31 @@ for zipFile in $zipFiles; do
   mkdir -p /dev/.install-zip
 
   # log
-  exec 2>"${zipFile}.log"
+  exec 2>"${zipFile//__/ }.log"
   set -x
 
-  # extract update-binary
-  unzip -o "$zipFile" 'META-INF/*' -d /dev/.install-zip >&2 || exit $?
+  # extract update-binary & flash zip
+  unzip -o "${zipFile//__/ }" 'META-INF/*' -d /dev/.install-zip >&2 && {
+    $noClear && echo || clear
+    echo
+    sh /dev/.install-zip/META-INF/*/*/*/update-binary dummy 1 "${zipFile//__/ }" # $3 == outfd
+  }
 
-  # flash zip
-  # $3 == outfd
-  $noClear && echo || clear
-  echo
-  sh /dev/.install-zip/META-INF/*/*/*/update-binary dummy 1 "$zipFile"
-  exitCode=$?
+  # on failure: next or abort
+  e=$?
+  [ $e -ne 0 ] && {
+echo -n "
+(!) ${zipFile//__/ }: *exit $e*
+> ${zipFile//__/ }.log
+
+<Continue>: [enter]
+<Exit>: CTRL-C
+> "
+    read
+  }
 
   # cleanup
   rm -rf /dev/.install-zip 2>/dev/null
-
-  # on failure: next or abort
-  if [ $exitCode -ne 0 ]; then
-    echo
-    echo "(!) $zipFile"
-    echo "CTRL-C == X"
-    echo "(i) [enter] == >>>"
-    read
-  fi
 
 done
 

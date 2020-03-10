@@ -27,7 +27,7 @@ fi
 # 1+7pro battery idle mode
 if _grep '^chargingSwitch=.*/op_disable_charge'; then
   [ -f $TMPDIR/oem-custom ] \
-    || echo "(exec 2>/dev/null; echo 0 > battery/input_suspend; echo 1 > battery/op_disable_charge)" > $TMPDIR/oem-custom
+    || echo "chmod +w battery/input_suspend; echo 1 > battery/op_disable_charge; echo 0 > battery/input_suspend" > $TMPDIR/oem-custom
   _grep "^runCmdOnPause=.*$TMPDIR/oem-custom" \
     || set_prop runCmdOnPause "(. $TMPDIR/oem-custom)"
   switchDelay=$(get_prop switchDelay)

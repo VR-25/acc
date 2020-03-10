@@ -93,9 +93,6 @@ versionCode=$(get_prop versionCode)
 installDir=${installDir0:=/data/data/mattecarra.${id}app/files} ###
 config=/data/adb/${id}-data/config.txt
 
-# restore config backup
-[ -f $config ] || cp /data/media/0/.${id}-config-backup.txt $config 2>/dev/null || :
-
 # check/set parent installation directory
 [ -d $installDir ] || installDir=/sbin/.magisk/modules
 [ -d $installDir ] || installDir=/data/adb
@@ -110,16 +107,10 @@ License: GPLv3+
 (i) Installing in $installDir/$id/..."
 
 
-# stop $id daemon ###
-export verbose=false
-/sbin/$id --daemon stop > /dev/null 2>&1 || :
-unset verbose
-
-# remove old version
-rm -rf $(readlink -f /sbin/.$id/$id || :) $installDir/$id \
-  /data/adb/$id /sbin/.magisk/modules/$id 2>/dev/null || :
-
 # install
+mv -f $config /data/.${id}-config-bkp 2>/dev/null || :
+/system/bin/sh $srcDir/$id/uninstall.sh
+mv /data/.${id}-config-bkp $config 2>/dev/null || :
 cp -R $srcDir/$id/ $installDir/
 installDir=$(readlink -f $installDir/$id)
 installDir0=$installDir0/$id
@@ -171,6 +162,9 @@ fi
 
 # disable magic mount (Magisk)
 touch /sbin/.magisk/modules/$id/skip_mount 2>/dev/null || :
+
+# restore config backup
+[ -f $config ] || cp /data/media/0/.${id}-config-backup.txt $config 2>/dev/null || :
 
 # patch/reset config ###
 if [ -f $config ]; then
@@ -248,9 +242,6 @@ echo "
 
 echo
 trap - EXIT
-
-# remove bootloop lock file
-rm /data/adb/${id}-data/logs/.bootlooped 2>/dev/null
 
 # initialize $id
 if grep -q /storage/emulated /proc/mounts; then

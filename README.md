@@ -904,6 +904,11 @@ It's a software (Android/kernel) issue. Use the `capacity_offset` or `capacity_s
 ---
 ## LATEST CHANGES
 
+**2020.3.10-dev (202003100)**
+- ACC Wizard: auto-restart after upgrade
+- Installer optimizations
+- Universal zip flasher: default_PWD = /storage/emulated/0/Download/, support for filenames containing spaces, more intuitive
+
 **2020.3.9-dev (202003090)**
 - Block "ghost charging on steroids" (Xiaomi Redmi 3 - ido)
 - General optimizations

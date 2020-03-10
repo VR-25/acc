@@ -18,7 +18,7 @@ _misc/ (local dir only)
 
  $id/
   default-config.txt
-  install-zip.sh (zip flasher)
+  install-zip.sh (universal shell-based-zip flasher)
   service.sh (initialization script)
   setup-busybox.sh
   uninstall.sh
@@ -80,7 +80,7 @@ acc/
   charging-switches.txt
   cycle-switches.sh
   default-config.txt
-  install-zip.sh (zip flasher)
+  install-zip.sh (universal shell-based-zip flasher)
   mtk-madness.sh
   oem-custom.sh
   power-supply-logger.sh
