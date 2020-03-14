@@ -6,15 +6,15 @@ Core File Structure
 
 *:wip:* (local only file/folder, can be anywhere)
 
-_builds/ (local dir only)
+_builds/ (local only dir)
   $id-$versionCode/
     $id-$versionCode/tar.gz (for front-end apps)
     $id-$versionCode.zip (flashable)
     install-tarball.sh (copy)
 
-_misc/ (local dir only)
+_misc/ (local only dir)
   random_dir/
-  random file
+  random_file
 
  $id/
   default-config.txt
@@ -39,7 +39,7 @@ bundle.sh (copies tarball and install-tarball.sh to front-end-src-code/app/src/m
 check-syntax.bat
 check-syntax.sh
 customize.sh (copy of install-current.sh, for Magisk)
-framework.txt (this file)
+framework-details.txt (this file)
 install-current.sh (main installer)
 install-latest.sh (upgrader, online installer)
 install-tarball.sh
@@ -53,15 +53,15 @@ Typical File Structure, Taking ACC's as Example (id=acc)
 
 *:wip:* (local only file/folder, can be anywhere)
 
-_builds/ (local dir only)
+_builds/ (local only dir)
   acc-201910132/
     acc-201910132.tar.gz (for front-end apps)
     acc-201910132.zip (flashable)
     install-tarball.sh (copy)
 
-_misc/ (local dir only)
+_misc/ (local only dir)
   random_dir/
-  random file
+  random_file
 
 
 acc/
@@ -112,7 +112,7 @@ bundle.sh (copies tarball and install-tarball.sh to front-end-src-code/app/src/m
 check-syntax.bat
 check-syntax.sh
 customize.sh (copy of install-current.sh, for Magisk)
-framework.txt (this file)
+framework-details.txt (this file)
 install-current.sh (main installer)
 install-latest.sh (upgrader, online installer)
 install-tarball.sh
@@ -128,11 +128,11 @@ Tasks Executed By build.sh
 
 2) Update version and versionCode in module.prop (values come from README.md > LATEST CHANGES).
 
-3) Set the correct id (from module.prop) in install-*.sh acc/*.sh and bundle.sh.
+3) Set the correct id (from module.prop) in install-*.sh $id/*.sh and bundle.sh.
 
 4) Patch README.md.
 
-5) Update busybox config (from acc/setup-busybox.sh) in $id/uninstall.sh and install scripts.
+5) Update busybox config (from $id/setup-busybox.sh) in $id/uninstall.sh and install scripts.
 
 6) Unify installers for flashable zip (customize.sh and update-binary are copies of install-current.sh).
 

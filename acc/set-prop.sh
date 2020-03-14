@@ -114,7 +114,7 @@ set_prop() {
 
       else
         # print current value
-        echo "${maxChargingCurrent[0]:-$(print_default)}$(${verbose:-true} || print_mA)"
+        echo "${maxChargingCurrent[0]:-$(print_default)}$(! ${verbose:-true} || print_mA)"
         return 0
       fi
     ;;

@@ -48,14 +48,13 @@ By choosing to use/misuse ACC, you agree to do so at your own risk!
 ACC is an Android software mainly intended for [extending battery service life](https://batteryuniversity.com/learn/article/how_to_prolong_lithium_based_batteries).
 In a nutshell, this is achieved through limiting charging current, temperature and voltage.
 Any root solution is supported. A recent stable Magisk version is recommended.
-If you're reading this from Magisk Manager > Downloads, tap here to open the documentation.
-Once there, if you're lazy, jump to the quick start section.
 
 
 
 ---
 ## PREREQUISITES
 
+- [Must Read: How to Prolong Lithium Ion Batteries Lifespan](https://batteryuniversity.com/index.php/learn/article/how_to_prolong_lithium_based_batteries/)
 - Android or Android based OS
 - Any root solution (e.g., [Magisk](https://github.com/topjohnwu/Magisk/))
 - [Busybox*](https://github.com/search?o=desc&q=busybox+android&s=updated&type=Repositories/) (only if not rooted with Magisk)
@@ -67,23 +66,27 @@ Once there, if you're lazy, jump to the quick start section.
 That's a fallback path. ACC sets permissions (rwx------) as needed.
 Precedence: Magisk busybox > system busybox > /data/adb/busybox
 
-\*\* The Magisk module [ccbins](https://github.com/Magisk-Modules-Repo/ccbins/) by [Zackptg5](https://github.com/Zackptg5/) installs `curl`.
+\*\* The Magisk module [Cross Compiled Binaries](https://github.com/Magisk-Modules-Repo/ccbins/) installs `curl`.
 
 
 
 ---
 ## QUICK START GUIDE
 
+0. All commands/actions require root.
+Don't use `su -c`, `sudo`, `tsudo` or similar. On Android, these are not as reliable as the plain old `su`.
 
 1. Unless Magisk is not installed, always install/upgrade from Magisk Manager or ACC front-end (e.g. AccA).
 Apps such as EX/Franco Kernel Managers are also good options.
 There are yet two more ways of upgrading: `acc -u` (online) and `acc -F` (zip flasher).
 Rebooting after installation/removal is unnecessary.
 
-2. [Optional] run `su -c acc pause_capacity resume_capacity` (default `75 70`) or use a front-end app to change settings.
+2.  [Optional] run `acc` (wizard). That's the only command you need to remember.
 
-3. If you come across an issue, refer to the `TROUBLESHOOTING`, `TIPS` and `FAQ` sections below.
-Read as much as you can, before asking the developer or opening an issue on GitHub.
+3. [Optional] run `acc pause_capacity resume_capacity` (default `75 70`) to set the battery levels at which charging should pause and resume, respectively.
+
+4. If you come across an issue, refer to the `TROUBLESHOOTING`, `TIPS` and `FAQ` sections below.
+Read as much as you can before asking the developer or opening issues on GitHub.
 Oftentimes, solutions will be right before your eyes.
 
 
@@ -91,15 +94,16 @@ Oftentimes, solutions will be right before your eyes.
 
 - ACC cannot be installed/upgraded from recovery (e.g., TWRP).
 
-- Step `2` is optional, because there are default settings.
+- Steps `2` and `3` are optional because there are default settings.
 For details, refer to the `DEFAULT CONFIGURATION` section below.
+Users are encouraged to try step `2` - to familiarize themselves with the menu.
 
 - Settings can be overwhelming. Start with what you understand.
 The default configuration has you covered.
 Don't ever feel like you have to configure everything. You probably shouldn't anyway - unless you really know what you're doing.
 
 - Uninstall: depending on the installed variant (e.g., app back-end or Magisk module), you can use Magisk Manager (app), [Magisk Manager for Recovery Mode (utility)](https://github.com/VR-25/mm/), or clear the front-end app's data.
-Two universal methods are: `su -c acc --uninstall` and `/sdcard/acc-uninstaller.zip` (flashable uninstaller).
+Two universal methods are: `acc --uninstall` and `/sdcard/acc-uninstaller.zip` (flashable uninstaller).
 
 
 
@@ -176,7 +180,7 @@ Apps such as EX/Franco Kernel Managers are also good options.
 There are yet two more ways of upgrading: `acc -u` (online) and `acc -F` (zip flasher).
 
 Uninstall: depending on the installed variant (e.g., app back-end or Magisk module), you can use Magisk Manager (app), [Magisk Manager for Recovery Mode (utility)](https://github.com/VR-25/mm/), or clear the front-end app's data.
-Two universal methods are: `su -c acc --uninstall` and `/sdcard/acc-uninstaller.zip` (flashable uninstaller).
+Two universal methods are: `acc --uninstall` and `/sdcard/acc-uninstaller.zip` (flashable uninstaller).
 
 
 ### Notes
@@ -197,9 +201,10 @@ Additionally, `$installDir/acc/acc-init.sh` must be executed on boot to initiali
 ```
 #DC#
 
-configVerCode=202003110
+configVerCode=202003140
 capacity=(-1 60 70 75 +0 false)
 temperature=(70 80 90)
+cooldownCurrent=()
 cooldownRatio=()
 resetBattStats=(false false)
 loopDelay=(10 15)
@@ -223,6 +228,8 @@ dynPowerSaving=0
 # capacity=(shutdown_capacity cooldown_capacity resume_capacity pause_capacity capacity_offset capacity_sync)
 
 # temperature=(cooldown_temp max_temp max_temp_pause)
+
+# cooldownCurrent=(file raw_current charge_seconds pause_seconds)
 
 # cooldownRatio=(cooldown_charge cooldown_pause)
 
@@ -269,6 +276,8 @@ dynPowerSaving=0
 # ct cooldown_temp
 # mt max_temp
 # mtp max_temp_pause
+
+# ccr cooldown_current
 
 # cch cooldown_charge
 # cp cooldown_pause
@@ -318,6 +327,9 @@ dynPowerSaving=0
 # acc /data/acc-night-config.txt -s c 500
 # accd /data/acc-night-config.txt
 
+# acc -s "ccr=battery/current_now 1450000 100 20"
+# acc -s "cooldown_current=battery/current_now 1450000 100 20"
+
 
 # FINE, BUT WHAT DOES EACH OF THESE VARIABLES ACTUALLY MEAN?
 
@@ -366,6 +378,9 @@ dynPowerSaving=0
 # These two dictate the cooldown cycle intervals (seconds).
 # When not set, the cycle is disabled.
 # Note that cooldown_capacity and cooldown_temp can be disabled individually by assigning them values that would never be reached under normal circumstances.
+
+# cooldown_current #
+# Dedicated and independent cooldown settings for quick charging
 
 # reset_batt_stats_on_pause (rbsp) #
 # Reset battery stats after pausing charging.
@@ -900,6 +915,12 @@ It's a software (Android/kernel) issue. Use the `capacity_offset` or `capacity_s
 
 ---
 ## LATEST CHANGES
+
+**2020.3.14-dev (202003140)**
+- `acc -s v`: fixed "voltage unit not shown"
+- `cooldownCurrent=(file raw_current charge_seconds pause_seconds)`, cooldown_current (ccr): dedicated and independent cooldown settings for quick charging
+- General optimizations
+- Updated documentation
 
 **2020.3.11-dev (202003110)**
 - Fixed capacity_sync issues

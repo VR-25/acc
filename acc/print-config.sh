@@ -14,6 +14,8 @@ max_temp_pause=${temperature[2]}
 cooldown_charge=${cooldownRatio[0]}
 cooldown_pause=${cooldownRatio[1]}
 
+cooldown_current=${cooldownCurrent[@]}
+
 reset_batt_stats_on_pause=${resetBattStats[0]}
 reset_batt_stats_on_unplug=${resetBattStats[1]}
 

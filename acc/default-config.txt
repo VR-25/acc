@@ -1,6 +1,7 @@
-configVerCode=202003110
+configVerCode=202003140
 capacity=(-1 60 70 75 +0 false)
 temperature=(70 80 90)
+cooldownCurrent=()
 cooldownRatio=()
 resetBattStats=(false false)
 loopDelay=(10 15)
@@ -24,6 +25,8 @@ dynPowerSaving=0
 # capacity=(shutdown_capacity cooldown_capacity resume_capacity pause_capacity capacity_offset capacity_sync)
 
 # temperature=(cooldown_temp max_temp max_temp_pause)
+
+# cooldownCurrent=(file raw_current charge_seconds pause_seconds)
 
 # cooldownRatio=(cooldown_charge cooldown_pause)
 
@@ -70,6 +73,8 @@ dynPowerSaving=0
 # ct cooldown_temp
 # mt max_temp
 # mtp max_temp_pause
+
+# ccr cooldown_current
 
 # cch cooldown_charge
 # cp cooldown_pause
@@ -119,6 +124,9 @@ dynPowerSaving=0
 # acc /data/acc-night-config.txt -s c 500
 # accd /data/acc-night-config.txt
 
+# acc -s "ccr=battery/current_now 1450000 100 20"
+# acc -s "cooldown_current=battery/current_now 1450000 100 20"
+
 
 # FINE, BUT WHAT DOES EACH OF THESE VARIABLES ACTUALLY MEAN?
 
@@ -167,6 +175,9 @@ dynPowerSaving=0
 # These two dictate the cooldown cycle intervals (seconds).
 # When not set, the cycle is disabled.
 # Note that cooldown_capacity and cooldown_temp can be disabled individually by assigning them values that would never be reached under normal circumstances.
+
+# cooldown_current #
+# Dedicated and independent cooldown settings for quick charging
 
 # reset_batt_stats_on_pause (rbsp) #
 # Reset battery stats after pausing charging.

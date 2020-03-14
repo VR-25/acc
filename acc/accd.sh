@@ -47,8 +47,9 @@ is_charging() {
     applyOnUnplug=true
 
     # forceChargingStatusFullAt100
-    if ! $forcedChargingStatusFullAt100 && [[ ${forceChargingStatusFullAt100:-x} == [0-9]* ]] \
-      && [ $(cat $batt/capacity) -gt 99 ]
+    if ! $forcedChargingStatusFullAt100 \
+      && [ -n "${forceChargingStatusFullAt100-}" ] \
+      && [ $(( $(cat $batt/capacity) ${capacity[4]} )) -gt 99 ]
     then
       dumpsys battery set level 100 \
         && dumpsys battery set status $forceChargingStatusFullAt100 \
@@ -93,10 +94,7 @@ is_charging() {
       # while unplugged, this keeps accd asleep most of the time to save resources
       # detecting plugged/unplugged states is possible (with acpi -a), but not universally
       if [ "$dynPowerSaving" != 0 ] && grep -iq dis $batt/status; then
-        if [ $secondsUnplugged == 0 ]; then
-          [ $(( ${capacity[3]} - ${capacity[2]} )) -gt 4 ] \
-            && hibernate=true || hibernate=false
-        fi
+        [ $secondsUnplugged == 0 ] && hibernate=true || hibernate=false
         secondsUnplugged=$(( secondsUnplugged + ${loopDelay[1]} ))
         ! $hibernate || sleep $secondsUnplugged
         [ $secondsUnplugged -lt $dynPowerSaving ] || secondsUnplugged=0
@@ -112,7 +110,7 @@ is_charging() {
     $cooldown || {
       if $isCharging; then
         dumpsys battery set ac 1 \
-         && dumpsys battery set status $chgStatusCode || :
+          && dumpsys battery set status $chgStatusCode || :
       else
         dumpsys battery unplug \
           && dumpsys battery set status $dischgStatusCode || :
@@ -131,10 +129,13 @@ is_charging() {
 disable_charging() {
   if is_charging; then
     if [ -f "${chargingSwitch[0]-}" ]; then
-      if chmod +w ${chargingSwitch[0]} && echo "${chargingSwitch[2]//::/ }" > ${chargingSwitch[0]}; then
+      if chmod +w ${chargingSwitch[0]} \
+        && echo "${chargingSwitch[2]//::/ }" > ${chargingSwitch[0]}
+      then
         # secondary switch
         if [ -f "${chargingSwitch[3]-}" ]; then
-          chmod +w ${chargingSwitch[3]} && echo "${chargingSwitch[5]//::/ }" > ${chargingSwitch[3]} \
+          chmod +w ${chargingSwitch[3]} \
+            && echo "${chargingSwitch[5]//::/ }" > ${chargingSwitch[3]} \
             || /sbin/acca $config --set charging_switch= > /dev/null
         fi
         sleep $switchDelay
@@ -142,33 +143,38 @@ disable_charging() {
         /sbin/acca $config --set charging_switch= > /dev/null
       fi
     else
-      [[ ${chargingSwitch[0]:-x} != */* ]] || /sbin/acca $config --set charging_switch= > /dev/null
+      [[ ${chargingSwitch[0]:-x} != */* ]] \
+        || /sbin/acca $config --set charging_switch= > /dev/null
       ! $prioritizeBattIdleMode || cycle_switches off not
       ! is_charging || cycle_switches off
     fi
     if is_charging; then
-      [[ ${chargingSwitch[0]:-x} != */* ]] || /sbin/acca $config --set charging_switch= > /dev/null
+      [[ ${chargingSwitch[0]:-x} != */* ]] \
+        || /sbin/acca $config --set charging_switch= > /dev/null
       echo "(!) Failed to disable charging"
       exit 7
+    else
+      # if maxTemp is reached, keep charging paused for ${temperature[2]} seconds more
+      ! [ $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) -ge $(( ${temperature[1]} * 10 )) ] \
+        || sleep ${temperature[2]}
     fi
   fi
-  # if maxTemp is reached, pause charging regardless of cooldownRatio
-  ! is_charging && [ $(( $(cat $batt/temp 2>/dev/null \
-    || cat $batt/batt_temp) / 10 )) -ge ${temperature[1]} ] \
-    && sleep ${temperature[2]} || :
 }
 
 
 enable_charging() {
   if ! is_charging; then
-    if ! $ghostCharging || { $ghostCharging && [[ "$(acpi -a)" == *on-line* ]]; }; then
+    if ! $ghostCharging \
+      || { $ghostCharging && [[ "$(acpi -a)" == *on-line* ]]; }
+    then
       if [ -f "${chargingSwitch[0]-}" ]; then
         if chmod +w ${chargingSwitch[0]} \
           && echo "${chargingSwitch[1]//::/ }" > ${chargingSwitch[0]}
         then
           # secondary switch
           if [ -f "${chargingSwitch[3]-}" ]; then
-            chmod +w ${chargingSwitch[3]} && echo "${chargingSwitch[4]//::/ }" > ${chargingSwitch[3]} \
+            chmod +w ${chargingSwitch[3]} \
+              && echo "${chargingSwitch[4]//::/ }" > ${chargingSwitch[3]} \
               || /sbin/acca $config --set charging_switch= > /dev/null
           fi
           sleep $switchDelay
@@ -181,7 +187,9 @@ enable_charging() {
         cycle_switches on
       fi
       # detect and block ghost charging
-      if ! $ghostCharging && ! grep -Eiq 'dis|not' $batt/status && [[ "$(acpi -a)" != *on-line* ]]; then
+      if ! $ghostCharging && ! grep -Eiq 'dis|not' $batt/status \
+        && [[ "$(acpi -a)" != *on-line* ]]
+      then
         disable_charging
         ghostCharging=true
         touch $TMPDIR/.ghost-charging
@@ -199,14 +207,12 @@ ctrl_charging() {
 
     if is_charging; then
 
-      sleep ${loopDelay[0]}
-
       # clear "rebooted on pause" flag
-    [ $(( $(cat $batt/capacity) ${capacity[4]} )) -gt ${capacity[2]} ] \
-      || rm ${config%/*}/.rebootedOnPause 2>/dev/null || :
+      [ $(( $(cat $batt/capacity) ${capacity[4]} )) -gt ${capacity[2]} ] \
+        || rm ${config%/*}/.rebootedOnPause 2>/dev/null || :
 
       # disable charging under <conditions>
-      if [ $(( $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) / 10 )) -ge ${temperature[1]} ] \
+      if [ $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) -ge $(( ${temperature[1]} * 10 )) ] \
         || [ $(( $(cat $batt/capacity) ${capacity[4]} )) -ge ${capacity[3]} ]
       then
         if [ ! -f ${config%/*}/.rebootedOnPause ]; then
@@ -241,27 +247,31 @@ ctrl_charging() {
 
       if [ ! -f ${config%/*}/.rebootedOnPause ]; then
         # cooldown
-        while [ -n "${cooldownRatio[0]:-}" ] && [ $(( ${capacity[3]} - ${capacity[2]} )) -gt 2 ] \
-          && is_charging && [ $(( $(cat $batt/capacity) ${capacity[4]} )) -lt ${capacity[3]} ] \
-          && [ $(( $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) / 10 )) -lt ${temperature[1]} ]
+        while [ -n "${cooldownRatio[0]-}" -o -n "${cooldownCurrent[0]-}" ] && is_charging \
+          && [ $(( $(cat $batt/capacity) ${capacity[4]} )) -lt ${capacity[3]} ]
         do
-          cooldown=true
-          if [ $(( $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) / 10 )) -ge ${temperature[0]} ] \
-            || [ $(( $(cat $batt/capacity) ${capacity[4]} )) -ge ${capacity[1]} ]
+          if [ $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) -ge $(( ${temperature[0]} * 10 )) ] \
+            || [ $(( $(cat $batt/capacity) ${capacity[4]} )) -ge ${capacity[1]} ] \
+            || [ $(cat ${cooldownCurrent[0]:-cooldownCurrent} 2>/dev/null || echo 0) -ge ${cooldownCurrent[1]:-1} ]
           then
+            cooldown=true
             dumpsys battery set status $chgStatusCode || : # to block unwanted display wakeups
             disable_charging
-            sleep ${cooldownRatio[1]:-1}
+            [ $(cat ${cooldownCurrent[0]:-cooldownCurrent} 2>/dev/null || echo 0) -ge ${cooldownCurrent[1]:-1} ] \
+              && sleep ${cooldownCurrent[3]:-1} \
+              || sleep ${cooldownRatio[1]:-1}
             enable_charging
-            ${capacity[5]} || dumpsys battery reset || :
+            ${capacity[5]} || dumpsys battery reset || : # ${capacity[5]} == capacity_sync
+            ! [ $(cat ${cooldownCurrent[0]:-cooldownCurrent} 2>/dev/null || echo 0) -ge ${cooldownCurrent[1]:-1} ] \
+              || cooldownRatio[0]=${cooldownCurrent[2]-}
             count=0
             while ! grep -Eiq 'dis|not' $batt/status \
               && [ $count -lt ${cooldownRatio[0]:-1} ]
             do
               sleep ${loopDelay[0]}
               [ $(( $(cat $batt/capacity) ${capacity[4]} )) -lt ${capacity[3]} ] \
-                && [ $(( $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) / 10 )) -lt ${temperature[1]} ] \
-                && count=$(( count + ${loopDelay[0]} )) || break
+                && count=$(( count + ${loopDelay[0]} )) \
+                || break
             done
           else
             break
@@ -270,23 +280,26 @@ ctrl_charging() {
         cooldown=false
       fi
 
-    else
+      sleep ${loopDelay[0]}
 
-      sleep ${loopDelay[1]}
+    else
 
       # enable charging under <conditions>
       if [ $(( $(cat $batt/capacity) ${capacity[4]} )) -le ${capacity[2]} ] \
-        && [ $(( $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) / 10 )) -lt ${temperature[1]} ]
+        && [ $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) -lt $(( ${temperature[1]} * 10 )) ]
       then
         enable_charging
       fi
 
-      # auto-shutdown if battery is not charging and capacity is less than <shutdownCapacity>
+      # auto-shutdown if battery is not charging and capacity is less than <shutdown_capacity>
       if ! is_charging && [ $(( $(cat $batt/capacity) ${capacity[4]} )) -le ${capacity[0]} ]; then
         sleep ${loopDelay[1]}
         is_charging \
           || am start -n android/com.android.internal.app.ShutdownActivity 2>/dev/null || reboot -p || :
       fi
+
+      sleep ${loopDelay[1]}
+
     fi
   done
 }
@@ -312,7 +325,9 @@ modPath=/sbin/.acc/acc
 export TMPDIR=${modPath%/*}
 forcedChargingStatusFullAt100=false
 config=/data/adb/acc-data/config.txt
-[ -f $TMPDIR/.ghost-charging ] && ghostCharging=true || ghostCharging=false
+
+[ -f $TMPDIR/.ghost-charging ] \
+  && ghostCharging=true || ghostCharging=false
 
 
 . $modPath/setup-busybox.sh

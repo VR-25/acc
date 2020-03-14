@@ -72,4 +72,7 @@ fi
   set_prop configVerCode 202003110
   sed -i 's/coolDown/cooldown/' $config
 }
+
+# 202003140, patch config, cooldownCurrent
+[ $(get_prop configVerCode) -ge 202003140 ] || /sbin/acca --set dummy=
 )
