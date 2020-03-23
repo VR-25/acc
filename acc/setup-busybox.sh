@@ -11,7 +11,8 @@ if [ -d /sbin/.magisk/busybox ]; then
     *) PATH=/sbin/.magisk/busybox:$PATH;;
   esac
 else
-  mkdir -p -m 700 /dev/.busybox
+  mkdir -p /dev/.busybox
+  chmod 700 /dev/.busybox
   case $PATH in
     /dev/.busybox:*) :;;
     *) PATH=/dev/busybox:$PATH;;
@@ -21,7 +22,9 @@ else
       chmod 700 /data/adb/magisk/busybox
       /data/adb/magisk/busybox --install -s /dev/.busybox
     elif which busybox > /dev/null; then
-      busybox --install -s /dev/.busybox
+      # need absolute busybox path
+      BUSYBOX=$(which busybox)
+      $BUSYBOX --install -s /dev/.busybox
     elif [ -f /data/adb/busybox ]; then
       chmod 700 /data/adb/busybox
       /data/adb/busybox --install -s /dev/.busybox
