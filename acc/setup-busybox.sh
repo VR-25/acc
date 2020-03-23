@@ -11,6 +11,7 @@ if [ -d /sbin/.magisk/busybox ]; then
     *) PATH=/sbin/.magisk/busybox:$PATH;;
   esac
 else
+  # do not use mkdir -m, it's not available on older systems
   mkdir -p /dev/.busybox
   chmod 700 /dev/.busybox
   case $PATH in
