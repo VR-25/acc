@@ -136,4 +136,4 @@ Tasks Executed By build.sh
 
 6) Unify installers for flashable zip (customize.sh and update-binary are copies of install-current.sh).
 
-7) Generate flashable zips (main and uninstaller) and tarball (in _builds/).
+7) Generate flashable zips (main and uninstaller) and tarball.

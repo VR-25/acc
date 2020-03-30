@@ -28,7 +28,7 @@ print_config_reset() {
   echo "(i) Config reset"
 }
 
-print_known_switch() {
+print_known_switches() {
   echo "(i) Known charging switches"
 }
 
@@ -117,6 +117,9 @@ Options
       acc -c (edit w/ nano/vim/vi)
       acc -c less
       acc -c cat
+
+  -C|--calibrate   Charge until battery_status == "Full"
+    e.g., acc -C
 
   -d|--disable [#%, #s, #m or #h (optional)]   Disable charging
     e.g.,
@@ -235,7 +238,7 @@ Options
   -T|--logtail   Monitor accd log (tail -F)
     e.g., acc -T
 
-  -u|--upgrade [-c|--changelog] [-f|--force] [-n|--non-interactive]   Upgrade/downgrade
+  -u|--upgrade [-c|--changelog] [-f|--force] [-k|--insecure] [-n|--non-interactive]   Online upgrade/downgrade (requires curl)
     e.g.,
       acc -u dev (upgrade to the latest dev version)
       acc -u (latest version from the current branch)
@@ -291,7 +294,7 @@ print_default() {
 }
 
 print_quit() {
-  echo "(i) Press $1 to quit"
+  echo "(i) Press $1 to abort/quit"
   [ -z "${2-}" ] || echo "- Or $2 to save and quit"
 }
 
@@ -414,14 +417,18 @@ print_A() {
   echo " Amps"
 }
 
-print_more() {
-  echo "(i) Press the space key to load more text"
-}
-
 print_only() {
   echo "only"
 }
 
 print_m_mode() {
   echo "(i) Manual mode"
+}
+
+print_discharge() {
+  echo "(i) Now let the battery discharge until the system shuts down"
+}
+
+print_wait() {
+  echo "(i) This may take a few minutes..."
 }

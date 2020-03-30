@@ -28,7 +28,7 @@ print_config_reset() {
   echo "(i) A configuração padrão foi restaurada"
 }
 
-print_known_switch() {
+print_known_switches() {
   echo "(i) Interruptores de carga suportados"
 }
 

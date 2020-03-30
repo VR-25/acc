@@ -6,21 +6,21 @@ gather_ps_data() {
   local target="" target2=""
   for target in $(ls -1 $1 | grep -Ev '^[0-9]|^block$|^dev$|^fs$|^ram$'); do
     if [ -f $1/$target ]; then
-      if echo $1/$target | grep -Ev 'logg|(/|_|-)log' | grep -Eq 'batt|charg|power_supply'; then
+      echo $1/$target | grep -Ev 'logg|(/|_|-)log' | grep -Eq 'batt|charg|power_supply' && {
         echo $1/$target
         { cat -v $1/$target | sed 's#^#  #'; } 2>/dev/null
         echo
-      fi
+      }
     elif [ -d $1/$target ]; then
       for target2 in $(find $1/$target \( \( -type f -o -type d \) \
         -a \( -ipath '*batt*' -o -ipath '*charg*' -o -ipath '*power_supply*' \) \) \
         -print 2>/dev/null | grep -Ev 'logg|(/|_|-)log')
       do
-        if [ -f $target2 ]; then
+        [ -f $target2 ] && {
           echo $target2
           { cat -v $target2 | sed 's#^#  #'; } 2>/dev/null
           echo
-        fi
+        }
       done
     fi
   done

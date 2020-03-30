@@ -20,30 +20,30 @@ batt_info() {
     sed -e 's/^POWER_SUPPLY_//' -e 's/^BATT_VOL=/VOLTAGE_NOW=/' -e 's/^BATT_TEMP=/TEMP=/' \
       -e "/^CAPACITY=/s/=.*/=$(( $(cat $batt/capacity) ${capacity[4]} ))/" $batt/uevent
 
-    if [ -f bms/uevent ]; then
-      grep -q 'Y_TEMP=' $batt/uevent \
-        || grep -o 'TEMP=.*' bms/uevent || :
-      grep -q 'Y_VOLTAGE_NOW=' $batt/uevent \
-        || grep -o 'VOLTAGE_NOW=.*' bms/uevent || :
-    fi
+    [ ! -f bms/uevent ] || {
+      grep -q '^P.*_PPLY_TEMP=' $batt/uevent \
+        || sed -n '/^P.*_PPLY_TEMP=/s/.*Y_T/T/p' bms/uevent || :
+      grep -q '^P.*_PPLY_VOLTAGE_NOW=' $batt/uevent \
+        || sed -n '/^P.*_PPLY_VOLTAGE_NOW=/s/.*Y_V/V/p' bms/uevent || :
+    }
   )"
 
 
   # because MediaTek is weird
   [ ! -d /proc/mtk_battery_cmd ] || {
-    echo "$info" | grep 'CURRENT_NOW=' > /dev/null \
+    echo "$info" | grep '^CURRENT_NOW=' > /dev/null \
       || info="${info/BATTERYAVERAGECURRENT=/CURRENT_NOW=}"
   }
 
 
   # parse CURRENT_NOW & convert to Amps
-  currNow=$(echo "$info" | sed -n "s/CURRENT_NOW=//p")
+  currNow=$(echo "$info" | sed -n "s/^CURRENT_NOW=//p")
   dtr_conv_factor ${currNow#-}
   currNow=$(calc ${currNow:-0} / $factor)
 
 
   # parse VOLTAGE_NOW & convert to Volts
-  voltNow=$(echo "$info" | sed -n "s/VOLTAGE_NOW=//p")
+  voltNow=$(echo "$info" | sed -n "s/^VOLTAGE_NOW=//p")
   dtr_conv_factor $voltNow
   voltNow=$(calc ${voltNow:-0} / $factor)
 

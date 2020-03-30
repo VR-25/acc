@@ -6,7 +6,7 @@
 # Copyright (c) 2019-2020, VR25 (xda-developers)
 # License: GPLv3+
 #
-# Usage: sh install-latest.sh [-c|--changelog] [-f|--force] [-n|--non-interactive] [%install dir%] [reference]
+# Usage: sh install-latest.sh [-c|--changelog] [-f|--force] [-k|--insecure] [-n|--non-interactive] [%install dir%] [reference]
 #
 # Also refer to README.md > NOTES/TIPS FOR FRONT-END DEVELOPERS for > Exit Codes
 
@@ -32,49 +32,55 @@ if [ -d /sbin/.magisk/busybox ]; then
     *) PATH=/sbin/.magisk/busybox:$PATH;;
   esac
 else
-  mkdir -p -m 700 /dev/.busybox
+  mkdir -p /dev/.busybox
+  chmod 700 /dev/.busybox
   case $PATH in
     /dev/.busybox:*) :;;
     *) PATH=/dev/busybox:$PATH;;
   esac
-  if [ ! -x /dev/.busybox/busybox ]; then
+  [ -x /dev/.busybox/busybox ] || {
     if [ -f /data/adb/magisk/busybox ]; then
-      chmod 700 /data/adb/magisk/busybox
+      [ -x  /data/adb/magisk/busybox ] || chmod 700 /data/adb/magisk/busybox
       /data/adb/magisk/busybox --install -s /dev/.busybox
     elif which busybox > /dev/null; then
       busybox --install -s /dev/.busybox
     elif [ -f /data/adb/busybox ]; then
-      chmod 700 /data/adb/busybox
+      [ -x  /data/adb/busybox ] || chmod 700 /data/adb/busybox
       /data/adb/busybox --install -s /dev/.busybox
     else
-      echo "(!) Install busybox binary first"
+      echo "(!) Install busybox or simply place it in /data/adb/"
       exit 3
     fi
-  fi
+  }
 fi
 #/BB#
 
 
 # root check
-if [ $(id -u) -ne 0 ]; then
+[ $(id -u) -ne 0 ] && {
   echo "(!) $0 must run as root (su)"
   exit 4
-fi
+}
 
 
 set -euo pipefail 2>/dev/null || :
 get_ver() { sed -n 's/^versionCode=//p' ${1:-}; }
 
 
-reference=$(echo "$@" | sed -E 's/-c|--changelog|-f|--force|-n|--non-interactive| //g')
-reference=${reference//%*%/}
+case "$@" in
+  *--insecure*|*-k*) insecure=--insecure;;
+  *) insecure=;;
+esac
+
+
+reference=$(echo "$@" | sed -E 's/%.*%|-c|--changelog|-f|--force|-k|--insecure|-n|--non-interactive| //g')
 : ${reference:=master}
 
 tarball=https://github.com/VR-25/$id/archive/${reference}.tar.gz
 
 installedVersion=$(get_ver /sbin/.$id/$id/module.prop 2>/dev/null || :)
 
-onlineVersion=$(curl -L https://raw.githubusercontent.com/VR-25/$id/${reference}/module.prop | get_ver)
+onlineVersion=$(curl -L $insecure https://raw.githubusercontent.com/VR-25/$id/${reference}/module.prop | get_ver)
 
 
 [ -f $PWD/${0##*/} ] || cd ${0%/*}
@@ -85,7 +91,7 @@ if [ ${installedVersion:-0} -lt ${onlineVersion:-0} ] \
   || [[ "$*" == *-f* ]] || [[ "$*" == *--force* ]]
 then
 
-  if echo "$@" | grep -Eq '\-\-changelog|\-c'; then
+  ! echo "$@" | grep -Eq '\-\-changelog|\-c' || {
     if echo "$@" | grep -Eq '\-\-non-interactive|\-n'; then
       echo $onlineVersion
       echo "https://github.com/VR-25/$id/blob/${reference}/README.md#latest-changes"
@@ -99,14 +105,14 @@ then
         || echo -n "- Should I download and install it ([enter]: yes, CTRL-C: no)? "
       read
     fi
-  fi
+  }
 
   # download and install tarball
-  export installDir0=$(echo "$@" | sed -E "s/-c|--changelog|-f|--force|-n|--non-interactive|%|$reference| //g")
+  export installDir0=$(echo "$@" | sed -E "s/-c|--changelog|-f|--force|-k|--insecure|-n|--non-interactive|%|$reference| //g")
   set +euo pipefail 2>/dev/null || :
   trap - EXIT
   echo
-  curl -L $tarball | tar -xz \
+  curl -L $insecure $tarball | tar -xz \
     && /system/bin/sh ${id}-${reference}/install-current.sh
 
 else

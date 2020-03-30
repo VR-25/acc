@@ -6,10 +6,11 @@
 # devs: triple hashtags (###) mark custom code
 
 
+set +x
+
 # override the official Magisk module installer
 SKIPUNZIP=1
 
-set +x
 echo
 id=acc
 umask 077
@@ -29,33 +30,34 @@ if [ -d /sbin/.magisk/busybox ]; then
     *) PATH=/sbin/.magisk/busybox:$PATH;;
   esac
 else
-  mkdir -p -m 700 /dev/.busybox
+  mkdir -p /dev/.busybox
+  chmod 700 /dev/.busybox
   case $PATH in
     /dev/.busybox:*) :;;
     *) PATH=/dev/busybox:$PATH;;
   esac
-  if [ ! -x /dev/.busybox/busybox ]; then
+  [ -x /dev/.busybox/busybox ] || {
     if [ -f /data/adb/magisk/busybox ]; then
-      chmod 700 /data/adb/magisk/busybox
+      [ -x  /data/adb/magisk/busybox ] || chmod 700 /data/adb/magisk/busybox
       /data/adb/magisk/busybox --install -s /dev/.busybox
     elif which busybox > /dev/null; then
       busybox --install -s /dev/.busybox
     elif [ -f /data/adb/busybox ]; then
-      chmod 700 /data/adb/busybox
+      [ -x  /data/adb/busybox ] || chmod 700 /data/adb/busybox
       /data/adb/busybox --install -s /dev/.busybox
     else
-      echo "(!) Install busybox binary first"
+      echo "(!) Install busybox or simply place it in /data/adb/"
       exit 3
     fi
-  fi
+  }
 fi
 #/BB#
 
 # root check
-if [ $(id -u) -ne 0 ]; then
+[ $(id -u) -ne 0 ] && {
   echo "(!) $0 must run as root (su)"
   exit 4
-fi
+}
 
 get_prop() { sed -n "s|^$1=||p" ${2:-$srcDir/module.prop}; }
 
@@ -79,12 +81,12 @@ set -euo pipefail 2>/dev/null || :
 srcDir=${srcDir/#"${0##*/}"/"."}
 
 # unzip flashable zip if source code is unavailable
-if [ ! -f $srcDir/module.prop ]; then
+[ -f $srcDir/module.prop ] || {
   srcDir=/dev/.tmp
   rm -rf $srcDir 2>/dev/null || :
   mkdir $srcDir
   unzip ${ZIP:-${3-}} -d $srcDir/ >&2
-fi
+}
 
 name=$(get_prop name)
 author=$(get_prop author)
@@ -108,7 +110,7 @@ License: GPLv3+
 
 
 # install
-mv -f $config /data/.${id}-config-bkp 2>/dev/null || :
+cp $config /data/.${id}-config-bkp 2>/dev/null || :
 /system/bin/sh $srcDir/$id/uninstall.sh
 mv /data/.${id}-config-bkp $config 2>/dev/null || :
 cp -R $srcDir/$id/ $installDir/
@@ -127,7 +129,7 @@ if [ $installDir != /sbin/.magisk/modules/$id ]; then
   # enable upgrading through Magisk Manager
   ln -s $installDir /sbin/.magisk/modules/$id 2>/dev/null || :
 
-  if [ -d /data/adb/service.d ]; then
+  [ ! -d /data/adb/service.d ] || {
 
 # alternate initialization script
 echo "#!/system/bin/sh
@@ -152,7 +154,7 @@ exit 0 &) &
 exit 0"  > /data/adb/service.d/${id}-cleanup.sh
 
     chmod 700 /data/adb/service.d/${id}-*.sh
-  fi
+  }
 
 else
   # workaround for Magisk "forgetting service.sh" issue
@@ -167,21 +169,16 @@ touch /sbin/.magisk/modules/$id/skip_mount 2>/dev/null || :
 [ -f $config ] || cp /data/media/0/.${id}-config-backup.txt $config 2>/dev/null || :
 
 # patch/reset config ###
-if [ -f $config ]; then
+[ ! -f $config ] || {
   ! grep -q '=20200260$' $config \
     || sed -i 's/=20200260$/=202002260/' $config # bugfix
   configVer=$(get_prop configVerCode $config 2>/dev/null || :)
   dConfVer=$(get_prop configVerCode $installDir/default-config.txt)
   if [ ${configVer:-0} -gt $dConfVer ] || [ ${configVer:-0} -lt 202002220 ]; then
     rm $config /sdcard/${id}-logs-*.tar.bz2 2>/dev/null || :
-  # else
-    # if [ $configVer -lt 201906290 ]; then
-      # echo prioritizeBattIdleMode=false >> $config
-      # sed -i '/^configVerCode=/s/=.*/=201906290/' $config
-    # fi
   fi
   unset dConfVer
-fi
+}
 
 # flashable uninstaller
 cp -f $srcDir/bin/${id}-uninstaller.zip /data/media/0/
@@ -206,32 +203,18 @@ set +euo pipefail 2>/dev/null || :
 
 echo "- Done
 
-  LATEST CHANGES
 
 "
 
 
-# print changelog
-sed -n "\|\($versionCode\)|,\$s|^|    |p" ${config%/*}/info/README.md
+# print links and changelog
+sed -En "\|## LINKS|,\$p" ${config%/*}/info/README.md \
+  | grep -v '^---' | sed 's/^## //'
 
 
 ###
 echo "
-  LINKS
-    - ACC app: GitHub.com/MatteCarra/AccA/
-    - Battery University: batteryuniversity.com/learn/article/how_to_prolong_lithium_based_batteries/
-    - Daily Job Scheduler: GitHub.com/VR-25/djs/
-    - Facebook page: fb.me/vr25xda/
-    - Git repository: GitHub.com/VR-25/$id/
-    - Liberapay: liberapay.com/VR25/
-    - Patreon: patreon.com/vr25/
-    - PayPal: paypal.me/vr25xda/
-    - Telegram channel: t.me/vr25_xda/
-    - Telegram group: t.me/${id}_group/
-    - Telegram profile: t.me/vr25xda/
-    - XDA thread: forum.xda-developers.com/apps/magisk/module-magic-charging-switch-cs-v2017-9-t3668427/
 
-(i) Power supply logs (help needed): https://bit.ly/2TRqRz0
 
 (i) Rebooting is unnecessary.
 - $id can be used right now.
@@ -244,14 +227,14 @@ echo
 trap - EXIT
 
 # initialize $id
-if grep -q /storage/emulated /proc/mounts; then
-  if [ -f $installDir/service.sh ]; then
-    $installDir/service.sh --override
-  else
-    $installDir/${id}-init.sh --override
-  fi
+if [ -f $installDir/service.sh ]; then
+  $installDir/service.sh --override
+else
+  $installDir/${id}-init.sh --override
 fi
 
 e=$?
 [ $e -eq 0 ] || { echo; exit $e; }
+rm /sbin/.$id/.ghost-charging 2>/dev/null ###
+/sbin/acca --daemon > /dev/null || /sbin/accd ### workaround, Magisk 20.4+
 exit 0

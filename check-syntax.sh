@@ -10,9 +10,9 @@ exitCode=0
 for f in $(find . \( -path ./_builds -o -path ./_resources -o -path ./META-INF \) \
   -prune -o -type f -name '*.sh')
 do
-  if [ -f "$f" ]; then
+  [ -f "$f" ] && {
     bash -n $f || exitCode=$?
-  fi
+  }
 done
 
 [ $exitCode -eq 0 ] || echo

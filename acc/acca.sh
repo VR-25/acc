@@ -14,11 +14,11 @@ mkdir -p ${config%/*}
 [ -f $config ] || cp $defaultConfig $config
 
 # config backup
-if [ -d /data/media/0/?ndroid ]; then
+[ ! -d /data/media/0/?ndroid ] || {
   [ /data/media/0/.acc-config-backup.txt -nt $config ] \
     || install -m 777 $config \
       /data/media/0/.acc-config-backup.txt 2>/dev/null || :
-fi
+}
 
 # custom config path
 case "${1-}" in
@@ -34,7 +34,7 @@ case "$@" in
 
   # check daemon status
   -D|--daemon)
-    pgrep -f '/ac(c|ca) (-|--)[def]|/accd\.sh' && exit 0 || exit 8
+    pgrep -f '/ac(c|ca) (-|--)(calibrate|[Cdef])|/accd\.sh' && exit 0 || exit 8
   ;;
 
   # print battery uevent data

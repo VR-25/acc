@@ -1,4 +1,4 @@
-configVerCode=202003140
+configVerCode=202003300
 capacity=(-1 60 70 75 +0 false)
 temperature=(70 80 90)
 cooldownCurrent=()
@@ -20,7 +20,7 @@ runCmdOnPause=()
 dynPowerSaving=0
 
 
-# BASIC EXPLANATION
+# BASIC CONFIG EXPLANATION
 
 # capacity=(shutdown_capacity cooldown_capacity resume_capacity pause_capacity capacity_offset capacity_sync)
 
@@ -61,7 +61,7 @@ dynPowerSaving=0
 # dynPowerSaving=dyn_power_saving
 
 
-# VARIABLE ALIASES (SORTCUTS)
+# VARIABLE ALIASES/SORTCUTS
 
 # sc shutdown_capacity
 # cc cooldown_capacity
@@ -74,7 +74,7 @@ dynPowerSaving=0
 # mt max_temp
 # mtp max_temp_pause
 
-# ccr cooldown_current
+# ccu cooldown_current
 
 # cch cooldown_charge
 # cp cooldown_pause
@@ -98,7 +98,7 @@ dynPowerSaving=0
 # l lang
 # wu wake_unlock
 # pbim prioritize_batt_idle_mode
-# fs force_charging_status_full_at_100
+# ff force_charging_status_full_at_100
 # rcp run_cmd_on_pause
 # dps dyn_power_saving
 
@@ -107,7 +107,6 @@ dynPowerSaving=0
 
 # acc 85 80
 # acc -s rc=80 pc=85
-# acc -s capacity[2]=80 capacity[3]=85
 # acc --set resume_capacity=80 pause_capacity=85
 
 # acc -s "s=battery/charging_enabled 1 0"
@@ -124,7 +123,7 @@ dynPowerSaving=0
 # acc /data/acc-night-config.txt -s c 500
 # accd /data/acc-night-config.txt
 
-# acc -s "ccr=battery/current_now 1450000 100 20"
+# acc -s "ccu=battery/current_now 1450000 100 20"
 # acc -s "cooldown_current=battery/current_now 1450000 100 20"
 
 
@@ -135,6 +134,7 @@ dynPowerSaving=0
 
 # shutdown_capacity (sc) #
 # When the battery is discharging and its capacity <= sc, acc daemon turns the phone off to reduce the discharge rate and protect the battery from pottential damage induced by voltages below the operating range.
+On capacity <= shutdown_capacity + 5, accd enables Android battery saver, triggers 5 vibrations once - and again on each subsequent capacity drop.
 
 # cooldown_capacity (cc) #
 # Capacity at which the cooldown cycle starts.
@@ -155,8 +155,9 @@ dynPowerSaving=0
 # This is an alternative to capacity_offset.
 # It tells acc whether the battery capacity reported by Android should be updated every few seconds to reflect the actual value from the battery management system.
 # Most users would prefer this over capacity_offset.
-# It's more powerful, but has a cosmetic nuisance: delays in charging status reports.
+# It's more powerful, but has a cosmetic nuisance: small delays (seconds) in charging status reports.
 # Such inconvenience is not a bug, nor can it be eliminated at this point.
+# accd manages this setting dynamically.
 
 # cooldown_temp (ct) #
 # Temperature (°C) at which the cooldown cycle starts.
@@ -176,7 +177,7 @@ dynPowerSaving=0
 # When not set, the cycle is disabled.
 # Note that cooldown_capacity and cooldown_temp can be disabled individually by assigning them values that would never be reached under normal circumstances.
 
-# cooldown_current #
+# cooldown_current (ccu) #
 # Dedicated and independent cooldown settings for quick charging
 
 # reset_batt_stats_on_pause (rbsp) #
@@ -191,6 +192,7 @@ dynPowerSaving=0
 # These are delays (seconds) between loop iterations.
 # The lower they are, the faster acc responsiveness is - but possibly at the cost of more CPU time.
 # Don't touch these (particularly ldd), unless you know exactly what you're doing.
+accd manages both according to the value of capacity_sync.
 
 # charging_switch (s) #
 # If unset, acc cycles through its database and uses whatever works.
@@ -227,6 +229,7 @@ dynPowerSaving=0
 # If a charging switch seems to work intermittently, or fails completely, increasing this value may fix the issue.
 # You absolutely should increase this value if "acc -t --" reports total failure.
 # Some MediaTek devices require a delay as high as 15!
+# accd manages this setting dynamically.
 
 # lang (l) #
 # acc language, managed with "acc --set --lang".
@@ -240,10 +243,10 @@ dynPowerSaving=0
 # Test yours with "acc -t --".
 # This setting dictates whether charging switches that support such feature should take precedence.
 
-# force_charging_status_full_at_100 (fs) #
+# force_charging_status_full_at_100 (ff) #
 # Some Pixel devices were found to never report "full" status after the battery capacity reaches 100%.
 # This setting forces Android to behave as intended.
-# For Pixel devices, the status code of "full" is 5 (fs=5).
+# For Pixel devices, the status code of "full" is 5 (ff=5).
 # The status code is found through trial and error, with the commands "dumpsys battery", "dumpsys battery set status #" and "dumpsys battery reset".
 
 # run_cmd_on_pause (rcp)

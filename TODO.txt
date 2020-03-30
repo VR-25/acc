@@ -1,3 +1,16 @@
 cooldown
   cooldownTemp=(min_temp charge_seconds pause_seconds max_temp max_temp_pause)
   cooldownCapacity=(capacity charge_seconds pause_seconds)
+
+full POSIX compliance
+
+acc not initializing
+  logs/bootlooped?
+
+/sbin/acc/bootooped shouldn't exist
+
+install log not generated
+  harpia
+  unknown cause
+
+mistakenly created /sbin/.acc/.ghost-charging?

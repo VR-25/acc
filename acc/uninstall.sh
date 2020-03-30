@@ -17,32 +17,33 @@ if [ -d /sbin/.magisk/busybox ]; then
     *) PATH=/sbin/.magisk/busybox:$PATH;;
   esac
 else
-  mkdir -p -m 700 /dev/.busybox
+  mkdir -p /dev/.busybox
+  chmod 700 /dev/.busybox
   case $PATH in
     /dev/.busybox:*) :;;
     *) PATH=/dev/busybox:$PATH;;
   esac
-  if [ ! -x /dev/.busybox/busybox ]; then
+  [ -x /dev/.busybox/busybox ] || {
     if [ -f /data/adb/magisk/busybox ]; then
-      chmod 700 /data/adb/magisk/busybox
+      [ -x  /data/adb/magisk/busybox ] || chmod 700 /data/adb/magisk/busybox
       /data/adb/magisk/busybox --install -s /dev/.busybox
     elif which busybox > /dev/null; then
       busybox --install -s /dev/.busybox
     elif [ -f /data/adb/busybox ]; then
-      chmod 700 /data/adb/busybox
+      [ -x  /data/adb/busybox ] || chmod 700 /data/adb/busybox
       /data/adb/busybox --install -s /dev/.busybox
     else
-      echo "(!) Install busybox binary first"
+      echo "(!) Install busybox or simply place it in /data/adb/"
       exit 3
     fi
-  fi
+  }
 fi
 #/BB#
 
 exec 2>/dev/null
 
 # interrupt $id processes
-pkill -f "/($id|${id}a) (-|--)[def]|/${id}d\.sh" ###
+pkill -f "/($id|${id}a) (-|--)(calibrate|[Cdef])|/${id}d\.sh" ###
 
 # uninstall $id
 rm -rf $(readlink -f /sbin/.$id/$id/) \

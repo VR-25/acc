@@ -19,33 +19,34 @@ if [ -d /sbin/.magisk/busybox ]; then
     *) PATH=/sbin/.magisk/busybox:$PATH;;
   esac
 else
-  mkdir -p -m 700 /dev/.busybox
+  mkdir -p /dev/.busybox
+  chmod 700 /dev/.busybox
   case $PATH in
     /dev/.busybox:*) :;;
     *) PATH=/dev/busybox:$PATH;;
   esac
-  if [ ! -x /dev/.busybox/busybox ]; then
+  [ -x /dev/.busybox/busybox ] || {
     if [ -f /data/adb/magisk/busybox ]; then
-      chmod 700 /data/adb/magisk/busybox
+      [ -x  /data/adb/magisk/busybox ] || chmod 700 /data/adb/magisk/busybox
       /data/adb/magisk/busybox --install -s /dev/.busybox
     elif which busybox > /dev/null; then
       busybox --install -s /dev/.busybox
     elif [ -f /data/adb/busybox ]; then
-      chmod 700 /data/adb/busybox
+      [ -x  /data/adb/busybox ] || chmod 700 /data/adb/busybox
       /data/adb/busybox --install -s /dev/.busybox
     else
-      echo "(!) Install busybox binary first"
+      echo "(!) Install busybox or simply place it in /data/adb/"
       exit 3
     fi
-  fi
+  }
 fi
 #/BB#
 
 # root check
-if [ $(id -u) -ne 0 ]; then
+[ $(id -u) -ne 0 ] && {
   echo "(!) $0 must run as root (su)"
   exit 4
-fi
+}
 
 umask 0
 set -e
@@ -56,18 +57,18 @@ cd $(readlink -f $PWD)
 
 # this runs on exit if the installer is launched by a front-end app
 copy_log() {
-  if [[ $PWD == /data/data/* ]]; then
+  [[ $PWD != /data/data/* ]] || {
     umask 077
     mkdir -p logs
 
-    cp -af /data/adb/${1:-$id}-data/logs/install.log logs/${1:-$id}-install.log
+    cp -af /data/adb/${1:-$id}-data/logs/install.log logs/${1:-$id}-install.log 2>/dev/null || return 0
 
     pkg=$(cd ..; pwd)
     pkg=${pkg##/data*/}
 
     owner=$(grep $pkg /data/system/packages.list | cut -d ' ' -f 2)
     chown -R $owner:$owner logs
-  fi
+  }
 }
 trap copy_log EXIT
 

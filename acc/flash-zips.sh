@@ -1,4 +1,4 @@
-#!/system/bin/sh
+#!/dev/.busybox/ash
 # Universal shell-based-zip flasher
 # Copyright (c) 2020, VR25 (xda-developers)
 # License: GPLv3+
@@ -12,45 +12,44 @@ pick_zips() {
   echo
   cd "${1:-/storage/emulated/0/Download/}"
   echo ": $PWD/"
-  echo
   IFS=$'\n'
-  select target in $(ls -1Ap | grep -Ei '.*.zip$|/$') "<Path>" "<Back>" "<Exit>"; do
-    unset IFS
-    if [ -f "$target" ]; then
-     zipFiles="$zipFiles ${target// /__}"
-     echo
-     echo -e "${zipFiles// /'\n'> }" | sed 's/__/ /'
-     echo
-     echo -en "+ zip: 1\n<Continue>: [enter]\n<Exit>: CTRL-C\n> "
-     read -n1 target
-     [ "$target" == 1 ] && pick_zips .
-    elif [ -d "$target" ]; then
-      echo
-      pick_zips "$target"
-    elif [ "$target" == "<Back>" ]; then
-     cd ..
-     echo
-     pick_zips .
-    elif [ "$target" == "<Exit>" ]; then
-      exit 0
-    elif [ "$target" == "<Path>" ]; then
-      echo -n "> "
-      read target
-      cd "${target:-.}"
-      echo
-      pick_zips .
-    else
-      echo
-      pick_zips .
-    fi
-    break
-  done
+  select_ target $(ls -1Ap | grep -Ei '.*.zip$|/$') "<Path>" "<Back>" "<Exit>"
+  unset IFS
+  if [ -f "$target" ]; then
+   zipFiles="$zipFiles ${target// /__}"
+   echo
+   echo -e "${zipFiles// /'\n'> }" | sed 's/__/ /'
+   echo
+   echo -en "+ zip: 1\n<Continue>: [enter]\n<Exit>: CTRL-C\n> "
+   read -n1 target
+   [ "$target" == 1 ] && pick_zips .
+  elif [ -d "$target" ]; then
+    echo
+    pick_zips "$target"
+  elif [ "$target" == "<Back>" ]; then
+   cd ..
+   echo
+   pick_zips .
+  elif [ "$target" == "<Exit>" ]; then
+    exit 0
+  elif [ "$target" == "<Path>" ]; then
+    echo -n "> "
+    read target
+    cd "${target:-.}"
+    echo
+    pick_zips .
+  else
+    echo
+    pick_zips .
+  fi
   [ -n "$zipFiles" ] || exit 0
 }
 
 
 trap 'e=$?; echo; exit $e' EXIT
+. ${0%/*}/select.sh
 . ${0%/*}/setup-busybox.sh
+
 
 
 # parse file names
@@ -65,8 +64,7 @@ trap 'e=$?; echo; exit $e' EXIT
 
 
 [ -z "$zipFiles" ] && {
-  PS3="
-*.zip: "
+  PS3="*.zip: "
   pick_zips
   unset target
 }

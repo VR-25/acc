@@ -10,7 +10,7 @@ GPLv3+"
   { daemon_ctrl | sed "s/ $accVer ($accVerCode)//"; } || :
   echo
 
-echo "1) $(print_lang)
+echo -n "1) $(print_lang)
 2) $(print_cmds)
 3) $(print_doc)
 4) $(print_re_start_daemon)
@@ -24,8 +24,8 @@ b) $(print_test_cs)
 c) $(print_update)
 d) $(print_flash_zip)
 e) $(print_exit)
-"
-  echo -n "?: "
+
+#? "
   read -n 1 choice
   echo
   echo
@@ -38,13 +38,12 @@ e) $(print_exit)
     ;;
 
     2)
-      print_help > $TMPDIR/.help
-      edit $TMPDIR/.help
-      rm $TMPDIR/.help
+      . $modPath/print-help.sh
+      print_help_
       exec wizard
     ;;
 
-   3)
+    3)
       edit $readMe
       exec wizard
     ;;
@@ -82,52 +81,52 @@ e) $(print_exit)
       exit $?
     ;;
 
-  8)
-    print_quit CTRL-C
-    print_press_enter
-    read
-    set +euo pipefail 2>/dev/null
-    $modPath/uninstall.sh
-  ;;
+    8)
+      print_quit CTRL-C
+      print_press_enter
+      read
+      set +euo pipefail 2>/dev/null
+      $modPath/uninstall.sh
+    ;;
 
-  9)
-    edit $config
-    exec wizard
-  ;;
+    9)
+      edit $config
+      exec wizard
+    ;;
 
-  a)
-    dumpsys batterystats --reset || :
-    rm /data/system/batterystats* 2>/dev/null || :
-    exec wizard
-  ;;
+    a)
+      dumpsys batterystats --reset || :
+      rm /data/system/batterystats* 2>/dev/null || :
+      exec wizard
+    ;;
 
-   b)
-    /sbin/acc --test -- || :
-    print_press_enter
-    read
-    exec wizard
-  ;;
+    b)
+      /sbin/acc --test -- || :
+      print_press_enter
+      read
+      exec wizard
+    ;;
 
-   c)
-    /sbin/acc --upgrade --changelog || :
-    print_press_enter
-    read
-    exec /sbin/acc
-  ;;
+    c)
+      /sbin/acc --upgrade --changelog || :
+      print_press_enter
+      read
+      exec /sbin/acc
+    ;;
 
-  d)
-    (
-      set +euxo pipefail 2>/dev/null
-      trap - EXIT
-      $modPath/install-zip.sh
-    ) || :
-    echo
-    print_press_enter
-    read
-    exec /sbin/acc
-  ;;
+    d)
+      (
+        set +euxo pipefail 2>/dev/null
+        trap - EXIT
+        $modPath/flash-zips.sh
+      ) || :
+      echo
+      print_press_enter
+      read
+      exec /sbin/acc
+    ;;
 
-  e)
+    e)
       exit 0
     ;;
 

@@ -32,10 +32,10 @@ tmpDir=.tmp/META-INF/com/google/android
 
 
 # update module.prop
-if ! grep -q "$versionCode" module.prop; then
+grep -q "$versionCode" module.prop || {
   set_prop version $version
   set_prop versionCode $versionCode
-fi
+}
 
 
 # set ID
@@ -67,12 +67,12 @@ fi
 # update busybox config (from acc/setup-busybox.sh) in $id/uninstall.sh and install scripts
 set -e
 for file in ./$id/uninstall.sh ./install-*.sh; do
-  if [ $file -ot $id/setup-busybox.sh ]; then
+  [ $file -ot $id/setup-busybox.sh ] && {
     { sed -n '1,/#BB#/p' $file; \
     sed -n '/^if /,/^fi/p' $id/setup-busybox.sh; \
     sed -n '/^#\/BB#/,$p' $file; } > ${file}.tmp
     mv -f ${file}.tmp $file
-  fi
+  }
 done
 set +e
 
@@ -97,7 +97,7 @@ if [ bin/${id}-uninstaller.zip -ot $id/uninstall.sh ] || [ ! -f bin/${id}-uninst
 fi
 
 
-if [ -z "$1" ]; then
+[ -z "$1" ] && {
 
   # cleanup
   rm -rf _builds/${id}-$versionCode/ 2>/dev/null
@@ -123,5 +123,5 @@ if [ -z "$1" ]; then
   rm -rf ${id}-${versionCode}/
   echo
 
-fi
+}
 exit 0)

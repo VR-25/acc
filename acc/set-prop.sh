@@ -8,6 +8,12 @@ set_prop() {
 
     # set multiple properties
     *=*)
+      case "$*" in
+        *mcv=*|*max_charging_voltage=*|*ab=*|*apply_on_boot=*|s=*|*\ s=*|*charging_switch=*|*sc=*|*shutdown_capacity=*)
+          ! $daemonWasUp || daemon_ctrl stop > /dev/null
+          restartDaemon=true
+        ;;
+      esac
       . $defaultConfig
       . $config
       export "$@"
@@ -15,6 +21,7 @@ set_prop() {
 
     # reset config
     r|--reset)
+      ! $daemonWasUp || daemon_ctrl stop > /dev/null
       cp $defaultConfig $config
       print_config_reset
       ! $daemonWasUp || /sbin/accd
@@ -34,19 +41,19 @@ set_prop() {
       return 0
     ;;
 
-    # set switch
+    # set charging switch
     s|--charging*witch)
-        IFS=$'\n'
-        PS3="$(echo; print_choice_prompt)"
-        print_known_switch
-        echo
-        eval 'select chargingSwitch in $(print_auto) $(cat $TMPDIR/charging-switches) $(print_exit); do
-          [ ${chargingSwitch:-x} != $(print_exit) ] || exit 0
-          [ ${chargingSwitch:-x} == $(print_auto) ] && charging_switch= || :
-          eval "chargingSwitch=($chargingSwitch)"
-          break
-        done'
-        unset IFS
+      ! $daemonWasUp || daemon_ctrl stop > /dev/null
+      restartDaemon=true
+      IFS=$'\n'
+      PS3="$(print_choice_prompt)"
+      print_known_switches
+      echo
+      . $modPath/select.sh
+      select_ chargingSwitch $(print_auto) $(cat $TMPDIR/charging-switches) $(print_exit)
+      [ ${chargingSwitch:-x} != $(print_exit) ] || exit 0
+      [ ${chargingSwitch:-x} != $(print_auto) ] || charging_switch=
+      unset IFS
     ;;
 
     # print switches
@@ -60,7 +67,7 @@ set_prop() {
     c|--current)
 
       # check support
-      if ! grep -q ::v $TMPDIR/ch-curr-ctrl-files; then
+      grep -q ::v $TMPDIR/ch-curr-ctrl-files || {
         if not_charging; then
           (while not_charging; do
             clear
@@ -72,25 +79,24 @@ set_prop() {
           echo
           echo
           . $modPath/read-ch-curr-ctrl-files-p2.sh
-          if ! grep -q ::v $TMPDIR/ch-curr-ctrl-files; then
+          grep -q ::v $TMPDIR/ch-curr-ctrl-files || {
             print_unsupported
             return 1
-          fi
+          }
         else
           . $modPath/read-ch-curr-ctrl-files-p2.sh
-          if ! grep -q ::v $TMPDIR/ch-curr-ctrl-files; then
+          grep -q ::v $TMPDIR/ch-curr-ctrl-files || {
             print_unsupported
             return 1
-          fi
+          }
         fi
-      fi
+      }
 
       if [ -n "${2-}" ]; then
 
         # restore
         if [ $2 == - ]; then
-          daemon_ctrl stop skipab > /dev/null \
-            || { . $modPath/apply-on-plug.sh; apply_on_plug default; }
+          daemon_ctrl stop skipab > /dev/null || apply_on_plug default
           restartDaemon=true
           max_charging_current=
           print_curr_restored
@@ -99,8 +105,9 @@ set_prop() {
 
           apply_current() {
             eval "maxChargingCurrent=($1 $(sed "s|::v|::$1|" $TMPDIR/ch-curr-ctrl-files))" \
-              && { . $modPath/apply-on-plug.sh; apply_on_plug; } \
-              && { noEcho=true; print_curr_set $1; } || return 1
+              && apply_on_plug \
+              && { noEcho=true; print_curr_set $1; } \
+              || return 1
           }
 
           # [0-9999] milliamps range
@@ -126,8 +133,7 @@ set_prop() {
 
         # restore
         if [ $2 == - ]; then
-          daemon_ctrl stop forceab> /dev/null \
-            || { . $modPath/apply-on-boot.sh; apply_on_boot default force; }
+          daemon_ctrl stop forceab> /dev/null || apply_on_boot default force
           restartDaemon=true
           max_charging_voltage=
           print_volt_restored
@@ -137,8 +143,9 @@ set_prop() {
           apply_voltage() {
             [ ${2:-x} != --exit ] || { ! $daemonWasUp || daemon_ctrl stop; }
             eval "maxChargingVoltage=($1 $(sed "s|vvvv|$1|" $TMPDIR/ch-volt-ctrl-files) ${2-})" \
-              && { . $modPath/apply-on-boot.sh; (apply_on_boot); } \
-              && { noEcho=true; print_volt_set $1; } || return 1
+              && apply_on_boot \
+              && { noEcho=true; print_volt_set $1; } \
+              || return 1
           }
 
           # == [3700-4200] millivolts
@@ -167,19 +174,19 @@ set_prop() {
 
     # set language
     l|--lang)
-        IFS=$'\n'
-        PS3="$(echo; print_choice_prompt)"
-        eval 'select _lang in $(echo "- English (en)" | grep -v $language; \
-          (for file in $(ls -1 $modPath/translations/*/strings.sh); do \
-            sed -n "'s/# /- /p'" $file | grep -v $language; \
-          done); print_exit)
-        do
-          lang=${_lang#*\(}
-          [ $lang != $(print_exit) ] || exit 0
-          lang=${lang%\)*}
-          break
-        done'
-        unset IFS
+      IFS=$'\n'
+      PS3="$(print_choice_prompt)"
+      . $modPath/select.sh
+      eval 'select_ _lang \
+        $(echo "- English (en)" | grep -v $language; \
+        (for file in $(ls -1 $modPath/translations/*/strings.sh); do \
+          sed -n "'s/# /- /p'" $file | grep -v $language; \
+        done); \
+        print_exit)'
+      lang=${_lang#*\(}
+      [ $lang != $(print_exit) ] || exit 0
+      lang=${lang%\)*}
+      unset IFS
     ;;
 
     # print current config (full)
@@ -192,5 +199,6 @@ set_prop() {
 
   # update config.txt
   . $modPath/write-config.sh
+
   ! $restartDaemon || { ! $daemonWasUp || /sbin/accd; })
 }

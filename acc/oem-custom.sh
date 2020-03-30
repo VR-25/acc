@@ -17,13 +17,6 @@ if _grep '/proc/' $TMPDIR/charging-switches || _grep '^chargingSwitch=.*/proc/';
 fi
 
 
-# single switch
-if [ 0$(grep -cv '^#' $TMPDIR/charging-switches) -eq 01 ]; then
-  _grep '^chargingSwitch=.*/' \
-    || set_prop chargingSwitch "($(grep -v '^#' $TMPDIR/charging-switches))"
-fi
-
-
 # 1+7pro battery idle mode
 if _grep '^chargingSwitch=.*/op_disable_charge'; then
   [ -f $TMPDIR/oem-custom ] \
@@ -31,13 +24,14 @@ if _grep '^chargingSwitch=.*/op_disable_charge'; then
   _grep "^runCmdOnPause=.*$TMPDIR/oem-custom" \
     || set_prop runCmdOnPause "(. $TMPDIR/oem-custom)"
   switchDelay=$(get_prop switchDelay)
-  [ ${switchDelay%.*} -gt 2 ] || set_prop switchDelay 3.5
+  [ ${switchDelay%.*} -gt 4 ] || set_prop switchDelay 5
 else
   ! _grep '1 \> .*/op_disable_charge' $TMPDIR/oem-custom 2>/dev/null \
     || rm $TMPDIR/oem-custom
-  ! _grep "^runCmdOnPause=.*$TMPDIR/oem-custom" 2>/dev/null \
-    || set_prop runCmdOnPause "()"
-  ! _grep 'switchDelay=3.5' || set_prop switchDelay 1.5
+  ! _grep "^runCmdOnPause=.*$TMPDIR/oem-custom" 2>/dev/null || {
+    set_prop runCmdOnPause "()"
+    set_prop switchDelay 1.5
+  }
 fi
 
 
@@ -48,24 +42,28 @@ echo 30 > usb/razer_charge_limit_dropdown || :; } 2>/dev/null
 
 
  # 202002280, patch config, forceFullStatusAt100
-! _grep '^forceFullStatusAt100=' \
-  || /sbin/acca --set force_charging_status_full_at_100=$(get_prop forceFullStatusAt100)
+! _grep '^forceFullStatusAt100=' || {
+  forceChargingStatusFullAt100=$(get_prop forceFullStatusAt100)
+  . $modPath/write-config.sh
+}
 
 
 # 202002290, patch config, remove ghostCharging
-! _grep '^ghostCharging=' || /sbin/acca --set dummy=
+! _grep '^ghostCharging=' || . $modPath/write-config.sh
 
 
 # 202003030, patch config, switchDelay=1.5, dynPowerSaving=0
-if [ $(get_prop configVerCode) -lt 202003030 ]; then
+[ ! $(get_prop configVerCode) -lt 202003030 ] || {
   sed -i -e "/^configVerCode=/s/=.*/=202003030/" \
     -e "/^switchDelay=/s/=.*/=1.5/" \
     -e "/^dynPowerSaving=/s/=.*/=0/" $config
   . $modPath/oem-custom.sh
-fi
+}
+
 
 # block ghost charging on steroids (Xiaomi Redmi 3 - ido)
 [ ! -f $TMPDIR/accd-ido.log ] || touch $TMPDIR/.ghost-charging
+
 
 # 202003110, patch config, /coolDown/cooldown
 ! _grep coolDown || {
@@ -73,6 +71,7 @@ fi
   sed -i 's/coolDown/cooldown/' $config
 }
 
+
 # 202003140, patch config, cooldownCurrent
-[ $(get_prop configVerCode) -ge 202003140 ] || /sbin/acca --set dummy=
+[ $(get_prop configVerCode) -ge 202003140 ] || . $modPath/write-config.sh
 )

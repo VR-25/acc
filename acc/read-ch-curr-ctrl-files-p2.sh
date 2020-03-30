@@ -4,8 +4,8 @@
 
 (
   set +euo pipefail 2>/dev/null
-  if ! grep -q ::v $TMPDIR/ch-curr-ctrl-files; then
-    ls -1 */current_max 2>/dev/null | \
+  grep -q ::v $TMPDIR/ch-curr-ctrl-files || {
+    ls -1 */current_max */input_current_max 2>/dev/null | \
       while read file; do
         chmod +r $file || continue
         defaultValue=$(cat $file)
@@ -19,6 +19,6 @@
             >> $TMPDIR/ch-curr-ctrl-files
        fi
      done
-  fi
+  }
 ) || :
 readChCurr=false
