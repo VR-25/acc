@@ -1,36 +1,54 @@
 (
-_grep() { grep -Eq "$1" ${2:-$config}; }
+grep_() { grep -Eq "$1" ${2:-$config}; }
 
-get_prop() { sed -n "\|^$1=|s|.*=||p" $config; }
+get_prop() { sed -n "\|^$1=|s|.*=||p" ${2:-$config}; }
 
-set_prop() { sed -i "\|^${1}=|s|=.*|=$2|" ${3:-$config}; }
+set_prop_() { sed -i "\|^${1}=|s|=.*|=$2|" ${3:-$config}; }
+
+patched=false
+
+
+# config format patch
+[ ! -f $config ] || {
+  configVer=$(get_prop configVerCode)
+  dConfVer=$(get_prop configVerCode $modPath/default-config.txt)
+  if [ $configVer -gt $dConfVer ] || [ $configVer -lt 202003301 ]; then
+    if /system/bin/sh -n $config 2>/dev/null; then
+      /sbin/acca --set dummy=
+    else
+      cp -f $modPath/default-config.txt $config
+      rm /sdcard/acc-logs-*.tar.bz2 2>/dev/null || :
+    fi
+    patched=true
+  fi
+}
 
 
 # /proc/... switches
-if _grep '/proc/' $TMPDIR/charging-switches || _grep '^chargingSwitch=.*/proc/'; then
+if grep_ '/proc/' $TMPDIR/charging-switches || grep_ '^chargingSwitch=.*/proc/'; then
   # charging switch
-  _grep '^chargingSwitch=.*/proc/' \
-    || set_prop chargingSwitch "($(grep '/proc/' $TMPDIR/charging-switches | head -n 1))"
+  grep_ '^chargingSwitch=.*/proc/' \
+    || set_prop_ chargingSwitch "($(grep '/proc/' $TMPDIR/charging-switches | head -n 1))"
   # switchDelay
   switchDelay=$(get_prop switchDelay)
-  [ ${switchDelay%.*} -gt 2 ] || set_prop switchDelay 3.5
+  [ ${switchDelay%.*} -gt 2 ] || set_prop_ switchDelay 3.5
 fi
 
 
 # 1+7pro battery idle mode
-if _grep '^chargingSwitch=.*/op_disable_charge'; then
+if grep_ '^chargingSwitch=.*/op_disable_charge'; then
   [ -f $TMPDIR/oem-custom ] \
     || echo "chmod +w battery/input_suspend; echo 1 > battery/op_disable_charge; echo 0 > battery/input_suspend" > $TMPDIR/oem-custom
-  _grep "^runCmdOnPause=.*$TMPDIR/oem-custom" \
-    || set_prop runCmdOnPause "(. $TMPDIR/oem-custom)"
+  grep_ "^runCmdOnPause=.*$TMPDIR/oem-custom" \
+    || set_prop_ runCmdOnPause "(. $TMPDIR/oem-custom)"
   switchDelay=$(get_prop switchDelay)
-  [ ${switchDelay%.*} -gt 4 ] || set_prop switchDelay 5
+  [ ${switchDelay%.*} -gt 4 ] || set_prop_ switchDelay 5
 else
-  ! _grep '1 \> .*/op_disable_charge' $TMPDIR/oem-custom 2>/dev/null \
+  ! grep_ '1 \> .*/op_disable_charge' $TMPDIR/oem-custom 2>/dev/null \
     || rm $TMPDIR/oem-custom
-  ! _grep "^runCmdOnPause=.*$TMPDIR/oem-custom" 2>/dev/null || {
-    set_prop runCmdOnPause "()"
-    set_prop switchDelay 1.5
+  ! grep_ "^runCmdOnPause=.*$TMPDIR/oem-custom" 2>/dev/null || {
+    set_prop_ runCmdOnPause "()"
+    set_prop_ switchDelay 1.5
   }
 fi
 
@@ -41,37 +59,6 @@ fi
 echo 30 > usb/razer_charge_limit_dropdown || :; } 2>/dev/null
 
 
- # 202002280, patch config, forceFullStatusAt100
-! _grep '^forceFullStatusAt100=' || {
-  forceChargingStatusFullAt100=$(get_prop forceFullStatusAt100)
-  . $modPath/write-config.sh
-}
-
-
-# 202002290, patch config, remove ghostCharging
-! _grep '^ghostCharging=' || . $modPath/write-config.sh
-
-
-# 202003030, patch config, switchDelay=1.5, dynPowerSaving=0
-[ ! $(get_prop configVerCode) -lt 202003030 ] || {
-  sed -i -e "/^configVerCode=/s/=.*/=202003030/" \
-    -e "/^switchDelay=/s/=.*/=1.5/" \
-    -e "/^dynPowerSaving=/s/=.*/=0/" $config
-  . $modPath/oem-custom.sh
-}
-
-
 # block ghost charging on steroids (Xiaomi Redmi 3 - ido)
 [ ! -f $TMPDIR/accd-ido.log ] || touch $TMPDIR/.ghost-charging
-
-
-# 202003110, patch config, /coolDown/cooldown
-! _grep coolDown || {
-  set_prop configVerCode 202003110
-  sed -i 's/coolDown/cooldown/' $config
-}
-
-
-# 202003140, patch config, cooldownCurrent
-[ $(get_prop configVerCode) -ge 202003140 ] || . $modPath/write-config.sh
 )

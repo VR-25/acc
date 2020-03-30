@@ -4,8 +4,6 @@ It's assumed that you are already a flashable zip creator and/or Magisk module d
 
 Core File Structure
 
-*:wip:* (local only file/folder, can be anywhere)
-
 _builds/ (local only dir)
   $id-$versionCode/
     $id-$versionCode/tar.gz (for front-end apps)
@@ -50,8 +48,6 @@ TODO.txt
 
 
 Typical File Structure, Taking ACC's as Example (id=acc)
-
-*:wip:* (local only file/folder, can be anywhere)
 
 _builds/ (local only dir)
   acc-201910132/

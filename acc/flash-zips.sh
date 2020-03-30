@@ -51,7 +51,6 @@ trap 'e=$?; echo; exit $e' EXIT
 . ${0%/*}/setup-busybox.sh
 
 
-
 # parse file names
 [ -n "$1" ] && {
   zipFiles="${1// /__}"

@@ -14,3 +14,7 @@ install log not generated
   unknown cause
 
 mistakenly created /sbin/.acc/.ghost-charging?
+
+downgrades: patch config instead of resetting it completely
+
+vibrate on charging enabled/disabled events

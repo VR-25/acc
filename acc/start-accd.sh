@@ -1,3 +1,3 @@
 #!/dev/.busybox/ash
-(/sbin/.acc/acc/accd.sh $1 &) &
+(/sbin/.acc/acc/accd.sh "$@" &) &
 exit $?

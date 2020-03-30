@@ -266,6 +266,10 @@ try_disabling_again() {
 
 try_enabling_again() {
   ! $ghostCharging || {
+    $isAccd || {
+      echo "(i) ghostCharging=true"
+      print_read_curr | tail -n 2
+    }
     (while [[ "$(acpi -a)" != *on-line* ]]; do
       sleep ${loopDelay[1]}
       set +x

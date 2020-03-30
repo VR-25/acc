@@ -175,7 +175,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202003260
+configVerCode=202003301
 capacity=(-1 60 70 75 +0 false)
 temperature=(70 80 90)
 cooldownCurrent=()
@@ -311,7 +311,7 @@ dynPowerSaving=0
 
 # shutdown_capacity (sc) #
 # When the battery is discharging and its capacity <= sc, acc daemon turns the phone off to reduce the discharge rate and protect the battery from pottential damage induced by voltages below the operating range.
-On capacity <= shutdown_capacity + 5, accd enables Android battery saver, triggers 5 vibrations once - and again on each subsequent capacity drop.
+# On capacity <= shutdown_capacity + 5, accd enables Android battery saver, triggers 5 vibrations once - and again on each subsequent capacity drop.
 
 # cooldown_capacity (cc) #
 # Capacity at which the cooldown cycle starts.
@@ -369,7 +369,7 @@ On capacity <= shutdown_capacity + 5, accd enables Android battery saver, trigge
 # These are delays (seconds) between loop iterations.
 # The lower they are, the faster acc responsiveness is - but possibly at the cost of more CPU time.
 # Don't touch these (particularly ldd), unless you know exactly what you're doing.
-accd manages both according to the value of capacity_sync.
+# accd manages both according to the value of capacity_sync.
 
 # charging_switch (s) #
 # If unset, acc cycles through its database and uses whatever works.
@@ -869,14 +869,14 @@ Refer back to `POWER SUPPLY LOGS (HELP NEEDED)`.
 
 > Why, when and how should I calibrate the battery?
 
-With modern batteries, that's generally unnecessary.
+With modern battery management systems, that's generally unnecessary.
 If your battery is underperforming, refer to https://batteryuniversity.com/index.php/learn/article/battery_calibration .
 The calibration command is `acc -C`.
 
 
 > What if even after calibrating the battery, ACC and Android battery level reports still differ?
 
-It's an Android OS issue. Refer back to `DEFAULT CONFIGURATION` (capacity_offset and capacity_sync).
+It's most likely an Android OS issue. Refer back to `DEFAULT CONFIGURATION` (capacity_offset and capacity_sync).
 
 
 > I set voltage to 4080 mV and that corresponds to just about 75% charge.
@@ -929,6 +929,10 @@ Travel profile: capacity up to 95% and/or voltage no higher than 4200 mV
 
 ---
 ## LATEST CHANGES
+
+**2020.3.30-r1-dev (202003301)**
+- Misc fixes
+- Preserve as many config parameters as possible across (up|down)grades
 
 **2020.3.30-dev (202003300)**
 - `-C|--calibrate`: charge until battery_status == "Full"

@@ -111,7 +111,7 @@ License: GPLv3+
 
 # install
 cp $config /data/.${id}-config-bkp 2>/dev/null || :
-/system/bin/sh $srcDir/$id/uninstall.sh
+ash $srcDir/$id/uninstall.sh
 mv /data/.${id}-config-bkp $config 2>/dev/null || :
 cp -R $srcDir/$id/ $installDir/
 installDir=$(readlink -f $installDir/$id)
@@ -167,18 +167,6 @@ touch /sbin/.magisk/modules/$id/skip_mount 2>/dev/null || :
 
 # restore config backup
 [ -f $config ] || cp /data/media/0/.${id}-config-backup.txt $config 2>/dev/null || :
-
-# patch/reset config ###
-[ ! -f $config ] || {
-  ! grep -q '=20200260$' $config \
-    || sed -i 's/=20200260$/=202002260/' $config # bugfix
-  configVer=$(get_prop configVerCode $config 2>/dev/null || :)
-  dConfVer=$(get_prop configVerCode $installDir/default-config.txt)
-  if [ ${configVer:-0} -gt $dConfVer ] || [ ${configVer:-0} -lt 202002220 ]; then
-    rm $config /sdcard/${id}-logs-*.tar.bz2 2>/dev/null || :
-  fi
-  unset dConfVer
-}
 
 # flashable uninstaller
 cp -f $srcDir/bin/${id}-uninstaller.zip /data/media/0/
