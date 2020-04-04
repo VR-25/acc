@@ -65,7 +65,7 @@ print_charging_enabled() {
 }
 
 print_unplugged() {
-  echo "(!) External power supply not detected"
+  echo "(!) Battery must be charging to continue..."
 }
 
 print_switch_works() {
@@ -76,12 +76,8 @@ print_switch_fails() {
   echo "(!) [$@] won't work"
 }
 
-print_supported() {
-  echo "(i) Supported device"
-}
-
-print_unsupported() {
-  echo "(!) Unsupported device"
+print_no_ctrl_file() {
+  echo "(!) No control file found"
 }
 
 print_not_found() {
@@ -91,19 +87,26 @@ print_not_found() {
 
 print_help() {
   cat << EOF
-Advanced Charging Controller $accVer ($accVerCode)
-(c) 2017-2020, VR25 (patreon.com/vr25)
-GPLv3+
-
-
 Usage
 
-  acc (wizard)
-  acc [options] [args]
-  acc [pause_capacity] [resume_capacity] (e.g., acc 75 70)
-  /sbin/acca [options] [args] (acc optimized for front-ends)
+  acc   Wizard
 
-  A custom config path can be specified as first parameter. If the file doesn't exist, the current config is cloned.
+  accd   Start/restart accd
+
+  accd.   Stop acc/daemon
+
+  accd,   Print acc/daemon status (running or not)
+
+  acc [pause_capacity resume_capacity]   e.g., acc 75 70
+
+  acc [options] [args]   Refer to the list of options below
+
+  /sbin/acca [options] [args]   acc optimized for front-ends
+
+  accs   acc foreground service, works exactly as accd, but attached to the terminal
+
+  A custom config path can be specified as first parameter.
+  If the file doesn't exist, the current config is cloned.
     e.g.,
       acc /data/acc-night-config.txt --set pause_capacity=45 resume_capacity=43
       acc /data/acc-night-config.txt --set --current 500
@@ -118,7 +121,7 @@ Options
       acc -c less
       acc -c cat
 
-  -C|--calibrate   Charge until battery_status == "Full"
+  -C|--calibrate   Charge to true 100%
     e.g., acc -C
 
   -d|--disable [#%, #s, #m or #h (optional)]   Disable charging
@@ -140,10 +143,11 @@ Options
       acc -e 75% (recharge to 75%)
       acc -e 30m (recharge for 30 minutes)
 
-  -f|--force|--full [capacity]   Charge to a given capacity (default: 100) once and uninterrupted
+  -f|--force|--full [capacity]   Charge to a given capacity (default: 100) once, uninterrupted and without other restrictions
     e.g.,
       acc -f 95 (charge to 95%)
       acc -f (charge to 100%)
+    Note: not to be confused with -C; -f 100 won't allow charging to true 100% capacity
 
   -F|--flash ["zip_file"]   Flash any zip files whose update-binary is a shell script
     e.g.,
@@ -221,19 +225,16 @@ Options
       acc -s v - (restore default)
       acc -s v 3920 --exit (stop the daemon after applying settings)
 
-  -t|--test   Test charging control (on/off)
-    e.g., acc -t
-
-  -t|--test [file on off file2 on off]   Test custom charging switches
+  -t|--test [ctrl_file1 on off [ctrl_file2 on off]]   Test custom charging switches
     e.g.,
       acc -t battery/charging_enabled 1 0
       acc -t /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0 ("::" == " ")
 
-  -t|--test -- [file]   Test charging switches from a file (default: $TMPDIR/charging-switches)
+  -t|--test [file]   Test charging switches from a file (default: $TMPDIR/charging-switches)
     This will also report whether "battery idle" mode is supported
     e.g.,
-      acc -t -- (test known switches)
-      acc -t -- /sdcard/experimental_switches.txt (test custom/foreign switches)
+      acc -t (test known switches)
+      acc -t /sdcard/experimental_switches.txt (test custom/foreign switches)
 
   -T|--logtail   Monitor accd log (tail -F)
     e.g., acc -T
@@ -259,6 +260,23 @@ Options
       acc -w (update every 3 seconds, default)
       acc -w2.5 (update every 2.5 seconds)
       acc -w0 (no extra delay)
+
+
+Exit Codes
+
+  0. True/success
+  1. False or general failure
+  2. Incorrect command syntax
+  3. Missing busybox binary
+  4. Not running as root
+  5. Update available ("--upgrade")
+  6. No update available ("--upgrade")
+  7. Couldn't disable charging
+  8. Daemon already running ("--daemon start")
+  9. Daemon not running ("--daemon" and "--daemon stop")
+  10. "--test" failed
+
+  Logs are exported automatically ("--log --export") on exit codes 1, 2, 7 and 10.
 
 
 Tips
@@ -308,8 +326,6 @@ print_volt_restored() {
 
 print_read_curr() {
   echo "(i) Need to read default max charging current value(s) first"
-  print_unplugged
-  echo -n "- Waiting... (press CTRL-C to abort)"
 }
 
 print_curr_set() {
@@ -377,8 +393,8 @@ print_edit() {
   echo "Edit $1"
 }
 
-print_flash_zip() {
-  echo "Flash zip"
+print_flash_zips() {
+  echo "Flash zips"
 }
 
 print_reset_bs() {
@@ -431,4 +447,12 @@ print_discharge() {
 
 print_wait() {
   echo "(i) This may take a few minutes..."
+}
+
+print_already_charging() {
+  echo "(i) Already charging"
+}
+
+print_already_discharging() {
+  echo "(i) Already not changing"
 }

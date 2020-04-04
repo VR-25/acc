@@ -8,7 +8,7 @@ daemon_ctrl() {
 
   local isRunning=true
   set +eo pipefail 2>/dev/null
-  local pid="$(pgrep -f '/ac(c|ca) (-|--)(calibrate|[Cdef])|/accd\.sh' | sed s/$$//)"
+  local pid="$(pgrep -f '/ac(c|ca) (-|--)(calibrate|test|[Cdeft])|/accd\.sh' | sed /$$/d)"
   set -eo pipefail 2>/dev/null || :
   [[ ${pid:-x} == *[0-9]* ]] || isRunning=false
 
@@ -27,24 +27,17 @@ daemon_ctrl() {
 
     stop)
       if $isRunning; then
-        set +eo pipefail 2>/dev/null
-        echo "$pid" | xargs kill -9 2>/dev/null
-        { dumpsys battery reset
-        not_charging && {
-          enable_charging || try_enabling_again
-        }
-        [ ${2:-x} != skipab ] && {
-          case "${2-}" in
-            forceab) apply_on_boot default force;;
-            *) apply_on_boot default;;
-          esac
-        }
-        apply_on_plug default; } > /dev/null 2>&1
+        (set +euo pipefail
+        echo "$pid" | xargs kill $2) 2>/dev/null || :
+        sleep 0.2
+        while [ -n "$(pgrep -f '/ac(c|ca) (-|--)(calibrate|test|[Cdeft])|/accd\.sh' | sed /$$/d)" ]; do
+          sleep 0.2
+        done
         print_stopped
         return 0
       else
         print_not_running
-        return 8
+        return 9
       fi
     ;;
 
@@ -63,7 +56,7 @@ daemon_ctrl() {
         return 0
       else
         print_not_running
-        return 1
+        return 9
       fi
     ;;
   esac
@@ -105,121 +98,70 @@ get_prop() { sed -n "s|^$1=||p" ${2:-$config}; }
 
 test_charging_switch() {
 
-  local failed=false
+  local failed=false switchDelay=20
 
-  if [ -n "${1-}" ]; then
+  chmod +w $1 ${4-} \
+    && echo "${3//::/ }" > $1 \
+    && echo "${6//::/ }" > ${4:-/dev/null} \
+    && sleep $switchDelay
 
-    chmod +w $1 ${4-} && echo "${3//::/ }" > $1 && echo "${6//::/ }" > ${4:-/dev/null} && sleep $switchDelay
+  ! not_charging && failed=true || {
+    vibrate ${vibrationPatterns[8]} ${vibrationPatterns[9]}
+    grep -iq 'not' $batt/status \
+      && battIdleMode=true \
+      || battIdleMode=false
+  }
 
-    ! not_charging && failed=true || {
-      grep -iq 'not' $batt/status \
-        && battIdleMode=true \
-        || battIdleMode=false
-    }
-
-    if ! $failed && echo "${2//::/ }" > $1 && echo "${5//::/ }" > ${4:-/dev/null} \
-      && sleep $switchDelay && ! not_charging
-    then
-      print_switch_works "$@"
-      echo "- battIdleMode=$battIdleMode"
-      return 0
-    else
-      print_switch_fails "$@"
-      { echo "${2//::/ }" > $1
-      echo "${5//::/ }" > ${4:-/dev/null}; } 2>/dev/null
-      return 1
-    fi
-
+  if ! $failed && echo "${2//::/ }" > $1 \
+    && echo "${5//::/ }" > ${4:-/dev/null} \
+    && sleep $switchDelay && ! not_charging && vibrate ${vibrationPatterns[4]} ${vibrationPatterns[5]}
+  then
+    print_switch_works "$@"
+    echo "- battIdleMode=$battIdleMode"
+    return 0
   else
-
-    {
-      disable_charging || try_disabling_again
-      ! not_charging && failed=true || {
-        enable_charging || try_enabling_again
-      }
-    } > /dev/null
-
-    if ! $failed && ! not_charging; then
-      print_supported
-      return 0
-    else
-      print_unsupported
-      ({ enable_charging || try_enabling_again; } > /dev/null 2>&1 &) &
-      return 1
-    fi
-
+    print_switch_fails "$@"
+    { echo "${2//::/ }" > $1
+    echo "${5//::/ }" > ${4:-/dev/null}; } 2>/dev/null
+    return 1
   fi
 }
 
 
 exxit() {
   local exitCode=$?
-  ! { ! ${noEcho:-false} && ${verbose:-true}; } || echo
-  [[ $exitCode == [0568] ]] || {
-    vibrate 3 0.3
-    [[ $exitCode != [127] ]] || logf --export > /dev/null 2>&1
+  set +euxo pipefail 2>/dev/null
+  ! ${noEcho:-false} && ${verbose:-true} && echo
+  [[ $exitCode == [05689] ]] || {
+    [[ $exitCode == [127] || $exitCode == 10 ]] && logf --export
+    echo
+    vibrate ${vibrationPatterns[6]-6} ${vibrationPatterns[7]-0.1}
   }
   rm /dev/.acc-config 2>/dev/null
   exit $exitCode
 }
 
 
-umask 077
+! ${verbose:-true} || echo
 isAccd=false
 modPath=/sbin/.acc/acc
-export TMPDIR=${modPath%/*}
-config=/data/adb/acc-data/config.txt
 defaultConfig=$modPath/default-config.txt
-
-[ -f $TMPDIR/.ghost-charging ] && ghostCharging=true || ghostCharging=false
-
 
 # load generic functions
 . $modPath/logf.sh
 . $modPath/misc-functions.sh
 
-! ${verbose:-true} || echo
-. $modPath/setup-busybox.sh
-
-device=$(getprop ro.product.device | grep .. || getprop ro.build.product)
 log=$TMPDIR/acc-${device}.log
 
 
 # verbose
 if ${verbose:-true} && [[ "${1-}" != *-w* ]]; then
     touch $log
-    trap exxit EXIT
-    if [ $(du -m $log | cut -f 1) -lt 2 ]; then
-      echo "###$(date)###" >> $log
-      set -x 2>>$log
-    else
-      set -x 2>$log
-    fi
+    [ $(du -m $log | cut -f 1) -ge 2 ] && : > $log
+    echo "###$(date)###" >> $log
+    echo "versionCode=$(sed -n s/versionCode=//p $modPath/module.prop 2>/dev/null)" >> $log
+    set -x 2>>$log
 fi
-
-
-set -euo pipefail 2>/dev/null || :
-cd /sys/class/power_supply/
-mkdir -p ${config%/*}
-[ -f $config ] || cp $defaultConfig $config
-. $config
-
-
-# config backup
-[ ! -d /data/media/0/?ndroid ] || {
-  [ /data/media/0/.acc-config-backup.txt -nt $config ] \
-    || install -m 777 $config /data/media/0/.acc-config-backup.txt 2>/dev/null || :
-}
-
-# load config from a custom path
-case "${1-}" in
-  */*)
-    [ -f $1 ] || cp $config $1
-    config=$1
-    . $config
-    shift
-  ;;
-esac
 
 
 accVer=$(get_prop version $modPath/module.prop)
@@ -227,7 +169,15 @@ accVerCode=$(get_prop versionCode $modPath/module.prop)
 
 unset -f get_prop
 
-batt=$(echo *attery/capacity | cut -d ' ' -f 1 | sed 's|/capacity||')
+
+misc_stuff "${1-}"
+[[ "${1-}" != */* ]] || shift
+config__=$config
+
+
+/system/bin/sh -n $config 2>/dev/null \
+  || cp -f $modPath/default-config.txt $config
+. $config
 
 
 # load default language (English)
@@ -272,10 +222,12 @@ case "${1-}" in
   ;;
 
   -C|--calibrate)
-    daemon_ctrl stop > /dev/null || :
+    daemon_ctrl stop > /dev/null && daemonWasUp=true || daemonWasUp=false
     print_quit CTRL-C
     sleep 2
-    until [ $(cat $batt/status) == Full ]; do
+    while [ $(cat $batt/status) != Full ] \
+      && ! [[ $(cat $batt/status) == Charging && $(cat $batt/charge_type 2>/dev/null || :) != [FS]* ]]
+    do
       for i in "¦     %     ¦" "\\ >   %   < /" "- >>  %  << -" "/ >>> % <<< \\"; do
         clear
         echo -n "$i" | sed "s/%/[$(cat $batt/capacity)%]/"
@@ -283,15 +235,18 @@ case "${1-}" in
       done
       unset i
     done
-    vibrate 5 0.3
+    vibrate ${vibrationPatterns[2]} ${vibrationPatterns[3]}
     print_discharge
+    ! $daemonWasUp || /sbin/accd $config
   ;;
 
   -d|--disable)
     shift
-    print_m_mode
-    ! daemon_ctrl stop > /dev/null || print_stopped
-    disable_charging "$@" || try_disabling_again "$@"
+    not_charging && print_already_discharging || {
+      print_m_mode
+      ! daemon_ctrl stop > /dev/null || print_stopped
+      disable_charging "$@"
+    }
   ;;
 
   -D|--daemon)
@@ -300,15 +255,17 @@ case "${1-}" in
 
   -e|--enable)
     shift
-    print_m_mode
-    ! daemon_ctrl stop > /dev/null || print_stopped
-    enable_charging "$@" || try_enabling_again "$@"
+    ! not_charging && print_already_charging || {
+      print_m_mode
+      ! daemon_ctrl stop > /dev/null || print_stopped
+      enable_charging "$@"
+    }
   ;;
 
   -f|--force|--full)
     daemon_ctrl stop > /dev/null && daemonWasUp=true || daemonWasUp=false
     print_charging_enabled_until ${2:-100}%
-    (enable_charging ${2:-100}% nodisable || try_enabling_again ${2:-100}% nodisable
+    (enable_charging ${2:-100}% noap
     ! $daemonWasUp || /sbin/accd $config &) > /dev/null 2>&1 &
   ;;
 
@@ -363,36 +320,40 @@ case "${1-}" in
   -t|--test)
 
     shift
+    ! not_charging || print_unplugged
     print_wait
     cp $config /dev/.acc-config
-    oldConfig=$config
     config=/dev/.acc-config
-    daemon_ctrl stop > /dev/null && daemonWasUp=true || daemonWasUp=false
+    exec 3>&1
+    forceVibrations=true
+    daemon_ctrl stop && daemonWasUp=true || daemonWasUp=false
+
     set +eo pipefail 2>/dev/null
-    switchDelay=18 # to account for switches with absurdly slow responsiveness
-    not_charging && { enable_charging || try_enabling_again; } > /dev/null
+    enable_charging
 
     not_charging && {
-      print_unplugged
-      config=$oldConfig
-      $daemonWasUp && /sbin/accd $config
-      exit 2
+      (print_wait_plug
+      trap '$daemonWasUp && {
+        /sbin/accd $config__
+        print_started
+      }' EXIT
+      while not_charging; do
+        sleep 1
+        set +x
+      done)
     }
 
-    case "${1-}" in
-      --)
-        exitCode=1
+    case "${2-}" in
+      "")
+        exitCode=10
         while read chargingSwitch; do
           [ -f "$(echo "$chargingSwitch" | cut -d ' ' -f 1)" ] && {
             echo
             test_charging_switch $chargingSwitch
           }
           [ $? -eq 0 ] && exitCode=0
-        done < ${2:-$TMPDIR/charging-switches}
+        done < ${1-$TMPDIR/charging-switches}
         echo
-      ;;
-      "")
-        test_charging_switch
       ;;
       *)
         test_charging_switch "$@"
@@ -400,15 +361,13 @@ case "${1-}" in
     esac
 
     : ${exitCode=$?}
-    config=$oldConfig
-    $daemonWasUp && /sbin/accd $config
 
-    if [ $exitCode -ne 0 ]; then
-      logf --export
-      exit 1
-    else
-      exit 0
-    fi
+    $daemonWasUp && {
+      /sbin/accd $config__
+      print_started
+    }
+
+    exit $exitCode
   ;;
 
 
@@ -427,12 +386,12 @@ case "${1-}" in
       *) insecure=;;
     esac
 
-    curl $insecure -Lo $TMPDIR/install-latest.sh https://raw.githubusercontent.com/VR-25/acc/$reference/install-latest.sh
+    curl $insecure -Lo $TMPDIR/install-online.sh https://raw.githubusercontent.com/VR-25/acc/$reference/install-online.sh
     trap - EXIT
     set +euo pipefail 2>/dev/null
     installDir=$(readlink -f $modPath)
     installDir=${installDir%/*}
-    . $TMPDIR/install-latest.sh "$@" %$installDir% $reference
+    . $TMPDIR/install-online.sh "$@" %$installDir% $reference
   ;;
 
   -U|--uninstall)

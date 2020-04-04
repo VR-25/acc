@@ -5,30 +5,23 @@ get_prop() { sed -n "\|^$1=|s|.*=||p" ${2:-$config}; }
 
 set_prop_() { sed -i "\|^${1}=|s|=.*|=$2|" ${3:-$config}; }
 
-patched=false
 
-
-# config format patch
-[ ! -f $config ] || {
-  configVer=$(get_prop configVerCode)
-  dConfVer=$(get_prop configVerCode $modPath/default-config.txt)
-  if [ $configVer -gt $dConfVer ] || [ $configVer -lt 202003301 ]; then
-    if /system/bin/sh -n $config 2>/dev/null; then
-      /sbin/acca --set dummy=
-    else
-      cp -f $modPath/default-config.txt $config
-      rm /sdcard/acc-logs-*.tar.bz2 2>/dev/null || :
-    fi
-    patched=true
-  fi
-}
+# patch/reset [broken] config
+configVer=$(get_prop configVerCode 2>/dev/null || :)
+defaultConfVer=$(get_prop configVerCode $modPath/default-config.txt)
+if /system/bin/sh -n $config; then
+  [ ${configVer:-0} -eq $defaultConfVer ] || /sbin/acca --set dummy=
+else
+  cp -f $modPath/default-config.txt $config
+  rm /sdcard/acc-logs-*.tar.bz2 || : ### legacy
+fi 2>/dev/null
 
 
 # /proc/... switches
-if grep_ '/proc/' $TMPDIR/charging-switches || grep_ '^chargingSwitch=.*/proc/'; then
+if grep_ '/proc/' $TMPDIR/ch-switches || grep_ '^chargingSwitch=.*/proc/'; then
   # charging switch
   grep_ '^chargingSwitch=.*/proc/' \
-    || set_prop_ chargingSwitch "($(grep '/proc/' $TMPDIR/charging-switches | head -n 1))"
+    || set_prop_ chargingSwitch "($(grep '/proc/' $TMPDIR/ch-switches | head -n 1))"
   # switchDelay
   switchDelay=$(get_prop switchDelay)
   [ ${switchDelay%.*} -gt 2 ] || set_prop_ switchDelay 3.5
@@ -55,8 +48,9 @@ fi
 
 # Razer
 # default value: 65
-{ echo 30 > /sys/devices/platform/soc/*/*/*/razer_charge_limit_dropdown || :
-echo 30 > usb/razer_charge_limit_dropdown || :; } 2>/dev/null
+(set +e
+echo 30 > /sys/devices/platform/soc/*/*/*/razer_charge_limit_dropdown
+echo 30 > usb/razer_charge_limit_dropdown) 2>/dev/null || :
 
 
 # block ghost charging on steroids (Xiaomi Redmi 3 - ido)

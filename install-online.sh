@@ -1,12 +1,12 @@
 #!/system/bin/sh
 #
 # $id Online Installer
-# https://raw.githubusercontent.com/VR-25/$id/$branch/install-latest.sh
+# https://raw.githubusercontent.com/VR-25/$id/$branch/install-online.sh
 #
 # Copyright (c) 2019-2020, VR25 (xda-developers)
 # License: GPLv3+
 #
-# Usage: sh install-latest.sh [-c|--changelog] [-f|--force] [-k|--insecure] [-n|--non-interactive] [%install dir%] [reference]
+# Usage: sh install-online.sh [-c|--changelog] [-f|--force] [-k|--insecure] [-n|--non-interactive] [%install dir%] [reference]
 #
 # Also refer to README.md > NOTES/TIPS FOR FRONT-END DEVELOPERS for > Exit Codes
 
@@ -18,7 +18,7 @@ umask 077
 
 # log
 mkdir -p /data/adb/${id}-data/logs
-exec 2>/data/adb/${id}-data/logs/install-latest.sh.log
+exec 2>/data/adb/${id}-data/logs/install-online.sh.log
 set -x
 
 trap 'e=$?; echo; exit $e' EXIT
@@ -36,16 +36,16 @@ else
   chmod 700 /dev/.busybox
   case $PATH in
     /dev/.busybox:*) :;;
-    *) PATH=/dev/busybox:$PATH;;
+    *) PATH=/dev/.busybox:$PATH;;
   esac
   [ -x /dev/.busybox/busybox ] || {
     if [ -f /data/adb/magisk/busybox ]; then
-      [ -x  /data/adb/magisk/busybox ] || chmod 700 /data/adb/magisk/busybox
+      [ -x /data/adb/magisk/busybox ] || chmod 700 /data/adb/magisk/busybox
       /data/adb/magisk/busybox --install -s /dev/.busybox
     elif which busybox > /dev/null; then
       busybox --install -s /dev/.busybox
     elif [ -f /data/adb/busybox ]; then
-      [ -x  /data/adb/busybox ] || chmod 700 /data/adb/busybox
+      [ -x /data/adb/busybox ] || chmod 700 /data/adb/busybox
       /data/adb/busybox --install -s /dev/.busybox
     else
       echo "(!) Install busybox or simply place it in /data/adb/"
@@ -113,7 +113,7 @@ then
   trap - EXIT
   echo
   curl -L $insecure $tarball | tar -xz \
-    && /system/bin/sh ${id}-${reference}/install-current.sh
+    && /system/bin/sh ${id}-${reference}/install.sh
 
 else
   echo

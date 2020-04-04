@@ -20,10 +20,9 @@ exxit() {
   [[ $exitCode == [127] ]] && {
     . ${0%/*}/logf.sh
     logf --export > /dev/null 2>&1
+    vibrate ${vibrationPatterns[6]-6} ${vibrationPatterns[7]-0.1}
   }
   rm $config
-  exec 1>&3 3>&-
-  vibrate 3 0.3
   exit $exitCode
 }
 
@@ -75,9 +74,11 @@ is_charging() {
     [ -n "$dischgStatusCode" ] || {
       ! dumpsys battery reset || {
         ! dischgStatusCode=$(dumpsys battery 2>/dev/null | sed -n 's/^  status: //p') || {
-          if [ $(dumpsys battery 2>/dev/null | sed -n 's/^  level: //p') -ne $(cat $batt/capacity) ]; then
-            sleep 1
-            [ $(dumpsys battery 2>/dev/null | sed -n 's/^  level: //p') -eq $(cat $batt/capacity) ] || {
+          if [ $(dumpsys battery 2>/dev/null | sed -n 's/^  level: //p') -ne $(cat $batt/capacity) ] \
+            && sleep 2 \
+            &&  [ $(dumpsys battery 2>/dev/null | sed -n 's/^  level: //p') -ne $(cat $batt/capacity) ]
+          then
+            ${capacity[5]} || {
               capacity[4]=+0
               capacity[5]=true
               [ ${loopDelay[0]} -le 5 ] || loopDelay[0]=5
@@ -174,7 +175,7 @@ ctrl_charging() {
         || [ $(( $(cat $batt/capacity) ${capacity[4]} )) -ge ${capacity[3]} ]
       then
         [ -f ${config%/*}/.rebootedOnPause ] || {
-          disable_charging || try_disabling_again
+          disable_charging
           ! ${resetBattStats[0]} || {
             # reset battery stats on pause
             dumpsys batterystats --reset || :
@@ -216,7 +217,7 @@ ctrl_charging() {
           then
             cooldown=true
             dumpsys battery set status $chgStatusCode || : # to block unwanted display wakeups
-            disable_charging || try_disabling_again
+            disable_charging
             [ $(sed s/-// ${cooldownCurrent[0]:-cooldownCurrent} 2>/dev/null || echo 0) -ge ${cooldownCurrent[1]:-1} ] \
               && sleep ${cooldownCurrent[3]:-1} \
               || sleep ${cooldownRatio[1]:-1}
@@ -254,7 +255,7 @@ ctrl_charging() {
         c=$(cat $batt/capacity)
         for i in $warningThresholds; do
           [ $c -ne $i ] || {
-            vibrate 5 0.3 >&3
+            vibrate ${vibrationPatterns[0]} ${vibrationPatterns[1]}
             warningThresholds=${warningThresholds/$i}
             $lowPower || {
               ! settings put global low_power 1 || lowPower=true
@@ -282,7 +283,6 @@ ctrl_charging() {
 . ${0%/*}/misc-functions.sh
 
 
-umask 077
 isAccd=true
 cooldown=false
 hibernate=true
@@ -294,55 +294,28 @@ secondsUnplugged=0
 frozenBattSvc=false
 applyOnUnplug=false
 resetBattStatsOnUnplug=false
-modPath=/sbin/.acc/acc
-export TMPDIR=${modPath%/*}
-forcedChargingStatusFullAt100=false
-config=/data/adb/acc-data/config.txt
-
-[ -f $TMPDIR/.ghost-charging ] \
-  && ghostCharging=true \
-  || ghostCharging=false
-
-
-. $modPath/setup-busybox.sh
-
-device=$(getprop ro.product.device | grep .. || getprop ro.build.product)
 log=$TMPDIR/accd-${device}.log
+forcedChargingStatusFullAt100=false
+
 
 # verbose
 echo "###$(date)###" >> $log
 echo "versionCode=$(sed -n s/versionCode=//p $modPath/module.prop 2>/dev/null)" >> $log
 exec 3>&1
 exec >> $log 2>&1
-trap exxit EXIT
 set -x
 
-pgrep -f '/ac(c|ca) (-|--)(calibrate|[Cdef])|/accd\.sh' | sed s/$$// | xargs kill -9 2>/dev/null
-set -euo pipefail 2>/dev/null || :
-cd /sys/class/power_supply/
-mkdir -p ${config%/*}
-[ -f $config ] || cp $modPath/default-config.txt $config
 
-# config backup
-[ ! -d /data/media/0/?ndroid ] || {
-  [ /data/media/0/.acc-config-backup.txt -nt $config ] \
-    || install -m 777 $config /data/media/0/.acc-config-backup.txt 2>/dev/null
-}
+pgrep -f '/ac(c|ca) (-|--)(calibrate|test|[Cdeft])|/accd\.sh' | sed /$$/d | xargs kill -9 2>/dev/null
 
-# custom config path
-case "${1-}" in
-  */*)
-    [ -f $1 ] || cp $config $1
-    config=$1
-  ;;
-esac
+misc_stuff "${1-}"
 
-batt=$(echo *attery/capacity | cut -d ' ' -f 1 | sed 's|/capacity||')
 
 . $modPath/oem-custom.sh
 . $config
 
-# auto-shutdown warning thresholds
+
+# set auto-shutdown warning thresholds
 _warningThresholds="
   $(
     for i in 5 4 3 2 1; do
@@ -351,6 +324,7 @@ _warningThresholds="
   )
 "
 warningThresholds=$_warningThresholds
+
 
 apply_on_boot
 ctrl_charging

@@ -4,25 +4,25 @@
 # License: GPLv3+
 #
 # usage: $0 or $0 "file1 file2 ..."
-# the installation log file is stored in the zip_file directory
+# the installation log file is stored in the zip_file directory as file.zip.log
 
 
 pick_zips() {
   clear
   echo
-  cd "${1:-/storage/emulated/0/Download/}"
+  cd "${1-/sdcard/Download/}"
   echo ": $PWD/"
   IFS=$'\n'
-  select_ target $(ls -1Ap | grep -Ei '.*.zip$|/$') "<Path>" "<Back>" "<Exit>"
+  select_ target $(ls -1Ap | grep -Ei '.*.zip$|/$') "<Custom path>" "<Back>" "<Exit>"
   unset IFS
   if [ -f "$target" ]; then
    zipFiles="$zipFiles ${target// /__}"
    echo
    echo -e "${zipFiles// /'\n'> }" | sed 's/__/ /'
    echo
-   echo -en "+ zip: 1\n<Continue>: [enter]\n<Exit>: CTRL-C\n> "
+   echo -en "Add more zips to the queue: a\nStart fashing: [enter]\nExit: CTRL-C\n> "
    read -n1 target
-   [ "$target" == 1 ] && pick_zips .
+   [ "$target" == a ] && pick_zips .
   elif [ -d "$target" ]; then
     echo
     pick_zips "$target"
@@ -32,7 +32,7 @@ pick_zips() {
    pick_zips .
   elif [ "$target" == "<Exit>" ]; then
     exit 0
-  elif [ "$target" == "<Path>" ]; then
+  elif [ "$target" == "<Custom path>" ]; then
     echo -n "> "
     read target
     cd "${target:-.}"
@@ -63,12 +63,14 @@ trap 'e=$?; echo; exit $e' EXIT
 
 
 [ -z "$zipFiles" ] && {
-  PS3="*.zip: "
   pick_zips
   unset target
 }
 
-[[ "$zipFiles" == *" "* ]] && noClear=true
+
+case "$zipFiles" in
+  *\ *) noClear=true;;
+esac
 
 
 for zipFile in $zipFiles; do
@@ -95,8 +97,8 @@ echo -n "
 (!) ${zipFile//__/ }: *exit $e*
 > ${zipFile//__/ }.log
 
-<Continue>: [enter]
-<Exit>: CTRL-C
+Continue: [enter]
+Exit: CTRL-C
 > "
     read
   }

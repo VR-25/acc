@@ -29,12 +29,16 @@ case "${1-}" in
   ;;
 esac
 
+# reset broken/invalid config
+/system/bin/sh -n $config 2>/dev/null \
+  || cp -f $modPath/default-config.txt $config
+
 
 case "$@" in
 
   # check daemon status
   -D|--daemon)
-    pgrep -f '/ac(c|ca) (-|--)(calibrate|[Cdef])|/accd\.sh' && exit 0 || exit 8
+    pgrep -f '/ac(c|ca) (-|--)(calibrate|test|[Cdeft])|/accd\.sh' && exit 0 || exit 9
   ;;
 
   # print battery uevent data
@@ -60,14 +64,14 @@ case "$@" in
   # print default config
   -s\ d|-s\ --print-default|--set\ d|--set\ --print-default)
     . $defaultConfig
-    . ./print-config.sh | grep -E "${3:-.}"
+    . ./print-config.sh | grep -E "${3-.}"
     exit $?
   ;;
 
   # print current config
   -s\ p|-s\ --print|--set\ p|--set\ --print)
     . $config
-    . ./print-config.sh | grep -E "${3:-.}"
+    . ./print-config.sh | grep -E "${3-.}"
     exit $?
   ;;
 
@@ -75,6 +79,6 @@ esac
 
 
 # other acc commands
-set +euo pipefail 2>/dev/null || :
+set +euo pipefail 2>/dev/null
 export verbose=false
 /sbin/acc $config "$@"

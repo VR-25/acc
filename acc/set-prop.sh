@@ -22,7 +22,7 @@ set_prop() {
     # reset config
     r|--reset)
       ! $daemonWasUp || daemon_ctrl stop > /dev/null
-      cp $defaultConfig $config
+      cp -f $defaultConfig $config
       print_config_reset
       ! $daemonWasUp || /sbin/accd
       return 0
@@ -31,13 +31,13 @@ set_prop() {
     # print default config
     d|--print-default)
       . $defaultConfig
-      . $modPath/print-config.sh | grep -E "${2:-.}"
+      . $modPath/print-config.sh | grep -E "${2-.}"
       return 0
     ;;
 
     # print current config
     p|--print)
-      . $modPath/print-config.sh | grep -E "${2:-.}"
+      . $modPath/print-config.sh | grep -E "${2-.}"
       return 0
     ;;
 
@@ -50,7 +50,7 @@ set_prop() {
       print_known_switches
       echo
       . $modPath/select.sh
-      select_ chargingSwitch $(print_auto) $(cat $TMPDIR/charging-switches) $(print_exit)
+      select_ chargingSwitch $(print_auto) $(cat $TMPDIR/ch-switches) $(print_exit)
       [ ${chargingSwitch:-x} != $(print_exit) ] || exit 0
       [ ${chargingSwitch:-x} != $(print_auto) ] || charging_switch=
       unset IFS
@@ -58,7 +58,7 @@ set_prop() {
 
     # print switches
     s:|--charging*witch:)
-      cat $TMPDIR/charging-switches
+      cat $TMPDIR/ch-switches
       return 0
     ;;
 
@@ -69,24 +69,19 @@ set_prop() {
       # check support
       grep -q ::v $TMPDIR/ch-curr-ctrl-files || {
         if not_charging; then
-          (while not_charging; do
-            clear
-            echo
-            print_read_curr
-            sleep 1
-            set +x
-          done)
-          echo
+          print_read_curr
+          print_wait_plug
+          (while not_charging; do sleep 1; set +x; done)
           echo
           . $modPath/read-ch-curr-ctrl-files-p2.sh
           grep -q ::v $TMPDIR/ch-curr-ctrl-files || {
-            print_unsupported
+            print_no_ctrl_file
             return 1
           }
         else
           . $modPath/read-ch-curr-ctrl-files-p2.sh
           grep -q ::v $TMPDIR/ch-curr-ctrl-files || {
-            print_unsupported
+            print_no_ctrl_file
             return 1
           }
         fi
@@ -96,7 +91,7 @@ set_prop() {
 
         # restore
         if [ $2 == - ]; then
-          daemon_ctrl stop skipab > /dev/null || apply_on_plug default
+          daemon_ctrl stop > /dev/null || apply_on_plug default
           restartDaemon=true
           max_charging_current=
           print_curr_restored
@@ -133,7 +128,8 @@ set_prop() {
 
         # restore
         if [ $2 == - ]; then
-          daemon_ctrl stop forceab> /dev/null || apply_on_boot default force
+          daemon_ctrl stop > /dev/null
+          apply_on_boot default force
           restartDaemon=true
           max_charging_voltage=
           print_volt_restored
@@ -141,7 +137,7 @@ set_prop() {
         else
 
           apply_voltage() {
-            [ ${2:-x} != --exit ] || { ! $daemonWasUp || daemon_ctrl stop; }
+            [ ${2-x} != --exit ] || { ! $daemonWasUp || daemon_ctrl stop; }
             eval "maxChargingVoltage=($1 $(sed "s|vvvv|$1|" $TMPDIR/ch-volt-ctrl-files) ${2-})" \
               && apply_on_boot \
               && { noEcho=true; print_volt_set $1; } \

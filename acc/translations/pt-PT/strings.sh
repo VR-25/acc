@@ -65,7 +65,7 @@ print_charging_enabled() {
 }
 
 print_unplugged() {
-  echo "(!) Conecte o carregador primeiro"
+  echo "(!) Conecte o carregador primeiro..."
 }
 
 print_switch_works() {
@@ -74,14 +74,6 @@ print_switch_works() {
 
 print_switch_fails() {
   echo "(!) [$@] não funciona"
-}
-
-print_supported() {
-  echo "(i) Este dispositivo é suportado"
-}
-
-print_unsupported() {
-  echo "(!) Este dispositivo não é suportado"
 }
 
 print_not_found() {
@@ -121,7 +113,7 @@ print_volt_restored() {
 print_read_curr() {
   echo "(i) Antes the prosseguir, o acc precisa obter os padrões máximos de corrente (I) de recarga"
   print_unplugged
-  echo -n "- À espera... (pressione CTRL-C para cancelar)"
+  echo -n "- À espera..."
 }
 
 print_curr_set() {

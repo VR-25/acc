@@ -141,16 +141,16 @@ Two universal methods are: `acc --uninstall` and `/sdcard/acc-uninstaller.zip` (
 - `sh install-tarball.sh acc` installs the tarball (acc*gz) from the script's location.
 The archive must be obtained from GitHub: https://github.com/VR-25/acc/archive/$reference.tar.gz ($reference examples: master, dev, 201908290).
 
-- `sh install-current.sh` installs acc from the extracted source.
+- `sh install.sh` installs acc from the extracted source.
 
-- `sh install-latest.sh [-c|--changelog] [-f|--force] [-k|--insecure] [-n|--non-interactive] [%install dir%] [reference]` downloads and installs acc from GitHub. e.g., `sh install-latest.sh dev`
+- `sh install-online.sh [-c|--changelog] [-f|--force] [-k|--insecure] [-n|--non-interactive] [%install dir%] [reference]` downloads and installs acc from GitHub. e.g., `sh install-online.sh dev`
 
 
 #### Notes
 
-- `install-current.sh` and `install-tarball.sh` take an optional _parent installation directory_ argument (e.g., sh install-current.sh /data - this will install acc in /data/acc/).
+- `install.sh` and `install-tarball.sh` take an optional _parent installation directory_ argument (e.g., sh install.sh /data - this will install acc in /data/acc/).
 
-- `install-latest.sh` is the `acc --upgrade` back-end.
+- `install-online.sh` is the `acc --upgrade` back-end.
 
 - The order of arguments doesn't matter.
 
@@ -159,11 +159,11 @@ The archive must be obtained from GitHub: https://github.com/VR-25/acc/archive/$
 - No argument/option is strictly mandatory. The exception is `--non-interactive` for front-end apps.
 Unofficially supported front-ends must specify the parent installation directory. Otherwise, the installer will follow the order above.
 
-- Remember that unlike the other two installers, `install-latest.sh` requires the _parent installation directory_ to be enclosed in `%` (e.g., sh install-latest.sh %/data% --non-interactive).
+- Remember that unlike the other two installers, `install-online.sh` requires the _parent installation directory_ to be enclosed in `%` (e.g., sh install-online.sh %/data% --non-interactive).
 
-- The `--force` option to install-latest.sh is meant for re-installation and downgrading.
+- The `--force` option to install-online.sh is meant for re-installation and downgrading.
 
-- `sh install-latest.sh --changelog --non-interactive` prints the version code (integer) and changelog URL (string) when an update is available.
+- `sh install-online.sh --changelog --non-interactive` prints the version code (integer) and changelog URL (string) when an update is available.
 In interactive mode, it also asks the user whether they want to download and install the update.
 
 - You may also want to read `NOTES/TIPS FOR FRONT-END DEVELOPERS > Exit Codes` below.
@@ -175,7 +175,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202003301
+configVerCode=202004040
 capacity=(-1 60 70 75 +0 false)
 temperature=(70 80 90)
 cooldownCurrent=()
@@ -195,6 +195,17 @@ prioritizeBattIdleMode=false
 forceChargingStatusFullAt100=
 runCmdOnPause=()
 dynPowerSaving=0
+vibrationPatterns=(5 0.1 5 0.1 4 0.1 6 0.1 3 0.1)
+
+
+# WARNINGS
+
+# As seen above, whatever is null can be null.
+# Nullifying values that should not be null causes nasty errors.
+
+# Do NOT feel like you must configure everything!
+# If you don't know EXACTLY how to and why you want to do it, it's a very dumb idea.
+# Help is always avaliable, from multiple sources - plus, you don't have to pay a penny for it.
 
 
 # BASIC CONFIG EXPLANATION
@@ -203,7 +214,7 @@ dynPowerSaving=0
 
 # temperature=(cooldown_temp max_temp max_temp_pause)
 
-# cooldownCurrent=(file raw_current charge_seconds pause_seconds)
+# cooldownCurrent=cooldown_current=(file raw_current charge_seconds pause_seconds)
 
 # cooldownRatio=(cooldown_charge cooldown_pause)
 
@@ -211,31 +222,33 @@ dynPowerSaving=0
 
 # loopDelay=(loop_delay_charging loop_delay_discharging)
 
-# chargingSwitch=charging_switch=(file1 on off file2 on off)
+# chargingSwitch=charging_switch=(ctrl_file1 on off ctrl_file2 on off)
 
-# applyOnBoot=apply_on_boot=(file1::value1::default1 file2::value2::default2 fileN::valueN::defaultN --exit)
+# applyOnBoot=apply_on_boot=(ctrl_file1::value1::default1 ctrl_file2::value2::default2 ... --exit)
 
-# applyOnPlug=apply_on_plug=(file1::value1::default1 file2::value2::default2 fileN::valueN::defaultN)
+# applyOnPlug=apply_on_plug=(ctrl_file1::value1::default1 ctrl_file2::value2::default2 ...)
 
-# maxChargingCurrent=max_charging_current=(file1::value1::default1 file2::value2::default2 fileN::valueN::defaultN)
+# maxChargingCurrent=max_charging_current=([value] ctrl_file1::value::default1 ctrl_file2::value::default2 ...)
 
-# maxChargingVoltage=max_charging_voltage=(file1::value1::default1 file2::value2::default2 fileN::valueN::defaultN --exit)
+# maxChargingVoltage=max_charging_voltage=([value] ctrl_file1::value::default1 ctrl_file2::value::default2 ...) --exit)
 
-# rebootOnPause=reboot_on_pause
+# rebootOnPause=reboot_on_pause=seconds
 
-# switchDelay=switch_delay
+# switchDelay=switch_delay=seconds
 
-# language=lang
+# language=lang=language_code
 
-# wakeUnlock=wake_unlock=(wakelock1 wakelock2 wakelockN)
+# wakeUnlock=wake_unlock=(wakelock1 wakelock2 ...)
 
-# prioritizeBattIdleMode=prioritize_batt_idle_mode
+# prioritizeBattIdleMode=prioritize_batt_idle_mode=true/false
 
-# forceChargingStatusFullAt100=force_charging_status_full_at_100
+# forceChargingStatusFullAt100=force_charging_status_full_at_100=status_code
 
-# runCmdOnPause=run_cmd_on_pause=(sh|. script)
+# runCmdOnPause=run_cmd_on_pause=(. script)
 
-# dynPowerSaving=dyn_power_saving
+# dynPowerSaving=dyn_power_saving=seconds
+
+# vibrationPatterns=vibration_patterns=(auto_shutdown_warning_vibrations interval calibration_vibrations interval enable_charging_vibrations interval error_vibrations interval disable_charging_vibrations interval)
 
 
 # VARIABLE ALIASES/SORTCUTS
@@ -278,6 +291,7 @@ dynPowerSaving=0
 # ff force_charging_status_full_at_100
 # rcp run_cmd_on_pause
 # dps dyn_power_saving
+# vp vibration_patterns
 
 
 # COMMAND EXAMPLES
@@ -303,14 +317,17 @@ dynPowerSaving=0
 # acc -s "ccu=battery/current_now 1450000 100 20"
 # acc -s "cooldown_current=battery/current_now 1450000 100 20"
 
+# acc -s vp="5 0.1 4 0.1 6 0.1 3 0.1"
+# acc -s vp="5 0.1 - - 6 0.1 - -" # disables vibration for charging enabled/disabled events.
+
 
 # FINE, BUT WHAT DOES EACH OF THESE VARIABLES ACTUALLY MEAN?
 
 # configVerCode #
-# This is checked during updates - to determine whether config should be patched. Do NOT modify.
+# This is checked during updates to determine whether config should be patched. Do NOT modify.
 
 # shutdown_capacity (sc) #
-# When the battery is discharging and its capacity <= sc, acc daemon turns the phone off to reduce the discharge rate and protect the battery from pottential damage induced by voltages below the operating range.
+# When the battery is discharging and its capacity <= sc, acc daemon turns the phone off to reduce the discharge rate and protect the battery from potential damage induced by voltages below the operating range.
 # On capacity <= shutdown_capacity + 5, accd enables Android battery saver, triggers 5 vibrations once - and again on each subsequent capacity drop.
 
 # cooldown_capacity (cc) #
@@ -325,12 +342,12 @@ dynPowerSaving=0
 # Capacity at which charging should pause.
 
 # capacity_offset (co) #
-# Change this only if your system reports incorrect battery capacity ("acc -i" (BMS) vs "dumpsys battery" (system)).
+# Change this only if your system reports incorrect battery capacity ("acc -i" (BMS) vs "dumpsys battery" (Android system)).
 # Pixel devices are know for having this issue.
 
 # capacity_sync (cs) #
 # This is an alternative to capacity_offset.
-# It tells acc whether the battery capacity reported by Android should be updated every few seconds to reflect the actual value from the battery management system.
+# It tells accd whether the battery capacity reported by Android should be updated every few seconds to reflect the actual value from the battery management system.
 # Most users would prefer this over capacity_offset.
 # It's more powerful, but has a cosmetic nuisance: small delays (seconds) in charging status reports.
 # Such inconvenience is not a bug, nor can it be eliminated at this point.
@@ -361,63 +378,64 @@ dynPowerSaving=0
 # Reset battery stats after pausing charging.
 
 # reset_batt_stats_on_unplug (rbsu) #
-# Reset battery stats after unplugging the charger and loop_delay_discharging (seconds) have passed.
-# If the charger is plugged within the first loop_delay_discharging (seconds) interval, the operation is aborted.
+# Reset battery stats after unplugging the charger AND loop_delay_discharging (seconds) have passed.
+# If the charger is replugged within loop_delay_discharging (seconds) after unplugging it, the operation is aborted.
 
 # loop_delay_charging (ldc) #
 # loop_delay_discharging (ldd) #
 # These are delays (seconds) between loop iterations.
-# The lower they are, the faster acc responsiveness is - but possibly at the cost of more CPU time.
+# The lower they are, the quicker acc responsiveness is - but at the cost of slightly extra CPU time.
 # Don't touch these (particularly ldd), unless you know exactly what you're doing.
-# accd manages both according to the value of capacity_sync.
+# accd manages both according to the state of capacity_sync.
 
 # charging_switch (s) #
-# If unset, acc cycles through its database and uses whatever works.
+# If unset, acc cycles through its database and sets the first working switch/group that disables charging.
+# If the set switch/group doesn't work, acc unsets chargingSwitch and repeats the above.
+# If all switches fail to disable charging, chargingSwitch is unset, switchDelay is reverted to 1.5 and acc/d exit with error code 7.
 
 # apply_on_boot (ab) #
 # Settings to apply on boot or daemon start/restart.
 # The --exit flag (refer back to applyOnBoot=...) tells the daemon to stop after applying settings.
-# When the --exit flag is not set, default values are restored when the daemon stops.
+# If the --exit flag is not included, default values are restored when the daemon stops.
 
 # apply_on_plug (ap) #
-# Settings to apply on plug.
+# Settings to apply on plug
 # This exists because some /sys files (e.g., current_max) are reset on charger re-plug.
 # Default values are restored on unplug and when the daemon stops.
 
 # max_charging_current (mcc) #
 # apply_on_plug dedicated to current control
-# This is managed with "acc --set --current" commands.
+# This is managed with "acc --set --current ..." (acc -s c ...) commands.
 # Refer back to the command examples.
 
 # max_charging_voltage (mcv) #
 # apply_on_boot dedicated to voltage control
-# This is managed with "acc --set --voltage" commands.
+# This is managed with "acc --set --voltage ..." (acc -s v ...) commands.
 
 # reboot_on_pause (rp) #
 # If this doesn't make sense to you, you probably don't need it.
-# Essentially, this is a timeout (seconds) before rebooting (after pausing charging).
+# Essentially, this is a timeout (seconds) before rebooting - after pausing charging.
 # This reboot is a workaround for a firmware issue that causes abnormally fast battery drain after charging is paused on certain devices.
-# The issue has reportedly been fixed by the OEM. So, this could just as well not be here.
+# The issue has reportedly been fixed by the OEMs. This setting will eventually be removed.
 
 # switch_delay (sd) #
-# Delay (seconds) between charging status checks after toggling charging switches
+# This is a delay (seconds) between charging status checks after toggling charging switches. It exists because some switches don't react immediately after being toggled.
 # Most devices/switches work with a value of 1.
-# Some devices may require a delay as high as 3. The optimal max is probably 3.5.
+# Some may require a delay as high as 3. The optimal max is probably 3.5.
 # If a charging switch seems to work intermittently, or fails completely, increasing this value may fix the issue.
-# You absolutely should increase this value if "acc -t --" reports total failure.
+# You absolutely should increase this value if "acc -t" reports total failure.
 # Some MediaTek devices require a delay as high as 15!
 # accd manages this setting dynamically.
 
 # lang (l) #
-# acc language, managed with "acc --set --lang".
+# acc language, managed with "acc --set --lang" (acc -s l).
 
 # wake_unlock (wu) #
 # This is an attempt to release wakelocks acquired after disabling charging.
-# It may or may not work - and may even cause unexpected side effects. More testing is needed.
+# It's totally experimental and may or may not work (expect side effects).
 
 # prioritize_batt_idle_mode (pbim) #
-# Several devices can draw power directly from the external power supply when charging is paused.
-# Test yours with "acc -t --".
+# Several devices can draw power directly from the external power supply when charging is paused. Test yours with "acc -t".
 # This setting dictates whether charging switches that support such feature should take precedence.
 
 # force_charging_status_full_at_100 (ff) #
@@ -426,7 +444,7 @@ dynPowerSaving=0
 # For Pixel devices, the status code of "full" is 5 (ff=5).
 # The status code is found through trial and error, with the commands "dumpsys battery", "dumpsys battery set status #" and "dumpsys battery reset".
 
-# run_cmd_on_pause (rcp)
+# run_cmd_on_pause (rcp) #
 # Run commands* after pausing charging.
 # * Usually a script ("sh some_file" or ". some_file")
 
@@ -434,6 +452,11 @@ dynPowerSaving=0
 # This is the maximum number of seconds accd will dynamically sleep* for (while unplugged) to save resources.
 # If dyn_power_saving == 0, the feature is disabled.
 # * On top of loop_delay_discharging
+
+# vibration_patterns (vp) #
+# ACC and ACC service (accs) trigger vibrations on specific events (refer back to BASIC CONFIG EXPLANATION > vibrationPatterns).
+# vp lets you customize vibration patterns per event type.
+# To disable vibrations for an event, replace "<event>_vibrations interval" with "- -" (hyphen space hyphen, excluding quotes). Refer back to COMMAND EXAMPLES.
 
 #/DC#
 ```
@@ -462,12 +485,24 @@ The config file itself has configuration instructions.
 
 Usage
 
-  acc (wizard)
-  acc [options] [args]
-  acc [pause_capacity] [resume_capacity] (e.g., acc 75 70)
-  /sbin/acca [options] [args] (acc optimized for front-ends)
+  acc   Wizard
 
-  A custom config path can be specified as first parameter. If the file doesn't exist, the current config is cloned.
+  accd   Start/restart accd
+
+  accd.   Stop acc/daemon
+
+  accd,   Print acc/daemon status (running or not)
+
+  acc [pause_capacity resume_capacity]   e.g., acc 75 70
+
+  acc [options] [args]   Refer to the list of options below
+
+  /sbin/acca [options] [args]   acc optimized for front-ends
+
+  accs   acc foreground service, works exactly as accd, but attached to the terminal
+
+  A custom config path can be specified as first parameter.
+  If the file doesn't exist, the current config is cloned.
     e.g.,
       acc /data/acc-night-config.txt --set pause_capacity=45 resume_capacity=43
       acc /data/acc-night-config.txt --set --current 500
@@ -482,7 +517,7 @@ Options
       acc -c less
       acc -c cat
 
-  -C|--calibrate   Charge until battery_status == "Full"
+  -C|--calibrate   Charge to true 100%
     e.g., acc -C
 
   -d|--disable [#%, #s, #m or #h (optional)]   Disable charging
@@ -504,10 +539,11 @@ Options
       acc -e 75% (recharge to 75%)
       acc -e 30m (recharge for 30 minutes)
 
-  -f|--force|--full [capacity]   Charge to a given capacity (default: 100) once and uninterrupted
+  -f|--force|--full [capacity]   Charge to a given capacity (default: 100) once, uninterrupted and without other restrictions
     e.g.,
       acc -f 95 (charge to 95%)
       acc -f (charge to 100%)
+    Note: not to be confused with -C; -f 100 won't allow charging to true 100% capacity
 
   -F|--flash ["zip_file"]   Flash any zip files whose update-binary is a shell script
     e.g.,
@@ -585,19 +621,16 @@ Options
       acc -s v - (restore default)
       acc -s v 3920 --exit (stop the daemon after applying settings)
 
-  -t|--test   Test charging control (on/off)
-    e.g., acc -t
-
-  -t|--test [file on off file2 on off]   Test custom charging switches
+  -t|--test [ctrl_file1 on off [ctrl_file2 on off]]   Test custom charging switches
     e.g.,
       acc -t battery/charging_enabled 1 0
       acc -t /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0 ("::" == " ")
 
-  -t|--test -- [file]   Test charging switches from a file (default: $TMPDIR/charging-switches)
+  -t|--test [file]   Test charging switches from a file (default: $TMPDIR/charging-switches)
     This will also report whether "battery idle" mode is supported
     e.g.,
-      acc -t -- (test known switches)
-      acc -t -- /sdcard/experimental_switches.txt (test custom/foreign switches)
+      acc -t (test known switches)
+      acc -t /sdcard/experimental_switches.txt (test custom/foreign switches)
 
   -T|--logtail   Monitor accd log (tail -F)
     e.g., acc -T
@@ -623,6 +656,23 @@ Options
       acc -w (update every 3 seconds, default)
       acc -w2.5 (update every 2.5 seconds)
       acc -w0 (no extra delay)
+
+
+Exit Codes
+
+  0. True/success
+  1. False or general failure
+  2. Incorrect command syntax
+  3. Missing busybox binary
+  4. Not running as root
+  5. Update available ("--upgrade")
+  6. No update available ("--upgrade")
+  7. Couldn't disable charging
+  8. Daemon already running ("--daemon start")
+  9. Daemon not running ("--daemon" and "--daemon stop")
+  10. "--test" failed
+
+  Logs are exported automatically ("--log --export") on exit codes 1, 2, 7 and 10.
 
 
 Tips
@@ -653,6 +703,8 @@ It's best to write full commands over short equivalents - e.g., `/sbin/acca --se
 Include provided descriptions for ACC features/settings in your app(s). Provide additional information (trusted) where appropriate.
 Explain settings/concepts as clearly and with as few words as possible.
 
+Take advantage of exit codes. Refer back to `SETUP/USAGE > Terminal Commands > Exit Codes`.
+
 
 ### Online ACC Install
 
@@ -660,12 +712,12 @@ Explain settings/concepts as clearly and with as few words as possible.
 1) Check whether ACC is installed (exit code 0)
 /sbin/acca --version > /dev/null
 
-2) Download the installer (https://raw.githubusercontent.com/VR-25/acc/master/install-latest.sh)
+2) Download the installer (https://raw.githubusercontent.com/VR-25/acc/master/install-online.sh)
 - e.g.,
   curl -#LO URL
-  wget -O install-latest.sh URL
+  wget -O install-online.sh URL
 
-3) Run "sh install-latest.sh" (installation progress is shown)
+3) Run "sh install-online.sh" (installation progress is shown)
 ```
 
 ### Offline ACC Install
@@ -676,21 +728,6 @@ Refer back to the `BUILDING AND/OR INSTALLING FROM SOURCE` section.
 ### Officially Supported Front-ends
 
 - ACC App, a.k.a., AccA (installDir=/data/data/mattecarra.accapp/files/acc/)
-
-
-### Exit Codes
-
-0. True or success
-1. False or general failure
-2. [Contextual] incorrect command usage or external power supply not detected
-3. Missing busybox binary
-4. Not running as root
-5. Update available
-6. No update available
-7. Couldn't disable charging
-8. [Contextual] Daemon already running (`--daemon start`) or not running (`--daemon stop`)
-
-Logs are exported automatically (`--log --export`) on exit codes `1`, `2` and `7`.
 
 
 
@@ -755,6 +792,8 @@ Kernel level permissions forbid write access to certain interfaces.
 
 
 ### Diagnostics/Logs
+
+ACC/service trigger vibrations on certain events (charging enabled/disabled, errors, auto-shutdown warnings and acc -C 100% reached).
 
 Volatile logs are in `/sbin/.acc/`.
 Persistent logs are found at `/data/adb/acc-data/logs/`.
@@ -908,6 +947,48 @@ Travel profile: capacity up to 95% and/or voltage no higher than 4200 mV
 \* https://batteryuniversity.com/index.php/learn/article/how_to_prolong_lithium_based_batteries/
 
 
+> I don't really understand what the "-f|--force|--full [capacity]" is meant for.
+
+Consider the following situation:
+
+You're almost late for an important event.
+You recall that I stole your power bank and sold it on Ebay.
+You need your phone and a good battery backup.
+The event will take the whole day and you won't have access to an external power supply in the middle of nowhere.
+You need your battery charged fast and as much as possible.
+However, you don't want to modify ACC config nor manually stop/restart the daemon.
+
+
+> What's DJS?
+
+It's a standalone program: Daily Job Scheduler.
+As the name suggests, it's meant for scheduling "jobs" - in this context, acc profiles/settings.
+Underneath, it runs commands/scripts at specified times - either once, daily and/or on boot.
+
+
+> Do I have to install/upgrade both ACC and AccA?
+
+To really get out of this dilemma, you have to understand what ACC and AccA essentially are.
+
+ACC is a Android program that controls charging.
+It can be installed as an app (e.g., AccA) module, Magisk module or standalone software. Its installer determines the installation path/variant. The user is given the power to override that.
+A plain text file holds the program's configuration. It can be edited with any root text editor.
+ACC has a command line interface (CLI) - which in essence is a set of Application Programing Interfaces (APIs). The main purpose of a CLI/API is making difficult tasks ordinary.
+
+AccA is a graphical user interface (GUI) for the ACC command line. The main purpose of a GUI is making ordinary tasks simpler.
+AccA ships with a version of ACC that is automatically installed when the app is first launched.
+
+That said, it should be pretty obvious that ACC is like a fully autonomous car that also happens to have a steering wheel and other controls for a regular driver to hit a tree.
+Think of AccA as a robotic driver that often prefers hitting people over trees.
+Due to extenuating circumstances, that robot is not upgraded as frequently as the car.
+Upgrading the car regularly, makes the driver happier - even though I doubt it has any emotion to speak of.
+
+
+> Does acc work also when Android is off?
+
+No.
+
+
 
 ---
 ## LINKS
@@ -930,6 +1011,20 @@ Travel profile: capacity up to 95% and/or voltage no higher than 4200 mV
 ---
 ## LATEST CHANGES
 
+**2020.4.4-dev (202004040)**
+- acc -(e|d): do not do unnecessary work
+- acc -f: fixed capacity limit bypass
+- acc -F: general fixes and optimizations
+- accs: acc foreground service, works exactly as accd, but remains attached to the terminal
+- "acc -t --" is now "acc -t"
+- ACC/service trigger vibrations on certain events (charging enabled/disabled, errors, auto-shutdown warnings and acc -C 100% reached); vibration patterns are customizable
+- Auto-reset broken/invalid config
+- Enhanced acc -C compatibility
+- Fixed busybox setup issues on devices not rooted with Magisk
+- Misc fixes
+- Major optimizations
+- Updated documentation
+
 **2020.3.30-r1-dev (202003301)**
 - Misc fixes
 - Preserve as many config parameters as possible across (up|down)grades
@@ -937,7 +1032,7 @@ Travel profile: capacity up to 95% and/or voltage no higher than 4200 mV
 **2020.3.30-dev (202003300)**
 - `-C|--calibrate`: charge until battery_status == "Full"
 - `acc -i`: fixed current_now conversion (Redmi 6 Pro and other msm8953 based devices)
-- `acc -u, install-latest.sh`: optional -k|--insecure flag
+- `acc -u, install-online.sh`: optional -k|--insecure flag
 - accd manages capacity_sync loop_delay_charging, loop_delay_discharging and switch_delay parameters dynamically
 - Charging switch tests take  significantly longer (switch_delay=18); this leads to more consistent results
 - Enable Android battery saver on capacity <= shutdown_capacity + 5

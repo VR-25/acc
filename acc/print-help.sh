@@ -1,5 +1,10 @@
 print_help_() {
-  print_help > $TMPDIR/.help
+  {
+    print_header
+    echo
+    echo
+    print_help
+  } > $TMPDIR/.help
   case "$language" in
     en|"")
       {

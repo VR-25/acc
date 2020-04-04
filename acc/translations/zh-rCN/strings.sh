@@ -64,24 +64,12 @@ print_charging_enabled() {
   echo "(i) 已开始充电"
 }
 
-print_unplugged() {
-  echo "(!) 需要设备处于充电状态"
-}
-
 print_switch_works() {
   echo "(i) [$@] 可用"
 }
 
 print_switch_fails() {
   echo "(!) [$@] 不可用"
-}
-
-print_supported() {
-  echo "(i) 设备受支持"
-}
-
-print_unsupported() {
-  echo "(!) 设备不受支持"
 }
 
 print_not_found() {

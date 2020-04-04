@@ -20,6 +20,7 @@ prioritizeBattIdleMode=${prioritize_batt_idle_mode-${pbim-${prioritizeBattIdleMo
 forceChargingStatusFullAt100=${force_charging_status_full_at_100-${ff-${forceChargingStatusFullAt100}}}
 runCmdOnPause=(${run_cmd_on_pause-${rcp-${runCmdOnPause[@]}}})
 dynPowerSaving=${dyn_power_saving-${dps-${dynPowerSaving}}}
+vibrationPatterns=(${vibration_patterns-${vp-${vibrationPatterns[@]}}})
 
 
 "

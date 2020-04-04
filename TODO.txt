@@ -4,17 +4,6 @@ cooldown
 
 full POSIX compliance
 
-acc not initializing
+sometimes, acc is not initialized
+  Magisk forgetting to run acc boot scripts?
   logs/bootlooped?
-
-/sbin/acc/bootooped shouldn't exist
-
-install log not generated
-  harpia
-  unknown cause
-
-mistakenly created /sbin/.acc/.ghost-charging?
-
-downgrades: patch config instead of resetting it completely
-
-vibrate on charging enabled/disabled events

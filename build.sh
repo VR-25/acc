@@ -39,7 +39,7 @@ grep -q "$versionCode" module.prop || {
 
 
 # set ID
-for file in ./install-*.sh ./$id/*.sh ./bundle.sh; do
+for file in ./install*.sh ./$id/*.sh ./bundle.sh; do
   if [ -f "$file" ] && grep -Eq '(^|\()id=' $file; then
     grep -Eq "(^|\()id=$id" $file || set_prop id $id $file
   fi
@@ -66,7 +66,7 @@ fi
 
 # update busybox config (from acc/setup-busybox.sh) in $id/uninstall.sh and install scripts
 set -e
-for file in ./$id/uninstall.sh ./install-*.sh; do
+for file in ./$id/uninstall.sh ./install*.sh; do
   [ $file -ot $id/setup-busybox.sh ] && {
     { sed -n '1,/#BB#/p' $file; \
     sed -n '/^if /,/^fi/p' $id/setup-busybox.sh; \
@@ -77,9 +77,9 @@ done
 set +e
 
 
-# unify installers for flashable zip (customize.sh and update-binary are copies of install-current.sh)
-{ cp -u install-current.sh customize.sh
-cp -u install-current.sh META-INF/com/google/android/update-binary; } 2>/dev/null
+# unify installers for flashable zip (customize.sh and update-binary are copies of install.sh)
+{ cp -u install.sh customize.sh
+cp -u install.sh META-INF/com/google/android/update-binary; } 2>/dev/null
 
 
 if [ bin/${id}-uninstaller.zip -ot $id/uninstall.sh ] || [ ! -f bin/${id}-uninstaller.zip ]; then
@@ -91,7 +91,7 @@ if [ bin/${id}-uninstaller.zip -ot $id/uninstall.sh ] || [ ! -f bin/${id}-uninst
   echo "#MAGISK" > $tmpDir/updater-script
   (cd .tmp
   zip -r9 ../bin/${id}-uninstaller.zip * \
-    | sed 's|^.*adding: ||' | grep -iv 'zip warning:')
+    | sed 's|.*adding: ||' | grep -iv 'zip warning:')
   rm -rf .tmp
   echo
 fi
@@ -107,13 +107,13 @@ fi
   echo "=> _builds/${id}-${versionCode}/${id}-${versionCode}.zip"
   zip -r9 _builds/${id}-${versionCode}/${id}-${versionCode}.zip \
     * .gitattributes .gitignore \
-    -x _\*/\* | sed 's|^.*adding: ||' | grep -iv 'zip warning:'
+    -x _\*/\* | sed 's|.*adding: ||' | grep -iv 'zip warning:'
   echo
 
   # prepare files to be included in $id installable tarball
   cp install-tarball.sh _builds/${id}-${versionCode}/
-  cp -R ${id}/ install-c* *.md module.prop bin/ \
-    _builds/${id}-$versionCode/${id}-${versionCode} 2>&1 \
+  cp -R ${id}/ install.sh *.md module.prop bin/ \
+    _builds/${id}-$versionCode/${id}-${versionCode}/ 2>&1 \
     | grep -iv "can't preserve"
 
   # generate $id installable tarball
@@ -123,5 +123,5 @@ fi
   rm -rf ${id}-${versionCode}/
   echo
 
-}
-exit 0)
+})
+exit 0

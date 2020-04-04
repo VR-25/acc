@@ -6,10 +6,7 @@
 # devs: triple hashtags (###) mark custom code
 
 
-set +x
 umask 077
-
-
 (
   # log
   mkdir -p /data/adb/${id}-data/logs
@@ -42,6 +39,7 @@ umask 077
   ln -fs $TMPDIR/$id/${id}.sh /sbin/${id}d,
   ln -fs $TMPDIR/$id/${id}.sh /sbin/${id}d.
   ln -fs $TMPDIR/$id/${id}a.sh /sbin/${id}a
+  ln -fs $TMPDIR/$id/${id}s.sh /sbin/${id}s
   ln -fs $TMPDIR/$id/start-${id}d.sh /sbin/${id}d
 
 
@@ -56,7 +54,7 @@ umask 077
 
   # filter out missing and problematic charging switches (those with unrecognized values) ###
   cd /sys/class/power_supply/
-  : > $TMPDIR/charging-switches
+  : > $TMPDIR/ch-switches_
   grep -Ev '^#|^$' $modPath/charging-switches.txt | \
     while IFS= read -r chargingSwitch; do
       set -f
@@ -70,7 +68,7 @@ umask 077
           if grep -Eq "^(${2//::/ }|${3//::/ })$" $ctrlFile1 \
             || ! cat $ctrlFile1 > /dev/null || [ -z "$(cat $ctrlFile1)" ]
           then
-            echo $ctrlFile1 $2 $3 $ctrlFile2 $5 $6 >> $TMPDIR/charging-switches
+            echo $ctrlFile1 $2 $3 $ctrlFile2 $5 $6 >> $TMPDIR/ch-switches_
           fi 2>/dev/null
         }
       }
@@ -78,20 +76,20 @@ umask 077
 
 
   # read charging voltage control files ###
-  : > $TMPDIR/ch-volt-ctrl-files
+  : > $TMPDIR/ch-volt-ctrl-files_
   ls -1 */BatterySenseVoltage */ISenseVoltage */batt_vol */InstatVolt \
     */constant_charge_voltage* */voltage_max */batt_tune_float_voltage 2>/dev/null | \
       while read file; do
         chmod +r $file 2>/dev/null && grep -Eq '^4[1-4][0-9]{2}' $file || continue
         echo ${file}::$(sed -n 's/^..../vvvv/p' $file)::$(cat $file) \
-          >> $TMPDIR/ch-volt-ctrl-files
+          >> $TMPDIR/ch-volt-ctrl-files_
       done
 
 
   # read charging current control files (part 1) ###
   # part 2 is handled by accd - while charging only
 
-  : > $TMPDIR/ch-curr-ctrl-files
+  : > $TMPDIR/ch-curr-ctrl-files_
   ls -1 */input_current_limited */restrict*_ch*g* \
     /sys/class/qcom-battery/restrict*_ch*g* 2>/dev/null | \
     while read file; do
@@ -117,14 +115,21 @@ umask 077
           if [ $defaultValue -lt 10000 ]; then
             # milliamps
             echo ${file}::v::$defaultValue \
-              >> $TMPDIR/ch-curr-ctrl-files
+              >> $TMPDIR/ch-curr-ctrl-files_
           else
             # microamps
             echo ${file}::v000::$defaultValue \
-              >> $TMPDIR/ch-curr-ctrl-files
+              >> $TMPDIR/ch-curr-ctrl-files_
           fi
         }
       done
+
+
+  # remove duplicates...
+  for file in $TMPDIR/ch-*_; do
+    sort -u $file > ${file%_}
+    rm $file
+  done
 
 
   # prepare default config help text and version code for write-config.sh
@@ -139,6 +144,7 @@ umask 077
     rm /data/adb/${id}-data/logs/bootlooped
     pkill -9 -f "$0|${0%/*}/(service|post-fs-data|$id-init)\.sh" 2>/dev/null \
   &) &
+
 
   # start $id daemon
   $modPath/${id}d.sh \

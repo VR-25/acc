@@ -2,9 +2,7 @@ wizard() {
 
   clear
   echo
-  echo "Advanced Charging Controller $accVer ($accVerCode)
-(c) 2017-2020, VR25 (patreon.com/vr25)
-GPLv3+"
+  print_header
 
   echo
   { daemon_ctrl | sed "s/ $accVer ($accVerCode)//"; } || :
@@ -22,7 +20,7 @@ echo -n "1) $(print_lang)
 a) $(print_reset_bs)
 b) $(print_test_cs)
 c) $(print_update)
-d) $(print_flash_zip)
+d) $(print_flash_zips)
 e) $(print_exit)
 
 #? "
@@ -101,7 +99,7 @@ e) $(print_exit)
     ;;
 
     b)
-      /sbin/acc --test -- || :
+      /sbin/acc --test || :
       print_press_enter
       read
       exec wizard

@@ -1,26 +1,40 @@
 #!/system/bin/sh
-# $id Installer/Upgrader
+# ACC Installer/Upgrader
 # Copyright (c) 2019-2020, VR25 (xda-developers)
 # License: GPLv3+
 #
 # devs: triple hashtags (###) mark custom code
 
 
-set +x
-
 # override the official Magisk module installer
 SKIPUNZIP=1
+
 
 echo
 id=acc
 umask 077
 
+
 # log
 mkdir -p /data/adb/${id}-data/logs
+chmod -R 700 /data/adb/${id}-data/logs
 exec 2>/data/adb/${id}-data/logs/install.log
 set -x
 
-trap 'e=$?; echo; exit $e' EXIT
+
+exxit() {
+  local e=$?
+  set +eo pipefail
+  rm -rf /dev/.${id}-install
+  [ $e -ne 0 ] && echo || {
+    rm /sbin/.$id/.ghost-charging ###
+    /sbin/acca --daemon > /dev/null || /sbin/accd ### workaround, Magisk 20.4+
+  }
+  exit $e
+} 2>/dev/null
+
+trap exxit EXIT
+
 
 # set up busybox
 #BB#
@@ -34,16 +48,16 @@ else
   chmod 700 /dev/.busybox
   case $PATH in
     /dev/.busybox:*) :;;
-    *) PATH=/dev/busybox:$PATH;;
+    *) PATH=/dev/.busybox:$PATH;;
   esac
   [ -x /dev/.busybox/busybox ] || {
     if [ -f /data/adb/magisk/busybox ]; then
-      [ -x  /data/adb/magisk/busybox ] || chmod 700 /data/adb/magisk/busybox
+      [ -x /data/adb/magisk/busybox ] || chmod 700 /data/adb/magisk/busybox
       /data/adb/magisk/busybox --install -s /dev/.busybox
     elif which busybox > /dev/null; then
       busybox --install -s /dev/.busybox
     elif [ -f /data/adb/busybox ]; then
-      [ -x  /data/adb/busybox ] || chmod 700 /data/adb/busybox
+      [ -x /data/adb/busybox ] || chmod 700 /data/adb/busybox
       /data/adb/busybox --install -s /dev/.busybox
     else
       echo "(!) Install busybox or simply place it in /data/adb/"
@@ -53,11 +67,13 @@ else
 fi
 #/BB#
 
+
 # root check
 [ $(id -u) -ne 0 ] && {
   echo "(!) $0 must run as root (su)"
   exit 4
 }
+
 
 get_prop() { sed -n "s|^$1=||p" ${2:-$srcDir/module.prop}; }
 
@@ -70,23 +86,26 @@ set_perms() {
 }
 
 set_perms_recursive() {
-  local owner=${2:-0} target=""
+  local owner=${2-0} target=""
   find $1 2>/dev/null | while read target; do set_perms $target $owner; done
 }
 
 set -euo pipefail 2>/dev/null || :
 
+
 # set source code directory
 [ -f $PWD/${0##*/} ] && srcDir=$PWD || srcDir=${0%/*}
 srcDir=${srcDir/#"${0##*/}"/"."}
 
-# unzip flashable zip if source code is unavailable
+
+# extract flashable zip if source code is unavailable
 [ -f $srcDir/module.prop ] || {
-  srcDir=/dev/.tmp
+  srcDir=/dev/.${id}-install
   rm -rf $srcDir 2>/dev/null || :
   mkdir $srcDir
-  unzip ${ZIP:-${3-}} -d $srcDir/ >&2
+  unzip "$3" -d $srcDir/ >&2
 }
+
 
 name=$(get_prop name)
 author=$(get_prop author)
@@ -94,6 +113,7 @@ version=$(get_prop version)
 versionCode=$(get_prop versionCode)
 installDir=${installDir0:=/data/data/mattecarra.${id}app/files} ###
 config=/data/adb/${id}-data/config.txt
+
 
 # check/set parent installation directory
 [ -d $installDir ] || installDir=/sbin/.magisk/modules
@@ -103,16 +123,15 @@ config=/data/adb/${id}-data/config.txt
 
 ###
 echo "$name $version ($versionCode)
-Copyright (c) 2017-2020, $author
-License: GPLv3+
+© 2017-2020, $author
+GPLv3+
 
 (i) Installing in $installDir/$id/..."
 
 
 # install
-cp $config /data/.${id}-config-bkp 2>/dev/null || :
-ash $srcDir/$id/uninstall.sh
-mv /data/.${id}-config-bkp $config 2>/dev/null || :
+ash $srcDir/$id/uninstall.sh install
+rm /data/adb/${id}-data/logs/bootlooped 2>/dev/null || :
 cp -R $srcDir/$id/ $installDir/
 installDir=$(readlink -f $installDir/$id)
 installDir0=$installDir0/$id
@@ -165,11 +184,14 @@ fi
 # disable magic mount (Magisk)
 touch /sbin/.magisk/modules/$id/skip_mount 2>/dev/null || :
 
+
 # restore config backup
 [ -f $config ] || cp /data/media/0/.${id}-config-backup.txt $config 2>/dev/null || :
 
+
 # flashable uninstaller
 cp -f $srcDir/bin/${id}-uninstaller.zip /data/media/0/
+
 
 # set perms
 set_perms_recursive ${config%/*}
@@ -185,6 +207,7 @@ case $installDir in
     set_perms_recursive $installDir
   ;;
 esac
+
 
 set +euo pipefail 2>/dev/null || :
 
@@ -212,7 +235,6 @@ echo "
 [ $installDir == /data/adb ] && echo -e "\n(i) Use init.d or an app to run $installDir/${id}-init.sh on boot to initialize ${id}."
 
 echo
-trap - EXIT
 
 # initialize $id
 if [ -f $installDir/service.sh ]; then
@@ -221,8 +243,4 @@ else
   $installDir/${id}-init.sh --override
 fi
 
-e=$?
-[ $e -eq 0 ] || { echo; exit $e; }
-rm /sbin/.$id/.ghost-charging 2>/dev/null ###
-/sbin/acca --daemon > /dev/null || /sbin/accd ### workaround, Magisk 20.4+
 exit 0
