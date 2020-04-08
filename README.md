@@ -637,11 +637,11 @@ Options
 
   -u|--upgrade [-c|--changelog] [-f|--force] [-k|--insecure] [-n|--non-interactive]   Online upgrade/downgrade (requires curl)
     e.g.,
-      acc -u dev (upgrade to the latest dev version)
+      acc -u beta (upgrade to the latest beta version)
       acc -u (latest version from the current branch)
-      acc -u master^1 -f (previous stable release)
-      acc -u -f dev^2 (two dev versions below the latest dev)
-      acc -u 201905110 --force (version 2019.5.11)
+      acc -u stable^1 -f (previous stable release)
+      acc -u -f beta^2 (two dev versions below the latest beta)
+      acc -u v2020.4.8-beta --force (force upgrade/downgrade to v2020.4.8-beta)
       acc -u -c -n (if update is available, prints version code (integer) and changelog link)
       acc -u -c (same as above, but with install prompt)
 
@@ -803,7 +803,7 @@ It prevents acc initialization.
 
 `acc -le` exports all acc logs, plus Magisk's and extras to `/data/media/0/acc-$device_codename.tar.gz`.
 The logs do not contain any personal information and are never automatically sent to the developer.
-Automatic exporting happens under specific conditions (refer back to `NOTES/TIPS FOR FRONT-END DEVELOPERS > Exit Codes`).
+Automatic exporting happens under specific conditions (refer back to `SETUP/USAGE > Terminal Commands > Exit Codes`).
 
 
 ### Restore Default Config
@@ -1010,6 +1010,14 @@ No.
 
 ---
 ## LATEST CHANGES
+
+**v2020.4.8-beta (202004080)**
+- acc -t: fixed "charging-switches: no such file" error
+- accd: fixed crash on plug/unplug that affected some users
+- Current control optimizations
+- Enhanced battery calibration helper (acc -C)
+- More intuitive versioning scheme
+- Stricter config integrity checks (auto-reset broken config)
 
 **2020.4.4-dev (202004040)**
 - acc -(e|d): do not do unnecessary work

@@ -279,14 +279,10 @@ unset_switch() {
 
 
 vibrate() {
-  [ $1 != - ] || return 0
+  [ $1 != "-" -a -z "${noVibrations-}" ] || return 0
   local c=0
   while [ $c -lt $1 ]; do
-    if $isAccd || ${forceVibrations-false}; then
-      echo -en '\a' >&3
-    else
-      echo -en '\a'
-    fi
+    ${forceVibrations-false} && echo -en '\a' >&3 || echo -en '\a'
     sleep $2
     c=$(( c + 1 ))
   done

@@ -301,7 +301,6 @@ forcedChargingStatusFullAt100=false
 # verbose
 echo "###$(date)###" >> $log
 echo "versionCode=$(sed -n s/versionCode=//p $modPath/module.prop 2>/dev/null)" >> $log
-exec 3>&1
 exec >> $log 2>&1
 set -x
 

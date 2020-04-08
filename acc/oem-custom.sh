@@ -9,7 +9,7 @@ set_prop_() { sed -i "\|^${1}=|s|=.*|=$2|" ${3:-$config}; }
 # patch/reset [broken] config
 configVer=$(get_prop configVerCode 2>/dev/null || :)
 defaultConfVer=$(get_prop configVerCode $modPath/default-config.txt)
-if /system/bin/sh -n $config; then
+if (. $config); then
   [ ${configVer:-0} -eq $defaultConfVer ] || /sbin/acca --set dummy=
 else
   cp -f $modPath/default-config.txt $config

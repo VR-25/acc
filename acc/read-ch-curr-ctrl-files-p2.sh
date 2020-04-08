@@ -17,8 +17,10 @@
           # microamps
           echo ${file}::v000::$defaultValue \
             >> $TMPDIR/ch-curr-ctrl-files
-       fi
-     done
+        fi
+      done
+    sort -u $TMPDIR/ch-curr-ctrl-files > $TMPDIR/ch-curr-ctrl-files_
+    mv -f $TMPDIR/ch-curr-ctrl-files_ $TMPDIR/ch-curr-ctrl-files
   }
 ) || :
 readChCurr=false

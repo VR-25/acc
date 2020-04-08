@@ -22,7 +22,6 @@ runCmdOnPause=(${run_cmd_on_pause-${rcp-${runCmdOnPause[@]}}})
 dynPowerSaving=${dyn_power_saving-${dps-${dynPowerSaving}}}
 vibrationPatterns=(${vibration_patterns-${vp-${vibrationPatterns[@]}}})
 
-
 "
 cat $TMPDIR/.config-help
 } > $config

@@ -175,7 +175,8 @@ misc_stuff "${1-}"
 config__=$config
 
 
-/system/bin/sh -n $config 2>/dev/null \
+# reset broken config
+(. $config 2>/dev/null) \
   || cp -f $modPath/default-config.txt $config
 . $config
 
@@ -225,8 +226,9 @@ case "${1-}" in
     daemon_ctrl stop > /dev/null && daemonWasUp=true || daemonWasUp=false
     print_quit CTRL-C
     sleep 2
-    while [ $(cat $batt/status) != Full ] \
-      && ! [[ $(cat $batt/status) == Charging && $(cat $batt/charge_type 2>/dev/null || :) != [FS]* ]]
+    while [[ $(cat $batt/status) != [Ff]ull \
+      && $(cat $batt/charge_type 2>/dev/null || echo N/A) == [FNS]* \
+      && $(cat $batt/charge_counter 2>/dev/null || echo 0) -ne $(cat $batt/charge_full 2>/dev/null || echo 1) ]]
     do
       for i in "¦     %     ¦" "\\ >   %   < /" "- >>  %  << -" "/ >>> % <<< \\"; do
         clear
@@ -352,7 +354,7 @@ case "${1-}" in
             test_charging_switch $chargingSwitch
           }
           [ $? -eq 0 ] && exitCode=0
-        done < ${1-$TMPDIR/charging-switches}
+        done < ${1-$TMPDIR/ch-switches}
         echo
       ;;
       *)
@@ -373,13 +375,21 @@ case "${1-}" in
 
   -u|--upgrade)
     shift
-    local reference=$(echo "$@" | sed -E 's/-c|--changelog|-f|--force|-k|--insecure|-n|--non-interactive| //g')
+    local reference=""
 
-    echo "$reference" | grep -Eiq 'dev|master' || {
-      grep -q '^version=.*-dev' $modPath/module.prop \
-        && reference=dev \
-        || reference=master
-    }
+    case "$@" in
+      *beta*|*dev*)
+        reference=dev
+      ;;
+      *master*|*stable*)
+        reference=master
+      ;;
+      *)
+        grep -q '^version=.*-beta' $modPath/module.prop \
+          && reference=dev \
+          || reference=master
+      ;;
+    esac
 
     case "$@" in
       *--insecure*|*-k*) insecure=--insecure;;

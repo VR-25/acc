@@ -7,3 +7,6 @@ full POSIX compliance
 sometimes, acc is not initialized
   Magisk forgetting to run acc boot scripts?
   logs/bootlooped?
+
+Try out Termux API
+  acc as Termux module

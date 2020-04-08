@@ -29,8 +29,8 @@ case "${1-}" in
   ;;
 esac
 
-# reset broken/invalid config
-/system/bin/sh -n $config 2>/dev/null \
+# reset broken config
+(. $config 2>/dev/null) \
   || cp -f $modPath/default-config.txt $config
 
 
