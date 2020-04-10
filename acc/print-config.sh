@@ -14,7 +14,7 @@ max_temp_pause=${temperature[2]}
 cooldown_charge=${cooldownRatio[0]}
 cooldown_pause=${cooldownRatio[1]}
 
-cooldown_current=${cooldownCurrent[@]}
+cooldown_custom=${cooldownCustom[@]}
 
 reset_batt_stats_on_pause=${resetBattStats[0]}
 reset_batt_stats_on_unplug=${resetBattStats[1]}
@@ -42,4 +42,4 @@ force_charging_status_full_at_100=$forceChargingStatusFullAt100
 run_cmd_on_pause=${runCmdOnPause[@]}
 
 dyn_power_saving=${dynPowerSaving}
-vibration_patterns=vibrationPatterns[@]}"
+vibration_patterns=${vibrationPatterns[@]}"

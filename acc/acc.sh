@@ -138,6 +138,9 @@ exxit() {
     vibrate ${vibrationPatterns[6]-6} ${vibrationPatterns[7]-0.1}
   }
   rm /dev/.acc-config 2>/dev/null
+  ! ${restartDaemon-false} || {
+    ! $daemonWasUp || /sbin/accd $config
+  }
   exit $exitCode
 }
 
@@ -224,12 +227,14 @@ case "${1-}" in
 
   -C|--calibrate)
     daemon_ctrl stop > /dev/null && daemonWasUp=true || daemonWasUp=false
+    restartDaemon=true
+    [ -f $batt/charge_counter -a -f $batt/charge_full ] || {
+      acca --watch${2-} "$(print_calibration)"
+      return 0
+    }
     print_quit CTRL-C
     sleep 2
-    while [[ $(cat $batt/status) != [Ff]ull \
-      && $(cat $batt/charge_type 2>/dev/null || echo N/A) == [FNS]* \
-      && $(cat $batt/charge_counter 2>/dev/null || echo 0) -ne $(cat $batt/charge_full 2>/dev/null || echo 1) ]]
-    do
+    while [[ $(cat $batt/charge_counter) -lt $(cat $batt/charge_full) ]]; do
       for i in "¦     %     ¦" "\\ >   %   < /" "- >>  %  << -" "/ >>> % <<< \\"; do
         clear
         echo -n "$i" | sed "s/%/[$(cat $batt/capacity)%]/"
@@ -239,7 +244,6 @@ case "${1-}" in
     done
     vibrate ${vibrationPatterns[2]} ${vibrationPatterns[3]}
     print_discharge
-    ! $daemonWasUp || /sbin/accd $config
   ;;
 
   -d|--disable)
@@ -420,8 +424,13 @@ case "${1-}" in
     . $modPath/batt-info.sh
     print_quit CTRL-C
     sleep 1.5
+    [ "${2-}" == "$(print_calibration)" ] && { calibration=true; shift; } || calibration=false
     while :; do
       clear
+      ! $calibration || {
+        print_calibration
+        echo
+      }
       batt_info "${2-}"
       sleep $sleepSeconds
       set +x

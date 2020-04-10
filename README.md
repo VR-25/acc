@@ -175,11 +175,11 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202004040
+configVerCode=202004090
 capacity=(-1 60 70 75 +0 false)
 temperature=(70 80 90)
-cooldownCurrent=()
 cooldownRatio=()
+cooldownCustom=()
 resetBattStats=(false false)
 loopDelay=(10 15)
 chargingSwitch=()
@@ -214,9 +214,9 @@ vibrationPatterns=(5 0.1 5 0.1 4 0.1 6 0.1 3 0.1)
 
 # temperature=(cooldown_temp max_temp max_temp_pause)
 
-# cooldownCurrent=cooldown_current=(file raw_current charge_seconds pause_seconds)
-
 # cooldownRatio=(cooldown_charge cooldown_pause)
+
+# cooldownCustom=cooldown_custom=(file raw_value charge_seconds pause_seconds)
 
 # resetBattStats=(reset_batt_stats_on_pause reset_batt_stats_on_unplug)
 
@@ -264,10 +264,10 @@ vibrationPatterns=(5 0.1 5 0.1 4 0.1 6 0.1 3 0.1)
 # mt max_temp
 # mtp max_temp_pause
 
-# ccu cooldown_current
-
 # cch cooldown_charge
 # cp cooldown_pause
+
+# ccu cooldown_custom
 
 # rbsp reset_batt_stats_on_pause
 # rbsu reset_batt_stats_on_unplug
@@ -315,7 +315,8 @@ vibrationPatterns=(5 0.1 5 0.1 4 0.1 6 0.1 3 0.1)
 # accd /data/acc-night-config.txt
 
 # acc -s "ccu=battery/current_now 1450000 100 20"
-# acc -s "cooldown_current=battery/current_now 1450000 100 20"
+# acc -s "cooldown_custom=battery/current_now 1450000 100 20"
+# acc -s ccu="/sys/devices/virtual/thermal/thermal_zone1/temp 55 50 10"
 
 # acc -s vp="5 0.1 4 0.1 6 0.1 3 0.1"
 # acc -s vp="5 0.1 - - 6 0.1 - -" # disables vibration for charging enabled/disabled events.
@@ -371,8 +372,10 @@ vibrationPatterns=(5 0.1 5 0.1 4 0.1 6 0.1 3 0.1)
 # When not set, the cycle is disabled.
 # Note that cooldown_capacity and cooldown_temp can be disabled individually by assigning them values that would never be reached under normal circumstances.
 
-# cooldown_current (ccu) #
-# Dedicated and independent cooldown settings for quick charging
+# cooldown_custom (ccu) #
+# When cooldown_capacity and/or cooldown_temp don't suit your needs, this comes to the rescue.
+# It takes precedence over the regular cooldown settings.
+# Refer back the command examples.
 
 # reset_batt_stats_on_pause (rbsp) #
 # Reset battery stats after pausing charging.
@@ -517,8 +520,10 @@ Options
       acc -c less
       acc -c cat
 
-  -C|--calibrate   Charge to true 100%
-    e.g., acc -C
+  -C|--calibrate [update freq]   Charge to true 100%
+    e.g.,
+      acc -C (update info every 3 seconds)
+      acc -C 0.5 (update info every half a second)
 
   -d|--disable [#%, #s, #m or #h (optional)]   Disable charging
     e.g.,
@@ -653,8 +658,8 @@ Options
 
   -w#|--watch#   Monitor battery uevent
     e.g.,
-      acc -w (update every 3 seconds, default)
-      acc -w2.5 (update every 2.5 seconds)
+      acc -w (update info every 3 seconds)
+      acc -w0.5 (update info every half a second)
       acc -w0 (no extra delay)
 
 
@@ -735,7 +740,7 @@ Refer back to the `BUILDING AND/OR INSTALLING FROM SOURCE` section.
 ## TROUBLESHOOTING
 
 
-### `acc -t --` Reports Total Failure
+### `acc -t` Reports Total Failure
 
 Refer back to `DEFAULT CONFIGURATION (switch_delay)`.
 
@@ -772,7 +777,7 @@ Refer back to `DEFAULT CONFIGURATION (wake_unlock)`.
 In such situations, you have to find a switch that works as expected.
 Here's how to do it:
 
-1. Run `acc --test --` (or acc -t --) to see which switches work.
+1. Run `acc --test` (or acc -t) to see which switches work.
 2. Run `acc --set charging_switch` (or acc -s s) to enforce a working switch.
 3. Test the reliability of the set switch. If it doesn't work properly, try another.
 
@@ -989,6 +994,12 @@ Upgrading the car regularly, makes the driver happier - even though I doubt it h
 No.
 
 
+> I have this wakelock as soon as charging is disabled. How do I deal with it?
+
+The best solution is enforcing a charging switch that doesn't trigger a wakelock. Refer back to `TROUBLESHOOTING > Charging Switch`.
+A common workaround is having `resume_capacity = pause_capacity - 1`.
+
+
 
 ---
 ## LINKS
@@ -1010,6 +1021,13 @@ No.
 
 ---
 ## LATEST CHANGES
+
+**v2020.4.10-beta (202004100)**
+- acc -C: watch `charge_counter` and `charge_full` only; provide calibration instructions for devices that lack these files
+- General fixes and optimizations
+- Renamed cooldown(_c|C)urrent/cooldown(_c|C)ustom
+- Native support for MediaTek mt6795 devices, e.g., Redmi Note 2 (hermes)
+- Updated build script and documentation
 
 **v2020.4.8-beta (202004080)**
 - acc -t: fixed "charging-switches: no such file" error

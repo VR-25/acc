@@ -4,7 +4,7 @@
 #
 # "::" == " "
 # PWD=/sys/class/power_supply
-# Last updated: Fri, Mar 27, 2020
+# Last updated: Thu, Apr 9, 2020
 
 battery/charger_control 1 0
 */charge_disable 0 1
@@ -12,7 +12,6 @@ battery/input_suspend 0 1
 manta-battery/charge_enabled 1 0
 battery/charge_enabled 1 0
 battery/device/Charging_Enable 1 0
-battery/ChargerEnable 1 0
 battery/disable_charger 0 1
 charge_data/enable_charger 1 0
 huawei_charger/enable_charger 1 0
@@ -40,7 +39,6 @@ battery/op_disable_charge 0 1
 battery/device/smartchg_stop_charging 0 1
 
 /proc/smb*_disable_chrg 0 1
-/sys/devices/platform/battery/ChargerEnable 1 0
 /sys/module/pm*_charger/parameters/disabled 0 1
 /sys/devices/platform/mt-battery/disable_charger 0 1
 /sys/devices/platform/huawei_charger/enable_charger 1 0
@@ -88,11 +86,13 @@ usb/moisture_detected 0 1
 battery/mmi_charging_enable 1 0
 battery/ship_mode 0 1
 battery/input_current_settled 0 1
-#usb/online 1 0
 
 # troublesome
 #/sys/power/pnpmgr/battery/charging_enabled 1 0
 #/sys/class/qcom-battery/restrict*_cur* 1000000 0 /sys/class/qcom-battery/restrict*_ch*g* 0 1
 #/sys/devices/i2c*/*/battery_smbus 1 0
 #battery/connect_disable 0 1
-#/proc/mtk_battery_cmd/current_cmd 0::0 0::1
+#usb/online 1 0
+/proc/mtk_battery_cmd/current_cmd 0::0 0::1
+battery/ChargerEnable 1 0
+/sys/devices/platform/battery/ChargerEnable 1 0

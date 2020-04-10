@@ -73,12 +73,12 @@ copy_log() {
 trap copy_log EXIT
 
 # extract tarball
-rm -rf ${1:-$id}-*/ 2>/dev/null
-tar -xf ${1:-$id}*gz
+rm -rf ${1:-$id}_*/ 2>/dev/null
+tar -xf ${1:-$id}_*gz
 
 # install ${1:-$id}
 export installDir0="$2"
-/system/bin/sh ${1:-$id}-*/install.sh
-rm -rf ${1:-$id}-*/
+/system/bin/sh ${1:-$id}_*/install.sh
+rm -rf ${1-$id}_*/
 
 exit 0

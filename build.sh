@@ -100,27 +100,27 @@ fi
 [ -z "$1" ] && {
 
   # cleanup
-  rm -rf _builds/${id}-$version/ 2>/dev/null
-  mkdir -p _builds/${id}-$version/${id}-$version
+  rm -rf _builds/${id}_${version}_\(${versionCode}\)/ 2>/dev/null
+  mkdir -p _builds/${id}_${version}_\(${versionCode}\)/${id}_${version}_\(${versionCode}\)
 
   # generate $id flashable zip
-  echo "=> _builds/${id}-${version}/${id}-${version}.zip"
-  zip -r9 _builds/${id}-${version}/${id}-${version}.zip \
+  echo "=> _builds/${id}_${version}_(${versionCode})/${id}_${version}_(${versionCode}).zip"
+  zip -r9 _builds/${id}_${version}_\(${versionCode}\)/${id}_${version}_\(${versionCode}\).zip \
     * .gitattributes .gitignore \
     -x _\*/\* | sed 's|.*adding: ||' | grep -iv 'zip warning:'
   echo
 
   # prepare files to be included in $id installable tarball
-  cp install-tarball.sh _builds/${id}-${version}/
+  cp install-tarball.sh _builds/${id}_${version}_\(${versionCode}\)/
   cp -R ${id}/ install.sh *.md module.prop bin/ \
-    _builds/${id}-$version/${id}-${version}/ 2>&1 \
+    _builds/${id}_${version}_\(${versionCode}\)/${id}_${version}_\(${versionCode}\)/ 2>&1 \
     | grep -iv "can't preserve"
 
   # generate $id installable tarball
-  cd _builds/${id}-${version}
-  echo "=> _builds/${id}-${version}/${id}-${version}.tar.gz"
-  tar -cvf - ${id}-${version} | gzip -9 > ${id}-${version}.tar.gz
-  rm -rf ${id}-${version}/
+  cd _builds/${id}_${version}_\(${versionCode}\)
+  echo "=> _builds/${id}_${version}_(${versionCode})/${id}_${version}_(${versionCode}).tar.gz"
+  tar -cvf - ${id}_${version}_\(${versionCode}\) | gzip -9 > ${id}_${version}_\(${versionCode}\).tar.gz
+  rm -rf ${id}_${version}_\(${versionCode}\)/
   echo
 
 })

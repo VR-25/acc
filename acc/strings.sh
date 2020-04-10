@@ -121,8 +121,10 @@ Options
       acc -c less
       acc -c cat
 
-  -C|--calibrate   Charge to true 100%
-    e.g., acc -C
+  -C|--calibrate [update freq]   Charge to true 100%
+    e.g.,
+      acc -C (update info every 3 seconds)
+      acc -C 0.5 (update info every half a second)
 
   -d|--disable [#%, #s, #m or #h (optional)]   Disable charging
     e.g.,
@@ -257,8 +259,8 @@ Options
 
   -w#|--watch#   Monitor battery uevent
     e.g.,
-      acc -w (update every 3 seconds, default)
-      acc -w2.5 (update every 2.5 seconds)
+      acc -w (update info every 3 seconds)
+      acc -w0.5 (update info every half a second)
       acc -w0 (no extra delay)
 
 
@@ -455,4 +457,9 @@ print_already_charging() {
 
 print_already_discharging() {
   echo "(i) Already not changing"
+}
+
+print_calibration() {
+  echo "Let the battery charge until VOLTAGE_NOW >= VOLTAGE_MAX* and CURRENT_NOW drops to 3% of the rated mAh capacity or less.
+Next, let it discharge until the system shuts down."
 }

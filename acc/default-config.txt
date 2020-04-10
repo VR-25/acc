@@ -1,8 +1,8 @@
-configVerCode=202004040
+configVerCode=202004090
 capacity=(-1 60 70 75 +0 false)
 temperature=(70 80 90)
-cooldownCurrent=()
 cooldownRatio=()
+cooldownCustom=()
 resetBattStats=(false false)
 loopDelay=(10 15)
 chargingSwitch=()
@@ -37,9 +37,9 @@ vibrationPatterns=(5 0.1 5 0.1 4 0.1 6 0.1 3 0.1)
 
 # temperature=(cooldown_temp max_temp max_temp_pause)
 
-# cooldownCurrent=cooldown_current=(file raw_current charge_seconds pause_seconds)
-
 # cooldownRatio=(cooldown_charge cooldown_pause)
+
+# cooldownCustom=cooldown_custom=(file raw_value charge_seconds pause_seconds)
 
 # resetBattStats=(reset_batt_stats_on_pause reset_batt_stats_on_unplug)
 
@@ -87,10 +87,10 @@ vibrationPatterns=(5 0.1 5 0.1 4 0.1 6 0.1 3 0.1)
 # mt max_temp
 # mtp max_temp_pause
 
-# ccu cooldown_current
-
 # cch cooldown_charge
 # cp cooldown_pause
+
+# ccu cooldown_custom
 
 # rbsp reset_batt_stats_on_pause
 # rbsu reset_batt_stats_on_unplug
@@ -138,7 +138,8 @@ vibrationPatterns=(5 0.1 5 0.1 4 0.1 6 0.1 3 0.1)
 # accd /data/acc-night-config.txt
 
 # acc -s "ccu=battery/current_now 1450000 100 20"
-# acc -s "cooldown_current=battery/current_now 1450000 100 20"
+# acc -s "cooldown_custom=battery/current_now 1450000 100 20"
+# acc -s ccu="/sys/devices/virtual/thermal/thermal_zone1/temp 55 50 10"
 
 # acc -s vp="5 0.1 4 0.1 6 0.1 3 0.1"
 # acc -s vp="5 0.1 - - 6 0.1 - -" # disables vibration for charging enabled/disabled events.
@@ -194,8 +195,10 @@ vibrationPatterns=(5 0.1 5 0.1 4 0.1 6 0.1 3 0.1)
 # When not set, the cycle is disabled.
 # Note that cooldown_capacity and cooldown_temp can be disabled individually by assigning them values that would never be reached under normal circumstances.
 
-# cooldown_current (ccu) #
-# Dedicated and independent cooldown settings for quick charging
+# cooldown_custom (ccu) #
+# When cooldown_capacity and/or cooldown_temp don't suit your needs, this comes to the rescue.
+# It takes precedence over the regular cooldown settings.
+# Refer back the command examples.
 
 # reset_batt_stats_on_pause (rbsp) #
 # Reset battery stats after pausing charging.

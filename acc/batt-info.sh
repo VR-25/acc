@@ -54,7 +54,9 @@ batt_info() {
 
   {
     # print raw battery info
-    echo "$info" | grep -Ev '^(CURRENT|VOLTAGE)_NOW='
+    ${verbose-false} \
+      && echo "$info" \
+      || echo "$info" | grep -Ev '^(CURRENT|VOLTAGE)_NOW='
 
     # print CURRENT_NOW, VOLTAGE_NOW and POWER_NOW
     echo "

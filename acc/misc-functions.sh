@@ -137,7 +137,13 @@ disable_charging() {
     return 7 # total failure
   fi
 
-  ${cooldown-false} || vibrate ${vibrationPatterns[8]} ${vibrationPatterns[9]}
+  set +euo pipefail 2>/dev/null
+  eval "${runCmdOnPause[@]-}"
+  set -euo pipefail 2>/dev/null || :
+
+  ${cooldown-false} || {
+    vibrate ${vibrationPatterns[8]} ${vibrationPatterns[9]}
+  }
 
   if [ -n "${1-}" ]; then
     case $1 in
@@ -179,10 +185,11 @@ enable_charging() {
     $isAccd || {
       [ "${2-}" == noap ] || apply_on_plug
    }
-    cycle_switches on
+
     (chmod +w ${chargingSwitch[0]-} ${chargingSwitch[3]-} \
       && echo ${chargingSwitch[1]-} > ${chargingSwitch[0]-} \
-      && echo ${chargingSwitch[4]-} > ${chargingSwitch[3]-}) 2>/dev/null || :
+      && echo ${chargingSwitch[4]-} > ${chargingSwitch[3]-}) 2>/dev/null \
+      || cycle_switches on
     ! not_charging || sleep ${switchDelay}
 
     # detect and block ghost charging

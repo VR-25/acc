@@ -181,9 +181,6 @@ ctrl_charging() {
             dumpsys batterystats --reset || :
             rm /data/system/batterystats* || :
           }
-          set +eo pipefail 2>/dev/null
-          eval "${runCmdOnPause[@]-}"
-          set -eo pipefail 2>/dev/null || :
         }
 
         # rebootOnPause
