@@ -6,10 +6,10 @@ get_prop() { sed -n "\|^$1=|s|.*=||p" ${2:-$config}; }
 set_prop_() { sed -i "\|^${1}=|s|=.*|=$2|" ${3:-$config}; }
 
 
-# patch/reset [broken] config
+# patch/reset [broken/obsolete] config
 configVer=0$(get_prop configVerCode 2>/dev/null || :)
 defaultConfVer=$(get_prop configVerCode $modPath/default-config.txt)
-if (. $config); then
+if (. $config) && ! grep_ '^versionCode='; then
   [ $configVer -eq $defaultConfVer ] || {
 
     # patch cooldownCurrent and dynPowerSaving=120

@@ -14,11 +14,8 @@ mkdir -p ${config%/*}
 [ -f $config ] || cp $defaultConfig $config
 
 # config backup
-[ ! -d /data/media/0/?ndroid ] || {
-  [ /data/media/0/.acc-config-backup.txt -nt $config ] \
-    || install -m 777 $config \
-      /data/media/0/.acc-config-backup.txt 2>/dev/null || :
-}
+! [ -d /data/media/0/?ndroid -a $config -nt /data/media/0/.acc-config-backup.txt ] \
+  || cp -f $config /data/media/0/.acc-config-backup.txt
 
 # custom config path
 case "${1-}" in
@@ -28,10 +25,6 @@ case "${1-}" in
     shift
   ;;
 esac
-
-# reset broken config
-(. $config 2>/dev/null) \
-  || cp -f $modPath/default-config.txt $config
 
 
 case "$@" in

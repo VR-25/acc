@@ -142,7 +142,7 @@ disable_charging() {
   set -euo pipefail 2>/dev/null || :
 
   ${cooldown-false} || {
-    vibrate ${vibrationPatterns[8]} ${vibrationPatterns[9]}
+    eval "${chargDisabledNotifCmd[@]-}"
   }
 
   if [ -n "${1-}" ]; then
@@ -202,7 +202,7 @@ enable_charging() {
     fi
 
     ${cooldown-false} || {
-      not_charging || vibrate ${vibrationPatterns[4]} ${vibrationPatterns[5]}
+      not_charging || eval "${chargEnabledNotifCmd[@]-}"
     }
 
     if [ -n "${1-}" ]; then
@@ -244,13 +244,11 @@ misc_stuff() {
   set -euo pipefail 2>/dev/null || :
   mkdir -p ${config%/*}
   [ -f $config ] || cp $modPath/default-config.txt $config
-  
+
   # config backup
-  [ ! -d /data/media/0/?ndroid ] || {
-    [ /data/media/0/.acc-config-backup.txt -nt $config ] \
-      || install -m 777 $config /data/media/0/.acc-config-backup.txt 2>/dev/null
-  }
-  
+  ! [ -d /data/media/0/?ndroid -a $config -nt /data/media/0/.acc-config-backup.txt ] \
+   || cp -f $config /data/media/0/.acc-config-backup.txt
+
   # custom config path
   case "${1-}" in
     */*)
@@ -330,3 +328,9 @@ device=$(getprop ro.product.device | grep .. || getprop ro.build.product)
 cd /sys/class/power_supply/
 
 batt=$(echo *attery/capacity | cut -d ' ' -f 1 | sed 's|/capacity||')
+
+[[ $(readlink -f $modPath) != *com.termux* ]] || {
+  bin=$(su -c "which dumpsys")
+  eval "dumpsys() { su -c $bin; }"
+  unset bin
+}

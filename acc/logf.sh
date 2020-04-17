@@ -6,7 +6,7 @@ logf() {
     set +eo pipefail
     cd $TMPDIR
 
-    cp oem-custom oem-custom.txt
+    cp oem-custom oem-custom.txt 2>/dev/null
     cp ch-switches charging-switches.txt
     cp ch-curr-ctrl-files charging-current-ctrl-files.txt
     cp ch-volt-ctrl-files charging-voltage-ctrl-files.txt
@@ -15,10 +15,12 @@ logf() {
       [ -f $file ] && cp $file ./ && break
     done
 
-    cp $config_ ${config_%/*}/logs/* ./
+    cp ${config_%/*}/logs/* ./
+    grep -Ev '#|^$' $config_ > ./config.txt
     set +x
     . $modPath/batt-info.sh
-    batt_info > acc-i.txt
+    (cd /sys/class/power_supply/
+    batt_info > $TMPDIR/acc-i.txt)
     dumpsys battery > dumpsys-battery.txt
 
     tar -c *.log *.txt \

@@ -106,7 +106,7 @@ test_charging_switch() {
     && sleep $switchDelay
 
   ! not_charging && failed=true || {
-    vibrate ${vibrationPatterns[8]} ${vibrationPatterns[9]}
+    eval "${chargDisabledNotifCmd[@]-}"
     grep -iq 'not' $batt/status \
       && battIdleMode=true \
       || battIdleMode=false
@@ -114,7 +114,7 @@ test_charging_switch() {
 
   if ! $failed && echo "${2//::/ }" > $1 \
     && echo "${5//::/ }" > ${4:-/dev/null} \
-    && sleep $switchDelay && ! not_charging && vibrate ${vibrationPatterns[4]} ${vibrationPatterns[5]}
+    && sleep $switchDelay && ! not_charging && eval "${chargEnabledNotifCmd[@]-}"
   then
     print_switch_works "$@"
     echo "- battIdleMode=$battIdleMode"
@@ -135,7 +135,7 @@ exxit() {
   [[ $exitCode == [05689] ]] || {
     [[ $exitCode == [127] || $exitCode == 10 ]] && logf --export
     echo
-    vibrate ${vibrationPatterns[6]-6} ${vibrationPatterns[7]-0.1}
+    eval "${errorAlertCmd[@]-}"
   }
   rm /dev/.acc-config 2>/dev/null
   ! ${restartDaemon-false} || {
@@ -178,9 +178,11 @@ misc_stuff "${1-}"
 config__=$config
 
 
-# reset broken config
-(. $config 2>/dev/null) \
-  || cp -f $modPath/default-config.txt $config
+# reset broken/obsolete config
+if ! { (. $config 2>/dev/null) && ! grep -q '^versionCode=' $config; }; then
+  cp -f $modPath/default-config.txt $config
+fi
+
 . $config
 
 
@@ -237,12 +239,13 @@ case "${1-}" in
     while [[ $(cat $batt/charge_counter) -lt $(cat $batt/charge_full) ]]; do
       for i in "¦     %     ¦" "\\ >   %   < /" "- >>  %  << -" "/ >>> % <<< \\"; do
         clear
-        echo -n "$i" | sed "s/%/[$(cat $batt/capacity)%]/"
+        echo -n "$i" | sed "s/%/[$(cat $batt/capacity)%]/" | sed 's/100/99/'
         sleep 0.2
       done
       unset i
     done
-    vibrate ${vibrationPatterns[2]} ${vibrationPatterns[3]}
+    echo "¦     [100%]     ¦"
+    eval "${calibrationAlertCmd[@]-}"
     print_discharge
   ;;
 

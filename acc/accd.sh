@@ -20,7 +20,7 @@ exxit() {
   [[ $exitCode == [127] ]] && {
     . ${0%/*}/logf.sh
     logf --export > /dev/null 2>&1
-    vibrate ${vibrationPatterns[6]-6} ${vibrationPatterns[7]-0.1}
+    eval "${errorAlertCmd[@]-}"
   }
   rm $config
   exit $exitCode
@@ -252,7 +252,7 @@ ctrl_charging() {
         c=$(cat $batt/capacity)
         for i in $warningThresholds; do
           [ $c -ne $i ] || {
-            vibrate ${vibrationPatterns[0]} ${vibrationPatterns[1]}
+            eval "$autoShutdownAlertCmd[@]-}"
             warningThresholds=${warningThresholds/$i}
             $lowPower || {
               ! settings put global low_power 1 || lowPower=true
@@ -265,7 +265,8 @@ ctrl_charging() {
         [ ! $(( $(cat $batt/capacity) ${capacity[4]} )) -le ${capacity[0]} ] || {
           sleep ${loopDelay[1]}
           ! not_charging \
-            || am start -n android/com.android.internal.app.ShutdownActivity 2>/dev/null || reboot -p || :
+            || am start -n android/com.android.internal.app.ShutdownActivity 2>/dev/null || reboot -p 2>/dev/null \
+              ||/system/bin/reboot -p || :
         }
       }
 
@@ -312,14 +313,14 @@ misc_stuff "${1-}"
 
 
 # set auto-shutdown warning thresholds
-_warningThresholds="
+[ ${capacity[0]} -lt 0 ] || _warningThresholds="
   $(
     for i in 5 4 3 2 1; do
       echo $(( ${capacity[0]} + i ))
     done
   )
 "
-warningThresholds=$_warningThresholds
+warningThresholds=${_warningThresholds=}
 
 
 apply_on_boot

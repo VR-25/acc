@@ -55,8 +55,9 @@ rm -rf $(readlink -f /sbin/.$id/$id/) \
   /data/adb/modules/$id \
   /data/adb/service.d/${id}-*.sh \
   /data/media/0/${id}-logs-*.tar.* \
-  /data/data/mattecarra.accapp/files/$id
-  $([ "${1-}" == install ] || echo "/data/adb/${id}-data") ###
+  /data/data/mattecarra.accapp/files/$id \
+  /data/data/com.termux/files/home/.termux/boot/${id}-init.sh \
+  $([ "${1:-}" == install ] || echo "/data/adb/${id}-data") ###
 
 # remove flashable uninstaller
 rm ${3:-/data/media/0/${id}-uninstaller.zip}

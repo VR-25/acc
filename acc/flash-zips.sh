@@ -20,7 +20,7 @@ pick_zips() {
    echo
    echo -e "${zipFiles// /'\n'> }" | sed 's/__/ /'
    echo
-   echo -en "Add more zips to the queue: a\nStart fashing: [enter]\nExit: CTRL-C\n> "
+   echo -en "Add more zips to the queue: a\nStart flashing: [enter]\nExit: CTRL-C\n> "
    read -n1 target
    [ "$target" == a ] && pick_zips .
   elif [ -d "$target" ]; then

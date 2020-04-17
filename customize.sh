@@ -111,7 +111,7 @@ name=$(get_prop name)
 author=$(get_prop author)
 version=$(get_prop version)
 versionCode=$(get_prop versionCode)
-installDir=${installDir0:=/data/data/mattecarra.${id}app/files} ###
+installDir=${1:-/data/data/mattecarra.${id}app/files} ###
 config=/data/adb/${id}-data/config.txt
 
 
@@ -134,8 +134,6 @@ ash $srcDir/$id/uninstall.sh install
 rm /data/adb/${id}-data/logs/bootlooped 2>/dev/null || :
 cp -R $srcDir/$id/ $installDir/
 installDir=$(readlink -f $installDir/$id)
-installDir0=$installDir0/$id
-[ ! -d $installDir0 ] || installDir0=$(readlink -f $installDir0)
 cp $srcDir/module.prop $installDir/
 mkdir -p ${config%/*}/info
 cp -f $srcDir/*.md ${config%/*}/info
@@ -143,6 +141,7 @@ cp -f $srcDir/*.md ${config%/*}/info
 
 
 if [ $installDir != /sbin/.magisk/modules/$id ]; then
+
   mv $installDir/service.sh $installDir/${id}-init.sh
 
   # enable upgrading through Magisk Manager
@@ -193,15 +192,32 @@ touch /sbin/.magisk/modules/$id/skip_mount 2>/dev/null || :
 cp -f $srcDir/bin/${id}-uninstaller.zip /data/media/0/
 
 
+# Termux, fix sha-bang
+[[ $installDir != *com.termux* ]] && termux=false || {
+  termux=true
+  for f in $installDir/*.sh; do
+    ! grep -q '^#\!/.*/sh' $f \
+      || sed -i 's|^#!/.*/sh|#!/data/data/com.termux/files/usr/bin/bash|' $f
+  done
+}
+
+
 # set perms
 set_perms_recursive ${config%/*}
 chmod 666 /data/media/0/${id}-uninstaller.zip
 case $installDir in
-  /data/*/files/$id)
-    pkg=${installDir%/files/$id}
+  /data/*/files/*$id)
+    pkg=${installDir%/files/*$id}
     pkg=${pkg##/data*/}
     owner=$(grep $pkg /data/system/packages.list | cut -d ' ' -f 2)
-    set_perms_recursive ${installDir%/*} $owner
+    set_perms_recursive $installDir $owner
+
+    # Termux:Boot
+    ! $termux || {
+      mkdir -p ${installDir%/*}/.termux/boot
+      ln -sf $installDir/${id}-init.sh ${installDir%/*}/.termux/boot
+      set_perms_recursive ${installDir%/*}/.termux $owner
+    }
   ;;
   *)
     set_perms_recursive $installDir

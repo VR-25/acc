@@ -8,5 +8,27 @@ sometimes, acc is not initialized
   Magisk forgetting to run acc boot scripts?
   logs/bootlooped?
 
-Try out Termux API
-  acc as Termux module
+Termux APIs
+
+# getval index $var
+getval() {
+  local index=$1
+  shift
+  eval "echo \$$index"
+}
+
+# setval index val var
+setval() {
+  local val_=$1 val="$2" values="" var=$3
+  shift 3
+  values="$(eval "echo \$$var")"
+  val_="$(getval $val_ $values)"
+  eval $var=\""${values/$val_/$val}"\"
+}
+
+enforce default values on null
+
+alert cmds
+  doc and print-config.sh
+
+AccA and encryption
