@@ -14,7 +14,7 @@
 set +x
 echo
 id=acc
-umask 077
+umask 0077
 
 # log
 mkdir -p /data/adb/${id}-data/logs
@@ -33,19 +33,19 @@ if [ -d /sbin/.magisk/busybox ]; then
   esac
 else
   mkdir -p /dev/.busybox
-  chmod 700 /dev/.busybox
+  chmod 0700 /dev/.busybox
   case $PATH in
     /dev/.busybox:*) :;;
     *) PATH=/dev/.busybox:$PATH;;
   esac
   [ -x /dev/.busybox/busybox ] || {
     if [ -f /data/adb/magisk/busybox ]; then
-      [ -x /data/adb/magisk/busybox ] || chmod 700 /data/adb/magisk/busybox
+      [ -x /data/adb/magisk/busybox ] || chmod 0700 /data/adb/magisk/busybox
       /data/adb/magisk/busybox --install -s /dev/.busybox
     elif which busybox > /dev/null; then
       busybox --install -s /dev/.busybox
     elif [ -f /data/adb/busybox ]; then
-      [ -x /data/adb/busybox ] || chmod 700 /data/adb/busybox
+      [ -x /data/adb/busybox ] || chmod 0700 /data/adb/busybox
       /data/adb/busybox --install -s /dev/.busybox
     else
       echo "(!) Install busybox or simply place it in /data/adb/"
@@ -108,12 +108,12 @@ then
   }
 
   # download and install tarball
-  export installDir0=$(echo "$@" | sed -E "s/-c|--changelog|-f|--force|-k|--insecure|-n|--non-interactive|%|$reference| //g")
+  export installDir=$(echo "$@" | sed -E "s/-c|--changelog|-f|--force|-k|--insecure|-n|--non-interactive|%|$reference| //g")
   set +euo pipefail 2>/dev/null || :
   trap - EXIT
   echo
   curl -L $insecure $tarball | tar -xz \
-    && /system/bin/sh ${id}-${reference}/install.sh
+    && ash ${id}-${reference}/install.sh
 
 else
   echo

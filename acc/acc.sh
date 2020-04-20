@@ -100,7 +100,7 @@ test_charging_switch() {
 
   local failed=false switchDelay=20
 
-  chmod +w $1 ${4-} \
+  chmod u+w $1 ${4-} \
     && echo "${3//::/ }" > $1 \
     && echo "${6//::/ }" > ${4:-/dev/null} \
     && sleep $switchDelay
@@ -138,9 +138,6 @@ exxit() {
     eval "${errorAlertCmd[@]-}"
   }
   rm /dev/.acc-config 2>/dev/null
-  ! ${restartDaemon-false} || {
-    ! $daemonWasUp || /sbin/accd $config
-  }
   exit $exitCode
 }
 
@@ -227,28 +224,6 @@ case "${1-}" in
     shift; edit $config "$@"
   ;;
 
-  -C|--calibrate)
-    daemon_ctrl stop > /dev/null && daemonWasUp=true || daemonWasUp=false
-    restartDaemon=true
-    [ -f $batt/charge_counter -a -f $batt/charge_full ] || {
-      acca --watch${2-} "$(print_calibration)"
-      return 0
-    }
-    print_quit CTRL-C
-    sleep 2
-    while [[ $(cat $batt/charge_counter) -lt $(cat $batt/charge_full) ]]; do
-      for i in "¦     %     ¦" "\\ >   %   < /" "- >>  %  << -" "/ >>> % <<< \\"; do
-        clear
-        echo -n "$i" | sed "s/%/[$(cat $batt/capacity)%]/" | sed 's/100/99/'
-        sleep 0.2
-      done
-      unset i
-    done
-    echo "¦     [100%]     ¦"
-    eval "${calibrationAlertCmd[@]-}"
-    print_discharge
-  ;;
-
   -d|--disable)
     shift
     not_charging && print_already_discharging || {
@@ -329,28 +304,26 @@ case "${1-}" in
   -t|--test)
 
     shift
-    ! not_charging || print_unplugged
-    print_wait
+    print_unplugged
+    daemon_ctrl stop > /dev/null && daemonWasUp=true || daemonWasUp=false
     cp $config /dev/.acc-config
     config=/dev/.acc-config
-    exec 3>&1
     forceVibrations=true
-    daemon_ctrl stop && daemonWasUp=true || daemonWasUp=false
+    exec 3>&1
 
     set +eo pipefail 2>/dev/null
-    enable_charging
+    trap '$daemonWasUp && /sbin/accd $config__' EXIT
 
+    not_charging && enable_charging > /dev/null
     not_charging && {
       (print_wait_plug
-      trap '$daemonWasUp && {
-        /sbin/accd $config__
-        print_started
-      }' EXIT
       while not_charging; do
         sleep 1
         set +x
       done)
     }
+
+    print_wait
 
     case "${2-}" in
       "")
@@ -370,12 +343,6 @@ case "${1-}" in
     esac
 
     : ${exitCode=$?}
-
-    $daemonWasUp && {
-      /sbin/accd $config__
-      print_started
-    }
-
     exit $exitCode
   ;;
 

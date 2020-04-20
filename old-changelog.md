@@ -1,3 +1,11 @@
+**v2020.4.8-beta (202004080)**
+- acc -t: fixed "charging-switches: no such file" error
+- accd: fixed crash on plug/unplug that affected some users
+- Current control optimizations
+- Enhanced battery calibration helper (acc -C)
+- More intuitive versioning scheme
+- Stricter config integrity checks (auto-reset broken config)
+
 **2020.4.4-dev (202004040)**
 - acc -(e|d): do not do unnecessary work
 - acc -f: fixed capacity limit bypass

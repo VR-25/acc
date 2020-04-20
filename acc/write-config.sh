@@ -57,7 +57,7 @@ eac="${error_alert_cmd-${eac-${errorAlertCmd[@]}}}"
 {
 echo "configVerCode=$(cat $TMPDIR/.config-ver)
 capacity=(${sc:--1} ${cc:-101} ${rc:-70} ${pc:-75} ${co:-+0} ${cs:-false})
-temperature=(${ct:-70} ${mt:-80} ${mtp:90})
+temperature=(${ct:-70} ${mt:-80} ${mtp:-90})
 cooldownRatio=($cch $cp)
 cooldownCustom=($ccu)
 resetBattStats=(${rbsp:-false} ${rbsu:-false})
@@ -76,7 +76,6 @@ forceChargingStatusFullAt100=$ff
 runCmdOnPause=($rcp)
 dynPowerSaving=${dps:-0}
 autoShutdownAlertCmd=(${asac:-vibrate 5 0.1})
-calibrationAlertCmd=(${cac:-vibrate 5 0.1})
 chargDisabledNotifCmd=(${cdnc:-vibrate 3 0.1})
 chargEnabledNotifCmd=(${cenc:-vibrate 4 0.1})
 errorAlertCmd=(${eac:-vibrate 6 0.1})

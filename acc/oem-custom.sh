@@ -9,17 +9,8 @@ set_prop_() { sed -i "\|^${1}=|s|=.*|=$2|" ${3:-$config}; }
 # patch/reset [broken/obsolete] config
 configVer=0$(get_prop configVerCode 2>/dev/null || :)
 defaultConfVer=$(get_prop configVerCode $modPath/default-config.txt)
-if (. $config) && ! grep_ '^versionCode='; then
-  [ $configVer -eq $defaultConfVer ] || {
-
-    # patch cooldownCurrent and dynPowerSaving=120
-    ! grep_ 'cooldown(_c|C)urrent' || {
-      sed -Ei -e '/cooldown(_c|C)urrent/s/rrent/stom/g' \
-        -e '/dynPowerSaving=120/s/120/0/' $config
-    }
-
-    /sbin/acca --set dummy=
-  }
+if (. $config) && ! grep_ '^dynPowerSaving=120|^versionCode='; then
+  [ $configVer -eq $defaultConfVer ] || /sbin/acca --set dummy=
 else
   cp -f $modPath/default-config.txt $config
   rm /sdcard/acc-logs-*.tar.bz2 || : ### legacy
@@ -29,7 +20,7 @@ fi 2>/dev/null
 # OnePlus 7/Pro battery idle mode
 if grep_ '^chargingSwitch=.*/op_disable_charge'; then
   [ -f $TMPDIR/oem-custom ] \
-    || echo "chmod +w battery/input_suspend; echo 1 > battery/op_disable_charge; echo 0 > battery/input_suspend" > $TMPDIR/oem-custom
+    || echo "chmod u+w battery/input_suspend; echo 1 > battery/op_disable_charge; echo 0 > battery/input_suspend" > $TMPDIR/oem-custom
   grep_ "^runCmdOnPause=.*$TMPDIR/oem-custom" \
     || set_prop_ runCmdOnPause "(. $TMPDIR/oem-custom)"
   switchDelay=$(get_prop switchDelay)
@@ -60,6 +51,15 @@ echo 30 > usb/razer_charge_limit_dropdown) 2>/dev/null || :
   ! grep_ ChargerEnable $modPath/charging-switches.txt || {
     sed -i /ChargerEnable/d $TMPDIR/ch-switches
     sed -i /ChargerEnable/d $modPath/charging-switches.txt
+  }
+}
+
+
+# Pixel [1-3]*, exclude charge_control_limit switches (troublesome)
+! grep_ '\[Pixel(\]| [1-3])' $TMPDIR/acc-power_supply-*.log || {
+  ! grep_ charge_control_limit $modPath/charging-switches.txt || {
+    sed -i /charge_control_limit/d $TMPDIR/ch-switches
+    sed -i /charge_control_limit/d $modPath/charging-switches.txt
   }
 }
 )

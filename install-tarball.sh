@@ -4,7 +4,7 @@
 # License: GPLv3+
 
 id=acc
-umask 077
+umask 0077
 
 # log
 mkdir -p /data/adb/${1:-$id}-data/logs
@@ -20,19 +20,19 @@ if [ -d /sbin/.magisk/busybox ]; then
   esac
 else
   mkdir -p /dev/.busybox
-  chmod 700 /dev/.busybox
+  chmod 0700 /dev/.busybox
   case $PATH in
     /dev/.busybox:*) :;;
     *) PATH=/dev/.busybox:$PATH;;
   esac
   [ -x /dev/.busybox/busybox ] || {
     if [ -f /data/adb/magisk/busybox ]; then
-      [ -x /data/adb/magisk/busybox ] || chmod 700 /data/adb/magisk/busybox
+      [ -x /data/adb/magisk/busybox ] || chmod 0700 /data/adb/magisk/busybox
       /data/adb/magisk/busybox --install -s /dev/.busybox
     elif which busybox > /dev/null; then
       busybox --install -s /dev/.busybox
     elif [ -f /data/adb/busybox ]; then
-      [ -x /data/adb/busybox ] || chmod 700 /data/adb/busybox
+      [ -x /data/adb/busybox ] || chmod 0700 /data/adb/busybox
       /data/adb/busybox --install -s /dev/.busybox
     else
       echo "(!) Install busybox or simply place it in /data/adb/"
@@ -48,7 +48,7 @@ fi
   exit 4
 }
 
-umask 0
+umask 0000
 set -e
 
 # get into the target directory
@@ -73,12 +73,13 @@ copy_log() {
 trap copy_log EXIT
 
 # extract tarball
-rm -rf ${1:-$id}_*/ 2>/dev/null
-tar -xf ${1:-$id}_*gz
+rm -rf ${1:-$id}*/ 2>/dev/null
+tar -xf ${1:-$id}*gz
 
 # install ${1:-$id}
-export installDir0="$2"
-/system/bin/sh ${1:-$id}_*/install.sh
-rm -rf ${1-$id}_*/
+test -f ${1:-$id}*/install.sh || i=-current
+export installDir="$2"
+ash ${1:-$id}*/install${i}.sh "$2"
+rm -rf ${1-$id}*/
 
 exit 0

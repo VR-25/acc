@@ -12,7 +12,7 @@ apply_on_boot() {
     file=${1-}
     value=${2-}
     { $exitCmd && ! $force; } && default=${2-} || default=${3:-${2-}}
-    [ -f "$file" ] && chmod +w $file && eval "echo \$$arg" > $file || :
+    [ -f "$file" ] && chmod u+w $file && eval "echo \$$arg" > $file || :
   done
 
   $exitCmd && [ $arg == value ] && exit 0 || :
@@ -26,7 +26,7 @@ apply_on_plug() {
     file=${1-}
     value=${2-}
     default=${3:-${2-}}
-    [ -f "$file" ] && chmod +w $file && eval "echo \$$arg" > $file || :
+    [ -f "$file" ] && chmod u+w $file && eval "echo \$$arg" > $file || :
   done
 }
 
@@ -42,7 +42,7 @@ cycle_switches() {
       # toggle primary switch
       on="${chargingSwitch[1]//::/ }"
       off="${chargingSwitch[2]//::/ }"
-      chmod +w ${chargingSwitch[0]} \
+      chmod u+w ${chargingSwitch[0]} \
         && eval "echo "\$$1"" > ${chargingSwitch[0]} \
         || continue
 
@@ -50,7 +50,7 @@ cycle_switches() {
       [ ! -f "${chargingSwitch[3]-}" ] || {
         on="${chargingSwitch[4]//::/ }"
         off="${chargingSwitch[5]//::/ }"
-        chmod +w ${chargingSwitch[3]} \
+        chmod u+w ${chargingSwitch[3]} \
           && eval "echo "\$$1"" > ${chargingSwitch[3]} || :
       }
 
@@ -99,10 +99,10 @@ disable_charging() {
   if [[ ${chargingSwitch[0]:-x} == */* ]]; then
     if [ -f ${chargingSwitch[0]} ]; then
       # toggle primary switch
-      if chmod +w ${chargingSwitch[0]} && echo "${chargingSwitch[2]//::/ }" > ${chargingSwitch[0]}; then
+      if chmod u+w ${chargingSwitch[0]} && echo "${chargingSwitch[2]//::/ }" > ${chargingSwitch[0]}; then
         [ ! -f "${chargingSwitch[3]-}" ] || {
           # toggle secondary switch
-          chmod +w ${chargingSwitch[3]} && echo "${chargingSwitch[5]//::/ }" > ${chargingSwitch[3]} || {
+          chmod u+w ${chargingSwitch[3]} && echo "${chargingSwitch[5]//::/ }" > ${chargingSwitch[3]} || {
             $isAccd || print_switch_fails
             unset_switch
             cycle_switches_off
@@ -137,9 +137,7 @@ disable_charging() {
     return 7 # total failure
   fi
 
-  set +euo pipefail 2>/dev/null
   eval "${runCmdOnPause[@]-}"
-  set -euo pipefail 2>/dev/null || :
 
   ${cooldown-false} || {
     eval "${chargDisabledNotifCmd[@]-}"
@@ -186,7 +184,7 @@ enable_charging() {
       [ "${2-}" == noap ] || apply_on_plug
    }
 
-    (chmod +w ${chargingSwitch[0]-} ${chargingSwitch[3]-} \
+    (chmod u+w ${chargingSwitch[0]-} ${chargingSwitch[3]-} \
       && echo ${chargingSwitch[1]-} > ${chargingSwitch[0]-} \
       && echo ${chargingSwitch[4]-} > ${chargingSwitch[3]-}) 2>/dev/null \
       || cycle_switches on
@@ -309,7 +307,7 @@ wait_plug() {
 
 # environment
 
-umask 077
+umask 0077
 modPath=/sbin/.acc/acc
 export TMPDIR=${modPath%/*}
 config=/data/adb/acc-data/config.txt

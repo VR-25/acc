@@ -83,6 +83,7 @@ is_charging() {
               capacity[5]=true
               [ ${loopDelay[0]} -le 5 ] || loopDelay[0]=5
               [ ${loopDelay[1]} -le 10 ] || loopDelay[1]=10
+              dynPowerSaving=0
               . $modPath/write-config.sh
             }
           else
@@ -194,7 +195,7 @@ ctrl_charging() {
         [ -f ${config%/*}/.rebootedOnPause ] || {
           # wakeUnlock
           # won't run under "battery idle" mode ("not charging" status)
-          if grep -iq dis $batt/status && chmod +w /sys/power/wake_unlock; then
+          if grep -iq dis $batt/status && chmod u+w /sys/power/wake_unlock; then
             for wakelock in "${wakeUnlock[@]-}"; do
               echo $wakelock > /sys/power/wake_unlock || :
             done

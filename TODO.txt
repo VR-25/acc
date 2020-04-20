@@ -4,12 +4,6 @@ cooldown
 
 full POSIX compliance
 
-sometimes, acc is not initialized
-  Magisk forgetting to run acc boot scripts?
-  logs/bootlooped?
-
-Termux APIs
-
 # getval index $var
 getval() {
   local index=$1
@@ -26,9 +20,6 @@ setval() {
   eval $var=\""${values/$val_/$val}"\"
 }
 
-enforce default values on null
-
-alert cmds
-  doc and print-config.sh
-
-AccA and encryption
+install.sh
+  remove legacy cp
+  upgrade acc_bundle.tar.gz and install-tarball.sh

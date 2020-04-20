@@ -47,8 +47,6 @@ dyn_power_saving=${dynPowerSaving}
 
 auto_shutdown_alert_cmd=${autoShutdownAlertCmd[@]}
 
-calibration_alert_cmd=${calibrationAlertCmd[@]}
-
 charg_enabled_notif_cmd=${chargEnabledNotifCmd[@]}
 
 error_alert_cmd=${errorAlertCmd[@]}

@@ -5,6 +5,7 @@
 
 
 id=acc
+umask 0077
 TMPDIR=/sbin/.$id
 
 # prevent unnecessary runs
@@ -16,7 +17,7 @@ TMPDIR=/sbin/.$id
 
 # prepare Almquist Shell
 mkdir -p /dev/.busybox
-chmod 700 /dev/.busybox
+chmod 0700 /dev/.busybox
 ln -sf `which busybox` /dev/.busybox/ash
 
 # start the engine

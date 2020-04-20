@@ -6,7 +6,7 @@
 # devs: triple hashtags (###) mark custom code
 
 
-umask 077
+umask 0077
 (
   # log
   mkdir -p /data/adb/${id}-data/logs
@@ -64,7 +64,7 @@ umask 077
       ctrlFile2="$(echo $4 | cut -d ' ' -f 1)"
       [ -f "$ctrlFile1" ] && {
         [ -f "$ctrlFile2" -o -z "$ctrlFile2" ] && {
-          chmod +r $ctrlFile1 || continue
+          chmod u+r $ctrlFile1 || continue
           if grep -Eq "^(${2//::/ }|${3//::/ })$" $ctrlFile1 \
             || ! cat $ctrlFile1 > /dev/null || [ -z "$(cat $ctrlFile1)" ]
           then
@@ -80,7 +80,7 @@ umask 077
   ls -1 */BatterySenseVoltage */ISenseVoltage */batt_vol */InstatVolt \
     */constant_charge_voltage* */voltage_max */batt_tune_float_voltage 2>/dev/null | \
       while read file; do
-        chmod +r $file 2>/dev/null && grep -Eq '^4[1-4][0-9]{2}' $file || continue
+        chmod u+r $file 2>/dev/null && grep -Eq '^4[1-4][0-9]{2}' $file || continue
         echo ${file}::$(sed -n 's/^..../vvvv/p' $file)::$(cat $file) \
           >> $TMPDIR/ch-volt-ctrl-files_
       done
@@ -93,7 +93,7 @@ umask 077
   ls -1 */input_current_limited */restrict*_ch*g* \
     /sys/class/qcom-battery/restrict*_ch*g* 2>/dev/null | \
     while read file; do
-      chmod +r $file 2>/dev/null || continue
+      chmod u+r $file 2>/dev/null || continue
       grep -q '^0$' $file && echo ${file}::1::0 >> $TMPDIR/ch-curr-ctrl-files
     done
 
@@ -109,7 +109,7 @@ umask 077
     *dcp_input */wc_input */car_charge \
     */dcp_charge */wc_charge 2>/dev/null | \
       while read file; do
-        chmod +r $file 2>/dev/null || continue
+        chmod u+r $file 2>/dev/null || continue
         defaultValue=$(cat $file)
         [ $defaultValue -ne 0 ] && {
           if [ $defaultValue -lt 10000 ]; then

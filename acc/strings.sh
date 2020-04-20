@@ -121,11 +121,6 @@ Options
       acc -c less
       acc -c cat
 
-  -C|--calibrate [update freq]   Charge to true 100%
-    e.g.,
-      acc -C (update info every 3 seconds)
-      acc -C 0.5 (update info every half a second)
-
   -d|--disable [#%, #s, #m or #h (optional)]   Disable charging
     e.g.,
       acc -d 70% (do not recharge until capacity <= 70%)
@@ -212,7 +207,9 @@ Options
   -s|--set p|--print [egrep regex (default: ".")]   Print current config without blank lines (refer to previous examples)
 
   -s|--set r|--reset   Restore default config
-    e.g., acc -s r
+    e.g.,
+      acc -s r
+      rm /data/adb/acc-data/config.txt (failsafe)
 
   -s|--set s|charging_switch   Enforce a specific charging switch
     e.g., acc -s s
@@ -277,6 +274,8 @@ Exit Codes
   8. Daemon already running ("--daemon start")
   9. Daemon not running ("--daemon" and "--daemon stop")
   10. "--test" failed
+  11. Current (mA) out of range
+  12. install.sh failed to initialize acc or start accd
 
   Logs are exported automatically ("--log --export") on exit codes 1, 2, 7 and 10.
 
@@ -443,12 +442,8 @@ print_m_mode() {
   echo "(i) Manual mode"
 }
 
-print_discharge() {
-  echo "(i) Now let the battery discharge until the system shuts down"
-}
-
 print_wait() {
-  echo "(i) This may take a few minutes..."
+  echo "(i) Alright, this may take a few minutes..."
 }
 
 print_already_charging() {
@@ -457,9 +452,4 @@ print_already_charging() {
 
 print_already_discharging() {
   echo "(i) Already not changing"
-}
-
-print_calibration() {
-  echo "Let the battery charge until VOLTAGE_NOW >= VOLTAGE_MAX* and CURRENT_NOW drops to 3% of the rated mAh capacity or less.
-Next, let it discharge until the system shuts down."
 }

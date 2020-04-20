@@ -1,4 +1,4 @@
-configVerCode=202004170
+configVerCode=202004200
 capacity=(-1 101 70 75 +0 false)
 temperature=(70 80 90)
 cooldownRatio=()
@@ -14,12 +14,11 @@ rebootOnPause=
 switchDelay=1.5
 language=en
 wakeUnlock=()
-prioritizeBattIdleMode=false
+prioritizeBattIdleMode=true
 forceChargingStatusFullAt100=
 runCmdOnPause=()
 dynPowerSaving=0
 autoShutdownAlertCmd=(vibrate 5 0.1)
-calibrationAlertCmd=(vibrate 5 0.1)
 chargDisabledNotifCmd=(vibrate 3 0.1)
 chargEnabledNotifCmd=(vibrate 4 0.1)
 errorAlertCmd=(vibrate 6 0.1)
@@ -77,7 +76,7 @@ errorAlertCmd=(vibrate 6 0.1)
 
 # dynPowerSaving=dyn_power_saving=seconds
 
-# 
+#
 
 
 # VARIABLE ALIASES/SORTCUTS
@@ -122,7 +121,6 @@ errorAlertCmd=(vibrate 6 0.1)
 # dps dyn_power_saving
 
 # asac auto_shutdown_alert_cmd
-# cac calibration_alert_cmd
 # cdnc charg_disabled_notif_cmd
 # cenc charg_enabled_notif_cmd
 # eac error_alert_cmd
@@ -288,10 +286,9 @@ errorAlertCmd=(vibrate 6 0.1)
 # * On top of loop_delay_discharging
 
 # auto_shutdown_alert_cmd (asac) #
-# calibration_alert_cmd (cac) #
 # charg_disabled_notif_cmd (cdnc) #
 # charg_enabled_notif_cmd (cenc) #
 # error_alert_cmd (eac) #
-# As the names suggest, these properties dictate commands acc/s run at each event.
+# As the names suggest, these properties dictate commands acc/d/s should run at each event.
 # The default command is "vibrate <number of vibrations> <interval (seconds)>"
 # Termux APIs can be used for notifications, TTS, toasts and more. For details, refer to https://wiki.termux.com/wiki/Termux:API .

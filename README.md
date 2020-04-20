@@ -175,7 +175,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202004170
+configVerCode=202004200
 capacity=(-1 101 70 75 +0 false)
 temperature=(70 80 90)
 cooldownRatio=()
@@ -191,12 +191,11 @@ rebootOnPause=
 switchDelay=1.5
 language=en
 wakeUnlock=()
-prioritizeBattIdleMode=false
+prioritizeBattIdleMode=true
 forceChargingStatusFullAt100=
 runCmdOnPause=()
 dynPowerSaving=0
 autoShutdownAlertCmd=(vibrate 5 0.1)
-calibrationAlertCmd=(vibrate 5 0.1)
 chargDisabledNotifCmd=(vibrate 3 0.1)
 chargEnabledNotifCmd=(vibrate 4 0.1)
 errorAlertCmd=(vibrate 6 0.1)
@@ -254,7 +253,7 @@ errorAlertCmd=(vibrate 6 0.1)
 
 # dynPowerSaving=dyn_power_saving=seconds
 
-# 
+#
 
 
 # VARIABLE ALIASES/SORTCUTS
@@ -299,7 +298,6 @@ errorAlertCmd=(vibrate 6 0.1)
 # dps dyn_power_saving
 
 # asac auto_shutdown_alert_cmd
-# cac calibration_alert_cmd
 # cdnc charg_disabled_notif_cmd
 # cenc charg_enabled_notif_cmd
 # eac error_alert_cmd
@@ -465,11 +463,10 @@ errorAlertCmd=(vibrate 6 0.1)
 # * On top of loop_delay_discharging
 
 # auto_shutdown_alert_cmd (asac) #
-# calibration_alert_cmd (cac) #
 # charg_disabled_notif_cmd (cdnc) #
 # charg_enabled_notif_cmd (cenc) #
 # error_alert_cmd (eac) #
-# As the names suggest, these properties dictate commands acc/s run at each event.
+# As the names suggest, these properties dictate commands acc/d/s should run at each event.
 # The default command is "vibrate <number of vibrations> <interval (seconds)>"
 # Termux APIs can be used for notifications, TTS, toasts and more. For details, refer to https://wiki.termux.com/wiki/Termux:API .
 
@@ -531,11 +528,6 @@ Options
       acc -c (edit w/ nano/vim/vi)
       acc -c less
       acc -c cat
-
-  -C|--calibrate [update freq]   Charge to true 100%
-    e.g.,
-      acc -C (update info every 3 seconds)
-      acc -C 0.5 (update info every half a second)
 
   -d|--disable [#%, #s, #m or #h (optional)]   Disable charging
     e.g.,
@@ -623,7 +615,9 @@ Options
   -s|--set p|--print [egrep regex (default: ".")]   Print current config without blank lines (refer to previous examples)
 
   -s|--set r|--reset   Restore default config
-    e.g., acc -s r
+    e.g.,
+      acc -s r
+      rm /data/adb/acc-data/config.txt (failsafe)
 
   -s|--set s|charging_switch   Enforce a specific charging switch
     e.g., acc -s s
@@ -688,6 +682,8 @@ Exit Codes
   8. Daemon already running ("--daemon start")
   9. Daemon not running ("--daemon" and "--daemon stop")
   10. "--test" failed
+  11. Current (mA) out of range
+  12. install.sh failed to initialize acc or start accd
 
   Logs are exported automatically ("--log --export") on exit codes 1, 2, 7 and 10.
 
@@ -759,7 +755,7 @@ Refer back to `DEFAULT CONFIGURATION (switch_delay)`.
 
 ### Battery Capacity (% Level) Doesn't Seem Right
 
-The "smart" battery may need calibration.
+The "smart" battery may require calibration.
 Refer to the `FAQ` section below for details.
 
 If we're talking about a Pixel device, the issue goes beyond that.
@@ -771,7 +767,7 @@ Refer back to `DEFAULT CONFIGURATION > capacity_sync`.
 Recent/custom kernels (e.g., Kirisakura) support battery idle mode.
 However, at the time of this writing, the feature is not production quality.
 ACC has custom code to cover its pitfalls, though.
-`battery/op_disable_charge 0 1` must be enforced manually (`acc -s s` or `acc -s s="battery/op_disable_charge 0 1"`).
+`battery/op_disable_charge 0 1` must be enforced manually (`acc -s s` or `acc -s s="battery/op_disable_charge 0 1"`) and accd, restarted afterwards.
 
 
 ### Bootloop, ACC Not Found
@@ -833,7 +829,9 @@ Automatic exporting happens under specific conditions (refer back to `SETUP/USAG
 
 ### Restore Default Config
 
-`acc --set --reset` or `acc -s r`
+This can save you a lot of time and grief.
+
+`acc --set --reset`, `acc -s r` or `rm /data/adb/acc-data/config.txt` (failsafe)
 
 
 ### Slow Charging
@@ -934,8 +932,24 @@ Refer back to `POWER SUPPLY LOGS (HELP NEEDED)`.
 > Why, when and how should I calibrate the battery?
 
 With modern battery management systems, that's generally unnecessary.
-If your battery is underperforming, refer to https://batteryuniversity.com/index.php/learn/article/battery_calibration .
-The calibration command is `acc -C`.
+
+However, if your battery is underperforming, you may want to try the following procedure:
+
+1. Let the battery charge until VOLTAGE_NOW >= VOLTAGE_MAX* and CURRENT_NOW drops to 3% of the rated mAh capacity, or less.
+
+2. Let it discharge until the phone shuts off.
+
+3. Turn the phone back on to consume any "residual" charge left.
+Repeat this until the device refuses to stay/turn on.
+Next, try booting straight into download, fastboot or recovery mode.
+Repeat until the phone totally refuses to stay/turn on.
+
+4. Charge to 100% without turning it on.
+Leave the device plugged in for another hour or so.
+This emulates step 1.
+Done.
+
+For additional information, refer to https://batteryuniversity.com/index.php/learn/article/battery_calibration .
 
 
 > What if even after calibrating the battery, ACC and Android battery level reports still differ?
@@ -1042,6 +1056,18 @@ A common workaround is having `resume_capacity = pause_capacity - 1`.
 ---
 ## LATEST CHANGES
 
+**v2020.4.20-beta (202004200)**
+- Blacklisted troublesome Pixel [1-3]* charging switches
+- Fixed absurd charging current and voltage reports (AccA)
+- Fixed upgrade and downgrade issues (AccA)
+- Include AccA logcat in log archive
+- Optimized installers
+- prioritizeBattIdleMode=true by default
+- Removed `acc --calibrate`, in favor of universal and comprehensive calibration instructions (README > FAQ)
+- Under the hood enhancements
+- Updated documentation
+- Workaround for encryption preventing AccA from initializing ACC
+
 **v2020.4.17-beta (202004170)**
 - acc -C: replace misleading 100% with 99%
 - acc -s: restoring individual defaults is as simple as running `acc -s var1= var2= ...`
@@ -1058,11 +1084,3 @@ A common workaround is having `resume_capacity = pause_capacity - 1`.
 - Renamed cooldown(_c|C)urrent/cooldown(_c|C)ustom
 - Native support for MediaTek mt6795 devices, e.g., Redmi Note 2 (hermes)
 - Updated build script and documentation
-
-**v2020.4.8-beta (202004080)**
-- acc -t: fixed "charging-switches: no such file" error
-- accd: fixed crash on plug/unplug that affected some users
-- Current control optimizations
-- Enhanced battery calibration helper (acc -C)
-- More intuitive versioning scheme
-- Stricter config integrity checks (auto-reset broken config)

@@ -27,7 +27,7 @@ gather_ps_data() {
 }
 
 # log
-umask 077
+umask 0077
 exec 2>/data/adb/${id}-data/logs/power-supply-logger.sh.log
 set -x
 

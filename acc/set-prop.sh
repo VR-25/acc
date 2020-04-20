@@ -50,7 +50,7 @@ set_prop() {
       print_known_switches
       echo
       . $modPath/select.sh
-      select_ chargingSwitch $(print_auto) $(cat $TMPDIR/ch-switches) $(print_exit)
+      select_ chargingSwitch $(print_auto; cat $TMPDIR/ch-switches; print_exit)
       [ ${chargingSwitch:-x} != $(print_exit) ] || exit 0
       [ ${chargingSwitch:-x} != $(print_auto) ] || charging_switch=
       unset IFS
@@ -110,7 +110,7 @@ set_prop() {
             apply_current $2 || return 1
           else
             echo "(!) [0-9999] ($(print_mA | sed 's/^ //')) $(print_only)"
-            return 1
+            return 11
           fi
         fi
 

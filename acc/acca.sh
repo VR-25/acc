@@ -39,6 +39,7 @@ case "$@" in
     cd /sys/class/power_supply/
     batt=$(echo *attery/capacity | cut -d ' ' -f 1 | sed 's|/capacity||')
     . /sbin/.acc/acc/batt-info.sh
+    verbose=false
     batt_info "${2-}"
     exit $?
   ;;

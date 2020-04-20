@@ -79,6 +79,7 @@ set +e
 
 # unify installers for flashable zip (customize.sh and update-binary are copies of install.sh)
 { cp -u install.sh customize.sh
+cp -u install.sh install-current.sh ### legacy
 cp -u install.sh META-INF/com/google/android/update-binary; } 2>/dev/null
 
 

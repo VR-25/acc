@@ -12,12 +12,12 @@ SKIPUNZIP=1
 
 echo
 id=acc
-umask 077
+umask 0077
 
 
 # log
 mkdir -p /data/adb/${id}-data/logs
-chmod -R 700 /data/adb/${id}-data/logs
+chmod -R 0700 /data/adb/${id}-data/logs
 exec 2>/data/adb/${id}-data/logs/install.log
 set -x
 
@@ -26,9 +26,14 @@ exxit() {
   local e=$?
   set +eo pipefail
   rm -rf /dev/.${id}-install
-  [ $e -ne 0 ] && echo || {
-    rm /sbin/.$id/.ghost-charging ###
-    /sbin/acca --daemon > /dev/null || /sbin/accd ### workaround, Magisk 20.4+
+  [ $e -ne 0 ] && echo || { ###
+    rm /sbin/.$id/.ghost-charging
+    /sbin/acca --daemon > /dev/null || /sbin/accd || {
+      pkill -9 -f $installDir/service.sh
+      $installDir/service.sh --override
+      rm /sbin/.$id/.ghost-charging
+      /sbin/acca --daemon > /dev/null || /sbin/accd
+    } || e=12
   }
   exit $e
 } 2>/dev/null
@@ -45,19 +50,19 @@ if [ -d /sbin/.magisk/busybox ]; then
   esac
 else
   mkdir -p /dev/.busybox
-  chmod 700 /dev/.busybox
+  chmod 0700 /dev/.busybox
   case $PATH in
     /dev/.busybox:*) :;;
     *) PATH=/dev/.busybox:$PATH;;
   esac
   [ -x /dev/.busybox/busybox ] || {
     if [ -f /data/adb/magisk/busybox ]; then
-      [ -x /data/adb/magisk/busybox ] || chmod 700 /data/adb/magisk/busybox
+      [ -x /data/adb/magisk/busybox ] || chmod 0700 /data/adb/magisk/busybox
       /data/adb/magisk/busybox --install -s /dev/.busybox
     elif which busybox > /dev/null; then
       busybox --install -s /dev/.busybox
     elif [ -f /data/adb/busybox ]; then
-      [ -x /data/adb/busybox ] || chmod 700 /data/adb/busybox
+      [ -x /data/adb/busybox ] || chmod 0700 /data/adb/busybox
       /data/adb/busybox --install -s /dev/.busybox
     else
       echo "(!) Install busybox or simply place it in /data/adb/"
@@ -78,8 +83,8 @@ fi
 get_prop() { sed -n "s|^$1=||p" ${2:-$srcDir/module.prop}; }
 
 set_perms() {
-  local owner=${2:-0} perms=600 target=$(readlink -f $1)
-  if echo $target | grep -q '.*\.sh$' || [ -d $target ]; then perms=700; fi
+  local owner=${2:-0} perms=0600 target=$(readlink -f $1)
+  if echo $target | grep -q '.*\.sh$' || [ -d $target ]; then perms=0700; fi
   chmod $perms $target
   chown $owner:$owner $target
   restorecon $target > /dev/null 2>&1 || :
@@ -110,15 +115,23 @@ srcDir=${srcDir/#"${0##*/}"/"."}
 name=$(get_prop name)
 author=$(get_prop author)
 version=$(get_prop version)
+magiskModDir=/sbin/.magisk/modules
 versionCode=$(get_prop versionCode)
-installDir=${1:-/data/data/mattecarra.${id}app/files} ###
+: ${installDir:=/data/data/mattecarra.${id}app/files} ###
 config=/data/adb/${id}-data/config.txt
+
+[ -d  $magiskModDir ] && magisk=true || magisk=false
 
 
 # check/set parent installation directory
-[ -d $installDir ] || installDir=/sbin/.magisk/modules
+
+[ -d $installDir ] || installDir=$magiskModDir
 [ -d $installDir ] || installDir=/data/adb
-[ -d $installDir ] || { echo "(!) /data/adb/ not found\n"; exit 1; }
+
+[ -d $installDir ] || {
+  echo "(!) /data/adb/ not found\n"
+  exit 1
+}
 
 
 ###
@@ -129,7 +142,6 @@ GPLv3+
 (i) Installing in $installDir/$id/..."
 
 
-# install
 ash $srcDir/$id/uninstall.sh install
 rm /data/adb/${id}-data/logs/bootlooped 2>/dev/null || :
 cp -R $srcDir/$id/ $installDir/
@@ -137,51 +149,47 @@ installDir=$(readlink -f $installDir/$id)
 cp $srcDir/module.prop $installDir/
 mkdir -p ${config%/*}/info
 cp -f $srcDir/*.md ${config%/*}/info
-[ $installDir == /data/adb/$id ] || ln -s $installDir /data/adb/
 
 
-if [ $installDir != /sbin/.magisk/modules/$id ]; then
+case $installDir in
+  /data/*/files/*$id)
+    ! $magisk || {
+      cp -R $installDir $magiskModDir/
 
-  mv $installDir/service.sh $installDir/${id}-init.sh
-
-  # enable upgrading through Magisk Manager
-  ln -s $installDir /sbin/.magisk/modules/$id 2>/dev/null || :
-
-  [ ! -d /data/adb/service.d ] || {
-
-# alternate initialization script
+# front-end post-uninstall cleanup script
 echo "#!/system/bin/sh
-# alternate $id initializer
-(until [ -d /storage/emulated/0/?ndroid ]; do sleep 10; done
-if [ -f $installDir/${id}-init.sh ]; then
-  $installDir/${id}-init.sh
-else
-  rm \$0
-fi
-exit 0 &) &
-exit 0" > /data/adb/service.d/${id}-init.sh
-
-# post-uninstall cleanup script
-echo "#!/system/bin/sh
-# $id post-uninstall cleanup
-(until [ -d /storage/emulated/0/?ndroid ]; do sleep 15; done
+# $id front-end post-uninstall cleanup script
+(until [ -d /sdcard/?ndroid ]; do sleep 15; done
 if [ ! -f $installDir/module.prop ]; then
-  rm /data/adb/$id /data/adb/${id}-data /data/adb/modules/$id \$0 2>/dev/null
+  rm -rf /data/adb/$id /data/adb/${id}-data /data/adb/modules/$id \$0 2>/dev/null
 fi
 exit 0 &) &
 exit 0"  > /data/adb/service.d/${id}-cleanup.sh
 
-    chmod 700 /data/adb/service.d/${id}-*.sh
+      chmod 0700 /data/adb/service.d/${id}-cleanup.sh
+    }
+    ln $installDir/service.sh $installDir/${id}-init.sh
+
+    # TODO
+    # upgrade bundled version
+    #cp -f $srcDir/install-tarball.sh ${installDir%/*}/
+    #tar -cvf - . -C $srcDir --exclude .git | gzip -9 > ${installDir%/*}/acc_bundle.tar.gz
+  ;;
+esac
+
+
+[ $installDir == /data/adb/$id ] || {
+
+  ln -s $installDir /data/adb/
+
+  ! $magisk || {
+    # workaround for Magisk "forgetting service.sh" issue
+    ln $magiskModDir/$id/service.sh $magiskModDir/$id/post-fs-data.sh
+
+    # disable magic mount (Magisk)
+    touch $magiskModDir/$id/skip_mount
   }
-
-else
-  # workaround for Magisk "forgetting service.sh" issue
-  ln $installDir/service.sh $installDir/post-fs-data.sh
-fi
-
-
-# disable magic mount (Magisk)
-touch /sbin/.magisk/modules/$id/skip_mount 2>/dev/null || :
+}
 
 
 # restore config backup
@@ -204,13 +212,14 @@ cp -f $srcDir/bin/${id}-uninstaller.zip /data/media/0/
 
 # set perms
 set_perms_recursive ${config%/*}
-chmod 666 /data/media/0/${id}-uninstaller.zip
+chmod 0666 /data/media/0/${id}-uninstaller.zip
 case $installDir in
   /data/*/files/*$id)
     pkg=${installDir%/files/*$id}
     pkg=${pkg##/data*/}
     owner=$(grep $pkg /data/system/packages.list | cut -d ' ' -f 2)
     set_perms_recursive $installDir $owner
+    ! $magisk || set_perms_recursive $magiskModDir/$id
 
     # Termux:Boot
     ! $termux || {
@@ -232,8 +241,6 @@ echo "- Done
 
 
 "
-
-
 # print links and changelog
 sed -En "\|## LINKS|,\$p" ${config%/*}/info/README.md \
   | grep -v '^---' | sed 's/^## //'
@@ -249,14 +256,9 @@ echo "
 
 
 [ $installDir == /data/adb ] && echo -e "\n(i) Use init.d or an app to run $installDir/${id}-init.sh on boot to initialize ${id}."
-
 echo
 
 # initialize $id
-if [ -f $installDir/service.sh ]; then
-  $installDir/service.sh --override
-else
-  $installDir/${id}-init.sh --override
-fi
+$installDir/service.sh --override
 
 exit 0
