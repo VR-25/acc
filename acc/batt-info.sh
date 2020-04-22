@@ -10,8 +10,12 @@ batt_info() {
 
   # (determine conversion factor)
   dtr_conv_factor() {
-    factor=0
-    [ $1 -lt 10000 -a $1 -ne 0 ] && factor=1000 || factor=1000000
+    factor=${2-0}
+    [ -n "${2-}" ] || {
+      [ $1 -lt 10000 -a $1 -ne 0 ] \
+        && factor=1000 \
+        || factor=1000000
+    }
   }
 
 
@@ -38,13 +42,13 @@ batt_info() {
 
   # parse CURRENT_NOW & convert to Amps
   currNow=$(echo "$info" | sed -n "s/^CURRENT_NOW=//p")
-  dtr_conv_factor ${currNow#-}
+  dtr_conv_factor ${currNow#-} ${ampFactor-}
   currNow=$(calc ${currNow:-0} / $factor)
 
 
   # parse VOLTAGE_NOW & convert to Volts
   voltNow=$(echo "$info" | sed -n "s/^VOLTAGE_NOW=//p")
-  dtr_conv_factor $voltNow
+  dtr_conv_factor $voltNow ${voltFactor-}
   voltNow=$(calc ${voltNow:-0} / $factor)
 
 

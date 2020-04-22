@@ -51,4 +51,7 @@ charg_enabled_notif_cmd=${chargEnabledNotifCmd[@]}
 
 error_alert_cmd=${errorAlertCmd[@]}
 
-charg_disabled_notif_cmd=${chargDisabledNotifCmd[@]}"
+charg_disabled_notif_cmd=${chargDisabledNotifCmd[@]}
+
+amp_factor=$ampFactor
+volt_factor=$voltFactor"

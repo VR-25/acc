@@ -1,3 +1,10 @@
+**v2020.4.10-beta (202004100)**
+- acc -C: watch `charge_counter` and `charge_full` only; provide calibration instructions for devices that lack these files
+- General fixes and optimizations
+- Renamed cooldown(_c|C)urrent/cooldown(_c|C)ustom
+- Native support for MediaTek mt6795 devices, e.g., Redmi Note 2 (hermes)
+- Updated build script and documentation
+
 **v2020.4.8-beta (202004080)**
 - acc -t: fixed "charging-switches: no such file" error
 - accd: fixed crash on plug/unplug that affected some users

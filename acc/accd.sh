@@ -22,7 +22,7 @@ exxit() {
     logf --export > /dev/null 2>&1
     eval "${errorAlertCmd[@]-}"
   }
-  rm $config
+  rm $config 2>/dev/null
   exit $exitCode
 }
 
@@ -253,7 +253,7 @@ ctrl_charging() {
         c=$(cat $batt/capacity)
         for i in $warningThresholds; do
           [ $c -ne $i ] || {
-            eval "$autoShutdownAlertCmd[@]-}"
+            eval "${autoShutdownAlertCmd[@]-}"
             warningThresholds=${warningThresholds/$i}
             $lowPower || {
               ! settings put global low_power 1 || lowPower=true
@@ -304,7 +304,7 @@ exec >> $log 2>&1
 set -x
 
 
-pgrep -f '/ac(c|ca) (-|--)(calibrate|test|[Cdeft])|/accd\.sh' | sed /$$/d | xargs kill -9 2>/dev/null
+pgrep -f '/ac(c|ca) (-|--)(test|[deft])|/accd\.sh' | sed /$$/d | xargs kill -9 2>/dev/null
 
 misc_stuff "${1-}"
 

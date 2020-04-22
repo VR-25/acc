@@ -103,7 +103,7 @@ Usage
 
   /sbin/acca [options] [args]   acc optimized for front-ends
 
-  accs   acc foreground service, works exactly as accd, but attached to the terminal
+  accs   acc foreground service, works exactly as accd, but attached to the terminal by default
 
   A custom config path can be specified as first parameter.
   If the file doesn't exist, the current config is cloned.

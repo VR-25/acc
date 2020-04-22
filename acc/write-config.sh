@@ -53,6 +53,9 @@ cenc="${charg_enabled_notif_cmd-${cenc-${chargEnabledNotifCmd[@]}}}"
 
 eac="${error_alert_cmd-${eac-${errorAlertCmd[@]}}}"
 
+af=${amp_factor-${af-$ampFactor}}
+vf=${volt_factor-${vf-$voltFactor}}
+
 
 {
 echo "configVerCode=$(cat $TMPDIR/.config-ver)
@@ -66,7 +69,7 @@ chargingSwitch=($s)
 applyOnBoot=($ab)
 applyOnPlug=($ap)
 maxChargingCurrent=($mcc)
-maxChargingVoltage=($mvc)
+maxChargingVoltage=($mcv)
 rebootOnPause=$rp
 switchDelay=${sd:-1.5}
 language=${lang:-en}
@@ -79,6 +82,8 @@ autoShutdownAlertCmd=(${asac:-vibrate 5 0.1})
 chargDisabledNotifCmd=(${cdnc:-vibrate 3 0.1})
 chargEnabledNotifCmd=(${cenc:-vibrate 4 0.1})
 errorAlertCmd=(${eac:-vibrate 6 0.1})
+ampFactor=$af
+voltFactor=$vf
 
 "
 cat $TMPDIR/.config-help

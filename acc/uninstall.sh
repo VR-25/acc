@@ -43,9 +43,9 @@ fi
 exec 2>/dev/null
 
 # interrupt $id processes
-pkill -f "/($id|${id}a) (-|--)(calibrate|test|[Cdeft])|/${id}d\.sh" ###
+pkill -f "/($id|${id}a) (-|--)(test|[deft])|/${id}d\.sh" ###
 sleep 0.2
-while [ -n "$(pgrep -f '/ac(c|ca) (-|--)(calibrate|test|[Cdeft])|/accd\.sh')" ]; do
+while [ -n "$(pgrep -f '/ac(c|ca) (-|--)(test|[deft])|/accd\.sh')" ]; do
   sleep 0.2
 done
 

@@ -111,8 +111,9 @@ umask 0077
       while read file; do
         chmod u+r $file 2>/dev/null || continue
         defaultValue=$(cat $file)
-        [ $defaultValue -ne 0 ] && {
-          if [ $defaultValue -lt 10000 ]; then
+        ampFactor=$(sed -n 's/^ampFactor=//p' /data/adb/${id}-data/config.txt 2>/dev/null)
+        [ -n "$ampFactor" -o $defaultValue -ne 0 ] && {
+          if [ "${ampFactor:-1}" -eq 1000 -o $defaultValue -lt 10000 ]; then
             # milliamps
             echo ${file}::v::$defaultValue \
               >> $TMPDIR/ch-curr-ctrl-files_

@@ -1,4 +1,4 @@
-configVerCode=202004200
+configVerCode=202004210
 capacity=(-1 101 70 75 +0 false)
 temperature=(70 80 90)
 cooldownRatio=()
@@ -22,6 +22,8 @@ autoShutdownAlertCmd=(vibrate 5 0.1)
 chargDisabledNotifCmd=(vibrate 3 0.1)
 chargEnabledNotifCmd=(vibrate 4 0.1)
 errorAlertCmd=(vibrate 6 0.1)
+ampFactor=
+voltFactor=
 
 
 # WARNINGS
@@ -76,7 +78,17 @@ errorAlertCmd=(vibrate 6 0.1)
 
 # dynPowerSaving=dyn_power_saving=seconds
 
-#
+# autoShutdownAlertCmd=auto_shutdown_alert_cmd=(. script)
+
+# chargDisabledNotifCmd=charg_disabled_notif_cmd=(. script)
+
+# chargEnabledNotifCmd=charg_enabled_notif_cmd=(. script)
+
+# errorAlertCmd=error_alert_cmd=(. script)
+
+# ampFactor=amp_factor=[multiplier]
+
+# voltFactor=volt_factor=[multiplier]
 
 
 # VARIABLE ALIASES/SORTCUTS
@@ -125,6 +137,9 @@ errorAlertCmd=(vibrate 6 0.1)
 # cenc charg_enabled_notif_cmd
 # eac error_alert_cmd
 
+# af amp_factor
+# vf volt_factor
+
 
 # COMMAND EXAMPLES
 
@@ -149,6 +164,9 @@ errorAlertCmd=(vibrate 6 0.1)
 # acc -s "ccu=battery/current_now 1450000 100 20"
 # acc -s "cooldown_custom=battery/current_now 1450000 100 20"
 # acc -s ccu="/sys/devices/virtual/thermal/thermal_zone1/temp 55 50 10"
+
+# acc -s amp_factor=1000
+# acc -s volt_factor=1000000
 
 
 # FINE, BUT WHAT DOES EACH OF THESE VARIABLES ACTUALLY MEAN?
@@ -292,3 +310,11 @@ errorAlertCmd=(vibrate 6 0.1)
 # As the names suggest, these properties dictate commands acc/d/s should run at each event.
 # The default command is "vibrate <number of vibrations> <interval (seconds)>"
 # Termux APIs can be used for notifications, TTS, toasts and more. For details, refer to https://wiki.termux.com/wiki/Termux:API .
+
+# amp_factor (af) #
+# volt_factor (vf) #
+# Unit multiplier for conversion (e.g., 1V = 1000000 Microvolts)
+# ACC can automatically determine the units, but the mechanism is not 100% foolproof.
+# e.g., if the input current is too low, the unit is miscalculated.
+# This issue is rare, though.
+# Leave these properties alone if everything is running fine.

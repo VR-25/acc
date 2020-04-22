@@ -31,7 +31,7 @@ case "$@" in
 
   # check daemon status
   -D|--daemon)
-    pgrep -f '/ac(c|ca) (-|--)(calibrate|test|[Cdeft])|/accd\.sh' && exit 0 || exit 9
+    pgrep -f '/ac(c|ca) (-|--)(test|[deft])|/accd\.sh' && exit 0 || exit 9
   ;;
 
   # print battery uevent data

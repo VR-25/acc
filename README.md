@@ -5,7 +5,7 @@
 ---
 ## LEGAL
 
-Copyright (c) 2017-2020, VR25 (patreon.com/vr25)
+© 2017-2020, VR25 (patreon.com/vr25)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -47,7 +47,8 @@ By choosing to use/misuse ACC, you agree to do so at your own risk!
 
 ACC is an Android software mainly intended for [extending battery service life](https://batteryuniversity.com/learn/article/how_to_prolong_lithium_based_batteries).
 In a nutshell, this is achieved through limiting charging current, temperature and voltage.
-Any root solution is supported. A recent stable Magisk version is recommended.
+Any root solution is supported.
+A recent, preferably stable Magisk version is recommended.
 
 
 
@@ -175,7 +176,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202004200
+configVerCode=202004210
 capacity=(-1 101 70 75 +0 false)
 temperature=(70 80 90)
 cooldownRatio=()
@@ -199,6 +200,8 @@ autoShutdownAlertCmd=(vibrate 5 0.1)
 chargDisabledNotifCmd=(vibrate 3 0.1)
 chargEnabledNotifCmd=(vibrate 4 0.1)
 errorAlertCmd=(vibrate 6 0.1)
+ampFactor=
+voltFactor=
 
 
 # WARNINGS
@@ -253,7 +256,17 @@ errorAlertCmd=(vibrate 6 0.1)
 
 # dynPowerSaving=dyn_power_saving=seconds
 
-#
+# autoShutdownAlertCmd=auto_shutdown_alert_cmd=(. script)
+
+# chargDisabledNotifCmd=charg_disabled_notif_cmd=(. script)
+
+# chargEnabledNotifCmd=charg_enabled_notif_cmd=(. script)
+
+# errorAlertCmd=error_alert_cmd=(. script)
+
+# ampFactor=amp_factor=[multiplier]
+
+# voltFactor=volt_factor=[multiplier]
 
 
 # VARIABLE ALIASES/SORTCUTS
@@ -302,6 +315,9 @@ errorAlertCmd=(vibrate 6 0.1)
 # cenc charg_enabled_notif_cmd
 # eac error_alert_cmd
 
+# af amp_factor
+# vf volt_factor
+
 
 # COMMAND EXAMPLES
 
@@ -326,6 +342,9 @@ errorAlertCmd=(vibrate 6 0.1)
 # acc -s "ccu=battery/current_now 1450000 100 20"
 # acc -s "cooldown_custom=battery/current_now 1450000 100 20"
 # acc -s ccu="/sys/devices/virtual/thermal/thermal_zone1/temp 55 50 10"
+
+# acc -s amp_factor=1000
+# acc -s volt_factor=1000000
 
 
 # FINE, BUT WHAT DOES EACH OF THESE VARIABLES ACTUALLY MEAN?
@@ -470,6 +489,14 @@ errorAlertCmd=(vibrate 6 0.1)
 # The default command is "vibrate <number of vibrations> <interval (seconds)>"
 # Termux APIs can be used for notifications, TTS, toasts and more. For details, refer to https://wiki.termux.com/wiki/Termux:API .
 
+# amp_factor (af) #
+# volt_factor (vf) #
+# Unit multiplier for conversion (e.g., 1V = 1000000 Microvolts)
+# ACC can automatically determine the units, but the mechanism is not 100% foolproof.
+# e.g., if the input current is too low, the unit is miscalculated.
+# This issue is rare, though.
+# Leave these properties alone if everything is running fine.
+
 #/DC#
 ```
 
@@ -511,7 +538,7 @@ Usage
 
   /sbin/acca [options] [args]   acc optimized for front-ends
 
-  accs   acc foreground service, works exactly as accd, but attached to the terminal
+  accs   acc foreground service, works exactly as accd, but attached to the terminal by default
 
   A custom config path can be specified as first parameter.
   If the file doesn't exist, the current config is cloned.
@@ -793,8 +820,8 @@ Refer back to `DEFAULT CONFIGURATION (wake_unlock)`.
 In such situations, you have to find a switch that works as expected.
 Here's how to do it:
 
-1. Run `acc --test` (or acc -t) to see which switches work.
-2. Run `acc --set charging_switch` (or acc -s s) to enforce a working switch.
+1. Run `acc --test` (or `acc -t`) to see which switches work.
+2. Run `acc --set charging_switch` (or `acc -s s`) to enforce a working switch.
 3. Test the reliability of the set switch. If it doesn't work properly, try another.
 
 ACC daemon applies dedicated settings for specific devices (e.g., MTK, Asus, 1+7pro) to prevent charging switch issues.
@@ -813,8 +840,6 @@ Kernel level permissions forbid write access to certain interfaces.
 
 
 ### Diagnostics/Logs
-
-ACC/service trigger vibrations on certain events (charging enabled/disabled, errors, auto-shutdown warnings and acc -C 100% reached).
 
 Volatile logs are in `/sbin/.acc/`.
 Persistent logs are found at `/data/adb/acc-data/logs/`.
@@ -897,15 +922,69 @@ The first command disables the regular - charging switch driven - pause/resume f
 The second sets a voltage limit that will dictate how much the battery should charge.
 The battery enters the so called _idle mode_ when its voltage peaks.
 
-Force fast charge: `appy_on_boot="/sys/kernel/fast_charge/force_fast_charge::1::0 usb/boost_current::1::0 charger/boost_current::1::0"`
+Limiting the charging current to zero mA (`acc -s c 0`) may enable idle mode as well.
+`acc -s c -` restores the default limit.
 
-Limit charging current to 500 milliamps: `acc -s c 500`
-(`acc -s c -` restores the default limit).
+Force fast charge: `appy_on_boot="/sys/kernel/fast_charge/force_fast_charge::1::0 usb/boost_current::1::0 charger/boost_current::1::0"`
 
 
 ### Google Pixel Devices
 
 Force fast wireless charging with third party wireless chargers that are supposed to charge the battery faster: `apply_on_plug=wireless/voltage_max:9000000`.
+
+
+### Using Termux:API for Text-to-speech
+
+
+1) Install Termux, Termux:Boot and Termux:API APKs.
+If you're not willing to pay for Termux add-ons, go for the F-Droid* versions of these AND Termux itself.
+Since package signatures mismatch, you can't** install the add-ons from F-Droid if Termux was obtained from Play Store and vice versa.
+
+
+2) Exclude Termux:Boot from battery optimization, then launch (to enable auto-start) and close it.
+
+
+3) On Termux, paste and run, as a regular user: `mkfifo ~/acc-fifo; mkdir -p ~/.termux/boot; pkg install termux-api`
+
+
+4) Write your termux-api script that gets its input from ~/acc-fifo. Place the file in ~/.termux/boot/.
+e.g.,
+```
+#!/data/data/com.termux/files/usr/bin/sh
+# This file is called sore-throat.
+# It talks too much.
+while true; do cat ~/acc-fifo; done | termux-tts-speak
+```
+
+5) Run the script from step 3: `sh ~/.termux/boot/sore-throat`.
+
+
+6) ACC has the following:
+
+auto_shutdown_alert_cmd (asac)
+charg_disabled_notif_cmd (cdnc)
+charg_enabled_notif_cmd (cenc)
+error_alert_cmd (eac)
+
+As the names suggest, these properties dictate commands acc/d/s should run at each event.
+The default command is "vibrate <number of vibrations> <interval (seconds)>"
+
+Let's assume you want the phone to say "Warning! Battery is low. System will shutdown soon."
+To set that up...
+
+Write a script that communicates with that from step 3:
+```
+# /data/adb/acc-data/warning-script
+! pgrep -f termux-tts-speak || echo "Warning! Battery is low. System will shutdown soon." > /data/data/com.termux/files/home/acc-fifo
+```
+Run `acc -s auto_shutdown_alert_cmd=". /data/adb/acc-data/warning-script"`
+
+
+\* https://duckduckgo.com/lite/?q=termux%20F-Droid
+
+\*\* There's a workaround, but that's a story for another day.
+
+Recommend reading: https://wiki.termux.com/wiki/Termux:API
 
 
 
@@ -936,6 +1015,7 @@ With modern battery management systems, that's generally unnecessary.
 However, if your battery is underperforming, you may want to try the following procedure:
 
 1. Let the battery charge until VOLTAGE_NOW >= VOLTAGE_MAX* and CURRENT_NOW drops to 3% of the rated mAh capacity, or less.
+The command `acc --watch` or `acc -w`. lets you monitor that.
 
 2. Let it discharge until the phone shuts off.
 
@@ -1020,7 +1100,9 @@ AccA ships with a version of ACC that is automatically installed when the app is
 That said, it should be pretty obvious that ACC is like a fully autonomous car that also happens to have a steering wheel and other controls for a regular driver to hit a tree.
 Think of AccA as a robotic driver that often prefers hitting people over trees.
 Due to extenuating circumstances, that robot is not upgraded as frequently as the car.
-Upgrading the car regularly, makes the driver happier - even though I doubt it has any emotion to speak of.
+Upgrading the car regularly makes the driver happier - even though I doubt it has any emotion to speak of.
+The back-end can be upgraded by flashing the latest ACC zip.
+However, unless you have a good reason to do so, don't fix what's not broken.
 
 
 > Does acc work also when Android is off?
@@ -1056,6 +1138,15 @@ A common workaround is having `resume_capacity = pause_capacity - 1`.
 ---
 ## LATEST CHANGES
 
+**v2020.4.22-beta (202004220)**
+- Ability to override automatic current and voltage units detection - amp_factor (af) and volt_factor (vf)
+- acc --info: print the output of `dumpsys battery` as well
+- acc --set --voltage: fixed "settings not written to config"
+- accd: fixed autoShutdownAlertCmd
+- Misc fixes & optimizations
+- Suppress unnecessary vibration feedback
+- Updated documentation
+
 **v2020.4.20-beta (202004200)**
 - Blacklisted troublesome Pixel [1-3]* charging switches
 - Fixed absurd charging current and voltage reports (AccA)
@@ -1077,10 +1168,3 @@ A common workaround is having `resume_capacity = pause_capacity - 1`.
 - Fixed stable-beta config migration error
 - General fixes and optimizations
 - Updated documentation
-
-**v2020.4.10-beta (202004100)**
-- acc -C: watch `charge_counter` and `charge_full` only; provide calibration instructions for devices that lack these files
-- General fixes and optimizations
-- Renamed cooldown(_c|C)urrent/cooldown(_c|C)ustom
-- Native support for MediaTek mt6795 devices, e.g., Redmi Note 2 (hermes)
-- Updated build script and documentation

@@ -8,7 +8,7 @@ daemon_ctrl() {
 
   local isRunning=true
   set +eo pipefail 2>/dev/null
-  local pid="$(pgrep -f '/ac(c|ca) (-|--)(calibrate|test|[Cdeft])|/accd\.sh' | sed /$$/d)"
+  local pid="$(pgrep -f '/ac(c|ca) (-|--)(test|[deft])|/accd\.sh' | sed /$$/d)"
   set -eo pipefail 2>/dev/null || :
   [[ ${pid:-x} == *[0-9]* ]] || isRunning=false
 
@@ -30,7 +30,7 @@ daemon_ctrl() {
         (set +euo pipefail
         echo "$pid" | xargs kill $2) 2>/dev/null || :
         sleep 0.2
-        while [ -n "$(pgrep -f '/ac(c|ca) (-|--)(calibrate|test|[Cdeft])|/accd\.sh' | sed /$$/d)" ]; do
+        while [ -n "$(pgrep -f '/ac(c|ca) (-|--)(test|[deft])|/accd\.sh' | sed /$$/d)" ]; do
           sleep 0.2
         done
         print_stopped
@@ -133,9 +133,11 @@ exxit() {
   set +euxo pipefail 2>/dev/null
   ! ${noEcho:-false} && ${verbose:-true} && echo
   [[ $exitCode == [05689] ]] || {
-    [[ $exitCode == [127] || $exitCode == 10 ]] && logf --export
+    [[ $exitCode == [127] || $exitCode == 10 ]] && {
+      logf --export
+      eval "${errorAlertCmd[@]-}"
+    }
     echo
-    eval "${errorAlertCmd[@]-}"
   }
   rm /dev/.acc-config 2>/dev/null
   exit $exitCode
@@ -176,9 +178,7 @@ config__=$config
 
 
 # reset broken/obsolete config
-if ! { (. $config 2>/dev/null) && ! grep -q '^versionCode=' $config; }; then
-  cp -f $modPath/default-config.txt $config
-fi
+(. $config 2>/dev/null) || cp -f $modPath/default-config.txt $config
 
 . $config
 
@@ -261,8 +261,11 @@ case "${1-}" in
   ;;
 
   -i|--info)
+    { dumpsys battery 2>/dev/null | grep -Ei "${2-.*}" \
+      | sed -e '1s/.*/dumpsys battery/'; } && echo || :
     . $modPath/batt-info.sh
-    batt_info "${2-}"
+    echo "/sys/class/power_supply/$batt/uevent"
+    batt_info "${2-}" | sed 's/^/  /'
   ;;
 
   -la)
@@ -394,13 +397,8 @@ case "${1-}" in
     . $modPath/batt-info.sh
     print_quit CTRL-C
     sleep 1.5
-    [ "${2-}" == "$(print_calibration)" ] && { calibration=true; shift; } || calibration=false
     while :; do
       clear
-      ! $calibration || {
-        print_calibration
-        echo
-      }
       batt_info "${2-}"
       sleep $sleepSeconds
       set +x

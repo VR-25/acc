@@ -4,7 +4,7 @@
 #
 # "::" == " "
 # PWD=/sys/class/power_supply
-# Last updated: Thu, Apr 9, 2020
+# Last updated: Tue, Apr 21, 2020
 
 battery/charger_control 1 0
 */charge_disable 0 1
@@ -86,6 +86,7 @@ usb/moisture_detected 0 1
 battery/mmi_charging_enable 1 0
 battery/ship_mode 0 1
 battery/input_current_settled 0 1
+#battery/TemperatureR 4906 0
 
 # troublesome
 #/sys/power/pnpmgr/battery/charging_enabled 1 0
