@@ -4,7 +4,7 @@ apply_on_boot() {
 
   [ ${2:-x} != force ] || force=true
 
-  [[ "${applyOnBoot[@]:-x}${maxChargingVoltage[@]-}" != *--exit* ]] || exitCmd=true
+  [[ "${applyOnBoot[@]-}${maxChargingVoltage[@]-}" != *--exit* ]] || exitCmd=true
 
   for entry in "${applyOnBoot[@]-}" "${maxChargingVoltage[@]-}"; do
     [ "$entry" != --exit ] || continue
@@ -61,7 +61,7 @@ cycle_switches() {
           while ! not_charging ${2-}; do
             switchDelay=$(( ${switchDelay%.?} + 2 ))
             sleep $switchDelay
-            [ $switchDelay -le 20 ] || break
+            [ $switchDelay -le 7 ] || break
           done
         }
 
@@ -89,12 +89,12 @@ cycle_switches_off() {
 
 disable_charging() {
 
-  ! not_charging || return 0
-
-  $isAccd || {
+  if $isAccd; then
+    ! not_charging || return 0
+  else
     apply_on_boot default
     apply_on_plug default
-  }
+  fi
 
   if [[ ${chargingSwitch[0]:-x} == */* ]]; then
     if [ -f ${chargingSwitch[0]} ]; then
@@ -176,7 +176,7 @@ disable_charging() {
 
 enable_charging() {
 
-  not_charging || return 0
+  ! $isAccd || not_charging || return 0
 
   if ! $ghostCharging || { $ghostCharging && [[ "$(cat */online)" == *1* ]]; }; then
 

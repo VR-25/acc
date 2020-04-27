@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# ${1:-$id}*gz Installer
+# ${1:-$id}[-_]*.tar.gz Installer
 # Copyright (c) 2019-2020, VR25 (xda-developers.com)
 # License: GPLv3+
 
@@ -52,8 +52,7 @@ umask 0000
 set -e
 
 # get into the target directory
-[ -f $PWD/${0##*/} ] || cd ${0%/*}
-cd $(readlink -f $PWD)
+[ -f $PWD/${0##*/} ] || cd $(readlink -f ${0%/*})
 
 # this runs on exit if the installer is launched by a front-end app
 copy_log() {
@@ -73,13 +72,13 @@ copy_log() {
 trap copy_log EXIT
 
 # extract tarball
-rm -rf ${1:-$id}*/ 2>/dev/null
-tar -xf ${1:-$id}*gz
+rm -rf ${1:-$id}[-_]*/ 2>/dev/null
+tar -xf ${1:-$id}[-_]*.tar.gz
 
 # install ${1:-$id}
-test -f ${1:-$id}*/install.sh || i=-current
+test -f ${1:-$id}[-_]*/install.sh || i=-current
 export installDir="$2"
-ash ${1:-$id}*/install${i}.sh "$2"
-rm -rf ${1-$id}*/
+ash ${1:-$id}[-_]*/install${i}.sh "$2"
+rm -rf ${1-$id}[-_]*/
 
 exit 0

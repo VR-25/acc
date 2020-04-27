@@ -176,7 +176,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202004210
+configVerCode=202004270
 capacity=(-1 101 70 75 +0 false)
 temperature=(70 80 90)
 cooldownRatio=()
@@ -322,8 +322,8 @@ voltFactor=
 # COMMAND EXAMPLES
 
 # acc 85 80
-# acc -s rc=80 pc=85
-# acc --set resume_capacity=80 pause_capacity=85
+# acc -s pc=85 rc=80
+# acc --set pause_capacity=85 resume_capacity=80
 
 # acc -s "s=battery/charging_enabled 1 0"
 # acc --set "charging_switch=/proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0" ("::" == " ")
@@ -395,6 +395,8 @@ voltFactor=
 # cooldown_pause (cp) #
 # These two dictate the cooldown cycle intervals (seconds).
 # When not set, the cycle is disabled.
+# Suggested values are cch=50 and cp=10.
+# If charging gets a bit slower than desired, try cch=50 and cp=5.
 # Note that cooldown_capacity and cooldown_temp can be disabled individually by assigning them values that would never be reached under normal circumstances.
 
 # cooldown_custom (ccu) #
@@ -575,11 +577,10 @@ Options
       acc -e 75% (recharge to 75%)
       acc -e 30m (recharge for 30 minutes)
 
-  -f|--force|--full [capacity]   Charge to a given capacity (default: 100) once, uninterrupted and without other restrictions
+  -f|--force|--full [capacity]   Charge once to a given capacity (default: 100), without restrictions
     e.g.,
       acc -f 95 (charge to 95%)
       acc -f (charge to 100%)
-    Note: not to be confused with -C; -f 100 won't allow charging to true 100% capacity
 
   -F|--flash ["zip_file"]   Flash any zip files whose update-binary is a shell script
     e.g.,
@@ -797,10 +798,15 @@ ACC has custom code to cover its pitfalls, though.
 `battery/op_disable_charge 0 1` must be enforced manually (`acc -s s` or `acc -s s="battery/op_disable_charge 0 1"`) and accd, restarted afterwards.
 
 
-### Bootloop, ACC Not Found
+### Bootloop
 
-ACC disables itself after a bootloop event.
-Refer to `Diagnostics/Logs` below for details.
+While uncommon, it may happen.
+
+It's assumed that you already know at least one of the following: temporary disable root (e.g., Magisk), disable Magisk modules or enable Magisk core-only mode.
+
+Most of the time, though, it's just a matter of plugging the phone before turning it on.
+Battery level must be below pause_capacity.
+Once booted, one can run `acc --uninstall` (or `acc -U`) to remove ACC.
 
 
 ### Charging Switch
@@ -844,8 +850,7 @@ Kernel level permissions forbid write access to certain interfaces.
 Volatile logs are in `/sbin/.acc/`.
 Persistent logs are found at `/data/adb/acc-data/logs/`.
 
-`/data/adb/acc-data/logs/bootlooped` is created automatically after a bootloop event.
-It prevents acc initialization.
+`/dev/.acc-removed` signals self cleanup done.
 
 `acc -le` exports all acc logs, plus Magisk's and extras to `/data/media/0/acc-$device_codename.tar.gz`.
 The logs do not contain any personal information and are never automatically sent to the developer.
@@ -917,12 +922,12 @@ Alternatively, a _compressed_ archive of translated `strings.sh` and `README.md`
 
 ### Generic
 
-Achieve _battery idle mode_ with a voltage limit: `acc 101 -1; acc -s v 3920`
+Emulate _battery idle mode_ with a voltage limit: `acc 101 -1; acc -s v 3920`
 The first command disables the regular - charging switch driven - pause/resume functionality.
 The second sets a voltage limit that will dictate how much the battery should charge.
 The battery enters the so called _idle mode_ when its voltage peaks.
 
-Limiting the charging current to zero mA (`acc -s c 0`) may enable idle mode as well.
+Limiting the charging current to zero mA (`acc -s c 0`) may emulate idle mode as well.
 `acc -s c -` restores the default limit.
 
 Force fast charge: `appy_on_boot="/sys/kernel/fast_charge/force_fast_charge::1::0 usb/boost_current::1::0 charger/boost_current::1::0"`
@@ -1014,8 +1019,8 @@ With modern battery management systems, that's generally unnecessary.
 
 However, if your battery is underperforming, you may want to try the following procedure:
 
-1. Let the battery charge until VOLTAGE_NOW >= VOLTAGE_MAX* and CURRENT_NOW drops to 3% of the rated mAh capacity, or less.
-The command `acc --watch` or `acc -w`. lets you monitor that.
+1. Let it charge until VOLTAGE_NOW >= VOLTAGE_MAX* and CURRENT_NOW drops to 3% of the rated mAh capacity, or less.
+The command `acc --watch` (or `acc -w`) lets you monitor that.
 
 2. Let it discharge until the phone shuts off.
 
@@ -1050,12 +1055,12 @@ On top of that, if you enable the cooldown cycle, it'll give you even more benef
 
 Anyway, while the battery is happy in the 3700-4100 mV range, the optimal voltage for [the greatest] longevity is said\* to be ~3920 mV.
 
-If you're leaving your phone plugged in for extended periods of time, that's the voltage limit you should aim for.
+If you're leaving your phone plugged in for extended periods of time, that's the voltage limit to aim for.
 
 Ever wondered why lithium ion batteries aren't sold fully charged? They're usually ~40-60% charged. Why is that?
 If you ever purchase a battery that is fully drained, almost fully drained or 70%+ charged, you know it's probably f.*d up already!
 
-Summing up my thoughts...
+Putting it all together in practice...
 
 Night/heavy-duty profile: keep capacity within 40-60% and/or voltage around ~3920 mV
 
@@ -1138,6 +1143,15 @@ A common workaround is having `resume_capacity = pause_capacity - 1`.
 ---
 ## LATEST CHANGES
 
+**v2020.4.27-rc (202004270)**
+- ~65% faster charging switch testing
+- acc --help and --info enhancements
+- Current & voltage control fixes and optimizations
+- Fixed acc --force and tarball installer
+- Optimized main installer
+- Potential fix for "inaccessible or not found" error
+- Updated documentation
+
 **v2020.4.22-beta (202004220)**
 - Ability to override automatic current and voltage units detection - amp_factor (af) and volt_factor (vf)
 - acc --info: print the output of `dumpsys battery` as well
@@ -1158,13 +1172,3 @@ A common workaround is having `resume_capacity = pause_capacity - 1`.
 - Under the hood enhancements
 - Updated documentation
 - Workaround for encryption preventing AccA from initializing ACC
-
-**v2020.4.17-beta (202004170)**
-- acc -C: replace misleading 100% with 99%
-- acc -s: restoring individual defaults is as simple as running `acc -s var1= var2= ...`
-- Auto-shutdown: run `/system/bin/reboot -p` as fallback
-- autoShutdownAlertCmd, calibrationAlertCmd, chargDisabledNotifCmd, chargEnabledNotifCmd, errorAlertCmd - Termux APIs can be used for notifications, TTS, toasts and more; for details, refer to https://wiki.termux.com/wiki/Termux:API
-- Enhanced config auto-backup
-- Fixed stable-beta config migration error
-- General fixes and optimizations
-- Updated documentation

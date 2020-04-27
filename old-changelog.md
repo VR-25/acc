@@ -1,3 +1,13 @@
+**v2020.4.17-beta (202004170)**
+- acc -C: replace misleading 100% with 99%
+- acc -s: restoring individual defaults is as simple as running `acc -s var1= var2= ...`
+- Auto-shutdown: run `/system/bin/reboot -p` as fallback
+- autoShutdownAlertCmd, calibrationAlertCmd, chargDisabledNotifCmd, chargEnabledNotifCmd, errorAlertCmd - Termux APIs can be used for notifications, TTS, toasts and more; for details, refer to https://wiki.termux.com/wiki/Termux:API
+- Enhanced config auto-backup
+- Fixed stable-beta config migration error
+- General fixes and optimizations
+- Updated documentation
+
 **v2020.4.10-beta (202004100)**
 - acc -C: watch `charge_counter` and `charge_full` only; provide calibration instructions for devices that lack these files
 - General fixes and optimizations

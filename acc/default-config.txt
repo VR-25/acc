@@ -1,4 +1,4 @@
-configVerCode=202004210
+configVerCode=202004270
 capacity=(-1 101 70 75 +0 false)
 temperature=(70 80 90)
 cooldownRatio=()
@@ -144,8 +144,8 @@ voltFactor=
 # COMMAND EXAMPLES
 
 # acc 85 80
-# acc -s rc=80 pc=85
-# acc --set resume_capacity=80 pause_capacity=85
+# acc -s pc=85 rc=80
+# acc --set pause_capacity=85 resume_capacity=80
 
 # acc -s "s=battery/charging_enabled 1 0"
 # acc --set "charging_switch=/proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0" ("::" == " ")
@@ -217,6 +217,8 @@ voltFactor=
 # cooldown_pause (cp) #
 # These two dictate the cooldown cycle intervals (seconds).
 # When not set, the cycle is disabled.
+# Suggested values are cch=50 and cp=10.
+# If charging gets a bit slower than desired, try cch=50 and cp=5.
 # Note that cooldown_capacity and cooldown_temp can be disabled individually by assigning them values that would never be reached under normal circumstances.
 
 # cooldown_custom (ccu) #

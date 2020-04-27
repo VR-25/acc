@@ -159,11 +159,13 @@ case $installDir in
 # front-end post-uninstall cleanup script
 echo "#!/system/bin/sh
 # $id front-end post-uninstall cleanup script
-(until [ -d /sdcard/?ndroid ]; do sleep 15; done
+
+(until [ .\$(getprop sys.boot_completed) == .1 ]; do sleep 20; done
 if [ ! -f $installDir/module.prop ]; then
-  rm -rf /data/adb/$id /data/adb/${id}-data /data/adb/modules/$id \$0 2>/dev/null
-fi
-exit 0 &) &
+  touch /dev/.acc-removed
+  /sbin/acca --daemon stop
+  rm -rf /data/adb/$id /data/adb/${id}-data /data/adb/modules/$id \$0
+fi &) > /dev/null 2>&1 &
 exit 0"  > /data/adb/service.d/${id}-cleanup.sh
 
       chmod 0700 /data/adb/service.d/${id}-cleanup.sh

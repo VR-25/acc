@@ -98,7 +98,7 @@ get_prop() { sed -n "s|^$1=||p" ${2:-$config}; }
 
 test_charging_switch() {
 
-  local failed=false switchDelay=20
+  local failed=false switchDelay=7
 
   chmod u+w $1 ${4-} \
     && echo "${3//::/ }" > $1 \
@@ -226,11 +226,9 @@ case "${1-}" in
 
   -d|--disable)
     shift
-    not_charging && print_already_discharging || {
-      print_m_mode
-      ! daemon_ctrl stop > /dev/null || print_stopped
-      disable_charging "$@"
-    }
+    print_m_mode
+    ! daemon_ctrl stop > /dev/null || print_stopped
+    disable_charging "$@"
   ;;
 
   -D|--daemon)
@@ -239,11 +237,9 @@ case "${1-}" in
 
   -e|--enable)
     shift
-    ! not_charging && print_already_charging || {
-      print_m_mode
-      ! daemon_ctrl stop > /dev/null || print_stopped
-      enable_charging "$@"
-    }
+    print_m_mode
+    ! daemon_ctrl stop > /dev/null || print_stopped
+    enable_charging "$@"
   ;;
 
   -f|--force|--full)
@@ -260,13 +256,35 @@ case "${1-}" in
     $modPath/flash-zips.sh "$@"
   ;;
 
+
   -i|--info)
-    { dumpsys battery 2>/dev/null | grep -Ei "${2-.*}" \
-      | sed -e '1s/.*/dumpsys battery/'; } && echo || :
+
+    dsys="$(dumpsys battery)"
+
+    { if [[ "$dsys" == *reset* ]] > /dev/null; then
+      status=$(echo "$dsys" | sed -n 's/^  status: //p')
+      level=$(echo "$dsys" | sed -n 's/^  level: //p')
+      powered=$(echo "$dsys" | grep ' powered: true' > /dev/null && echo true || echo false)
+      dumpsys battery reset
+      dumpsys battery
+      dumpsys battery set status $status
+      dumpsys battery set level $level
+      if $powered; then
+        dumpsys battery set ac 1
+      else
+        dumpsys battery unplug
+      fi
+    else
+      echo "$dsys"
+    fi \
+      | grep -Ei "${2-.*}" \
+      | sed -e '1s/.*/dumpsys battery/' && echo; } || :
+
     . $modPath/batt-info.sh
     echo "/sys/class/power_supply/$batt/uevent"
     batt_info "${2-}" | sed 's/^/  /'
   ;;
+
 
   -la)
     shift
@@ -355,14 +373,14 @@ case "${1-}" in
     local reference=""
 
     case "$@" in
-      *beta*|*dev*)
+      *beta*|*dev*|*rc\ *|*\ rc*)
         reference=dev
       ;;
       *master*|*stable*)
         reference=master
       ;;
       *)
-        grep -q '^version=.*-beta' $modPath/module.prop \
+        grep -Eq '^version=.*-(beta|rc)' $modPath/module.prop \
           && reference=dev \
           || reference=master
       ;;

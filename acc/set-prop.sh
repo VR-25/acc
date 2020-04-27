@@ -91,8 +91,12 @@ set_prop() {
 
         # restore
         if [ $2 == - ]; then
-          daemon_ctrl stop > /dev/null || apply_on_plug default
-          restartDaemon=true
+          if $daemonWasUp; then
+            daemon_ctrl stop > /dev/null
+            restartDaemon=true
+          else
+            apply_on_plug default
+          fi
           max_charging_current=
           print_curr_restored
 
@@ -101,8 +105,10 @@ set_prop() {
           apply_current() {
             eval "maxChargingCurrent=($1 $(sed "s|::v|::$1|" $TMPDIR/ch-curr-ctrl-files))" \
               && apply_on_plug \
-              && { noEcho=true; print_curr_set $1; } \
-              || return 1
+              && {
+                noEcho=true
+                print_curr_set $1
+              } || return 1
           }
 
           # [0-9999] milliamps range
@@ -128,35 +134,42 @@ set_prop() {
 
         # restore
         if [ $2 == - ]; then
-          daemon_ctrl stop > /dev/null
-          apply_on_boot default force
-          restartDaemon=true
+          if $daemonWasUp; then
+            daemon_ctrl stop > /dev/null
+            restartDaemon=true
+          else
+            apply_on_boot default force
+          fi
           max_charging_voltage=
           print_volt_restored
 
         else
 
           apply_voltage() {
-            [ ${2-x} != --exit ] || { ! $daemonWasUp || daemon_ctrl stop; }
+            [ ${2-x} != --exit ] || {
+              ! $daemonWasUp || daemon_ctrl stop
+            }
             eval "maxChargingVoltage=($1 $(sed "s|vvvv|$1|" $TMPDIR/ch-volt-ctrl-files) ${2-})" \
-              && apply_on_boot \
-              && { noEcho=true; print_volt_set $1; } \
-              || return 1
+              && (apply_on_boot) \
+              && {
+                noEcho=true
+                print_volt_set $1
+              } || return 1
           }
 
           # == [3700-4200] millivolts
           if [ $2 -ge 3700 -a $2 -le 4200 ]; then
-            apply_voltage $2 ${2-} || return 1
+            apply_voltage $2 ${3-} || return 1
 
           # < 3700 millivolts
           elif [ $2 -lt 3700 ]; then
             echo "(!) [3700-4200] ($(print_mV | sed 's/^ //')) $(print_only)"
-            apply_voltage 3700 ${2-} || return 1
+            apply_voltage 3700 ${3-} || return 1
 
           # > 4200 millivolts
           elif [ $2 -gt 4200 ]; then
             echo "(!) [3700-4200] ($(print_mV | sed 's/^ //')) $(print_only)"
-            apply_voltage 4200 ${2-} || return 1
+            apply_voltage 4200 ${3-} || return 1
           fi
         fi
 

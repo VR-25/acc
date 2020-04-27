@@ -140,11 +140,10 @@ Options
       acc -e 75% (recharge to 75%)
       acc -e 30m (recharge for 30 minutes)
 
-  -f|--force|--full [capacity]   Charge to a given capacity (default: 100) once, uninterrupted and without other restrictions
+  -f|--force|--full [capacity]   Charge once to a given capacity (default: 100), without restrictions
     e.g.,
       acc -f 95 (charge to 95%)
       acc -f (charge to 100%)
-    Note: not to be confused with -C; -f 100 won't allow charging to true 100% capacity
 
   -F|--flash ["zip_file"]   Flash any zip files whose update-binary is a shell script
     e.g.,
@@ -371,7 +370,7 @@ print_export_logs() {
 }
 
 print_1shot() {
-  echo "Charge once to a given level (default: 100%), without other restrictions"
+  echo "Charge once to a given capacity (default: 100%), without restrictions"
 }
 
 print_charge_once() {
@@ -443,13 +442,5 @@ print_m_mode() {
 }
 
 print_wait() {
-  echo "(i) Alright, this may take a few minutes..."
-}
-
-print_already_charging() {
-  echo "(i) Already charging"
-}
-
-print_already_discharging() {
-  echo "(i) Already not changing"
+  echo "(i) Alright, this may take a minute or so..."
 }
