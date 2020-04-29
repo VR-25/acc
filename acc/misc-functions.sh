@@ -12,7 +12,7 @@ apply_on_boot() {
     file=${1-}
     value=${2-}
     { $exitCmd && ! $force; } && default=${2-} || default=${3:-${2-}}
-    [ -f "$file" ] && chmod u+w $file && eval "echo \$$arg" > $file || :
+    [ -f "$file" ] && chmod u+w $file && run3x "echo \$$arg > $file" || :
   done
 
   $exitCmd && [ $arg == value ] && exit 0 || :
@@ -26,14 +26,14 @@ apply_on_plug() {
     file=${1-}
     value=${2-}
     default=${3:-${2-}}
-    [ -f "$file" ] && chmod u+w $file && eval "echo \$$arg" > $file || :
+    [ -f "$file" ] && chmod u+w $file && run3x "echo \$$arg > $file" || :
   done
 }
 
 
 cycle_switches() {
 
-  local on="" off="" switchDelayNew=$switchDelay
+  local on="" off=""
 
   while read -A chargingSwitch; do
 
@@ -43,7 +43,7 @@ cycle_switches() {
       on="${chargingSwitch[1]//::/ }"
       off="${chargingSwitch[2]//::/ }"
       chmod u+w ${chargingSwitch[0]} \
-        && eval "echo "\$$1"" > ${chargingSwitch[0]} \
+        && run3x "echo \$$1 > ${chargingSwitch[0]}" \
         || continue
 
       # toggle secondary switch
@@ -51,7 +51,7 @@ cycle_switches() {
         on="${chargingSwitch[4]//::/ }"
         off="${chargingSwitch[5]//::/ }"
         chmod u+w ${chargingSwitch[3]} \
-          && eval "echo "\$$1"" > ${chargingSwitch[3]} || :
+          && run3x "echo \$$1 > ${chargingSwitch[3]}" || :
       }
 
       [ "$1" != off ] || {
@@ -61,17 +61,17 @@ cycle_switches() {
           while ! not_charging ${2-}; do
             switchDelay=$(( ${switchDelay%.?} + 2 ))
             sleep $switchDelay
-            [ $switchDelay -le 7 ] || break
+            [ $switchDelay -lt 7 ] || break
           done
         }
 
         if ! not_charging ${2-}; then
           # reset switch/group that fails to disable charging
-          { echo "${chargingSwitch[1]//::/ }" > ${chargingSwitch[0]} || :
-          echo "${chargingSwitch[4]//::/ }" > ${chargingSwitch[3]:-/dev/null} || :; } 2>/dev/null
+          run3x "echo ${chargingSwitch[1]//::/ } > ${chargingSwitch[0]} || :;
+            echo ${chargingSwitch[4]//::/ } > ${chargingSwitch[3]:-/dev/null} || :" 2>/dev/null
+          switchDelay=1.5
         else
           # enforce working charging switch(es) and switchDelay
-          switchDelay=$switchDelayNew
           . $modPath/write-config.sh
           break
         fi
@@ -96,13 +96,13 @@ disable_charging() {
     apply_on_plug default
   fi
 
-  if [[ ${chargingSwitch[0]:-x} == */* ]]; then
+  if [[ "${chargingSwitch[0]-}" == */* ]]; then
     if [ -f ${chargingSwitch[0]} ]; then
       # toggle primary switch
-      if chmod u+w ${chargingSwitch[0]} && echo "${chargingSwitch[2]//::/ }" > ${chargingSwitch[0]}; then
+      if chmod u+w ${chargingSwitch[0]} && run3x "echo ${chargingSwitch[2]//::/ } > ${chargingSwitch[0]}"; then
         [ ! -f "${chargingSwitch[3]-}" ] || {
           # toggle secondary switch
-          chmod u+w ${chargingSwitch[3]} && echo "${chargingSwitch[5]//::/ }" > ${chargingSwitch[3]} || {
+          chmod u+w ${chargingSwitch[3]} && run3x "echo ${chargingSwitch[5]//::/ } > ${chargingSwitch[3]}" || {
             $isAccd || print_switch_fails
             unset_switch
             cycle_switches_off
@@ -182,12 +182,13 @@ enable_charging() {
 
     $isAccd || {
       [ "${2-}" == noap ] || apply_on_plug
-   }
+    }
 
-    (chmod u+w ${chargingSwitch[0]-} ${chargingSwitch[3]-} \
-      && echo ${chargingSwitch[1]-} > ${chargingSwitch[0]-} \
-      && echo ${chargingSwitch[4]-} > ${chargingSwitch[3]-}) 2>/dev/null \
+    chmod u+w ${chargingSwitch[0]-} ${chargingSwitch[3]-} 2>/dev/null \
+      && run3x "echo ${chargingSwitch[1]-} > ${chargingSwitch[0]-}
+        echo ${chargingSwitch[4]-} > ${chargingSwitch[3]:-/dev/null}" 2>/dev/null \
       || cycle_switches on
+
     ! not_charging || sleep ${switchDelay}
 
     # detect and block ghost charging
@@ -271,6 +272,16 @@ GPLv3+"
 print_wait_plug() {
   print_unplugged
   print_quit CTRL-C
+}
+
+
+run3x() {
+  local count=0
+  while [ $count -lt 3 ]; do
+    eval "$@"
+    sleep 0.2
+    count=$(( count +1 ))
+  done
 }
 
 

@@ -6,11 +6,11 @@
 
 daemon_ctrl() {
 
-  local isRunning=true
-  set +eo pipefail 2>/dev/null
-  local pid="$(pgrep -f '/ac(c|ca) (-|--)(test|[deft])|/accd\.sh' | sed /$$/d)"
-  set -eo pipefail 2>/dev/null || :
-  [[ ${pid:-x} == *[0-9]* ]] || isRunning=false
+  local isRunning=true pid=$$
+
+  pid="$(pgrep -f '/ac(c|ca) (-|--)(test|[deft])|/accd\.sh' | sed /$pid/d)" || :
+
+  [[ "$pid" == *[0-9]* ]] || isRunning=false
 
   case "${1-}" in
 
@@ -27,10 +27,11 @@ daemon_ctrl() {
 
     stop)
       if $isRunning; then
-        (set +euo pipefail
-        echo "$pid" | xargs kill $2) 2>/dev/null || :
+        set +euo pipefail
+        echo "$pid" | xargs kill $2 2>/dev/null
         sleep 0.2
-        while [ -n "$(pgrep -f '/ac(c|ca) (-|--)(test|[deft])|/accd\.sh' | sed /$$/d)" ]; do
+        pid=$$
+        while [ -n "$(pgrep -f '/ac(c|ca) (-|--)(test|[deft])|/accd\.sh' | sed /$pid/d)" ]; do
           sleep 0.2
         done
         print_stopped
@@ -178,7 +179,7 @@ config__=$config
 
 
 # reset broken/obsolete config
-(. $config 2>/dev/null) || cp -f $modPath/default-config.txt $config
+(set +x; . $config) > /dev/null 2>&1 || cp -f $modPath/default-config.txt $config
 
 . $config
 
@@ -318,7 +319,9 @@ case "${1-}" in
   ;;
 
   -s|--set)
-    shift; . $modPath/set-prop.sh; set_prop "$@"
+    shift
+    . $modPath/set-prop.sh
+    set_prop "$@"
   ;;
 
 

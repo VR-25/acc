@@ -950,9 +950,11 @@ Since package signatures mismatch, you can't** install the add-ons from F-Droid 
 
 
 3) On Termux, paste and run, as a regular user: `mkfifo ~/acc-fifo; mkdir -p ~/.termux/boot; pkg install termux-api`
+The tilde (`~`) expands to `/data/data/com/termux/files/home`.
 
 
-4) Write your termux-api script that gets its input from ~/acc-fifo. Place the file in ~/.termux/boot/.
+4) Write your termux-tts-speak script that gets its input from `~/acc-fifo`.
+Place the file in `/data/data/com/termux/files/home/.termux/boot/`.
 e.g.,
 ```
 #!/data/data/com.termux/files/usr/bin/sh
@@ -977,12 +979,12 @@ The default command is "vibrate <number of vibrations> <interval (seconds)>"
 Let's assume you want the phone to say "Warning! Battery is low. System will shutdown soon."
 To set that up...
 
-Write a script that communicates with that from step 3:
+Write a script (e.g., /data/adb/acc-data/warning-script) that communicates with that from step 3:
 ```
 # /data/adb/acc-data/warning-script
 ! pgrep -f termux-tts-speak || echo "Warning! Battery is low. System will shutdown soon." > /data/data/com.termux/files/home/acc-fifo
 ```
-Run `acc -s auto_shutdown_alert_cmd=". /data/adb/acc-data/warning-script"`
+Run as root, `acc --set auto_shutdown_alert_cmd=". /data/adb/acc-data/warning-script"`
 
 
 \* https://duckduckgo.com/lite/?q=termux%20F-Droid
@@ -1143,6 +1145,11 @@ A common workaround is having `resume_capacity = pause_capacity - 1`.
 ---
 ## LATEST CHANGES
 
+**v2020.4.29-rc (202004290)**
+- General fixes
+- Major optimizations
+- Updated Termux:API setup instructions (readme > tips)
+
 **v2020.4.27-rc (202004270)**
 - ~65% faster charging switch testing
 - acc --help and --info enhancements
@@ -1160,15 +1167,3 @@ A common workaround is having `resume_capacity = pause_capacity - 1`.
 - Misc fixes & optimizations
 - Suppress unnecessary vibration feedback
 - Updated documentation
-
-**v2020.4.20-beta (202004200)**
-- Blacklisted troublesome Pixel [1-3]* charging switches
-- Fixed absurd charging current and voltage reports (AccA)
-- Fixed upgrade and downgrade issues (AccA)
-- Include AccA logcat in log archive
-- Optimized installers
-- prioritizeBattIdleMode=true by default
-- Removed `acc --calibrate`, in favor of universal and comprehensive calibration instructions (README > FAQ)
-- Under the hood enhancements
-- Updated documentation
-- Workaround for encryption preventing AccA from initializing ACC

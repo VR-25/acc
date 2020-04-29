@@ -48,7 +48,6 @@ set_prop() {
       IFS=$'\n'
       PS3="$(print_choice_prompt)"
       print_known_switches
-      echo
       . $modPath/select.sh
       select_ chargingSwitch $(print_auto; cat $TMPDIR/ch-switches; print_exit)
       [ ${chargingSwitch:-x} != $(print_exit) ] || exit 0

@@ -9,7 +9,9 @@ set_prop_() { sed -i "\|^${1}=|s|=.*|=$2|" ${3:-$config}; }
 # patch/reset [broken/obsolete] config
 configVer=0$(get_prop configVerCode 2>/dev/null || :)
 defaultConfVer=$(get_prop configVerCode $modPath/default-config.txt)
-if (. $config) && ! grep_ '^dynPowerSaving=120|^versionCode=^loopDelay=.*,'; then
+if (set +x; . $config) > /dev/null 2>&1 \
+  && ! grep_ '^dynPowerSaving=120|^versionCode=|^(capacity|loopDelay)=.*,|^temperature=.*-'
+then
   [ $configVer -eq $defaultConfVer ] || /sbin/acca --set dummy=
 else
   cp -f $modPath/default-config.txt $config

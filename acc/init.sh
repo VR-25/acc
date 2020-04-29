@@ -1,6 +1,6 @@
 #!/dev/.busybox/ash
 # Advanced Charging Controller (ACC) Initializer
-# Copyright (c) 2017-2020, VR25 (xda-developers)
+# © 2017-2020, VR25 (xda-developers)
 # License: GPLv3+
 #
 # devs: triple hashtags (###) mark custom code
@@ -58,11 +58,11 @@ grep -Ev '^#|^$' $modPath/charging-switches.txt | \
     [ -f "$ctrlFile1" ] && {
       [ -f "$ctrlFile2" -o -z "$ctrlFile2" ] && {
         chmod u+r $ctrlFile1 || continue
-        if grep -Eq "^(${2//::/ }|${3//::/ })$" $ctrlFile1 \
-          || ! cat $ctrlFile1 > /dev/null || [ -z "$(cat $ctrlFile1)" ]
+        if ! cat $ctrlFile1 > /dev/null 2>&1 || [ -z "$(cat $ctrlFile1 2>/dev/null)" ] \
+          || grep -Eq "^(${2//::/ }|${3//::/ })$" $ctrlFile1
         then
           echo $ctrlFile1 $2 $3 $ctrlFile2 $5 $6 >> $TMPDIR/ch-switches_
-        fi 2>/dev/null
+        fi
       }
     }
   done
@@ -95,7 +95,7 @@ ls -1 */constant_charge_current_max \
   /sys/class/qcom-battery/restrict*_cur* \
   */batt_tune_*_charge_current */ac_input \
   */mhl_2000_charge */mhl_2000_input \
-  */hv_charge battery  */ac_charge \
+  */hv_charge */ac_charge \
   */batt_tune_chg_limit_cur */so_limit_input \
   */so_limit_charge */car_input */sdp_input \
   */aca_charge */sdp_charge */aca_input \

@@ -1,3 +1,15 @@
+**v2020.4.20-beta (202004200)**
+- Blacklisted troublesome Pixel [1-3]* charging switches
+- Fixed absurd charging current and voltage reports (AccA)
+- Fixed upgrade and downgrade issues (AccA)
+- Include AccA logcat in log archive
+- Optimized installers
+- prioritizeBattIdleMode=true by default
+- Removed `acc --calibrate`, in favor of universal and comprehensive calibration instructions (README > FAQ)
+- Under the hood enhancements
+- Updated documentation
+- Workaround for encryption preventing AccA from initializing ACC
+
 **v2020.4.17-beta (202004170)**
 - acc -C: replace misleading 100% with 99%
 - acc -s: restoring individual defaults is as simple as running `acc -s var1= var2= ...`
