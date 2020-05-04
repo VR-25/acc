@@ -17,6 +17,17 @@ set_prop() {
       . $defaultConfig
       . $config
       export "$@"
+
+      [ .${mcc-${max_charging_current-x}} == .x ] || {
+        . $modPath/set-ch-curr.sh
+        set_ch_curr ${mcc:-${max_charging_current:--}} || :
+      }
+
+      [ .${mcv-${max_charging_voltage-x}} == .x ] || {
+        . $modPath/set-ch-volt.sh
+        set_ch_volt ${mcv:-${max_charging_voltage:--}} || :
+      }
+
     ;;
 
     # reset config
@@ -61,124 +72,18 @@ set_prop() {
       return 0
     ;;
 
-
     # set charging current
     c|--current)
-
-      # check support
-      grep -q ::v $TMPDIR/ch-curr-ctrl-files || {
-        if not_charging; then
-          print_read_curr
-          print_wait_plug
-          (while not_charging; do sleep 1; set +x; done)
-          echo
-          . $modPath/read-ch-curr-ctrl-files-p2.sh
-          grep -q ::v $TMPDIR/ch-curr-ctrl-files || {
-            print_no_ctrl_file
-            return 1
-          }
-        else
-          . $modPath/read-ch-curr-ctrl-files-p2.sh
-          grep -q ::v $TMPDIR/ch-curr-ctrl-files || {
-            print_no_ctrl_file
-            return 1
-          }
-        fi
-      }
-
-      if [ -n "${2-}" ]; then
-
-        # restore
-        if [ $2 == - ]; then
-          if $daemonWasUp; then
-            daemon_ctrl stop > /dev/null
-            restartDaemon=true
-          else
-            apply_on_plug default
-          fi
-          max_charging_current=
-          print_curr_restored
-
-        else
-
-          apply_current() {
-            eval "maxChargingCurrent=($1 $(sed "s|::v|::$1|" $TMPDIR/ch-curr-ctrl-files))" \
-              && apply_on_plug \
-              && {
-                noEcho=true
-                print_curr_set $1
-              } || return 1
-          }
-
-          # [0-9999] milliamps range
-          if [ $2 -ge 0 -a $2 -le 9999 ]; then
-            apply_current $2 || return 1
-          else
-            echo "(!) [0-9999] ($(print_mA | sed 's/^ //')) $(print_only)"
-            return 11
-          fi
-        fi
-
-      else
-        # print current value
-        echo "${maxChargingCurrent[0]:-$(print_default)}$(! ${verbose:-true} || print_mA)"
-        return 0
-      fi
+      . $modPath/set-ch-curr.sh
+      set_ch_curr ${2-}
     ;;
-
 
     # set charging voltage
     v|--voltage)
-      if [ -n "${2-}" ]; then
-
-        # restore
-        if [ $2 == - ]; then
-          if $daemonWasUp; then
-            daemon_ctrl stop > /dev/null
-            restartDaemon=true
-          else
-            apply_on_boot default force
-          fi
-          max_charging_voltage=
-          print_volt_restored
-
-        else
-
-          apply_voltage() {
-            [ ${2-x} != --exit ] || {
-              ! $daemonWasUp || daemon_ctrl stop
-            }
-            eval "maxChargingVoltage=($1 $(sed "s|vvvv|$1|" $TMPDIR/ch-volt-ctrl-files) ${2-})" \
-              && (apply_on_boot) \
-              && {
-                noEcho=true
-                print_volt_set $1
-              } || return 1
-          }
-
-          # == [3700-4200] millivolts
-          if [ $2 -ge 3700 -a $2 -le 4200 ]; then
-            apply_voltage $2 ${3-} || return 1
-
-          # < 3700 millivolts
-          elif [ $2 -lt 3700 ]; then
-            echo "(!) [3700-4200] ($(print_mV | sed 's/^ //')) $(print_only)"
-            apply_voltage 3700 ${3-} || return 1
-
-          # > 4200 millivolts
-          elif [ $2 -gt 4200 ]; then
-            echo "(!) [3700-4200] ($(print_mV | sed 's/^ //')) $(print_only)"
-            apply_voltage 4200 ${3-} || return 1
-          fi
-        fi
-
-      else
-        # print current value
-        echo "${maxChargingVoltage[0]:-$(print_default)}$(! ${verbose:-true} || print_mV)"
-        return 0
-      fi
+      shift
+      . $modPath/set-ch-volt.sh
+      set_ch_volt "$@"
     ;;
-
 
     # set language
     l|--lang)

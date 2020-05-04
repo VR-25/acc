@@ -304,7 +304,7 @@ exec >> $log 2>&1
 set -x
 
 
-pgrep -f '/ac(c|ca) (-|--)(test|[deft])|/accd\.sh' | sed /$$/d | xargs kill -9 2>/dev/null
+pgrep -f '/ac(c|ca) (-|--)[deft]|/accd\.sh' | sed /$$/d | xargs kill -9 2>/dev/null
 
 misc_stuff "${1-}"
 

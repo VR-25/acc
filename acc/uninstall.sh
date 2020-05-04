@@ -1,4 +1,4 @@
-#!/system/bin/sh -u
+#!/system/bin/sh
 # $id uninstaller
 # id is set/corrected by build.sh
 # Copyright (c) 2019-2020, VR25 (xda-developers)
@@ -7,6 +7,7 @@
 # devs: triple hashtags (###) mark custom code
 
 
+set -u
 id=acc
 
 # set up busybox
@@ -42,12 +43,13 @@ fi
 
 exec 2>/dev/null
 
-# interrupt $id processes
-pkill -f "/($id|${id}a) (-|--)(test|[deft])|/${id}d\.sh" ###
-sleep 0.2
-while [ -n "$(pgrep -f '/ac(c|ca) (-|--)(test|[deft])|/accd\.sh')" ]; do
-  sleep 0.2
+# terminate/kill $id processes ###
+pkill -f "/($id|${id}a) (-|--)[deft]|/${id}d\.sh"
+for count in 1 2 3 4 5; do
+  sleep 1
+  [ -z "$(pgrep -f "/($id|${id}a) (-|--)[deft]|/${id}d\.sh")" ] && break
 done
+pkill -9 -f "/($id|${id}a) (-|--)[deft]|/${id}d\.sh"
 
 # uninstall $id
 rm -rf $(readlink -f /sbin/.$id/$id/) \
@@ -62,4 +64,5 @@ rm -rf $(readlink -f /sbin/.$id/$id/) \
 # remove flashable uninstaller
 rm ${3:-/data/media/0/${id}-uninstaller.zip}
 
+touch /dev/.acc-removed
 exit 0

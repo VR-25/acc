@@ -21,5 +21,7 @@ setval() {
 }
 
 install.sh
-  remove legacy cp
   upgrade acc_bundle.tar.gz and install-tarball.sh
+
+build.sh
+  remove legacy cp (install-current.sh)

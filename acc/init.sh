@@ -74,7 +74,7 @@ ls -1 */BatterySenseVoltage */ISenseVoltage */batt_vol */InstatVolt \
   */constant_charge_voltage* */voltage_max */batt_tune_float_voltage 2>/dev/null | \
     while read file; do
       chmod u+r $file 2>/dev/null && grep -Eq '^4[1-4][0-9]{2}' $file || continue
-      echo ${file}::$(sed -n 's/^..../vvvv/p' $file)::$(cat $file) \
+      echo ${file}::$(sed -n 's/^..../v/p' $file)::$(cat $file) \
         >> $TMPDIR/ch-volt-ctrl-files_
     done
 

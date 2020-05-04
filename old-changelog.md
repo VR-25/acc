@@ -1,3 +1,12 @@
+**v2020.4.22-beta (202004220)**
+- Ability to override automatic current and voltage units detection - amp_factor (af) and volt_factor (vf)
+- acc --info: print the output of `dumpsys battery` as well
+- acc --set --voltage: fixed "settings not written to config"
+- accd: fixed autoShutdownAlertCmd
+- Misc fixes & optimizations
+- Suppress unnecessary vibration feedback
+- Updated documentation
+
 **v2020.4.20-beta (202004200)**
 - Blacklisted troublesome Pixel [1-3]* charging switches
 - Fixed absurd charging current and voltage reports (AccA)

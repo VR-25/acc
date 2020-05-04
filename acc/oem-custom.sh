@@ -22,7 +22,7 @@ fi 2>/dev/null
 # OnePlus 7/Pro battery idle mode
 if grep_ '^chargingSwitch=.*/op_disable_charge'; then
   [ -f $TMPDIR/oem-custom ] \
-    || echo "chmod u+w battery/input_suspend; echo 1 > battery/op_disable_charge; echo 0 > battery/input_suspend" > $TMPDIR/oem-custom
+    || echo "chmod u+w battery/input_suspend; run3x 'echo 1 > battery/op_disable_charge; echo 0 > battery/input_suspend'" > $TMPDIR/oem-custom
   grep_ "^runCmdOnPause=.*$TMPDIR/oem-custom" \
     || set_prop_ runCmdOnPause "(. $TMPDIR/oem-custom)"
   switchDelay=$(get_prop switchDelay)

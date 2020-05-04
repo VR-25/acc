@@ -8,7 +8,7 @@ daemon_ctrl() {
 
   local isRunning=true pid=$$
 
-  pid="$(pgrep -f '/ac(c|ca) (-|--)(test|[deft])|/accd\.sh' | sed /$pid/d)" || :
+  pid="$(pgrep -f '/ac(c|ca) (-|--)[deft]|/accd\.sh' | sed /$pid/d)" || :
 
   [[ "$pid" == *[0-9]* ]] || isRunning=false
 
@@ -29,11 +29,13 @@ daemon_ctrl() {
       if $isRunning; then
         set +euo pipefail
         echo "$pid" | xargs kill $2 2>/dev/null
-        sleep 0.2
         pid=$$
-        while [ -n "$(pgrep -f '/ac(c|ca) (-|--)(test|[deft])|/accd\.sh' | sed /$pid/d)" ]; do
-          sleep 0.2
+        for count in 1 2 3 4 5; do
+          sleep 1
+          [ -z "$(pgrep -f 'ac(c|ca) (-|--)[deft]|/accd\.sh' | sed /$pid/d)" ] && break
         done
+        pid="$(pgrep -f 'ac(c|ca) (-|--)[deft]|/accd\.sh' | sed /$pid/d)"
+        echo "$pid" | xargs kill -9 2>/dev/null
         print_stopped
         return 0
       else
@@ -102,8 +104,7 @@ test_charging_switch() {
   local failed=false switchDelay=7
 
   chmod u+w $1 ${4-} \
-    && echo "${3//::/ }" > $1 \
-    && echo "${6//::/ }" > ${4:-/dev/null} \
+    && run3x "echo ${3//::/ } > $1 && echo ${6//::/ } > ${4:-/dev/null}" \
     && sleep $switchDelay
 
   ! not_charging && failed=true || {
@@ -113,8 +114,8 @@ test_charging_switch() {
       || battIdleMode=false
   }
 
-  if ! $failed && echo "${2//::/ }" > $1 \
-    && echo "${5//::/ }" > ${4:-/dev/null} \
+  if ! $failed \
+    && run3x "echo ${2//::/ } > $1 && echo ${5//::/ } > ${4:-/dev/null}" \
     && sleep $switchDelay && ! not_charging && eval "${chargEnabledNotifCmd[@]-}"
   then
     print_switch_works "$@"
@@ -122,8 +123,7 @@ test_charging_switch() {
     return 0
   else
     print_switch_fails "$@"
-    { echo "${2//::/ }" > $1
-    echo "${5//::/ }" > ${4:-/dev/null}; } 2>/dev/null
+    run3x "echo ${2//::/ } > $1; echo ${5//::/ } > ${4:-/dev/null}" 2>/dev/null
     return 1
   fi
 }
@@ -142,6 +142,12 @@ exxit() {
   }
   rm /dev/.acc-config 2>/dev/null
   exit $exitCode
+}
+
+
+set_prop_() {
+  . $modPath/set-prop.sh
+  set_prop "$@"
 }
 
 
@@ -243,12 +249,33 @@ case "${1-}" in
     enable_charging "$@"
   ;;
 
+
   -f|--force|--full)
-    daemon_ctrl stop > /dev/null && daemonWasUp=true || daemonWasUp=false
+
+    shutdown_capacity=
+    cooldown_capacity=
+    cooldown_temp=
+    cooldown_charge=
+    cooldown_pause=
+    max_temp=
+    max_temp_pause=
+    cooldown_custom=
+    apply_on_boot=
+    apply_on_plug=
+    max_charging_current=
+    max_charging_voltage=
+
+    pause_capacity=${2:-100}
+    resume_capacity=$(( pause_capacity - 5 ))
+    run_cmd_on_pause="exec /sbin/accd"
+
+    cp -f $config $TMPDIR/.acc-f-config
+    config=$TMPDIR/.acc-f-config
+    . $modPath/write-config.sh
     print_charging_enabled_until ${2:-100}%
-    (enable_charging ${2:-100}% noap
-    ! $daemonWasUp || /sbin/accd $config &) > /dev/null 2>&1 &
+    exec /sbin/accd $config
   ;;
+
 
   -F|--flash)
     shift
@@ -318,10 +345,43 @@ case "${1-}" in
     rm /data/system/batterystats* 2>/dev/null || :
   ;;
 
+  -sc)
+    set_prop_ --current ${2-}
+  ;;
+
+  -sd)
+    set_prop_ --print-default "${2-.*}"
+  ;;
+
+  -sl)
+    set_prop_ --lang
+  ;;
+
+  -sp)
+    set_prop_ --print "${2-.*}"
+  ;;
+
+  -sr)
+    set_prop_ --reset
+  ;;
+
+  -ss)
+    shift
+    set_prop_ --charging_switch
+  ;;
+
+  -ss:)
+    set_prop_ --charging_switch:
+  ;;
+
+  -sv)
+    shift
+    set_prop_ --voltage "$@"
+  ;;
+
   -s|--set)
     shift
-    . $modPath/set-prop.sh
-    set_prop "$@"
+    set_prop_ "$@"
   ;;
 
 
@@ -349,8 +409,14 @@ case "${1-}" in
 
     print_wait
 
-    case "${2-}" in
-      "")
+    case "${1-}" in
+      */*)
+        echo
+        test_charging_switch "$@"
+        echo
+      ;;
+      *)
+        [ "${1-}" != -- ] || shift ### legacy
         exitCode=10
         while read chargingSwitch; do
           [ -f "$(echo "$chargingSwitch" | cut -d ' ' -f 1)" ] && {
@@ -360,9 +426,6 @@ case "${1-}" in
           [ $? -eq 0 ] && exitCode=0
         done < ${1-$TMPDIR/ch-switches}
         echo
-      ;;
-      *)
-        test_charging_switch "$@"
       ;;
     esac
 
@@ -416,7 +479,7 @@ case "${1-}" in
     sleepSeconds=${sleepSeconds#*w}
     : ${sleepSeconds:=3}
     . $modPath/batt-info.sh
-    print_quit CTRL-C
+    ! ${verbose:-true} || print_quit CTRL-C
     sleep 1.5
     while :; do
       clear

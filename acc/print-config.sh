@@ -28,9 +28,8 @@ apply_on_boot=${applyOnBoot[@]}
 
 apply_on_plug=${applyOnPlug[@]}
 
-max_charging_current=${maxChargingCurrent[@]}
-
-max_charging_voltage=${maxChargingVoltage[@]}
+max_charging_current=${maxChargingCurrent[0]}
+max_charging_voltage=${maxChargingVoltage[0]}
 
 reboot_on_pause=$rebootOnPause
 switch_delay=$switchDelay

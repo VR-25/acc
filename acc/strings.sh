@@ -140,7 +140,7 @@ Options
       acc -e 75% (recharge to 75%)
       acc -e 30m (recharge for 30 minutes)
 
-  -f|--force|--full [capacity]   Charge once to a given capacity (default: 100), without restrictions
+  -f|--force|--full [capacity]   Charge once to a given capacity (default: 100%), without restrictions
     e.g.,
       acc -f 95 (charge to 95%)
       acc -f (charge to 100%)
@@ -189,46 +189,62 @@ Options
       acc -s "charging_switch=battery/charging_enabled 1 0" resume_capacity=55 pause_capacity=60
     Note: all properties have short aliases for faster typing; run "acc -c cat" to see these
 
-  -s|--set c|--current [-]   Set/print/restore_default max charging current (range: 0-9999$(print_mA))
+  -s|--set c|--current [milliamps|-]   Set/print/restore_default max charging current (range: 0-9999$(print_mA))
     e.g.,
-      acc -s c (print)
+      acc -s c (print current limit)
       acc -s c 500 (set)
       acc -s c - (restore default)
 
+  -sc [milliamps|-]   Same as above
+
   -s|--set l|--lang   Change language
     e.g., acc -s l
+
+  -sl   Same as above
 
   -s|--set d|--print-default [egrep regex (default: ".")]   Print default config without blank lines
     e.g.,
       acc -s d (print entire defaul config)
       acc -s d cap (print only entries matching "cap")
 
+  -sd [egrep regex (default: ".")]   Same as above
+
   -s|--set p|--print [egrep regex (default: ".")]   Print current config without blank lines (refer to previous examples)
+
+  -sp [egrep regex (default: ".")]   Same as above
 
   -s|--set r|--reset   Restore default config
     e.g.,
       acc -s r
       rm /data/adb/acc-data/config.txt (failsafe)
 
+  -sr   Same as above
+
   -s|--set s|charging_switch   Enforce a specific charging switch
     e.g., acc -s s
+
+  -ss    Same as above
 
   -s|--set s:|chargingSwitch:   List known charging switches
     e.g., acc -s s:
 
-  -s|--set v|--voltage [-] [--exit]   Set/print/restore_default max charging voltage (range: 3700-4200$(print_mV))
+  -ss:   Same as above
+
+  -s|--set v|--voltage [millivolts|-] [--exit]   Set/print/restore_default max charging voltage (range: 3700-4200$(print_mV))
     e.g.,
       acc -s v (print)
       acc -s v 3920 (set)
       acc -s v - (restore default)
       acc -s v 3920 --exit (stop the daemon after applying settings)
 
+  -sv [millivolts|-] [--exit]   Same as above
+
   -t|--test [ctrl_file1 on off [ctrl_file2 on off]]   Test custom charging switches
     e.g.,
       acc -t battery/charging_enabled 1 0
       acc -t /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0 ("::" == " ")
 
-  -t|--test [file]   Test charging switches from a file (default: $TMPDIR/charging-switches)
+  -t|--test [file]   Test charging switches from a file (default: $TMPDIR/ch-switches)
     This will also report whether "battery idle" mode is supported
     e.g.,
       acc -t (test known switches)

@@ -346,6 +346,8 @@ voltFactor=
 # acc -s amp_factor=1000
 # acc -s volt_factor=1000000
 
+# acc -s mcc=500 mcv="3920 --exit"
+
 
 # FINE, BUT WHAT DOES EACH OF THESE VARIABLES ACTUALLY MEAN?
 
@@ -434,13 +436,10 @@ voltFactor=
 # Default values are restored on unplug and when the daemon stops.
 
 # max_charging_current (mcc) #
-# apply_on_plug dedicated to current control
-# This is managed with "acc --set --current ..." (acc -s c ...) commands.
-# Refer back to the command examples.
-
 # max_charging_voltage (mcv) #
-# apply_on_boot dedicated to voltage control
-# This is managed with "acc --set --voltage ..." (acc -s v ...) commands.
+# Only the current/voltage value is to be supplied.
+# Control files are automatically selected.
+# Refer back to the command examples.
 
 # reboot_on_pause (rp) #
 # If this doesn't make sense to you, you probably don't need it.
@@ -577,7 +576,7 @@ Options
       acc -e 75% (recharge to 75%)
       acc -e 30m (recharge for 30 minutes)
 
-  -f|--force|--full [capacity]   Charge once to a given capacity (default: 100), without restrictions
+  -f|--force|--full [capacity]   Charge once to a given capacity (default: 100%), without restrictions
     e.g.,
       acc -f 95 (charge to 95%)
       acc -f (charge to 100%)
@@ -626,46 +625,62 @@ Options
       acc -s "charging_switch=battery/charging_enabled 1 0" resume_capacity=55 pause_capacity=60
     Note: all properties have short aliases for faster typing; run "acc -c cat" to see these
 
-  -s|--set c|--current [-]   Set/print/restore_default max charging current (range: 0-9999$(print_mA))
+  -s|--set c|--current [milliamps|-]   Set/print/restore_default max charging current (range: 0-9999$(print_mA))
     e.g.,
-      acc -s c (print)
+      acc -s c (print current limit)
       acc -s c 500 (set)
       acc -s c - (restore default)
 
+  -sc [milliamps|-]   Same as above
+
   -s|--set l|--lang   Change language
     e.g., acc -s l
+
+  -sl   Same as above
 
   -s|--set d|--print-default [egrep regex (default: ".")]   Print default config without blank lines
     e.g.,
       acc -s d (print entire defaul config)
       acc -s d cap (print only entries matching "cap")
 
+  -sd [egrep regex (default: ".")]   Same as above
+
   -s|--set p|--print [egrep regex (default: ".")]   Print current config without blank lines (refer to previous examples)
+
+  -sp [egrep regex (default: ".")]   Same as above
 
   -s|--set r|--reset   Restore default config
     e.g.,
       acc -s r
       rm /data/adb/acc-data/config.txt (failsafe)
 
+  -sr   Same as above
+
   -s|--set s|charging_switch   Enforce a specific charging switch
     e.g., acc -s s
+
+  -ss    Same as above
 
   -s|--set s:|chargingSwitch:   List known charging switches
     e.g., acc -s s:
 
-  -s|--set v|--voltage [-] [--exit]   Set/print/restore_default max charging voltage (range: 3700-4200$(print_mV))
+  -ss:   Same as above
+
+  -s|--set v|--voltage [millivolts|-] [--exit]   Set/print/restore_default max charging voltage (range: 3700-4200$(print_mV))
     e.g.,
       acc -s v (print)
       acc -s v 3920 (set)
       acc -s v - (restore default)
       acc -s v 3920 --exit (stop the daemon after applying settings)
 
+  -sv [millivolts|-] [--exit]   Same as above
+
   -t|--test [ctrl_file1 on off [ctrl_file2 on off]]   Test custom charging switches
     e.g.,
       acc -t battery/charging_enabled 1 0
       acc -t /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0 ("::" == " ")
 
-  -t|--test [file]   Test charging switches from a file (default: $TMPDIR/charging-switches)
+  -t|--test [file]   Test charging switches from a file (default: $TMPDIR/ch-switches)
     This will also report whether "battery idle" mode is supported
     e.g.,
       acc -t (test known switches)
@@ -1145,6 +1160,15 @@ A common workaround is having `resume_capacity = pause_capacity - 1`.
 ---
 ## LATEST CHANGES
 
+**v2020.5.4-rc (202005040)**
+`--set` can now set (var=value) and restore (var=) current and voltage limits as well, e.g., `acc -s mcc=1800 mcv= pc=75 rc=70`
+- `--set [[a-z]|--opt]` commands can alternatively be written as `-s[a-z]`, e.g., `acc -sv 3920 --exit`
+- Current & voltage limit and battery idle mode test now work in AccA 1.0.23 (27)
+- Enhanced "charge once to a given capacity without restrictions" feature
+- Major fixes & optimizations
+- Send SIGKILL 5 seconds after SIGTERM to forcibly terminate stubborn acc processes
+- Write to each ctrl file 3 times (with 200 milliseconds delays in-between) instead of just once; this is an attempt to force changes that don't take effect immediately or at all
+
 **v2020.4.29-rc (202004290)**
 - General fixes
 - Major optimizations
@@ -1157,13 +1181,4 @@ A common workaround is having `resume_capacity = pause_capacity - 1`.
 - Fixed acc --force and tarball installer
 - Optimized main installer
 - Potential fix for "inaccessible or not found" error
-- Updated documentation
-
-**v2020.4.22-beta (202004220)**
-- Ability to override automatic current and voltage units detection - amp_factor (af) and volt_factor (vf)
-- acc --info: print the output of `dumpsys battery` as well
-- acc --set --voltage: fixed "settings not written to config"
-- accd: fixed autoShutdownAlertCmd
-- Misc fixes & optimizations
-- Suppress unnecessary vibration feedback
 - Updated documentation

@@ -4,7 +4,7 @@
 #
 # "::" == " "
 # PWD=/sys/class/power_supply
-# Last updated: Sun, Apr 26, 2020
+# Last updated: Wed, Apr 29, 2020
 
 battery/charger_control 1 0
 */charge_disable 0 1
@@ -67,21 +67,20 @@ usb/razer_charge_limit_max 70 35 usb/razer_charge_limit_enable 0 1
 #bms/temp_cold 0 500
 #bms/temp_hot 500 0
 #battery/system_temp_level 0 9
-battery/charge_done 0 1
+#battery/charge_done 0 1
 #dc/power/control auto disabled (or off)
 #bms/power/control auto disabled (or off)
 #battery/power/control auto disabled (or off)
 #usb/present 1 0
-dc-wireless/charge_done 1 0
-/sys/devices/soc/soc:lge,charging_controller/lge_power/lge_cc/charge_done 0 1
-/sys/devices/soc/soc:lge,cable_detect/lge_power/lge_cable_detect/charge_done 0 1
+#dc-wireless/charge_done 1 0
+#/sys/devices/soc/soc:lge,charging_controller/lge_power/lge_cc/charge_done 0 1
+#/sys/devices/soc/soc:lge,cable_detect/lge_power/lge_cable_detect/charge_done 0 1
 #battery/wc_enable 1 0
 #/sys/devices/platform/lge-unified-nodes/charger_incompatible 0 1
 #battery/TempBattVoltage 558 0
 battery/charge_control_limit 0 1 battery/charge_control_limit_max 100 5
 battery/charge_control_limit 0 1 /sys/devices/platform/soc/soc:google,charger/charge_stop_level 100 5
 #main/toggle_stat 0 1
-battery/charge_done 0 1
 #usb/moisture_detected 0 1
 battery/mmi_charging_enable 1 0
 #battery/ship_mode 0 1

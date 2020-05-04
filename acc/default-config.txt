@@ -168,6 +168,8 @@ voltFactor=
 # acc -s amp_factor=1000
 # acc -s volt_factor=1000000
 
+# acc -s mcc=500 mcv="3920 --exit"
+
 
 # FINE, BUT WHAT DOES EACH OF THESE VARIABLES ACTUALLY MEAN?
 
@@ -256,13 +258,10 @@ voltFactor=
 # Default values are restored on unplug and when the daemon stops.
 
 # max_charging_current (mcc) #
-# apply_on_plug dedicated to current control
-# This is managed with "acc --set --current ..." (acc -s c ...) commands.
-# Refer back to the command examples.
-
 # max_charging_voltage (mcv) #
-# apply_on_boot dedicated to voltage control
-# This is managed with "acc --set --voltage ..." (acc -s v ...) commands.
+# Only the current/voltage value is to be supplied.
+# Control files are automatically selected.
+# Refer back to the command examples.
 
 # reboot_on_pause (rp) #
 # If this doesn't make sense to you, you probably don't need it.

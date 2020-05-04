@@ -72,7 +72,7 @@ e) $(print_exit)
       echo
       print_quit CTRL-C
       echo
-      echo -n "%: "
+      echo -n "%? "
       read level
       clear
       /sbin/acc --full ${level-}
