@@ -1,4 +1,4 @@
-# 简体中文 (zh-rCN)
+# 繁體中文 (zh-rTW)
 
 print_already_running() {
   echo "(i) accd 目前是執行狀態"
