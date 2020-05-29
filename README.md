@@ -805,7 +805,7 @@ If we're talking about a Pixel device, the issue goes beyond that.
 Refer back to `DEFAULT CONFIGURATION > capacity_sync`.
 
 
-### Battery Idle Mode On OnePlus 7/Pro
+### Battery Idle Mode On OnePlus 7/Pro/T and OnePlus 8/Pro
 
 Recent/custom kernels (e.g., Kirisakura) support battery idle mode.
 However, at the time of this writing, the feature is not production quality.
