@@ -1,6 +1,6 @@
 # select for shells that lack it
-# usage:
-#  . select.sh
+# usage
+#  . $0
 #  select_ [var] [list]
 
 select_() {

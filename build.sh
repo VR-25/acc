@@ -57,7 +57,7 @@ then
     echo; sed -n '/^#\/DC#/,$p' README.md; } > README.md.tmp
 # terminal commands
   { sed -n '1,/#TC#/p' README.md.tmp; \
-    echo; sed -n '/^Usage/,/^  Run a/p' $id/strings.sh; \
+    echo; . $id/strings.sh; print_help; \
     echo; sed -n '/^#\/TC#/,$p' README.md.tmp; } > README.md
     rm README.md.tmp
   set +e
@@ -69,7 +69,7 @@ set -e
 for file in ./$id/uninstall.sh ./install*.sh; do
   [ $file -ot $id/setup-busybox.sh ] && {
     { sed -n '1,/#BB#/p' $file; \
-    sed -n '/^if /,/^fi/p' $id/setup-busybox.sh; \
+    grep -Ev '^$|^#' $id/setup-busybox.sh; \
     sed -n '/^#\/BB#/,$p' $file; } > ${file}.tmp
     mv -f ${file}.tmp $file
   }
@@ -79,7 +79,6 @@ set +e
 
 # unify installers for flashable zip (customize.sh and update-binary are copies of install.sh)
 { cp -u install.sh customize.sh
-cp -u install.sh install-current.sh ### legacy
 cp -u install.sh META-INF/com/google/android/update-binary; } 2>/dev/null
 
 

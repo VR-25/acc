@@ -3,7 +3,7 @@
 # otherwise, most values would be zero (wrong)
 
 (
-  set +euo pipefail 2>/dev/null
+  set +eu
   grep -q ::v $TMPDIR/ch-curr-ctrl-files || {
     ls -1 */current_max */input_current_max 2>/dev/null | \
       while read file; do

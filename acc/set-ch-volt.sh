@@ -2,10 +2,10 @@ set_ch_volt() {
   if [ -n "${1-}" ]; then
 
     ${verbose:-true} || {
-      modPath=$PWD
+      execDir=/data/adb/acc
       exxit() { exit $?; }
-      . ./misc-functions.sh
-      cd $modPath
+      . $execDir/misc-functions.sh
+      cd $execDir
     }
 
     # restore

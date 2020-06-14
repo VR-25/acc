@@ -31,12 +31,12 @@ e) $(print_exit)
   case $choice in
 
     1)
-      . $modPath/set-prop.sh; set_prop --lang
-      exec /sbin/acc
+      . $execDir/set-prop.sh; set_prop --lang
+      exec /dev/acc
     ;;
 
     2)
-      . $modPath/print-help.sh
+      . $execDir/print-help.sh
       print_help_
       exec wizard
     ;;
@@ -47,7 +47,8 @@ e) $(print_exit)
     ;;
 
     4)
-      /sbin/accd
+      /dev/accd
+      sleep 1
       exec wizard
     ;;
 
@@ -75,7 +76,7 @@ e) $(print_exit)
       echo -n "%? "
       read level
       clear
-      /sbin/acc --full ${level-}
+      /dev/acc --full ${level-}
       exit $?
     ;;
 
@@ -83,8 +84,8 @@ e) $(print_exit)
       print_quit CTRL-C
       print_press_enter
       read
-      set +euo pipefail 2>/dev/null
-      $modPath/uninstall.sh
+      set +eu
+      $execDir/uninstall.sh
     ;;
 
     9)
@@ -99,29 +100,29 @@ e) $(print_exit)
     ;;
 
     b)
-      /sbin/acc --test || :
+      /dev/acc --test || :
       print_press_enter
       read
       exec wizard
     ;;
 
     c)
-      /sbin/acc --upgrade --changelog || :
+      /dev/acc --upgrade --changelog || :
       print_press_enter
       read
-      exec /sbin/acc
+      exec /dev/acc
     ;;
 
     d)
       (
-        set +euxo pipefail 2>/dev/null
+        set +eux
         trap - EXIT
-        $modPath/flash-zips.sh
+        $execDir/flash-zips.sh
       ) || :
       echo
       print_press_enter
       read
-      exec /sbin/acc
+      exec /dev/acc
     ;;
 
     e)

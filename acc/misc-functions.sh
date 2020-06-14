@@ -12,7 +12,7 @@ apply_on_boot() {
     file=${1-}
     value=${2-}
     { $exitCmd && ! $force; } && default=${2-} || default=${3:-${2-}}
-    [ -f "$file" ] && chmod u+w $file && run3x "echo \$$arg > $file" || :
+    [ -f "$file" ] && chmod u+w $file && run_xtimes "echo \$$arg > $file" || :
   done
 
   $exitCmd && [ $arg == value ] && exit 0 || :
@@ -26,7 +26,7 @@ apply_on_plug() {
     file=${1-}
     value=${2-}
     default=${3:-${2-}}
-    [ -f "$file" ] && chmod u+w $file && run3x "echo \$$arg > $file" || :
+    [ -f "$file" ] && chmod u+w $file && run_xtimes "echo \$$arg > $file" || :
   done
 }
 
@@ -43,7 +43,7 @@ cycle_switches() {
       on="${chargingSwitch[1]//::/ }"
       off="${chargingSwitch[2]//::/ }"
       chmod u+w ${chargingSwitch[0]} \
-        && run3x "echo \$$1 > ${chargingSwitch[0]}" \
+        && run_xtimes "echo \$$1 > ${chargingSwitch[0]}" \
         || continue
 
       # toggle secondary switch
@@ -51,7 +51,7 @@ cycle_switches() {
         on="${chargingSwitch[4]//::/ }"
         off="${chargingSwitch[5]//::/ }"
         chmod u+w ${chargingSwitch[3]} \
-          && run3x "echo \$$1 > ${chargingSwitch[3]}" || :
+          && run_xtimes "echo \$$1 > ${chargingSwitch[3]}" || :
       }
 
       [ "$1" != off ] || {
@@ -61,18 +61,18 @@ cycle_switches() {
           while ! not_charging ${2-}; do
             switchDelay=$(( ${switchDelay%.?} + 2 ))
             sleep $switchDelay
-            [ $switchDelay -lt 7 ] || break
+            [ $switchDelay -lt ${mtksd-7} ] || break
           done
         }
 
         if ! not_charging ${2-}; then
           # reset switch/group that fails to disable charging
-          run3x "echo ${chargingSwitch[1]//::/ } > ${chargingSwitch[0]} || :;
+          run_xtimes "echo ${chargingSwitch[1]//::/ } > ${chargingSwitch[0]} || :;
             echo ${chargingSwitch[4]//::/ } > ${chargingSwitch[3]:-/dev/null} || :" 2>/dev/null
           switchDelay=1.5
         else
           # enforce working charging switch(es) and switchDelay
-          . $modPath/write-config.sh
+          . $execDir/write-config.sh
           break
         fi
       }
@@ -99,10 +99,10 @@ disable_charging() {
   if [[ "${chargingSwitch[0]-}" == */* ]]; then
     if [ -f ${chargingSwitch[0]} ]; then
       # toggle primary switch
-      if chmod u+w ${chargingSwitch[0]} && run3x "echo ${chargingSwitch[2]//::/ } > ${chargingSwitch[0]}"; then
+      if chmod u+w ${chargingSwitch[0]} && run_xtimes "echo ${chargingSwitch[2]//::/ } > ${chargingSwitch[0]}"; then
         [ ! -f "${chargingSwitch[3]-}" ] || {
           # toggle secondary switch
-          chmod u+w ${chargingSwitch[3]} && run3x "echo ${chargingSwitch[5]//::/ } > ${chargingSwitch[3]}" || {
+          chmod u+w ${chargingSwitch[3]} && run_xtimes "echo ${chargingSwitch[5]//::/ } > ${chargingSwitch[3]}" || {
             $isAccd || print_switch_fails
             unset_switch
             cycle_switches_off
@@ -148,7 +148,7 @@ disable_charging() {
       *%)
         print_charging_disabled_until $1
         echo
-        (until [ $(( $(cat $batt/capacity) ${capacity[4]} )) -le ${1%\%} ]; do
+        (until [ $(cat $batt/capacity) -le ${1%\%} ]; do
           sleep ${loopDelay[1]}
           set +x
         done)
@@ -178,21 +178,21 @@ enable_charging() {
 
   ! $isAccd || not_charging || return 0
 
-  if ! $ghostCharging || { $ghostCharging && [[ "$(cat */online)" == *1* ]]; }; then
+  if ! $ghostCharging || { $ghostCharging && [[ $(cat */online) == *1* ]]; }; then
 
     $isAccd || {
       [ "${2-}" == noap ] || apply_on_plug
     }
 
     chmod u+w ${chargingSwitch[0]-} ${chargingSwitch[3]-} 2>/dev/null \
-      && run3x "echo ${chargingSwitch[1]-} > ${chargingSwitch[0]-}
-        echo ${chargingSwitch[4]-} > ${chargingSwitch[3]:-/dev/null}" 2>/dev/null \
+      && run_xtimes "echo ${chargingSwitch[1]//::/ } > ${chargingSwitch[0]-}
+        echo ${chargingSwitch[4]//::/ } > ${chargingSwitch[3]:-/dev/null}" 2>/dev/null \
       || cycle_switches on
 
     ! not_charging || sleep ${switchDelay}
 
     # detect and block ghost charging
-    if ! $ghostCharging && ! not_charging && [[ "$(cat */online)" != *1* ]]; then
+    if ! $ghostCharging && ! not_charging && [[ $(cat */online) != *1* ]]; then
       ghostCharging=true
       disable_charging > /dev/null
       touch $TMPDIR/.ghost-charging
@@ -209,7 +209,7 @@ enable_charging() {
         *%)
           print_charging_enabled_until $1
           echo
-          (until [ $(( $(cat $batt/capacity) ${capacity[4]} )) -ge ${1%\%} ]; do
+          (until [ $(cat $batt/capacity) -ge ${1%\%} ]; do
             sleep ${loopDelay[1]}
             set +x
           done)
@@ -240,9 +240,9 @@ enable_charging() {
 
 
 misc_stuff() {
-  set -euo pipefail 2>/dev/null || :
+  set -eu
   mkdir -p ${config%/*}
-  [ -f $config ] || cp $modPath/default-config.txt $config
+  [ -f $config ] || cp $execDir/default-config.txt $config
 
   # config backup
   ! [ -d /data/media/0/?ndroid -a $config -nt /data/media/0/.acc-config-backup.txt ] \
@@ -275,12 +275,11 @@ print_wait_plug() {
 }
 
 
-run3x() {
+run_xtimes() {
   local count=0
-  while [ $count -lt 3 ]; do
+  for count in $(seq ${ctrlFileWrites[0]}); do
     eval "$@"
-    sleep 0.2
-    count=$(( count +1 ))
+    sleep ${ctrlFileWrites[1]}
   done
 }
 
@@ -288,17 +287,16 @@ run3x() {
 unset_switch() {
   chargingSwitch=()
   switchDelay=1.5
-  . $modPath/write-config.sh
+  . $execDir/write-config.sh
 }
 
 
 vibrate() {
-  [ $1 != "-" -a -z "${noVibrations-}" ] || return 0
-  local c=0
-  while [ $c -lt $1 ]; do
-    ${forceVibrations-false} && echo -en '\a' >&3 || echo -en '\a'
+  [ $1 != "-" -a $isAccd == false ] || return 0
+  local count=0
+  for count in $(seq $1); do
+    ${fd3-false} && print -n '\a' >&3 || print -n '\a' || :
     sleep $2
-    c=$(( c + 1 ))
   done
 }
 
@@ -308,7 +306,7 @@ wait_plug() {
     echo "(i) ghostCharging=true"
     print_wait_plug
   }
-  (while [[ "$(cat */online)" != *1* ]]; do
+  (while [[ $(cat */online) != *1* ]]; do
     sleep ${loopDelay[1]}
     set +x
   done)
@@ -318,9 +316,10 @@ wait_plug() {
 
 # environment
 
+id=acc
 umask 0077
-modPath=/sbin/.acc/acc
-export TMPDIR=${modPath%/*}
+execDir=/data/adb/acc
+export TMPDIR=/dev/.acc
 config=/data/adb/acc-data/config.txt
 config_=$config
 
@@ -330,16 +329,28 @@ config_=$config
 
 trap exxit EXIT
 
-. $modPath/setup-busybox.sh
+. $execDir/setup-busybox.sh
 
 device=$(getprop ro.product.device | grep .. || getprop ro.build.product)
 
 cd /sys/class/power_supply/
 
-batt=$(echo *attery/capacity | cut -d ' ' -f 1 | sed 's|/capacity||')
+for batt in $(ls */uevent); do
+  chmod u+r $batt \
+     && grep -q '^POWER_SUPPLY_CAPACITY=' $batt \
+     && grep -q '^POWER_SUPPLY_STATUS=' $batt \
+     && batt=${batt%/*} && break
+done 2>/dev/null || :
 
-[[ $(readlink -f $modPath) != *com.termux* ]] || {
+# dumpsys wrapper for Termux
+[[ $(readlink -f $execDir) != *com.termux* ]] || {
   bin=$(su -c "which dumpsys")
   eval "dumpsys() { su -c $bin; }"
   unset bin
 }
+
+# dumpsys wrapper for recovery
+pgrep -f zygote > /dev/null || dumpsys() { :; }
+
+# set max switch_delay for mtk devices
+! grep -q mtk_battery_cmd $TMPDIR/ch-switches || mtksd=20

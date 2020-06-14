@@ -7,7 +7,7 @@
 (id=acc
 installerName=install
 tarballName=${id}_bundle
-destination=/mnt/d/Desktop/AccA/app/src/main/res/raw
+destination=/home/*/Desktop/git/AccA/app/src/main/res/raw
 
 cd ${0%/*} 2>/dev/null
 version=$(sed -n "s/^version=//p" module.prop)

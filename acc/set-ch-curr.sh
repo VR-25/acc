@@ -1,4 +1,12 @@
 set_ch_curr() {
+
+  ${verbose:-true} || {
+    execDir=/data/adb/acc
+    exxit() { exit $?; }
+    . $execDir/misc-functions.sh
+    cd $execDir
+  }
+
   # check support
   grep -q ::v $TMPDIR/ch-curr-ctrl-files || {
     if ${verbose:-true} && not_charging; then
@@ -6,13 +14,13 @@ set_ch_curr() {
       print_wait_plug
       (while not_charging; do sleep 1; set +x; done)
       echo
-      . $modPath/read-ch-curr-ctrl-files-p2.sh
+      . $execDir/read-ch-curr-ctrl-files-p2.sh
       grep -q ::v $TMPDIR/ch-curr-ctrl-files || {
         print_no_ctrl_file
         return 1
       }
     else
-      . $modPath/read-ch-curr-ctrl-files-p2.sh
+      . $execDir/read-ch-curr-ctrl-files-p2.sh
       grep -q ::v $TMPDIR/ch-curr-ctrl-files || {
         ! ${verbose:-true} || print_no_ctrl_file
         return 1
@@ -21,13 +29,6 @@ set_ch_curr() {
   }
 
   if [ -n "${1-}" ]; then
-
-    ${verbose:-true} || {
-      modPath=$PWD
-      exxit() { exit $?; }
-      . ./misc-functions.sh
-      cd $modPath
-    }
 
     # restore
     if [ $1 == - ]; then

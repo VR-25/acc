@@ -3,8 +3,7 @@ set +u
 echo "shutdown_capacity=${capacity[0]}
 resume_capacity=${capacity[2]}
 pause_capacity=${capacity[3]}
-capacity_offset=${capacity[4]}
-capacity_sync=${capacity[5]}
+capacity_freeze2=${capacity[4]}
 
 cooldown_capacity=${capacity[1]}
 cooldown_temp=${temperature[0]}
@@ -28,8 +27,9 @@ apply_on_boot=${applyOnBoot[@]}
 
 apply_on_plug=${applyOnPlug[@]}
 
-max_charging_current=${maxChargingCurrent[0]}
-max_charging_voltage=${maxChargingVoltage[0]}
+max_charging_current=${maxChargingCurrent[@]}
+
+max_charging_voltage=${maxChargingVoltage[@]}
 
 reboot_on_pause=$rebootOnPause
 switch_delay=$switchDelay
@@ -53,4 +53,8 @@ error_alert_cmd=${errorAlertCmd[@]}
 charg_disabled_notif_cmd=${chargDisabledNotifCmd[@]}
 
 amp_factor=$ampFactor
-volt_factor=$voltFactor"
+volt_factor=$voltFactor
+
+ctrl_file_writes=${ctrlFileWrites[@]}
+
+loop_cmd=${loopCmd[@]}"

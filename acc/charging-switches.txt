@@ -4,11 +4,11 @@
 #
 # "::" == " "
 # PWD=/sys/class/power_supply
-# Last updated: Wed, Apr 29, 2020
+# Last updated: Sat, Jun 6, 2020
 
 battery/charger_control 1 0
 */charge_disable 0 1
-battery/input_suspend 0 1
+idt/pin_enabled 1 0
 manta-battery/charge_enabled 1 0
 battery/charge_enabled 1 0
 battery/device/Charging_Enable 1 0
@@ -23,19 +23,19 @@ dc/charging_enabled 1 0
 *charger/charge_enabled 1 0
 chargalg/disable_charging 0 1
 mt-battery/disable_charger 0 1
-parallel/charging_enabled 1 0
-parallel/input_suspend 0 1
+#parallel/charging_enabled 1 0
+#parallel/input_suspend 0 1
 dollar_cove_charger/enable_charging 1 0
 dollar_cove_charger/enable_charger 1 0
 battery*/charging_enabled 1 0
 battery/battery_charging_enabled 1 0
 battery/batt_slate_mode 0 1
 battery/store_mode 0 1
-usb-parallel/charging_enabled 1 0
+#usb-parallel/charging_enabled 1 0
 *wireless/charging_enabled 1 0
 *-charger/charging_enabled 1 0
 dc/input_suspend 0 1
-battery/op_disable_charge 0 1
+battery/op_disable_charge 0 1 battery/input_suspend 0 0
 battery/device/smartchg_stop_charging 0 1
 
 /proc/smb*_disable_chrg 0 1
@@ -52,7 +52,10 @@ battery/device/smartchg_stop_charging 0 1
 /sys/kernel/debug/google_charger/chg_suspend 0 1
 /sys/kernel/debug/google_charger/input_suspend 0 1
 /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0
-/proc/driver/charger_limit_enable 0 1 /proc/driver/charger_limit 100 5
+/proc/driver/charger_limit_enable 0 1 /proc/driver/charger_limit 100 1
+/sys/module/lge_battery/parameters/charge_stop_level 100 1 battery/input_suspend 0 0
+
+battery/input_suspend 0 1
 
 # Razer
 # acc/oem_custom.sh handles /sys/devices/platform/soc/*/*/*/razer_charge_limit_dropdown 65 30 and usb/razer_charge_limit_dropdown 65 30
@@ -62,7 +65,7 @@ usb/razer_charge_limit_max 70 35 usb/razer_charge_limit_enable 0 1
 # EXPERIMENTAL
 #battery/charger_temp_max 803 0
 #battery/is_in_call 0 1
-#/sys/devices/platform/battery_meter/FG_suspend_current_threshold 100 10
+#/sys/devices/platform/battery_meter/FG_suspend_current_threshold 100 1
 #/sys/devices/platform/battery_meter/FG_daemon_disable 0 1
 #bms/temp_cold 0 500
 #bms/temp_hot 500 0
@@ -78,8 +81,8 @@ usb/razer_charge_limit_max 70 35 usb/razer_charge_limit_enable 0 1
 #battery/wc_enable 1 0
 #/sys/devices/platform/lge-unified-nodes/charger_incompatible 0 1
 #battery/TempBattVoltage 558 0
-battery/charge_control_limit 0 1 battery/charge_control_limit_max 100 5
-battery/charge_control_limit 0 1 /sys/devices/platform/soc/soc:google,charger/charge_stop_level 100 5
+battery/charge_control_limit 0 1 battery/charge_control_limit_max 100 1
+battery/charge_control_limit 0 1 /sys/devices/platform/soc/soc:google,charger/charge_stop_level 100 1
 #main/toggle_stat 0 1
 #usb/moisture_detected 0 1
 battery/mmi_charging_enable 1 0

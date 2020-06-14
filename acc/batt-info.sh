@@ -1,7 +1,7 @@
 batt_info() {
 
   local info="" voltNow="" currNow="" powerNow="" factor=""
-  set +euo pipefail 2>/dev/null || :
+  set +eu
 
 
   # calculator
@@ -21,8 +21,7 @@ batt_info() {
 
   # raw battery info from $batt/uevent
   info="$(
-    sed -e 's/^POWER_SUPPLY_//' -e 's/^BATT_VOL=/VOLTAGE_NOW=/' -e 's/^BATT_TEMP=/TEMP=/' \
-      -e "/^CAPACITY=/s/=.*/=$(( $(cat $batt/capacity) ${capacity[4]} ))/" $batt/uevent
+    sed -e 's/^POWER_SUPPLY_//' -e 's/^BATT_VOL=/VOLTAGE_NOW=/' -e 's/^BATT_TEMP=/TEMP=/' $batt/uevent
 
     [ ! -f bms/uevent ] || {
       grep -q '^P.*_PPLY_TEMP=' $batt/uevent \
@@ -67,5 +66,5 @@ batt_info() {
 CURRENT_NOW=$currNow$(print_A 2>/dev/null || :)
 VOLTAGE_NOW=$voltNow$(print_V 2>/dev/null || :)
 POWER_NOW=$powerNow$(print_W 2>/dev/null || :)"
-  } | grep -Ei "${1:-.*}"
+  } | grep -Ei "${1:-.*}" || :
 }

@@ -6,11 +6,11 @@
 
 daemon_ctrl() {
 
-  local isRunning=true pid=$$
+  local isRunning=false
 
-  pid="$(pgrep -f '/ac(c|ca) (-|--)[deft]|/accd\.sh' | sed /$pid/d)" || :
-
-  [[ "$pid" == *[0-9]* ]] || isRunning=false
+  flock -n 0 <>$TMPDIR/acc.lock \
+    && flock -u 0 <>$TMPDIR/acc.lock \
+    || isRunning=true
 
   case "${1-}" in
 
@@ -20,22 +20,13 @@ daemon_ctrl() {
         return 8
       else
         print_started
-        /sbin/accd $config
-        return 0
+        exec /dev/accd $config
       fi
     ;;
 
     stop)
       if $isRunning; then
-        set +euo pipefail
-        echo "$pid" | xargs kill $2 2>/dev/null
-        pid=$$
-        for count in 1 2 3 4 5; do
-          sleep 1
-          [ -z "$(pgrep -f 'ac(c|ca) (-|--)[deft]|/accd\.sh' | sed /$pid/d)" ] && break
-        done
-        pid="$(pgrep -f 'ac(c|ca) (-|--)[deft]|/accd\.sh' | sed /$pid/d)"
-        echo "$pid" | xargs kill -9 2>/dev/null
+        . $execDir/release-lock.sh
         print_stopped
         return 0
       else
@@ -50,12 +41,12 @@ daemon_ctrl() {
       else
         print_started
       fi
-      /sbin/accd $config
+      exec /dev/accd $config
     ;;
 
     *)
       if $isRunning; then
-        print_is_running "$accVer ($accVerCode)" "(PID $pid)"
+        print_is_running "$accVer ($accVerCode)" "(PID $(cat $TMPDIR/acc.lock))"
         return 0
       else
         print_not_running
@@ -101,10 +92,10 @@ get_prop() { sed -n "s|^$1=||p" ${2:-$config}; }
 
 test_charging_switch() {
 
-  local failed=false switchDelay=7
+  local failed=false switchDelay=${switchDelay_-${mtksd-7}}
 
   chmod u+w $1 ${4-} \
-    && run3x "echo ${3//::/ } > $1 && echo ${6//::/ } > ${4:-/dev/null}" \
+    && run_xtimes "echo ${3//::/ } > $1 && echo ${6//::/ } > ${4:-/dev/null}" \
     && sleep $switchDelay
 
   ! not_charging && failed=true || {
@@ -115,7 +106,7 @@ test_charging_switch() {
   }
 
   if ! $failed \
-    && run3x "echo ${2//::/ } > $1 && echo ${5//::/ } > ${4:-/dev/null}" \
+    && run_xtimes "echo ${2//::/ } > $1 && echo ${5//::/ } > ${4:-/dev/null}" \
     && sleep $switchDelay && ! not_charging && eval "${chargEnabledNotifCmd[@]-}"
   then
     print_switch_works "$@"
@@ -123,7 +114,7 @@ test_charging_switch() {
     return 0
   else
     print_switch_fails "$@"
-    run3x "echo ${2//::/ } > $1; echo ${5//::/ } > ${4:-/dev/null}" 2>/dev/null
+    run_xtimes "echo ${2//::/ } > $1; echo ${5//::/ } > ${4:-/dev/null}" 2>/dev/null
     return 1
   fi
 }
@@ -131,7 +122,7 @@ test_charging_switch() {
 
 exxit() {
   local exitCode=$?
-  set +euxo pipefail 2>/dev/null
+  set +eux
   ! ${noEcho:-false} && ${verbose:-true} && echo
   [[ $exitCode == [05689] ]] || {
     [[ $exitCode == [127] || $exitCode == 10 ]] && {
@@ -146,19 +137,19 @@ exxit() {
 
 
 set_prop_() {
-  . $modPath/set-prop.sh
+  . $execDir/set-prop.sh
   set_prop "$@"
 }
 
 
 ! ${verbose:-true} || echo
 isAccd=false
-modPath=/sbin/.acc/acc
-defaultConfig=$modPath/default-config.txt
+execDir=/data/adb/acc
+defaultConfig=$execDir/default-config.txt
 
 # load generic functions
-. $modPath/logf.sh
-. $modPath/misc-functions.sh
+. $execDir/logf.sh
+. $execDir/misc-functions.sh
 
 log=$TMPDIR/acc-${device}.log
 
@@ -168,37 +159,36 @@ if ${verbose:-true} && [[ "${1-}" != *-w* ]]; then
     touch $log
     [ $(du -m $log | cut -f 1) -ge 2 ] && : > $log
     echo "###$(date)###" >> $log
-    echo "versionCode=$(sed -n s/versionCode=//p $modPath/module.prop 2>/dev/null)" >> $log
+    echo "versionCode=$(sed -n s/versionCode=//p $execDir/module.prop 2>/dev/null)" >> $log
     set -x 2>>$log
 fi
 
 
-accVer=$(get_prop version $modPath/module.prop)
-accVerCode=$(get_prop versionCode $modPath/module.prop)
+accVer=$(get_prop version $execDir/module.prop)
+accVerCode=$(get_prop versionCode $execDir/module.prop)
 
 unset -f get_prop
 
 
 misc_stuff "${1-}"
 [[ "${1-}" != */* ]] || shift
-config__=$config
 
 
 # reset broken/obsolete config
-(set +x; . $config) > /dev/null 2>&1 || cp -f $modPath/default-config.txt $config
+(set +x; . $config) > /dev/null 2>&1 || cp -f $execDir/default-config.txt $config
 
 . $config
 
 
 # load default language (English)
-. $modPath/strings.sh
+. $execDir/strings.sh
 
 # load translations
-if ${verbose:-true} && [ -f $modPath/translations/$language/strings.sh ]; then
-  . $modPath/translations/$language/strings.sh
+if ${verbose:-true} && [ -f $execDir/translations/$language/strings.sh ]; then
+  . $execDir/translations/$language/strings.sh
 fi
-grep -q .. $modPath/translations/$language/README.md 2>/dev/null \
-  && readMe=$modPath/translations/$language/README.md \
+grep -q .. $execDir/translations/$language/README.md 2>/dev/null \
+  && readMe=$execDir/translations/$language/README.md \
   || readMe=${config%/*}/info/README.md
 
 
@@ -217,14 +207,14 @@ grep -q .. $modPath/translations/$language/README.md 2>/dev/null \
 case "${1-}" in
 
   "")
-    . $modPath/wizard.sh
+    . $execDir/wizard.sh
     wizard
   ;;
 
   [0-9]*)
     capacity[2]=$2
     capacity[3]=$1
-    . $modPath/write-config.sh
+    . $execDir/write-config.sh
   ;;
 
   -c|--config)
@@ -235,6 +225,7 @@ case "${1-}" in
     shift
     print_m_mode
     ! daemon_ctrl stop > /dev/null || print_stopped
+   . $execDir/acquire-lock.sh
     disable_charging "$@"
   ;;
 
@@ -246,6 +237,7 @@ case "${1-}" in
     shift
     print_m_mode
     ! daemon_ctrl stop > /dev/null || print_stopped
+    . $execDir/acquire-lock.sh
     enable_charging "$@"
   ;;
 
@@ -267,21 +259,22 @@ case "${1-}" in
 
     pause_capacity=${2:-100}
     resume_capacity=$(( pause_capacity - 5 ))
-    run_cmd_on_pause="exec /sbin/accd"
+    run_cmd_on_pause="exec /dev/accd"
 
     cp -f $config $TMPDIR/.acc-f-config
     config=$TMPDIR/.acc-f-config
-    . $modPath/write-config.sh
+    . $execDir/write-config.sh
     print_charging_enabled_until ${2:-100}%
-    exec /sbin/accd $config
+    echo
+    exec /dev/accd $config
   ;;
 
 
   -F|--flash)
     shift
-    set +euxo pipefail 2>/dev/null
+    set +eux
     trap - EXIT
-    $modPath/flash-zips.sh "$@"
+    $execDir/flash-zips.sh "$@"
   ;;
 
 
@@ -308,7 +301,7 @@ case "${1-}" in
       | grep -Ei "${2-.*}" \
       | sed -e '1s/.*/dumpsys battery/' && echo; } || :
 
-    . $modPath/batt-info.sh
+    . $execDir/batt-info.sh
     echo "/sys/class/power_supply/$batt/uevent"
     batt_info "${2-}" | sed 's/^/  /'
   ;;
@@ -326,14 +319,6 @@ case "${1-}" in
   -l|--log)
     shift
     logf "$@"
-  ;;
-
-  -T|--logtail)
-    ! ${verbose:-true} || {
-      print_quit CTRL-C
-      sleep 1.5
-    }
-    tail -F $TMPDIR/accd-*.log
   ;;
 
   -r|--readme)
@@ -390,13 +375,16 @@ case "${1-}" in
     shift
     print_unplugged
     daemon_ctrl stop > /dev/null && daemonWasUp=true || daemonWasUp=false
+
+    . $execDir/acquire-lock.sh
+
     cp $config /dev/.acc-config
     config=/dev/.acc-config
-    forceVibrations=true
+    fd3=true
     exec 3>&1
 
-    set +eo pipefail 2>/dev/null
-    trap '$daemonWasUp && /sbin/accd $config__' EXIT
+    set +e
+    trap '! $daemonWasUp || exec /dev/accd $config_' EXIT
 
     not_charging && enable_charging > /dev/null
     not_charging && {
@@ -408,6 +396,14 @@ case "${1-}" in
     }
 
     print_wait
+
+    # custom switch delay
+    case "${1-}" in
+      [0-9]|[0-9][0-9]|[0-9].[0-9])
+        switchDelay_=$1
+        shift
+      ;;
+    esac
 
     case "${1-}" in
       */*)
@@ -434,6 +430,15 @@ case "${1-}" in
   ;;
 
 
+  -T|--logtail|-L) # legacy
+    if ${verbose:-true} && [ $1 != -L ]; then
+      print_quit CTRL-C
+      sleep 1.5
+    fi
+    tail -F $TMPDIR/accd-*.log
+  ;;
+
+
   -u|--upgrade)
     shift
     local reference=""
@@ -446,7 +451,7 @@ case "${1-}" in
         reference=master
       ;;
       *)
-        grep -Eq '^version=.*-(beta|rc)' $modPath/module.prop \
+        grep -Eq '^version=.*-(beta|rc)' $execDir/module.prop \
           && reference=dev \
           || reference=master
       ;;
@@ -457,17 +462,22 @@ case "${1-}" in
       *) insecure=;;
     esac
 
+    [ ! -f /data/adb/bin/curl ] || {
+      [ -x /data/adb/bin/curl ] || chmod -R 0700 /data/adb/bin
+      export curlPath=true PATH=/data/adb/bin:$PATH
+    }
+
     curl $insecure -Lo $TMPDIR/install-online.sh https://raw.githubusercontent.com/VR-25/acc/$reference/install-online.sh
     trap - EXIT
-    set +euo pipefail 2>/dev/null
-    installDir=$(readlink -f $modPath)
+    set +eu
+    installDir=$(readlink -f $execDir)
     installDir=${installDir%/*}
     . $TMPDIR/install-online.sh "$@" %$installDir% $reference
   ;;
 
   -U|--uninstall)
-    set +euo pipefail 2>/dev/null
-    $modPath/uninstall.sh
+    set +eu
+    $execDir/uninstall.sh
   ;;
 
   -v|--version)
@@ -478,11 +488,17 @@ case "${1-}" in
     sleepSeconds=${1#*h}
     sleepSeconds=${sleepSeconds#*w}
     : ${sleepSeconds:=3}
-    . $modPath/batt-info.sh
+    . $execDir/batt-info.sh
     ! ${verbose:-true} || print_quit CTRL-C
     sleep 1.5
     while :; do
       clear
+      for batt in $(ls */uevent); do
+        chmod u+r $batt \
+           && grep -q '^POWER_SUPPLY_CAPACITY=' $batt \
+           && grep -q '^POWER_SUPPLY_STATUS=' $batt \
+           && batt=${batt%/*} && break
+      done 2>/dev/null || :
       batt_info "${2-}"
       sleep $sleepSeconds
       set +x
@@ -491,7 +507,7 @@ case "${1-}" in
 
   *)
     shift
-    . $modPath/print-help.sh
+    . $execDir/print-help.sh
     print_help_
   ;;
 

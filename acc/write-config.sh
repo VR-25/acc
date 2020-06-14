@@ -4,8 +4,7 @@ sc=${shutdown_capacity-${sc-${capacity[0]}}}
 cc=${cooldown_capacity-${cc-${capacity[1]}}}
 rc=${resume_capacity-${rc-${capacity[2]}}}
 pc=${pause_capacity-${pc-${capacity[3]}}}
-co=${capacity_offset-${co-${capacity[4]}}}
-cs=${capacity_sync-${cs-${capacity[5]}}}
+cft=${capacity_freeze2-${cft-${capacity[4]}}}
 
 ct=${cooldown_temp-${ct-${temperature[0]}}}
 mt=${max_temp-${mt-${temperature[1]}}}
@@ -56,10 +55,14 @@ eac="${error_alert_cmd-${eac-${errorAlertCmd[@]}}}"
 af=${amp_factor-${af-$ampFactor}}
 vf=${volt_factor-${vf-$voltFactor}}
 
+cfw="${ctrl_file_writes-${cfw-${ctrlFileWrites[@]}}}"
+
+lc="${loop_cmd-${lc-${loopCmd[@]}}}"
+
 
 {
 echo "configVerCode=$(cat $TMPDIR/.config-ver)
-capacity=(${sc:--1} ${cc:-101} ${rc:-70} ${pc:-75} ${co:-+0} ${cs:-false})
+capacity=(${sc:--1} ${cc:-101} ${rc:-70} ${pc:-75} ${cft:-false})
 temperature=(${ct:-70} ${mt:-80} ${mtp:-90})
 cooldownRatio=($cch $cp)
 cooldownCustom=($ccu)
@@ -84,6 +87,8 @@ chargEnabledNotifCmd=(${cenc:-vibrate 4 0.1})
 errorAlertCmd=(${eac:-vibrate 6 0.1})
 ampFactor=$af
 voltFactor=$vf
+ctrlFileWrites=(${cfw:-3 0.3})
+loopCmd=($lc)
 
 "
 cat $TMPDIR/.config-help

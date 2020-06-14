@@ -1,5 +1,5 @@
-configVerCode=202004270
-capacity=(-1 101 70 75 +0 false)
+configVerCode=202006080
+capacity=(-1 101 70 75 false)
 temperature=(70 80 90)
 cooldownRatio=()
 cooldownCustom=()
@@ -24,6 +24,8 @@ chargEnabledNotifCmd=(vibrate 4 0.1)
 errorAlertCmd=(vibrate 6 0.1)
 ampFactor=
 voltFactor=
+ctrlFileWrites=(3 0.3)
+loopCmd=()
 
 
 # WARNINGS
@@ -40,7 +42,7 @@ voltFactor=
 
 # BASIC CONFIG EXPLANATION
 
-# capacity=(shutdown_capacity cooldown_capacity resume_capacity pause_capacity capacity_offset capacity_sync)
+# capacity=(shutdown_capacity cooldown_capacity resume_capacity pause_capacity capacity_freeze2)
 
 # temperature=(cooldown_temp max_temp max_temp_pause)
 
@@ -90,14 +92,17 @@ voltFactor=
 
 # voltFactor=volt_factor=[multiplier]
 
+# ctrlFileWrites=ctrl_file_writes=(times interval)
+
+# loopCmd=loop_cmd=(. script)
+
 
 # VARIABLE ALIASES/SORTCUTS
 
 # cc cooldown_capacity
 # rc resume_capacity
 # pc pause_capacity
-# co capacity_offset
-# cs capacity_sync
+# cft capacity_freeze2
 
 # sc shutdown_capacity
 # ct cooldown_temp
@@ -140,6 +145,9 @@ voltFactor=
 # af amp_factor
 # vf volt_factor
 
+# cfw ctrl_file_writes
+# lc loop_cmd
+
 
 # COMMAND EXAMPLES
 
@@ -170,6 +178,10 @@ voltFactor=
 
 # acc -s mcc=500 mcv="3920 --exit"
 
+# acc -s cfw="9 0.1"
+
+# acc -s loop_cmd="echo 0 \\> battery/input_suspend"
+
 
 # FINE, BUT WHAT DOES EACH OF THESE VARIABLES ACTUALLY MEAN?
 
@@ -191,17 +203,9 @@ voltFactor=
 # pause_capacity (pc) #
 # Capacity at which charging should pause.
 
-# capacity_offset (co) #
-# Change this only if your system reports incorrect battery capacity ("acc -i" (BMS) vs "dumpsys battery" (Android system)).
-# Pixel devices are know for having this issue.
-
-# capacity_sync (cs) #
-# This is an alternative to capacity_offset.
-# It tells accd whether the battery capacity reported by Android should be updated every few seconds to reflect the actual value from the battery management system.
-# Most users would prefer this over capacity_offset.
-# It's more powerful, but has a cosmetic nuisance: small delays (seconds) in charging status reports.
-# Such inconvenience is not a bug, nor can it be eliminated at this point.
-# accd manages this setting dynamically.
+# capacity_freeze2 (cft) #
+# This prevents Android from getting capacity readings below 2%.
+# It's useful on systems that shutdown before the battery is actually empty.
 
 # cooldown_temp (ct) #
 # Temperature (°C) at which the cooldown cycle starts.
@@ -238,9 +242,8 @@ voltFactor=
 # loop_delay_charging (ldc) #
 # loop_delay_discharging (ldd) #
 # These are delays (seconds) between loop iterations.
-# The lower they are, the quicker acc responsiveness is - but at the cost of slightly extra CPU time.
+# Lower values translate to quicker acc responsiveness - but at the cost of slightly extra CPU time.
 # Don't touch these (particularly ldd), unless you know exactly what you're doing.
-# accd manages both according to the state of capacity_sync.
 
 # charging_switch (s) #
 # If unset, acc cycles through its database and sets the first working switch/group that disables charging.
@@ -319,3 +322,13 @@ voltFactor=
 # e.g., if the input current is too low, the unit is miscalculated.
 # This issue is rare, though.
 # Leave these properties alone if everything is running fine.
+
+# ctrl_file_writes (cfw) #
+# This determines how many times each ctrl file should be written to, as well as the interval (seconds) between these writes.
+# That's an attempt to force changes that don't take effect immediately or at all.
+
+# loop_cmd (lc) #
+# This is meant for extending accd's functionality.
+# It is periodically executed by is_charging() - which is called regularly, within the main accd loop.
+# The boolean isCharging is available.
+# Refer back to COMMAND EXAMPLES.

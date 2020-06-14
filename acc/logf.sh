@@ -3,8 +3,10 @@ logf() {
   if [[ "${1:-x}" == -*e* ]]; then
 
     exec 2>> ${log:-/dev/null}
-    set +eo pipefail 2>/dev/null
     cd $TMPDIR
+    set +e
+
+    $execDir/power-supply-logger.sh
 
     cp ch-switches charging-switches.txt
     cp oem-custom oem-custom.txt 2>/dev/null
@@ -19,7 +21,8 @@ logf() {
     cp ${config_%/*}/logs/* ./
     grep -Ev '#|^$' $config_ > ./config.txt
     set +x
-    . $modPath/batt-info.sh
+
+    . $execDir/batt-info.sh
     (cd /sys/class/power_supply/
     batt_info > $TMPDIR/acc-i.txt)
     dumpsys battery > dumpsys-battery.txt
@@ -28,9 +31,8 @@ logf() {
       | gzip -9 > /data/media/0/acc-logs-$device.tar.gz
 
     chmod 0666 /data/media/0/acc-logs-$device.tar.gz
-    rm *.txt magisk.log in*.log power*.log m*accapp.log
-
-    $isAccd || echo "(i) /sdcard/acc-logs-$device.tar.gz"
+    rm *.txt magisk.log in*.log power*.log m*accapp.log 2>/dev/null
+    echo "(i) /sdcard/acc-logs-$device.tar.gz"
 
   else
     if [[ "${1:-x}" == -*a* ]]; then

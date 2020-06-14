@@ -65,7 +65,7 @@ print_charging_enabled() {
 }
 
 print_unplugged() {
-  echo "(!) Battery must be charging to continue..."
+  echo "(!) Charger must be plugged to continue..."
 }
 
 print_switch_works() {
@@ -101,9 +101,7 @@ Usage
 
   acc [options] [args]   Refer to the list of options below
 
-  /sbin/acca [options] [args]   acc optimized for front-ends
-
-  accs   acc foreground service, works exactly as accd, but attached to the terminal by default
+  acca [options] [args]   acc optimized for front-ends
 
   A custom config path can be specified as first parameter.
   If the file doesn't exist, the current config is cloned.
@@ -144,6 +142,7 @@ Options
     e.g.,
       acc -f 95 (charge to 95%)
       acc -f (charge to 100%)
+    Note: if the desired % is less than pause_capacity, use acc -e #%
 
   -F|--flash ["zip_file"]   Flash any zip files whose update-binary is a shell script
     e.g.,
@@ -239,15 +238,16 @@ Options
 
   -sv [millivolts|-] [--exit]   Same as above
 
-  -t|--test [ctrl_file1 on off [ctrl_file2 on off]]   Test custom charging switches
+  -t|--test [switch_delay] [ctrl_file1 on off [ctrl_file2 on off]]   Test custom charging switches
     e.g.,
       acc -t battery/charging_enabled 1 0
-      acc -t /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0 ("::" == " ")
+      acc -t 15 /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0 ("::" is a placeholder for " "; the default switch_delay is 7)
 
-  -t|--test [file]   Test charging switches from a file (default: $TMPDIR/ch-switches)
+  -t|--test [switch_delay] [file]   Test charging switches from a file (default: $TMPDIR/ch-switches)
     This will also report whether "battery idle" mode is supported
     e.g.,
       acc -t (test known switches)
+      acc -t 15 (test known switches, switch_delay=15; default sd is 7)
       acc -t /sdcard/experimental_switches.txt (test custom/foreign switches)
 
   -T|--logtail   Monitor accd log (tail -F)
@@ -285,12 +285,13 @@ Exit Codes
   4. Not running as root
   5. Update available ("--upgrade")
   6. No update available ("--upgrade")
-  7. Couldn't disable charging
+  7. Failed to disable charging
   8. Daemon already running ("--daemon start")
   9. Daemon not running ("--daemon" and "--daemon stop")
   10. "--test" failed
   11. Current (mA) out of range
-  12. install.sh failed to initialize acc or start accd
+  12. Initialization failed
+  13. Failed to lock $TMPDIR/${id}.lock
 
   Logs are exported automatically ("--log --export") on exit codes 1, 2, 7 and 10.
 
@@ -298,15 +299,14 @@ Exit Codes
 Tips
 
   Commands can be chained for extended functionality.
-    e.g., acc -e 30m && acc -d 6h && acc -e 85 && accd (recharge for 30 minutes, halt charging for 6 hours, recharge to 85% capacity and restart the daemon)
+    e.g., acc -e 30m && acc -d 6h && acc -e 85 && accd (recharge for 30 minutes, pause charging for 6 hours, recharge to 85% capacity and restart the daemon)
 
-  Programming charging before going to sleep...
-    acc 45 43 && acc -s c 500 && sleep \$((60*60*7)) && acc 80 75 && acc -s c -
-      - "Keep battery capacity bouncing between 43-45% and limit charging current to 500 mA for 7 hours. Restore regular charging settings afterwards."
+  Bedtime settings...
+    acc -s /dev/.my-night-config.txt pc=45 rc=43 mcc=500 mcv=3920 && sleep \$((60*60*7)) && accd
+      - "For the next 7 hours, keep battery capacity between 43-45%, limit charging current to 500 mA and voltage to 3920 millivolts"
       - For convenience, this can be written to a file and ran as "sh /path/to/file".
-      - If the kernel supports custom max charging voltage, it's best to use that feature over the above chain, like so: "acc -s v 3920 && sleep \$((60*60*7)) && acc -s v -".
 
-  Run acc -r (or --readme) to see the full documentation.
+  Refer to acc -r (or --readme) for the full documentation (recommended)
 EOF
 }
 

@@ -3,7 +3,7 @@
 # Copyright (c) 2019-2020, VR25 (xda-developers)
 # License: GPLv3+
 #
-# devs: triple hashtags (###) mark custom code
+# devs: triple hashtags (###) mark non-generic code
 
 
 # override the official Magisk module installer
@@ -24,17 +24,8 @@ set -x
 
 exxit() {
   local e=$?
-  set +eo pipefail
-  rm -rf /dev/.${id}-install
-  [ $e -ne 0 ] && echo || { ###
-    rm /sbin/.$id/.ghost-charging
-    /sbin/acca --daemon > /dev/null || /sbin/accd || {
-      pkill -9 -f $installDir/service.sh
-      $installDir/service.sh --override
-      rm /sbin/.$id/.ghost-charging
-      /sbin/acca --daemon > /dev/null || /sbin/accd
-    } || e=12
-  }
+  rm -rf /dev/.${id}-install || :
+  echo
   exit $e
 } 2>/dev/null
 
@@ -43,33 +34,26 @@ trap exxit EXIT
 
 # set up busybox
 #BB#
-if [ -d /sbin/.magisk/busybox ]; then
-  case $PATH in
-    /sbin/.magisk/busybox:*) :;;
-    *) PATH=/sbin/.magisk/busybox:$PATH;;
-  esac
-else
+[ -x /dev/.busybox/ls ] || {
   mkdir -p /dev/.busybox
   chmod 0700 /dev/.busybox
-  case $PATH in
-    /dev/.busybox:*) :;;
-    *) PATH=/dev/.busybox:$PATH;;
-  esac
-  [ -x /dev/.busybox/busybox ] || {
-    if [ -f /data/adb/magisk/busybox ]; then
-      [ -x /data/adb/magisk/busybox ] || chmod 0700 /data/adb/magisk/busybox
-      /data/adb/magisk/busybox --install -s /dev/.busybox
-    elif which busybox > /dev/null; then
-      busybox --install -s /dev/.busybox
-    elif [ -f /data/adb/busybox ]; then
-      [ -x /data/adb/busybox ] || chmod 0700 /data/adb/busybox
-      /data/adb/busybox --install -s /dev/.busybox
-    else
-      echo "(!) Install busybox or simply place it in /data/adb/"
-      exit 3
-    fi
-  }
-fi
+  if [ -f /data/adb/bin/busybox ]; then
+    [ -x /data/adb/bin/busybox ] || chmod -R 0700 /data/adb/bin
+    /data/adb/bin/busybox --install -s /dev/.busybox
+  elif [ -f /data/adb/magisk/busybox ]; then
+    [ -x /data/adb/magisk/busybox ] || chmod 0700 /data/adb/magisk/busybox
+    /data/adb/magisk/busybox --install -s /dev/.busybox
+  elif which busybox > /dev/null; then
+    eval "$(which busybox) --install -s /dev/.busybox"
+  else
+    echo "(!) Install busybox or simply place it in /data/adb/bin/"
+    exit 3
+  fi
+}
+case $PATH in
+  /dev/.busybox:*) : ;;
+  *) export PATH=/dev/.busybox:$PATH;;
+esac
 #/BB#
 
 
@@ -95,7 +79,7 @@ set_perms_recursive() {
   find $1 2>/dev/null | while read target; do set_perms $target $owner; done
 }
 
-set -euo pipefail 2>/dev/null || :
+set -eu
 
 
 # set source code directory
@@ -115,12 +99,20 @@ srcDir=${srcDir/#"${0##*/}"/"."}
 name=$(get_prop name)
 author=$(get_prop author)
 version=$(get_prop version)
-magiskModDir=/sbin/.magisk/modules
+magiskModDir=/data/adb/modules
 versionCode=$(get_prop versionCode)
 : ${installDir:=/data/data/mattecarra.${id}app/files} ###
 config=/data/adb/${id}-data/config.txt
 
-[ -d  $magiskModDir ] && magisk=true || magisk=false
+
+[ -d $magiskModDir ] && magisk=true || magisk=false
+
+! test -d /data/app/mattecarra.${id}app* || { ###
+  [ -d /data/data/mattecarra.${id}app/files ] || {
+    mkdir -p /data/data/mattecarra.${id}app/files
+    chmod 0777 /data/data/mattecarra.${id}app/files
+  }
+}
 
 
 # check/set parent installation directory
@@ -129,7 +121,7 @@ config=/data/adb/${id}-data/config.txt
 [ -d $installDir ] || installDir=/data/adb
 
 [ -d $installDir ] || {
-  echo "(!) /data/adb/ not found\n"
+  echo "(!) $installDir/ not found\n"
   exit 1
 }
 
@@ -142,8 +134,7 @@ GPLv3+
 (i) Installing in $installDir/$id/..."
 
 
-ash $srcDir/$id/uninstall.sh install
-rm /data/adb/${id}-data/logs/bootlooped 2>/dev/null || :
+/system/bin/sh $srcDir/$id/uninstall.sh install
 cp -R $srcDir/$id/ $installDir/
 installDir=$(readlink -f $installDir/$id)
 cp $srcDir/module.prop $installDir/
@@ -152,41 +143,49 @@ cp -f $srcDir/*.md ${config%/*}/info
 
 
 case $installDir in
+
   /data/*/files/*$id)
-    ! $magisk || {
-      cp -R $installDir $magiskModDir/
 
-# front-end post-uninstall cleanup script
-echo "#!/system/bin/sh
-# $id front-end post-uninstall cleanup script
-
-(until [ -d /sdcard/?ndroid -a .\$(getprop sys.boot_completed) == .1 ]; do sleep 60; done
-sleep 60
-[ -f $installDir/module.prop ] || {
-$(grep -Ev '#|^$' $installDir/uninstall.sh | sed 's/^/  /')
-} &) > /dev/null 2>&1 &
-exit 0"  > /data/adb/service.d/${id}-cleanup.sh
-
-      chmod 0700 /data/adb/service.d/${id}-cleanup.sh
-    }
-    ln $installDir/service.sh $installDir/${id}-init.sh
+    (cd $installDir && ln -s service.sh ${id}-init.sh) # legacy
 
     # TODO
+    # AccA
     # upgrade bundled version
     #cp -f $srcDir/install-tarball.sh ${installDir%/*}/
     #tar -cvf - . -C $srcDir --exclude .git | gzip -9 > ${installDir%/*}/acc_bundle.tar.gz
+
+    ! $magisk || {
+
+      ln -s $installDir $magiskModDir/
+
+      # front-end post-uninstall cleanup script
+      echo "#!/system/bin/sh
+      # alternate $id initializer and front-end post-uninstall cleanup script
+
+      until test -d /sdcard/?ndroid \\
+        -a .\$(getprop sys.boot_completed) == .1
+      do
+        sleep 60
+      done
+
+      sleep 60
+
+      if [ -f $installDir/module.prop ]; then
+        [ -d /dev/.$id ] || $installDir/service.sh
+      else
+        rm \$0 /data/adb/$id /data/adb/modules/$id 2>/dev/null
+      fi
+
+      exit 0" | sed 's/^      //' > /data/adb/service.d/${id}-init.sh
+      chmod 0700 /data/adb/service.d/${id}-init.sh
+    }
   ;;
 esac
 
 
 [ $installDir == /data/adb/$id ] || {
-
   ln -s $installDir /data/adb/
-
   ! $magisk || {
-    # workaround for Magisk "forgetting service.sh" issue
-    ln $magiskModDir/$id/service.sh $magiskModDir/$id/post-fs-data.sh
-
     # disable magic mount (Magisk)
     touch $magiskModDir/$id/skip_mount
   }
@@ -194,6 +193,7 @@ esac
 
 
 # restore config backup
+[ -d /data/media/0 ] || ln -s /sdcard /data/media/0 # legacy
 [ -f $config ] || cp /data/media/0/.${id}-config-backup.txt $config 2>/dev/null || :
 
 
@@ -220,12 +220,12 @@ case $installDir in
     pkg=${pkg##/data*/}
     owner=$(grep $pkg /data/system/packages.list | cut -d ' ' -f 2)
     set_perms_recursive $installDir $owner
-    ! $magisk || set_perms_recursive $magiskModDir/$id
+    # ! $magisk || set_perms_recursive $magiskModDir/$id # legacy
 
     # Termux:Boot
     ! $termux || {
       mkdir -p ${installDir%/*}/.termux/boot
-      ln -sf $installDir/${id}-init.sh ${installDir%/*}/.termux/boot
+      ln -sf $installDir/service.sh ${installDir%/*}/.termux/boot/${id}-init.sh
       set_perms_recursive ${installDir%/*}/.termux $owner
     }
   ;;
@@ -235,7 +235,7 @@ case $installDir in
 esac
 
 
-set +euo pipefail 2>/dev/null || :
+set +eu
 
 
 echo "- Done
@@ -251,15 +251,16 @@ sed -En "\|## LINKS|,\$p" ${config%/*}/info/README.md \
 echo "
 
 
-(i) Rebooting is unnecessary.
-- $id can be used right now.
-- $id daemon started."
+(i) Rebooting is unnecessary
+- $id commands may require the "/dev/" prefix (e.g., /dev/acc) until system is rebooted.
+- Daemon started."
 
 
-[ $installDir == /data/adb ] && echo -e "\n(i) Use init.d or an app to run $installDir/${id}-init.sh on boot to initialize ${id}."
-echo
+[ $installDir == /data/adb ] && echo "
+(i) Non-Magisk users can enable $id auto-start by running /data/adb/$id/service.sh, a copy of, or a link to it - with init.d or an app that emulates it."
+
 
 # initialize $id
-$installDir/service.sh --override
+/data/adb/$id/service.sh --init
 
 exit 0

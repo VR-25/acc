@@ -26,33 +26,26 @@ trap 'e=$?; echo; exit $e' EXIT
 
 # set up busybox
 #BB#
-if [ -d /sbin/.magisk/busybox ]; then
-  case $PATH in
-    /sbin/.magisk/busybox:*) :;;
-    *) PATH=/sbin/.magisk/busybox:$PATH;;
-  esac
-else
+[ -x /dev/.busybox/ls ] || {
   mkdir -p /dev/.busybox
   chmod 0700 /dev/.busybox
-  case $PATH in
-    /dev/.busybox:*) :;;
-    *) PATH=/dev/.busybox:$PATH;;
-  esac
-  [ -x /dev/.busybox/busybox ] || {
-    if [ -f /data/adb/magisk/busybox ]; then
-      [ -x /data/adb/magisk/busybox ] || chmod 0700 /data/adb/magisk/busybox
-      /data/adb/magisk/busybox --install -s /dev/.busybox
-    elif which busybox > /dev/null; then
-      busybox --install -s /dev/.busybox
-    elif [ -f /data/adb/busybox ]; then
-      [ -x /data/adb/busybox ] || chmod 0700 /data/adb/busybox
-      /data/adb/busybox --install -s /dev/.busybox
-    else
-      echo "(!) Install busybox or simply place it in /data/adb/"
-      exit 3
-    fi
-  }
-fi
+  if [ -f /data/adb/bin/busybox ]; then
+    [ -x /data/adb/bin/busybox ] || chmod -R 0700 /data/adb/bin
+    /data/adb/bin/busybox --install -s /dev/.busybox
+  elif [ -f /data/adb/magisk/busybox ]; then
+    [ -x /data/adb/magisk/busybox ] || chmod 0700 /data/adb/magisk/busybox
+    /data/adb/magisk/busybox --install -s /dev/.busybox
+  elif which busybox > /dev/null; then
+    eval "$(which busybox) --install -s /dev/.busybox"
+  else
+    echo "(!) Install busybox or simply place it in /data/adb/bin/"
+    exit 3
+  fi
+}
+case $PATH in
+  /dev/.busybox:*) : ;;
+  *) export PATH=/dev/.busybox:$PATH;;
+esac
 #/BB#
 
 
@@ -63,8 +56,14 @@ fi
 }
 
 
-set -euo pipefail 2>/dev/null || :
+set -eu
 get_ver() { sed -n 's/^versionCode=//p' ${1:-}; }
+
+
+[ ! -f /data/adb/bin/curl ] || {
+  [ -x /data/adb/bin/curl ] || chmod -R 0700 /data/adb/bin
+  ${curlPath:-false} || export PATH=/data/adb/bin:$PATH
+}
 
 
 case "$@" in
@@ -78,7 +77,7 @@ reference=$(echo "$@" | sed -E 's/%.*%|-c|--changelog|-f|--force|-k|--insecure|-
 
 tarball=https://github.com/VR-25/$id/archive/${reference}.tar.gz
 
-installedVersion=$(get_ver /sbin/.$id/$id/module.prop 2>/dev/null || :)
+installedVersion=$(get_ver /dev/.$id/$id/module.prop 2>/dev/null || :)
 
 onlineVersion=$(curl -L $insecure https://raw.githubusercontent.com/VR-25/$id/${reference}/module.prop | get_ver)
 
@@ -108,8 +107,9 @@ then
   }
 
   # download and install tarball
-  export installDir=$(echo "$@" | sed -E "s/-c|--changelog|-f|--force|-k|--insecure|-n|--non-interactive|%|$reference| //g")
-  set +euo pipefail 2>/dev/null || :
+  : ${installDir:=$(echo "$@" | sed -E "s/-c|--changelog|-f|--force|-k|--insecure|-n|--non-interactive|%|$reference| //g")}
+  export installDir
+  set +eu
   trap - EXIT
   echo
   curl -L $insecure $tarball | tar -xz \

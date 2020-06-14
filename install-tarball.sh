@@ -13,33 +13,26 @@ set -x
 
 # set up busybox
 #BB#
-if [ -d /sbin/.magisk/busybox ]; then
-  case $PATH in
-    /sbin/.magisk/busybox:*) :;;
-    *) PATH=/sbin/.magisk/busybox:$PATH;;
-  esac
-else
+[ -x /dev/.busybox/ls ] || {
   mkdir -p /dev/.busybox
   chmod 0700 /dev/.busybox
-  case $PATH in
-    /dev/.busybox:*) :;;
-    *) PATH=/dev/.busybox:$PATH;;
-  esac
-  [ -x /dev/.busybox/busybox ] || {
-    if [ -f /data/adb/magisk/busybox ]; then
-      [ -x /data/adb/magisk/busybox ] || chmod 0700 /data/adb/magisk/busybox
-      /data/adb/magisk/busybox --install -s /dev/.busybox
-    elif which busybox > /dev/null; then
-      busybox --install -s /dev/.busybox
-    elif [ -f /data/adb/busybox ]; then
-      [ -x /data/adb/busybox ] || chmod 0700 /data/adb/busybox
-      /data/adb/busybox --install -s /dev/.busybox
-    else
-      echo "(!) Install busybox or simply place it in /data/adb/"
-      exit 3
-    fi
-  }
-fi
+  if [ -f /data/adb/bin/busybox ]; then
+    [ -x /data/adb/bin/busybox ] || chmod -R 0700 /data/adb/bin
+    /data/adb/bin/busybox --install -s /dev/.busybox
+  elif [ -f /data/adb/magisk/busybox ]; then
+    [ -x /data/adb/magisk/busybox ] || chmod 0700 /data/adb/magisk/busybox
+    /data/adb/magisk/busybox --install -s /dev/.busybox
+  elif which busybox > /dev/null; then
+    eval "$(which busybox) --install -s /dev/.busybox"
+  else
+    echo "(!) Install busybox or simply place it in /data/adb/bin/"
+    exit 3
+  fi
+}
+case $PATH in
+  /dev/.busybox:*) : ;;
+  *) export PATH=/dev/.busybox:$PATH;;
+esac
 #/BB#
 
 # root check
@@ -56,6 +49,7 @@ set -e
 
 # this runs on exit if the installer is launched by a front-end app
 copy_log() {
+  rm -rf ${1-$id}[-_]*/ 2>/dev/null
   [[ $PWD != /data/data/* ]] || {
     umask 077
     mkdir -p logs
@@ -75,10 +69,19 @@ trap copy_log EXIT
 rm -rf ${1:-$id}[-_]*/ 2>/dev/null
 tar -xf ${1:-$id}[-_]*.tar.gz
 
+# prevent AccA from downgrading/reinstalling modules ###
+[[ $PWD != *mattecarra.accapp* ]] || {
+  get_ver() { sed -n '/^versionCode=/s/.*=//p' $1/module.prop 2>/dev/null || echo 0; }
+  [ $(get_ver ${1:-$id}[-_]*) -gt $(get_ver /data/adb/$id) ] || {
+    ln -s $(readlink -f /data/adb/$id) .
+    (cd ./${1:-$id}/; ln -fs service.sh ${1:-$id}-init.sh)
+    exit 0
+  } 2>/dev/null || :
+}
+
 # install ${1:-$id}
-test -f ${1:-$id}[-_]*/install.sh || i=-current
+test -f ${1:-$id}[-_]*/install.sh || i=-current # legacy
 export installDir="$2"
-ash ${1:-$id}[-_]*/install${i}.sh "$2"
-rm -rf ${1-$id}[-_]*/
+/system/bin/sh ${1:-$id}[-_]*/install${i}.sh
 
 exit 0

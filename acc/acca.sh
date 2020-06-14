@@ -1,33 +1,28 @@
 #!/system/bin/sh
-# /sbin/acca: ACC executable for front-ends (faster and more efficient than /sbin/acc)
+# acca: acc for front-ends (faster and more efficient than acc)
 # © 2020, VR25 (xda-developers)
+# License: GPLv3+
 
 
 daemon_ctrl() {
   case "${1-}" in
     start|restart)
-      exec /sbin/accd $config
+      exec /dev/accd $config
     ;;
     stop)
-      set +euo pipefail 2>/dev/null
-      pkill -f '/ac(c|ca) (-|--)[deft]|/accd\.sh'
-      for count in 1 2 3 4 5; do
-        sleep 1
-        [ -z "$(pgrep -f '/ac(c|ca) (-|--)[deft]|/accd\.sh')" ] && break
-      done
-      pkill -9 -f '/ac(c|ca) (-|--)[deft]|/accd\.sh'
-      exit $?
+      . ./release-lock.sh
+      exit 0
     ;;
     *)
-      pgrep -f '/ac(c|ca) (-|--)[deft]|/accd\.sh' && exit 0 || exit 9
+      flock -n 0 <>$TMPDIR/acc.lock && exit 9 || exit 0
     ;;
   esac
 }
 
 
-set -euo pipefail 2>/dev/null || :
-cd /sbin/.acc/acc/
-export TMPDIR=${PWD%/*} verbose=false
+set -eu
+cd /data/adb/acc/
+export TMPDIR=/dev/.acc verbose=false
 . ./setup-busybox.sh
 
 config=/data/adb/acc-data/config.txt
@@ -60,19 +55,50 @@ case "$@" in
   # print battery uevent data
   -i*|--info*)
     cd /sys/class/power_supply/
-    batt=$(echo *attery/capacity | cut -d ' ' -f 1 | sed 's|/capacity||')
-    . /sbin/.acc/acc/batt-info.sh
+    for batt in $(ls */uevent); do
+      chmod u+r $batt \
+         && grep -q '^POWER_SUPPLY_CAPACITY=' $batt \
+         && grep -q '^POWER_SUPPLY_STATUS=' $batt \
+         && batt=${batt%/*} && break
+    done 2>/dev/null || :
+    . /data/adb/acc/batt-info.sh
     batt_info "${2-}"
-    exit $?
+    exit 0
   ;;
 
 
   # set multiple properties
   -s\ *=*|--set\ *=*)
+
+    ${async:-false} || {
+      async=true setsid $0 "$@" > /dev/null 2>&1 < /dev/null
+      exit 0
+    }
+
+    set +o sh 2>/dev/null || :
+    exec 4<>$0
+    flock 0 <&4
     shift
+
+    # since this runs asynchronously, restarting accd from here is potentially troublesome
+    # the front-end itself should do it
+    # case "$*" in
+    #   s=*|*\ s=*|*charging_switch=*|*sc=*|*shutdown_capacity=*)
+    #     ! daemon_ctrl stop > /dev/null || restartDaemon=true
+    #     trap 'e=$?; ! ${restartDaemon:-false} || /dev/accd; exit $e' EXIT
+    #   ;;
+    # esac
+
     . $defaultConfig
     . $config
+
     export "$@"
+
+    case "$*" in
+      *ab=*|*apply_on_boot=*)
+        apply_on_boot
+      ;;
+    esac
 
     [ .${mcc-${max_charging_current-x}} == .x ] || {
       . ./set-ch-curr.sh
@@ -85,7 +111,7 @@ case "$@" in
     }
 
     . ./write-config.sh
-    exit $?
+    exit 0
   ;;
 
 
@@ -93,21 +119,21 @@ case "$@" in
   -s\ d*|-s\ --print-default*|--set\ d*|--set\ --print-default*|-sd*)
     [ $1 == -sd ] && shift || shift 2
     . $defaultConfig
-    . ./print-config.sh | grep -E "${1:-...}"
-    exit $?
+    . ./print-config.sh | grep -E "${1:-...}" || :
+    exit 0
   ;;
 
   # print current config
   -s\ p*|-s\ --print|-s\ --print\ *|--set\ p|--set\ --print|--set\ --print\ *|-sp*)
     [ $1 == -sp ] && shift || shift 2
     . $config
-    . ./print-config.sh | grep -E "${1:-...}"
-    exit $?
+    . ./print-config.sh | grep -E "${1:-...}" || :
+    exit 0
   ;;
 
 esac
 
 
 # other acc commands
-set +euo pipefail 2>/dev/null
-exec /sbin/acc $config "$@"
+set +eu
+exec /dev/acc $config "$@"

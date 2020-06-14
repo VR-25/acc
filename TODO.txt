@@ -2,8 +2,6 @@ cooldown
   cooldownTemp=(min_temp charge_seconds pause_seconds max_temp max_temp_pause)
   cooldownCapacity=(capacity charge_seconds pause_seconds)
 
-full POSIX compliance
-
 # getval index $var
 getval() {
   local index=$1
@@ -23,5 +21,4 @@ setval() {
 install.sh
   upgrade acc_bundle.tar.gz and install-tarball.sh
 
-build.sh
-  remove legacy cp (install-current.sh)
+remove "# legacy"

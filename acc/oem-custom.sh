@@ -8,28 +8,32 @@ set_prop_() { sed -i "\|^${1}=|s|=.*|=$2|" ${3:-$config}; }
 
 # patch/reset [broken/obsolete] config
 configVer=0$(get_prop configVerCode 2>/dev/null || :)
-defaultConfVer=$(get_prop configVerCode $modPath/default-config.txt)
+defaultConfVer=$(get_prop configVerCode $execDir/default-config.txt)
 if (set +x; . $config) > /dev/null 2>&1 \
   && ! grep_ '^dynPowerSaving=120|^versionCode=|^(capacity|loopDelay)=.*,|^temperature=.*-'
 then
-  [ $configVer -eq $defaultConfVer ] || /sbin/acca --set dummy=
+  [ $configVer -eq $defaultConfVer ] || {
+    if [ $configVer -lt 202005170 ]; then
+      /dev/acca --set ctrl_file_writes=
+    else
+      /dev/acca --set dummy=
+    fi
+  }
 else
-  cp -f $modPath/default-config.txt $config
+  cp -f $execDir/default-config.txt $config
   rm /sdcard/acc-logs-*.tar.bz2 || : ### legacy
 fi 2>/dev/null
 
 
-# OnePlus 7/Pro battery idle mode
+# battery idle mode for OnePlus 7/Pro
 if grep_ '^chargingSwitch=.*/op_disable_charge'; then
   [ -f $TMPDIR/oem-custom ] \
-    || echo "chmod u+w battery/input_suspend; run3x 'echo 1 > battery/op_disable_charge; echo 0 > battery/input_suspend'" > $TMPDIR/oem-custom
+    || echo "run_xtimes 'echo 1 > battery/op_disable_charge; echo 0 > battery/input_suspend'" > $TMPDIR/oem-custom
   grep_ "^runCmdOnPause=.*$TMPDIR/oem-custom" \
     || set_prop_ runCmdOnPause "(. $TMPDIR/oem-custom)"
   switchDelay=$(get_prop switchDelay)
   [ ${switchDelay%.*} -gt 4 ] || set_prop_ switchDelay 5
 else
-  ! grep_ '1 \> .*/op_disable_charge' $TMPDIR/oem-custom 2>/dev/null \
-    || rm $TMPDIR/oem-custom
   ! grep_ "^runCmdOnPause=.*$TMPDIR/oem-custom" 2>/dev/null || {
     set_prop_ runCmdOnPause "()"
     set_prop_ switchDelay 1.5
@@ -37,11 +41,27 @@ else
 fi
 
 
+# battery idle mode for Google Pixel 2/XL and devices with similar hardware
+if grep_ '^chargingSwitch=./sys/module/lge_battery/parameters/charge_stop_level'; then
+  [ -f $TMPDIR/oem-custom ] \
+    || echo "[ \$(cat battery/input_suspend) != 1 ] || run_xtimes 'echo 0 > battery/input_suspend'" > $TMPDIR/oem-custom
+  grep_ "^loopCmd=.*$TMPDIR/oem-custom" \
+    || set_prop_ loopCmd "(. $TMPDIR/oem-custom)"
+  #switchDelay=$(get_prop switchDelay)
+  #[ ${switchDelay%.*} -gt 4 ] || set_prop_ switchDelay 5
+else
+  ! grep_ "^loopCmd=.*$TMPDIR/oem-custom" 2>/dev/null || {
+    set_prop_ loopCmd "()"
+    #set_prop_ switchDelay 1.5
+  }
+fi
+
+
 # Razer
 # default value: 65
 (set +e
-echo 30 > /sys/devices/platform/soc/*/*/*/razer_charge_limit_dropdown
-echo 30 > usb/razer_charge_limit_dropdown) 2>/dev/null || :
+echo 1 > /sys/devices/platform/soc/*/*/*/razer_charge_limit_dropdown
+echo 1 > usb/razer_charge_limit_dropdown) 2>/dev/null || :
 
 
 # block "ghost charging on steroids" (Xiaomi Redmi 3 - ido)
@@ -49,19 +69,19 @@ echo 30 > usb/razer_charge_limit_dropdown) 2>/dev/null || :
 
 
 # MediaTek mt6795, exclude ChargerEnable switch (troublesome)
-! grep_ mt6795 $TMPDIR/acc-power_supply-*.log || {
-  ! grep_ ChargerEnable $modPath/charging-switches.txt || {
+! getprop | grep -E mt6795 > /dev/null || {
+  ! grep_ ChargerEnable $execDir/charging-switches.txt || {
     sed -i /ChargerEnable/d $TMPDIR/ch-switches
-    sed -i /ChargerEnable/d $modPath/charging-switches.txt
+    sed -i /ChargerEnable/d $execDir/charging-switches.txt
   }
 }
 
 
 # Pixel [1-3]*, exclude charge_control_limit switches (troublesome)
-! grep_ '\[Pixel(\]| [1-3])' $TMPDIR/acc-power_supply-*.log || {
-  ! grep_ charge_control_limit $modPath/charging-switches.txt || {
+! getprop |  grep -E '\[Pixel(\]| [1-3])' > /dev/null || {
+  ! grep_ charge_control_limit $execDir/charging-switches.txt || {
     sed -i /charge_control_limit/d $TMPDIR/ch-switches
-    sed -i /charge_control_limit/d $modPath/charging-switches.txt
+    sed -i /charge_control_limit/d $execDir/charging-switches.txt
   }
 }
 )
