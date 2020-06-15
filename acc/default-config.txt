@@ -1,4 +1,4 @@
-configVerCode=202006080
+configVerCode=202006150
 capacity=(-1 101 70 75 false)
 temperature=(70 80 90)
 cooldownRatio=()
@@ -17,7 +17,6 @@ wakeUnlock=()
 prioritizeBattIdleMode=true
 forceChargingStatusFullAt100=
 runCmdOnPause=()
-dynPowerSaving=0
 autoShutdownAlertCmd=(vibrate 5 0.1)
 chargDisabledNotifCmd=(vibrate 3 0.1)
 chargEnabledNotifCmd=(vibrate 4 0.1)
@@ -78,8 +77,6 @@ loopCmd=()
 
 # runCmdOnPause=run_cmd_on_pause=(. script)
 
-# dynPowerSaving=dyn_power_saving=seconds
-
 # autoShutdownAlertCmd=auto_shutdown_alert_cmd=(. script)
 
 # chargDisabledNotifCmd=charg_disabled_notif_cmd=(. script)
@@ -135,7 +132,6 @@ loopCmd=()
 # pbim prioritize_batt_idle_mode
 # ff force_charging_status_full_at_100
 # rcp run_cmd_on_pause
-# dps dyn_power_saving
 
 # asac auto_shutdown_alert_cmd
 # cdnc charg_disabled_notif_cmd
@@ -270,7 +266,7 @@ loopCmd=()
 # If this doesn't make sense to you, you probably don't need it.
 # Essentially, this is a timeout (seconds) before rebooting - after pausing charging.
 # This reboot is a workaround for a firmware issue that causes abnormally fast battery drain after charging is paused on certain devices.
-# The issue has reportedly been fixed by the OEMs. This setting will eventually be removed.
+# The issue has reportedly been fixed by the OEMs. This feature will eventually be removed.
 
 # switch_delay (sd) #
 # This is a delay (seconds) between charging status checks after toggling charging switches. It exists because some switches don't react immediately after being toggled.
@@ -301,11 +297,6 @@ loopCmd=()
 # run_cmd_on_pause (rcp) #
 # Run commands* after pausing charging.
 # * Usually a script ("sh some_file" or ". some_file")
-
-# dyn_power_saving (dps) #
-# This is the maximum number of seconds accd will dynamically sleep* for (while unplugged) to save resources.
-# If dyn_power_saving == 0, the feature is disabled.
-# * On top of loop_delay_discharging
 
 # auto_shutdown_alert_cmd (asac) #
 # charg_disabled_notif_cmd (cdnc) #

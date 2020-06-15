@@ -42,8 +42,6 @@ force_charging_status_full_at_100=$forceChargingStatusFullAt100
 
 run_cmd_on_pause=${runCmdOnPause[@]}
 
-dyn_power_saving=${dynPowerSaving}
-
 auto_shutdown_alert_cmd=${autoShutdownAlertCmd[@]}
 
 charg_enabled_notif_cmd=${chargEnabledNotifCmd[@]}

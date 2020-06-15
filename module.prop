@@ -1,6 +1,6 @@
 id=acc
 name=Advanced Charging Controller (ACC)
-version=v2020.6.14
-versionCode=202006140
+version=v2020.6.15.2
+versionCode=202006152
 author=VR25 (patreon.com/vr25)
 description=ACC is an Android software. It's primarily intended for extending battery service life. In a nutshell, this is achieved through limiting charging current, temperature and voltage. Any root solution is supported. A recent stable Magisk version is recommended. If you're reading this from Magisk Manager > Downloads, tap here to open the documentation. Once there, if you're lazy, jump to the quick start section.

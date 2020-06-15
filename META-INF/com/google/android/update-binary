@@ -92,7 +92,7 @@ srcDir=${srcDir/#"${0##*/}"/"."}
   srcDir=/dev/.${id}-install
   rm -rf $srcDir 2>/dev/null || :
   mkdir $srcDir
-  unzip "$3" -d $srcDir/ >&2
+  unzip "${3:-${ZIPFILE}}" -d $srcDir/ >&2
 }
 
 
@@ -106,18 +106,20 @@ config=/data/adb/${id}-data/config.txt
 
 
 [ -d $magiskModDir ] && magisk=true || magisk=false
-
-! test -d /data/app/mattecarra.${id}app* || { ###
-  [ -d /data/data/mattecarra.${id}app/files ] || {
-    mkdir -p /data/data/mattecarra.${id}app/files
-    chmod 0777 /data/data/mattecarra.${id}app/files
-  }
-}
+ls -d /data/app/mattecarra.${id}app* > /dev/null 2>&1 && acca=true || acca=false
 
 
-# check/set parent installation directory
+# ensure AccA's files/ exists - to prevent unwanted ACC downgrades ###
+if $acca && [ ! -d /data/data/mattecarra.${id}app/files ]; then
+  mkdir -p /data/data/mattecarra.${id}app/files
+  chmod 0777 /data/data/mattecarra.${id}app/files
+fi
 
-[ -d $installDir ] || installDir=$magiskModDir
+
+# check/change parent installation directory
+
+! $magisk || installDir=$magiskModDir
+
 [ -d $installDir ] || installDir=/data/adb
 
 [ -d $installDir ] || {
@@ -142,54 +144,53 @@ mkdir -p ${config%/*}/info
 cp -f $srcDir/*.md ${config%/*}/info
 
 
-case $installDir in
-
-  /data/*/files/*$id)
-
-    (cd $installDir && ln -s service.sh ${id}-init.sh) # legacy
-
-    # TODO
-    # AccA
-    # upgrade bundled version
-    #cp -f $srcDir/install-tarball.sh ${installDir%/*}/
-    #tar -cvf - . -C $srcDir --exclude .git | gzip -9 > ${installDir%/*}/acc_bundle.tar.gz
-
-    ! $magisk || {
-
-      ln -s $installDir $magiskModDir/
-
-      # front-end post-uninstall cleanup script
-      echo "#!/system/bin/sh
-      # alternate $id initializer and front-end post-uninstall cleanup script
-
-      until test -d /sdcard/?ndroid \\
-        -a .\$(getprop sys.boot_completed) == .1
-      do
-        sleep 60
-      done
-
-      sleep 60
-
-      if [ -f $installDir/module.prop ]; then
-        [ -d /dev/.$id ] || $installDir/service.sh
-      else
-        rm \$0 /data/adb/$id /data/adb/modules/$id 2>/dev/null
-      fi
-
-      exit 0" | sed 's/^      //' > /data/adb/service.d/${id}-init.sh
-      chmod 0700 /data/adb/service.d/${id}-init.sh
-    }
-  ;;
-esac
+###
+! $magisk || {
+  # symlink executables
+  mkdir -p $installDir/system/bin
+  ln -fs $installDir/${id}.sh $installDir/system/bin/$id
+  ln -fs $installDir/${id}.sh $installDir/system/bin/${id}d,
+  ln -fs $installDir/${id}.sh $installDir/system/bin/${id}d.
+  ln -fs $installDir/${id}a.sh $installDir/system/bin/${id}a
+  ln -fs $installDir/service.sh $installDir/system/bin/${id}d
+ }
 
 
-[ $installDir == /data/adb/$id ] || {
-  ln -s $installDir /data/adb/
+###
+if $acca; then
+
+  (cd $installDir && ln -s service.sh ${id}-init.sh) # legacy
+
+  # upgrade bundled version
+  #cp -f $srcDir/install-tarball.sh ${installDir%/*}/
+  #tar -cvf - . -C $srcDir --exclude .git | gzip -9 > ${installDir%/*}/acc_bundle.tar.gz
+
   ! $magisk || {
-    # disable magic mount (Magisk)
-    touch $magiskModDir/$id/skip_mount
+
+    ln -fs $installDir /data/data/mattecarra.${id}app/files/
+
+    # AccA post-uninstall cleanup script
+    echo "#!/system/bin/sh
+    # AccA post-uninstall cleanup script
+
+    until test -d /sdcard/?ndroid \\
+      -a .\$(getprop sys.boot_completed) == .1
+    do
+      sleep 60
+    done
+
+    sleep 60
+
+    [ -e /data/data/mattecarra.${id}app/files/$id ] \
+      || rm \$0 /data/adb/$id /data/adb/modules/$id 2>/dev/null
+
+    exit 0" | sed 's/^      //' > /data/adb/service.d/${id}-init.sh
+    chmod 0700 /data/adb/service.d/${id}-init.sh
   }
-}
+fi
+
+
+[ $installDir == /data/adb/$id ] || ln -s $installDir /data/adb/
 
 
 # restore config backup
@@ -220,7 +221,6 @@ case $installDir in
     pkg=${pkg##/data*/}
     owner=$(grep $pkg /data/system/packages.list | cut -d ' ' -f 2)
     set_perms_recursive $installDir $owner
-    # ! $magisk || set_perms_recursive $magiskModDir/$id # legacy
 
     # Termux:Boot
     ! $termux || {

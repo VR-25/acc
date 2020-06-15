@@ -14,6 +14,8 @@ case "$1" in
   *) init=false
 esac
 
+which ${id}d > /dev/null || init=true
+
 
 if [ -f $TMPDIR/ch-switches ] && ! $init; then ###
 
@@ -69,7 +71,6 @@ if [ -f $TMPDIR/ch-switches ] && ! $init; then ###
       ! $readChCurr || . $execDir/read-ch-curr-ctrl-files-p2.sh
 
       $cooldown || resetBattStatsOnUnplug=true
-      secondsUnplugged=0
 
       #$applyOnUnplug || apply_on_plug
       apply_on_plug
@@ -98,29 +99,6 @@ if [ -f $TMPDIR/ch-switches ] && ! $init; then ###
               &&  [ $(dumpsys battery 2>/dev/null | sed -n 's/^  level: //p') -ne $(cat $batt/capacity) ]; }
             then
               capacitySync=true
-              [ ${loopDelay[0]} -le 5 ] || {
-                loopDelay[0]=5
-                updateConfig=true
-              }
-              [ ${loopDelay[1]} -le 10 ] || {
-                loopDelay[1]=10
-                updateConfig=true
-              }
-              [ $dynPowerSaving -eq 0 ] || {
-                dynPowerSaving=0
-                updateConfig=true
-              }
-              ! $updateConfig || . $execDir/write-config.sh
-            else
-              [ ${loopDelay[0]} -le 10 ] || {
-                loopDelay[0]=10
-                updateConfig=true
-              }
-              [ ${loopDelay[1]} -le 15 ] || {
-                loopDelay[1]=15
-                updateConfig=true
-              }
-              ! $updateConfig || . $execDir/write-config.sh
             fi
           }
         }
@@ -150,19 +128,6 @@ if [ -f $TMPDIR/ch-switches ] && ! $init; then ###
             resetBattStatsOnUnplug=false
           } 2>/dev/null
         fi
-
-        # dynamic power saving
-        # while unplugged, this keeps accd asleep most of the time to save resources
-        # detecting plugged/unplugged states is possible (with acpi -a), but not universally
-        if [ "$dynPowerSaving" != 0 ] && grep -iq dis $batt/status; then
-          [ $secondsUnplugged == 0 ] && hibernate=true || hibernate=false
-          secondsUnplugged=$(( secondsUnplugged + ${loopDelay[1]} ))
-          ! $hibernate || sleep $secondsUnplugged
-          [ $secondsUnplugged -lt $dynPowerSaving ] || secondsUnplugged=0
-        fi
-
-      else
-        secondsUnplugged=0
       fi
     fi
 
@@ -322,7 +287,6 @@ if [ -f $TMPDIR/ch-switches ] && ! $init; then ###
   capacitySync=false
   updateConfig=false
   dischgStatusCode=""
-  secondsUnplugged=0
   frozenBattSvc=false
   applyOnUnplug=false
   resetBattStatsOnUnplug=false
@@ -376,7 +340,7 @@ else
   ln -fs $execDir/${id}a.sh /dev/${id}a
   ln -fs $execDir/service.sh /dev/${id}d
 
-  if [ -d /sbin ]; then
+  [ -d /sbin ] && {
     /system/bin/mount -o remount,rw / 2>/dev/null \
       || mount -o remount,rw /
     for h in  /dev/$id /dev/${id}d, /dev/${id}d. \
@@ -384,18 +348,7 @@ else
     do
       ln -fs $h /sbin/
     done
-  else
-    # Android 11+ (no /sbin)
-    cd /data/adb/modules/${id} && {
-      rm skip_mount system/bin/* 2>/dev/null
-      mkdir -p system/bin
-      for h in  /dev/$id /dev/${id}d, /dev/${id}d. \
-        /dev/${id}a /dev/${id}d
-      do
-        ln -fs $h system/bin/
-      done
-    }
-  fi 2>/dev/null
+  }
 
 
   # fix Termux's PATH (missing /sbin/)

@@ -40,8 +40,6 @@ ff=${force_charging_status_full_at_100-${ff-${forceChargingStatusFullAt100}}}
 
 rcp="${run_cmd_on_pause-${rcp-${runCmdOnPause[@]}}}"
 
-dps=${dyn_power_saving-${dps-${dynPowerSaving}}}
-
 asac="${auto_shutdown_alert_cmd-${asac-${autoShutdownAlertCmd[@]}}}"
 
 cac="${calibration_alert_cmd-${cac-${calibrationAlertCmd[@]}}}"
@@ -80,7 +78,6 @@ wakeUnlock=($wu)
 prioritizeBattIdleMode=${pbim:-false}
 forceChargingStatusFullAt100=$ff
 runCmdOnPause=($rcp)
-dynPowerSaving=${dps:-0}
 autoShutdownAlertCmd=(${asac:-vibrate 5 0.1})
 chargDisabledNotifCmd=(${cdnc:-vibrate 3 0.1})
 chargEnabledNotifCmd=(${cenc:-vibrate 4 0.1})

@@ -830,7 +830,7 @@ If we're talking about a Pixel device, the issue goes beyond that.
 Refer back to `DEFAULT CONFIGURATION > capacity_sync`.
 
 
-### Battery Idle Mode On OnePlus 7/Pro
+### Battery Idle Mode On OnePlus 7/8 Variants (Possibly 5 and 6 Too)
 
 Recent/custom kernels (e.g., Kirisakura) support battery idle mode.
 However, at the time of this writing, the feature is not production quality.
@@ -1152,6 +1152,10 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 ---
 ## LATEST CHANGES
 
+**v2020.6.15.2 (202006152)**
+- Fixed Magisk related issues
+- General fixes & optimizations
+
 **v2020.6.14 (202006140)**
 - `acca --set var="value"` runs asynchronously
 - Android 11 support (absolute path required until system reboots (e.g., `/dev/acc`, `/dev/acca`))
@@ -1193,8 +1197,3 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 - Major fixes & optimizations
 - Send SIGKILL 5 seconds after SIGTERM to forcibly terminate stubborn acc processes
 - Write to each ctrl file 3 times (with 200 milliseconds delays in-between) instead of just once; this is an attempt to force changes that don't take effect immediately or at all
-
-**v2020.4.29-rc (202004290)**
-- General fixes
-- Major optimizations
-- Updated Termux:API setup instructions (readme > tips)
