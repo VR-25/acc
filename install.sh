@@ -24,7 +24,9 @@ set -x
 
 exxit() {
   local e=$?
-  rm -rf /dev/.${id}-install || :
+  set +eu
+  rm -rf /dev/.${id}-install /data/adb/modules_update/$id
+  (abort) > /dev/null
   echo
   exit $e
 } 2>/dev/null

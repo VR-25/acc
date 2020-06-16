@@ -1152,6 +1152,9 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 ---
 ## LATEST CHANGES
 
+**v2020.6.16 (202006160)**
+- Magisk related fixes
+
 **v2020.6.15.2 (202006152)**
 - Fixed Magisk related issues
 - General fixes & optimizations
@@ -1188,12 +1191,3 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 - Workaround for "can't exit terminal after starting/restarting accd"
 - Works in recovery mode (system must be mounted first)
 > Release note: refer to the readme for a full list of changes and features
-
-**v2020.5.4-rc (202005040)**
-- `--set` can now set (var=value) and restore (var=) current and voltage limits as well, e.g., `acc -s mcc=1800 mcv= pc=75 rc=70`
-- `--set [[a-z]|--opt]` commands can alternatively be written as `-s[a-z]`, e.g., `acc -sv 3920 --exit`
-- Current & voltage limit and battery idle mode test now work in AccA 1.0.23 (27)
-- Enhanced "charge once to a given capacity without restrictions" feature
-- Major fixes & optimizations
-- Send SIGKILL 5 seconds after SIGTERM to forcibly terminate stubborn acc processes
-- Write to each ctrl file 3 times (with 200 milliseconds delays in-between) instead of just once; this is an attempt to force changes that don't take effect immediately or at all
