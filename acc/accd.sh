@@ -6,6 +6,17 @@
 # devs: triple hashtags (###) mark non-generic code
 
 
+# wait until the system is ready
+pgrep -fl zygote > /dev/null && {
+  until test -d /sdcard/?ndroid -a -d /data/data/com.android.providers.media \
+    -a .$(getprop sys.boot_completed) == .1 \
+    && dumpsys battery > /dev/null 2>&1
+do
+    sleep 10
+  done
+}
+
+
 umask 0077
 . $execDir/acquire-lock.sh
 
@@ -58,7 +69,7 @@ if [ -f $TMPDIR/ch-switches ] && ! $init; then ###
     if $isCharging; then
 
       # reset auto-shutdown warning thresholds
-      lowPower=false
+      #lowPower=false
       warningThresholds=$_warningThresholds
 
       # read chgStatusCode once
@@ -250,9 +261,9 @@ if [ -f $TMPDIR/ch-switches ] && ! $init; then ###
             [ $c -ne $i ] || {
               eval "${autoShutdownAlertCmd[@]-}"
               warningThresholds=${warningThresholds/$i}
-              $lowPower || {
-                ! settings put global low_power 1 || lowPower=true
-              }
+              # $lowPower || {
+              #   ! settings put global low_power 1 || lowPower=true
+              # }
             }
           done
           unset i c
@@ -281,7 +292,7 @@ if [ -f $TMPDIR/ch-switches ] && ! $init; then ###
   isAccd=true
   cooldown=false
   hibernate=true
-  lowPower=false
+  #lowPower=false
   readChCurr=true
   chgStatusCode=""
   capacitySync=false

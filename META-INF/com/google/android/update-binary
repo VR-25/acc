@@ -53,8 +53,8 @@ trap exxit EXIT
   fi
 }
 case $PATH in
-  /dev/.busybox:*) : ;;
-  *) export PATH=/dev/.busybox:$PATH;;
+  /data/adb/bin:*) :;;
+  *) export PATH=/data/adb/bin:/dev/.busybox:$PATH;;
 esac
 #/BB#
 
@@ -186,8 +186,8 @@ if $acca; then
     [ -e /data/data/mattecarra.${id}app/files/$id ] \
       || rm \$0 /data/adb/$id /data/adb/modules/$id 2>/dev/null
 
-    exit 0" | sed 's/^      //' > /data/adb/service.d/${id}-init.sh
-    chmod 0700 /data/adb/service.d/${id}-init.sh
+    exit 0" | sed 's/^      //' > /data/adb/service.d/${id}-cleanup.sh
+    chmod 0700 /data/adb/service.d/${id}-cleanup.sh
   }
 fi
 

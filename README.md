@@ -67,8 +67,8 @@ Any root solution is supported.
 ACC sets 0700 permissions as needed.
 Precedence: /data/adb/bin/busybox > Magisk's busybox > system's busybox
 
-\*\* Just like the above, a [static curl binary](https://github.com/search?o=desc&q=curl+android&s=updated&type=Repositories/) can be placed in /data/adb/bin/.
-Alternatively, there's the Magisk module [Cross Compiled Binaries (ccbins)](https://github.com/Magisk-Modules-Repo/ccbins/) installs `curl`.
+\*\* A [static curl binary](https://github.com/search?o=desc&q=curl+android&s=updated&type=Repositories/) can also be placed in `/data/adb/bin/` (with execute permission).
+Alternatively, one may install the Magisk module [Cross Compiled Binaries (ccbins)](https://github.com/Magisk-Modules-Repo/ccbins/).
 
 
 
@@ -823,11 +823,12 @@ Refer back to `DEFAULT CONFIGURATION (switch_delay)`.
 
 ### Battery Capacity (% Level) Doesn't Seem Right
 
-The "smart" battery may require calibration.
-Refer to the `FAQ` section below for details.
+When Android's battery level differs from that of the kernel, ACC daemon automatically syncs it by stopping the battery service and feeding it the real value every few seconds.
 
-If we're talking about a Pixel device, the issue goes beyond that.
-Refer back to `DEFAULT CONFIGURATION > capacity_sync`.
+Pixel devices are known for having battery level discrepancies for the longest time.
+
+If your device shuts down before the battery is actually empty, capacity_freeze2 may help.
+Refer to the `default configuration` section above for details.
 
 
 ### Battery Idle Mode On OnePlus 7/8 Variants (Possibly 5 and 6 Too)
@@ -835,7 +836,7 @@ Refer back to `DEFAULT CONFIGURATION > capacity_sync`.
 Recent/custom kernels (e.g., Kirisakura) support battery idle mode.
 However, at the time of this writing, the feature is not production quality.
 ACC has custom code to cover the pitfalls, though.
-`battery/op_disable_charge 0 1` must be enforced manually (`acc -ss` or `acc -s s="battery/op_disable_charge 0 1"`) and acc daemon, restarted afterwards.
+`battery/op_disable_charge 0 1` must be enforced manually (`acc -ss` or `acc -s s="battery/op_disable_charge 0 1"`).
 
 
 ### Bootloop
@@ -1152,42 +1153,17 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 ---
 ## LATEST CHANGES
 
+**v2020.7.3 (202007030)**
+- Blacklisted problematic MTK charging switch.
+- Fixed "battery saver mode can't be turned off".
+- Fixed network issues.
+- General optimizations
+- Prepend /data/adb/bin to PATH (executables or links to these can be placed in that dir to override defaults).
+- Updated documentation (prerequisites and troubleshooting sections).
+
 **v2020.6.16 (202006160)**
 - Magisk related fixes
 
 **v2020.6.15.2 (202006152)**
 - Fixed Magisk related issues
 - General fixes & optimizations
-
-**v2020.6.14 (202006140)**
-- `acca --set var="value"` runs asynchronously
-- Android 11 support (absolute path required until system reboots (e.g., `/dev/acc`, `/dev/acca`))
-- capacity_freeze2 (cft): prevents Android from getting capacity readings below 2%; useful on systems that shutdown before battery level drops to 0 or 1%
-- `ctrlFileWrites=(times interval)`, defaults are 3 and 0.3
-- Current and voltage limits can be set from AccA, but not restored; until AccA is updated, use `acc -s<c|v> -` to revert changes
-- Daemon stop actions run asynchronously to speed up the process
-- Dynamically determine battery uevent path
-- Enforce max switch_delay 20 for mtk devices; `acc --test` will use that (7 is default for other devices)
-- Exclude parallel/ control files
-- Fallback busybox (`/data/adb/bin/busybox`) is now used as primary
-- `fg_full_voltage` ctrl file
-- Fixed `acc -ss` "extra values" issue
-- Fixed AccA log activity
-- Fixed MediaTek specific bugs
-- Idle mode for Pixel 2/XL and devices with similar hardware
-- If AccA is installed, `install.sh` ensures `/data/data/mattecarra.accapp/files/` exists before installing/upgrading acc; this prevents unwanted acc downgrades
-- Job control based on lock file
-- Legacy support (Android 4.0+)
-- loop_cmd: extends accd's functionality (advanced users, details in the readme)
-- Non-Magisk users can enable acc auto-start by running /data/adb/$id/service.sh, a copy of, or a link to it - with init.d or an app that emulates it
-- Place temporary files in /dev, rather than /sbin (deprecated)
-- Potential workaround for "graceful shutdown not working"
-- Power supply logger: learn to skip reading troublesome /sys files (prevents kernel panic); [re]generate log file only on errors and when the log exporting command is executed
-- Prevent future AccA versions from downgrading/reinstalling modules
-- Removed capacitySync (already automatic) and capacityOffset controls
-- Static binaries like busybox and curl can simply be placed in /data/adb/bin/; acc sets 0700 permissions as needed
-- The first argument to acc -t can be switch_delay, e.g., `acc -t 15 /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0`
-- Updated readme
-- Workaround for "can't exit terminal after starting/restarting accd"
-- Works in recovery mode (system must be mounted first)
-> Release note: refer to the readme for a full list of changes and features

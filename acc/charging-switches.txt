@@ -4,7 +4,7 @@
 #
 # "::" == " "
 # PWD=/sys/class/power_supply
-# Last updated: Sat, Jun 6, 2020
+# Last updated: Thu, Jul 2, 2020
 
 battery/charger_control 1 0
 */charge_disable 0 1
@@ -96,6 +96,6 @@ battery/mmi_charging_enable 1 0
 #/sys/devices/i2c*/*/battery_smbus 1 0
 #battery/connect_disable 0 1
 #usb/online 1 0
-/proc/mtk_battery_cmd/current_cmd 0::0 0::1
+#/proc/mtk_battery_cmd/current_cmd 0::0 0::1
 battery/ChargerEnable 1 0
 /sys/devices/platform/battery/ChargerEnable 1 0

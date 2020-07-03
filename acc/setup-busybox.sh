@@ -23,6 +23,6 @@
 }
 
 case $PATH in
-  /dev/.busybox:*) : ;;
-  *) export PATH=/dev/.busybox:$PATH;;
+  /data/adb/bin:*) :;;
+  *) export PATH=/data/adb/bin:/dev/.busybox:$PATH;;
 esac
