@@ -1,6 +1,6 @@
 #!/system/bin/sh
 # Advanced Charging Controller Power Supply Logger
-# Copyright (c) 2019-2020, VR25 (xda-developers)
+# Copyright 2019-2020, VR25 (xda-developers)
 # License: GPLv3+
 
 

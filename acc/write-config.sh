@@ -60,8 +60,8 @@ lc="${loop_cmd-${lc-${loopCmd[@]}}}"
 
 {
 echo "configVerCode=$(cat $TMPDIR/.config-ver)
-capacity=(${sc:--1} ${cc:-101} ${rc:-70} ${pc:-75} ${cft:-false})
-temperature=(${ct:-70} ${mt:-80} ${mtp:-90})
+capacity=(${sc:--1} ${cc:-60} ${rc:-70} ${pc:-75} ${cft:-false})
+temperature=(${ct:-40} ${mt:-60} ${mtp:-90})
 cooldownRatio=($cch $cp)
 cooldownCustom=($ccu)
 resetBattStats=(${rbsp:-false} ${rbsu:-false})

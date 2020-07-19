@@ -1,26 +1,10 @@
-cooldown
-  cooldownTemp=(min_temp charge_seconds pause_seconds max_temp max_temp_pause)
-  cooldownCapacity=(capacity charge_seconds pause_seconds)
-
-# getval index $var
-getval() {
-  local index=$1
-  shift
-  eval "echo \$$index"
-}
-
-# setval index val var
-setval() {
-  local val_=$1 val="$2" values="" var=$3
-  shift 3
-  values="$(eval "echo \$$var")"
-  val_="$(getval $val_ $values)"
-  eval $var=\""${values/$val_/$val}"\"
-}
-
 install.sh
   upgrade acc_bundle.tar.gz and install-tarball.sh
 
 remove "# legacy"
 
-acc -u
+review automatic switch setting
+  switch being reset for invalid reasons?
+
+sometimes, battery % gets stuck if capacity_freeze2 is enabled
+  stuck in a wait_plug loop?

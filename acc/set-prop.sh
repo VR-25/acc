@@ -27,12 +27,12 @@ set_prop() {
         ;;
       esac
 
-      [ .${mcc-${max_charging_current-x}} == .x ] || {
+      [ .${mcc-${max_charging_current-x}} = .x ] || {
         . $execDir/set-ch-curr.sh
         set_ch_curr ${mcc:-${max_charging_current:--}} || :
       }
 
-      [ .${mcv-${max_charging_voltage-x}} == .x ] || {
+      [ .${mcv-${max_charging_voltage-x}} = .x ] || {
         . $execDir/set-ch-volt.sh
         set_ch_volt ${mcv:-${max_charging_voltage:--}} || :
       }

@@ -15,7 +15,7 @@ apply_on_boot() {
     [ -f "$file" ] && chmod u+w $file && run_xtimes "echo \$$arg > $file" || :
   done
 
-  $exitCmd && [ $arg == value ] && exit 0 || :
+  $exitCmd && [ $arg = value ] && exit 0 || :
 }
 
 
@@ -96,7 +96,7 @@ disable_charging() {
     apply_on_plug default
   fi
 
-  if [[ "${chargingSwitch[0]-}" == */* ]]; then
+  if [[ "${chargingSwitch[0]-}" = */* ]]; then
     if [ -f ${chargingSwitch[0]} ]; then
       # toggle primary switch
       if chmod u+w ${chargingSwitch[0]} && run_xtimes "echo ${chargingSwitch[2]//::/ } > ${chargingSwitch[0]}"; then
@@ -178,10 +178,10 @@ enable_charging() {
 
   ! $isAccd || not_charging || return 0
 
-  if ! $ghostCharging || { $ghostCharging && [[ $(cat */online) == *1* ]]; }; then
+  if ! $ghostCharging || { $ghostCharging && [[ $(cat */online) = *1* ]]; }; then
 
     $isAccd || {
-      [ "${2-}" == noap ] || apply_on_plug
+      [ "${2-}" = noap ] || apply_on_plug
     }
 
     chmod u+w ${chargingSwitch[0]-} ${chargingSwitch[3]-} 2>/dev/null \
@@ -292,7 +292,7 @@ unset_switch() {
 
 
 vibrate() {
-  [ $1 != "-" -a $isAccd == false ] || return 0
+  [ $1 != "-" -a $isAccd = false ] || return 0
   local count=0
   for count in $(seq $1); do
     ${fd3-false} && print -n '\a' >&3 || print -n '\a' || :
@@ -337,9 +337,10 @@ cd /sys/class/power_supply/
 
 for batt in $(ls */uevent); do
   chmod u+r $batt \
-     && grep -q '^POWER_SUPPLY_CAPACITY=' $batt \
-     && grep -q '^POWER_SUPPLY_STATUS=' $batt \
-     && batt=${batt%/*} && break
+   && grep -q '^POWER_SUPPLY_CAPACITY=' $batt \
+   && grep -q '^POWER_SUPPLY_STATUS=' $batt \
+   && batt=${batt%/*} \
+   && break
 done 2>/dev/null || :
 
 # dumpsys wrapper for Termux

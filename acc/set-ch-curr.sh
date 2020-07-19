@@ -31,7 +31,7 @@ set_ch_curr() {
   if [ -n "${1-}" ]; then
 
     # restore
-    if [ $1 == - ]; then
+    if [ $1 = - ]; then
       apply_on_plug default
       max_charging_current=
       ! ${verbose:-true} || print_curr_restored

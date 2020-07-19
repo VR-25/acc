@@ -1,6 +1,6 @@
 logf() {
 
-  if [[ "${1:-x}" == -*e* ]]; then
+  if [[ "${1:-x}" = -*e* ]]; then
 
     exec 2>> ${log:-/dev/null}
     cd $TMPDIR
@@ -35,7 +35,7 @@ logf() {
     echo "(i) /sdcard/acc-logs-$device.tar.gz"
 
   else
-    if [[ "${1:-x}" == -*a* ]]; then
+    if [[ "${1:-x}" = -*a* ]]; then
       shift
       edit $log "$@"
     else

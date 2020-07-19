@@ -3,7 +3,7 @@
 # $id Online Installer
 # https://raw.githubusercontent.com/VR-25/$id/$branch/install-online.sh
 #
-# Copyright (c) 2019-2020, VR25 (xda-developers)
+# Copyright 2019-2020, VR25 (xda-developers)
 # License: GPLv3+
 #
 # Usage: sh install-online.sh [-c|--changelog] [-f|--force] [-k|--insecure] [-n|--non-interactive] [%install dir%] [reference]
@@ -60,9 +60,9 @@ set -eu
 get_ver() { sed -n 's/^versionCode=//p' ${1:-}; }
 
 
-[ ! -f /data/adb/bin/curl ] || {
-  [ -x /data/adb/bin/curl ] || chmod -R 0700 /data/adb/bin
-  ${curlPath:-false} || export PATH=/data/adb/bin:$PATH
+! test -f /data/adb/bin/curl || {
+  test -x /data/adb/bin/curl \
+    || chmod -R 0700 /data/adb/bin
 }
 
 
@@ -72,12 +72,12 @@ case "$@" in
 esac
 
 
-reference=$(echo "$@" | sed -E 's/%.*%|-c|--changelog|-f|--force|-k|--insecure|-n|--non-interactive| //g')
+reference=$(echo "$*" | sed -E 's/%.*%|-c|--changelog|-f|--force|-k|--insecure|-n|--non-interactive| //g')
 : ${reference:=master}
 
 tarball=https://github.com/VR-25/$id/archive/${reference}.tar.gz
 
-installedVersion=$(get_ver /dev/.$id/$id/module.prop 2>/dev/null || :)
+installedVersion=$(get_ver /data/adb/$id/module.prop 2>/dev/null || :)
 
 onlineVersion=$(curl -L $insecure https://raw.githubusercontent.com/VR-25/$id/${reference}/module.prop | get_ver)
 
@@ -87,7 +87,7 @@ rm -rf "./${id}-${reference}/" 2>/dev/null || :
 
 
 if [ ${installedVersion:-0} -lt ${onlineVersion:-0} ] \
-  || [[ "$*" == *-f* ]] || [[ "$*" == *--force* ]]
+  || [[ "$*" = *-f* ]] || [[ "$*" = *--force* ]]
 then
 
   ! echo "$@" | grep -Eq '\-\-changelog|\-c' || {

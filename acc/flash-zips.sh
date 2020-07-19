@@ -1,6 +1,6 @@
 #!/dev/.busybox/ash
 # Universal shell-based-zip flasher
-# Copyright (c) 2020, VR25 (xda-developers)
+# Copyright 2020, VR25 (xda-developers)
 # License: GPLv3+
 #
 # usage: $0 or $0 "file1 file2 ..."
@@ -22,17 +22,17 @@ pick_zips() {
    echo
    print -n "Add more zips to the queue: a\nStart flashing: [enter]\nExit: CTRL-C\n> "
    read -n1 target
-   [ "$target" == a ] && pick_zips .
+   [ "$target" = a ] && pick_zips .
   elif [ -d "$target" ]; then
     echo
     pick_zips "$target"
-  elif [ "$target" == "<Back>" ]; then
+  elif [ "$target" = "<Back>" ]; then
    cd ..
    echo
    pick_zips .
-  elif [ "$target" == "<Exit>" ]; then
+  elif [ "$target" = "<Exit>" ]; then
     exit 0
-  elif [ "$target" == "<Custom path>" ]; then
+  elif [ "$target" = "<Custom path>" ]; then
     echo -n "> "
     read target
     cd "${target:-.}"
@@ -87,7 +87,7 @@ for zipFile in $zipFiles; do
   unzip -o "${zipFile//__/ }" 'META-INF/*' -d /dev/.install-zip >&2 && {
     $noClear && echo || clear
     echo
-    sh /dev/.install-zip/META-INF/*/*/*/update-binary dummy 1 "${zipFile//__/ }" # $3 == outfd
+    sh /dev/.install-zip/META-INF/*/*/*/update-binary dummy 1 "${zipFile//__/ }" # $3 = outfd
   }
 
   # on failure: next or abort

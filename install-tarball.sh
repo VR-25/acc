@@ -1,6 +1,6 @@
 #!/system/bin/sh
 # ${1:-$id}[-_]*.tar.gz Installer
-# Copyright (c) 2019-2020, VR25 (xda-developers.com)
+# Copyright 2019-2020, VR25 (xda-developers.com)
 # License: GPLv3+
 
 id=acc

@@ -1,7 +1,7 @@
 #!/system/bin/sh
 # $id uninstaller
 # id is set/corrected by build.sh
-# Copyright (c) 2019-2020, VR25 (xda-developers)
+# Copyright 2019-2020, VR25 (xda-developers)
 # License: GPLv3+
 #
 # devs: triple hashtags (###) mark non-generic code
@@ -42,12 +42,12 @@ mkdir -p $TMPDIR/$id
 (flock -n 0 || {
   read pid
   kill $pid
-  timeout 6 flock 0 || kill -KILL $pid
+  timeout 15 flock 0 || kill -KILL $pid
 }) <>$TMPDIR/${id}.lock
 ###
 pgrep -f "/($id|${id}a) (-|--)[det]|/${id}d" > /dev/null && { # legacy
   pkill -f "/($id|${id}a) (-|--)[det]|/${id}d"
-  for count in $(seq 6); do
+  for count in $(seq 15); do
     sleep 1
     [ -z "$(pgrep -f "/($id|${id}a) (-|--)[det]|/${id}d")" ] && break
   done
@@ -63,7 +63,7 @@ rm -rf $(readlink -f /data/adb/$id) \
   /data/media/0/${id}-logs-*.tar.* \
   /data/data/mattecarra.accapp/files/$id \
   /data/data/com.termux/files/home/.termux/boot/${id}-init.sh \
-  $([ "${1:-}" == install ] || echo "/data/adb/${id}-data")
+  $(test "${1:-}" = install || echo "/data/adb/${id}-data /data/media/0/.${id}-config-backup.txt")
 
 # remove flashable uninstaller
 rm ${3:-/data/media/0/${id}-uninstaller.zip}

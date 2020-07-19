@@ -185,9 +185,9 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202006080
-capacity=(-1 101 70 75 false)
-temperature=(70 80 90)
+configVerCode=202007170
+capacity=(-1 60 70 75 false)
+temperature=(40 60 90)
 cooldownRatio=()
 cooldownCustom=()
 resetBattStats=(false false)
@@ -204,7 +204,6 @@ wakeUnlock=()
 prioritizeBattIdleMode=true
 forceChargingStatusFullAt100=
 runCmdOnPause=()
-dynPowerSaving=0
 autoShutdownAlertCmd=(vibrate 5 0.1)
 chargDisabledNotifCmd=(vibrate 3 0.1)
 chargEnabledNotifCmd=(vibrate 4 0.1)
@@ -265,8 +264,6 @@ loopCmd=()
 
 # runCmdOnPause=run_cmd_on_pause=(. script)
 
-# dynPowerSaving=dyn_power_saving=seconds
-
 # autoShutdownAlertCmd=auto_shutdown_alert_cmd=(. script)
 
 # chargDisabledNotifCmd=charg_disabled_notif_cmd=(. script)
@@ -322,7 +319,6 @@ loopCmd=()
 # pbim prioritize_batt_idle_mode
 # ff force_charging_status_full_at_100
 # rcp run_cmd_on_pause
-# dps dyn_power_saving
 
 # asac auto_shutdown_alert_cmd
 # cdnc charg_disabled_notif_cmd
@@ -343,7 +339,7 @@ loopCmd=()
 # acc --set pause_capacity=85 resume_capacity=80
 
 # acc -s "s=battery/charging_enabled 1 0"
-# acc --set "charging_switch=/proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0" ("::" == " ")
+# acc --set "charging_switch=/proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0" ("::" = " ")
 
 # acc -s sd=5
 # acc -s switch_delay=5
@@ -457,7 +453,7 @@ loopCmd=()
 # If this doesn't make sense to you, you probably don't need it.
 # Essentially, this is a timeout (seconds) before rebooting - after pausing charging.
 # This reboot is a workaround for a firmware issue that causes abnormally fast battery drain after charging is paused on certain devices.
-# The issue has reportedly been fixed by the OEMs. This setting will eventually be removed.
+# The issue has reportedly been fixed by the OEMs. This feature will eventually be removed.
 
 # switch_delay (sd) #
 # This is a delay (seconds) between charging status checks after toggling charging switches. It exists because some switches don't react immediately after being toggled.
@@ -488,11 +484,6 @@ loopCmd=()
 # run_cmd_on_pause (rcp) #
 # Run commands* after pausing charging.
 # * Usually a script ("sh some_file" or ". some_file")
-
-# dyn_power_saving (dps) #
-# This is the maximum number of seconds accd will dynamically sleep* for (while unplugged) to save resources.
-# If dyn_power_saving == 0, the feature is disabled.
-# * On top of loop_delay_discharging
 
 # auto_shutdown_alert_cmd (asac) #
 # charg_disabled_notif_cmd (cdnc) #
@@ -1153,6 +1144,16 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 ---
 ## LATEST CHANGES
 
+**v2020.7.19 (202007190)**
+- accd stop timeout set to 15 seconds (more time for graceful termination).
+- Do not remount /sbin/.
+- Faster accd termination
+- Fixed "--upgrade not recognizing the latest version is already installed".
+- Fixed "max_temp_pause not honored".
+- General optimizations
+- Minor changes to default config, for convenience
+- Note: config will be reset to fix the accd crash issue several users have been facing.
+
 **v2020.7.3 (202007030)**
 - Blacklisted problematic MTK charging switch.
 - Fixed "battery saver mode can't be turned off".
@@ -1163,7 +1164,3 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 
 **v2020.6.16 (202006160)**
 - Magisk related fixes
-
-**v2020.6.15.2 (202006152)**
-- Fixed Magisk related issues
-- General fixes & optimizations

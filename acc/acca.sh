@@ -100,12 +100,12 @@ case "$@" in
       ;;
     esac
 
-    [ .${mcc-${max_charging_current-x}} == .x ] || {
+    [ .${mcc-${max_charging_current-x}} = .x ] || {
       . ./set-ch-curr.sh
       set_ch_curr ${mcc:-${max_charging_current:--}} || :
     }
 
-    [ .${mcv-${max_charging_voltage-x}} == .x ] || {
+    [ .${mcv-${max_charging_voltage-x}} = .x ] || {
       . ./set-ch-volt.sh
       set_ch_volt ${mcv:-${max_charging_voltage:--}} || :
     }
@@ -117,7 +117,7 @@ case "$@" in
 
   # print default config
   -s\ d*|-s\ --print-default*|--set\ d*|--set\ --print-default*|-sd*)
-    [ $1 == -sd ] && shift || shift 2
+    [ $1 = -sd ] && shift || shift 2
     . $defaultConfig
     . ./print-config.sh | grep -E "${1:-...}" || :
     exit 0
@@ -125,7 +125,7 @@ case "$@" in
 
   # print current config
   -s\ p*|-s\ --print|-s\ --print\ *|--set\ p|--set\ --print|--set\ --print\ *|-sp*)
-    [ $1 == -sp ] && shift || shift 2
+    [ $1 = -sp ] && shift || shift 2
     . $config
     . ./print-config.sh | grep -E "${1:-...}" || :
     exit 0

@@ -1,8 +1,8 @@
 # ACC Charging Switches Database
-# Copyright (c) 2017-2020, VR25 (xda-developers)
+# Copyright 2017-2020, VR25 (xda-developers)
 # License: GPLv3+
 #
-# "::" == " "
+# "::" = " "
 # PWD=/sys/class/power_supply
 # Last updated: Thu, Jul 2, 2020
 

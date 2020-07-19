@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 # Installation Archives Builder
-# Copyright (c) 2018-2020, VR25 (xda-developers)
+# Copyright 2018-2020, VR25 (xda-developers)
 # License: GPLv3+
 #
 # usage: $0 [any_random_arg]

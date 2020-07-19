@@ -9,7 +9,7 @@ set_ch_volt() {
     }
 
     # restore
-    if [ $1 == - ]; then
+    if [ $1 = - ]; then
       apply_on_boot default force
       max_charging_voltage=
       ! ${verbose:-true} || print_volt_restored
@@ -25,7 +25,7 @@ set_ch_volt() {
           } || return 1
       }
 
-      # == [3700-4200] millivolts
+      # = [3700-4200] millivolts
       if [ $1 -ge 3700 -a $1 -le 4200 ]; then
         apply_voltage $1 ${2-} || return 1
 

@@ -1,31 +1,19 @@
 #!/system/bin/sh
 # Advanced Charging Controller Daemon (accd)
-# Copyright (c) 2017-2020, VR25 (xda-developers)
+# Copyright 2017-2020, VR25 (xda-developers)
 # License: GPLv3+
 #
 # devs: triple hashtags (###) mark non-generic code
 
 
-# wait until the system is ready
-pgrep -fl zygote > /dev/null && {
-  until test -d /sdcard/?ndroid -a -d /data/data/com.android.providers.media \
-    -a .$(getprop sys.boot_completed) == .1 \
-    && dumpsys battery > /dev/null 2>&1
-do
-    sleep 10
-  done
-}
-
-
 umask 0077
 . $execDir/acquire-lock.sh
 
+
 case "$1" in
   -i|--init) init=true; shift;;
-  *) init=false
+  *) test -f $TMPDIR/.config-ver && init=false || init=true;;
 esac
-
-which ${id}d > /dev/null || init=true
 
 
 if [ -f $TMPDIR/ch-switches ] && ! $init; then ###
@@ -34,6 +22,7 @@ if [ -f $TMPDIR/ch-switches ] && ! $init; then ###
     local exitCode=$?
     set +eux
     trap - EXIT
+    vibrate() { :; }
     { dumpsys battery reset &
     cp $config /dev/.${id}-config
     config=/dev/.${id}-config
@@ -43,14 +32,14 @@ if [ -f $TMPDIR/ch-switches ] && ! $init; then ###
     } > /dev/null 2>&1
     [ -n "$1" ] && exitCode=$1
     [ -n "$2" ] && print "$2"
-    echo "***EXIT $exitCode***"
-    [[ $exitCode == [127] ]] && {
+    [[ $exitCode = [127] ]] && {
       . $execDir/logf.sh
       logf --export > /dev/null 2>&1 &
       eval "${errorAlertCmd[@]-}" &
     }
     wait
     rm $config 2>/dev/null
+    cd /
     exit $exitCode
   }
 
@@ -69,7 +58,6 @@ if [ -f $TMPDIR/ch-switches ] && ! $init; then ###
     if $isCharging; then
 
       # reset auto-shutdown warning thresholds
-      #lowPower=false
       warningThresholds=$_warningThresholds
 
       # read chgStatusCode once
@@ -153,7 +141,7 @@ if [ -f $TMPDIR/ch-switches ] && ! $init; then ###
             && dumpsys battery set status $dischgStatusCode || :
         fi
       }
-      if ! [ ${capacity[4]} == true -a $(cat $batt/capacity) -lt 2 ]; then
+      if ! [ ${capacity[4]} = true -a $(cat $batt/capacity) -lt 2 ]; then
         dumpsys battery set level $(cat $batt/capacity) || :
       fi
     }
@@ -178,9 +166,9 @@ if [ -f $TMPDIR/ch-switches ] && ! $init; then ###
           || rm ${config%/*}/.rebootedOnPause 2>/dev/null || :
 
         # disable charging under <conditions>
-        if [ $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) -ge $(( ${temperature[1]} * 10 )) ] \
-          || [ $(cat $batt/capacity) -ge ${capacity[3]} ]
-        then
+        test $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) -ge $(( ${temperature[1]} * 10 )) \
+          && maxTempPause=true || maxTempPause=false
+        if $maxTempPause || test $(cat $batt/capacity) -ge ${capacity[3]}; then
           [ -f ${config%/*}/.rebootedOnPause ] || {
             disable_charging
             ! ${resetBattStats[0]} || {
@@ -208,6 +196,8 @@ if [ -f $TMPDIR/ch-switches ] && ! $init; then ###
             fi 2>/dev/null
           }
         fi
+
+        ! $maxTempPause || sleep ${temperature[2]}
 
         [ -f ${config%/*}/.rebootedOnPause ] || {
 
@@ -261,15 +251,12 @@ if [ -f $TMPDIR/ch-switches ] && ! $init; then ###
             [ $c -ne $i ] || {
               eval "${autoShutdownAlertCmd[@]-}"
               warningThresholds=${warningThresholds/$i}
-              # $lowPower || {
-              #   ! settings put global low_power 1 || lowPower=true
-              # }
             }
           done
           unset i c
 
           # auto-shutdown if battery is not charging and capacity is less than <shutdown_capacity>
-          [ ! $(cat $batt/capacity) -le ${capacity[0]} ] || {
+          ! test $(cat $batt/capacity) -le ${capacity[0]} || {
             sleep ${loopDelay[1]}
             ! not_charging \
               || am start -n android/com.android.internal.app.ShutdownActivity < /dev/null > /dev/null 2>&1 \
@@ -292,7 +279,6 @@ if [ -f $TMPDIR/ch-switches ] && ! $init; then ###
   isAccd=true
   cooldown=false
   hibernate=true
-  #lowPower=false
   readChCurr=true
   chgStatusCode=""
   capacitySync=false
@@ -308,7 +294,6 @@ if [ -f $TMPDIR/ch-switches ] && ! $init; then ###
   # verbose
   echo "###$(date)###" >> $log
   echo "versionCode=$(sed -n s/versionCode=//p $execDir/module.prop 2>/dev/null)" >> $log
-  export PS4='[${EPOCHREALTIME:-+}] '
   exec >> $log 2>&1
   set -x
 
@@ -330,6 +315,17 @@ if [ -f $TMPDIR/ch-switches ] && ! $init; then ###
 
 
   apply_on_boot
+
+  # wait until the system is ready
+  pgrep -fl zygote > /dev/null && {
+    until test -d /data/data \
+      && test .$(getprop sys.boot_completed) = .1 \
+      && dumpsys battery > /dev/null 2>&1
+    do
+      sleep 10
+    done
+  }
+
   ctrl_charging
   exit $?
 
@@ -351,15 +347,11 @@ else
   ln -fs $execDir/${id}a.sh /dev/${id}a
   ln -fs $execDir/service.sh /dev/${id}d
 
-  [ -d /sbin ] && {
-    /system/bin/mount -o remount,rw / 2>/dev/null \
-      || mount -o remount,rw /
-    for h in  /dev/$id /dev/${id}d, /dev/${id}d. \
-      /dev/${id}a /dev/${id}d
-    do
-      ln -fs $h /sbin/
-    done
-  }
+  for h in  /dev/$id /dev/${id}d, /dev/${id}d. \
+    /dev/${id}a /dev/${id}d
+  do
+    ln -fs $h /sbin/ 2>/dev/null || break
+  done
 
 
   # fix Termux's PATH (missing /sbin/)
@@ -459,7 +451,7 @@ else
 
   # start $id daemon
   rm /dev/.$id/.ghost-charging 2>/dev/null ###
-  exec $0 "$1"
+  exec $0 "$@"
 fi
 
 exit 0

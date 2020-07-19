@@ -255,10 +255,10 @@ Options
 
   -u|--upgrade [-c|--changelog] [-f|--force] [-k|--insecure] [-n|--non-interactive]   Online upgrade/downgrade (requires curl)
     e.g.,
-      acc -u beta (upgrade to the latest beta version)
+      acc -u dev (upgrade to the latest dev version)
       acc -u (latest version from the current branch)
-      acc -u stable^1 -f (previous stable release)
-      acc -u -f beta^2 (two dev versions below the latest beta)
+      acc -u master^1 -f (previous stable release)
+      acc -u -f dev^2 (two dev versions below the latest dev)
       acc -u v2020.4.8-beta --force (force upgrade/downgrade to v2020.4.8-beta)
       acc -u -c -n (if update is available, prints version code (integer) and changelog link)
       acc -u -c (same as above, but with install prompt)

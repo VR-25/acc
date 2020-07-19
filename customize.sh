@@ -1,6 +1,6 @@
 #!/system/bin/sh
 # ACC Installer/Upgrader
-# Copyright (c) 2019-2020, VR25 (xda-developers)
+# Copyright 2019-2020, VR25 (xda-developers)
 # License: GPLv3+
 #
 # devs: triple hashtags (###) mark non-generic code
@@ -175,8 +175,8 @@ if $acca; then
     echo "#!/system/bin/sh
     # AccA post-uninstall cleanup script
 
-    until test -d /sdcard/?ndroid \\
-      -a .\$(getprop sys.boot_completed) == .1
+    until test -d /data/data \\
+      && test .\$(getprop sys.boot_completed) = .1
     do
       sleep 60
     done
@@ -192,7 +192,7 @@ if $acca; then
 fi
 
 
-[ $installDir == /data/adb/$id ] || ln -s $installDir /data/adb/
+[ $installDir = /data/adb/$id ] || ln -s $installDir /data/adb/
 
 
 # restore config backup
@@ -258,7 +258,7 @@ echo "
 - Daemon started."
 
 
-[ $installDir == /data/adb ] && echo "
+[ $installDir = /data/adb ] && echo "
 (i) Non-Magisk users can enable $id auto-start by running /data/adb/$id/service.sh, a copy of, or a link to it - with init.d or an app that emulates it."
 
 

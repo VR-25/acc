@@ -9,19 +9,16 @@ set_prop_() { sed -i "\|^${1}=|s|=.*|=$2|" ${3:-$config}; }
 # patch/reset [broken/obsolete] config
 configVer=0$(get_prop configVerCode 2>/dev/null || :)
 defaultConfVer=$(get_prop configVerCode $execDir/default-config.txt)
-if (set +x; . $config) > /dev/null 2>&1 \
-  && ! grep_ '^dynPowerSaving=120|^versionCode=|^(capacity|loopDelay)=.*,|^temperature=.*-'
-then
+if (set +x; . $config) > /dev/null 2>&1; then
   [ $configVer -eq $defaultConfVer ] || {
-    if [ $configVer -lt 202005170 ]; then
-      /dev/acca --set ctrl_file_writes=
+    if [ $configVer -lt 202007170 ]; then
+      cp -f $execDir/default-config.txt $config
     else
       /dev/acca --set dummy=
     fi
   }
 else
   cp -f $execDir/default-config.txt $config
-  rm /sdcard/acc-logs-*.tar.bz2 || : ### legacy
 fi 2>/dev/null
 
 

@@ -1,6 +1,6 @@
 #!/system/bin/sh
 # Advanced Charging Controller
-# Copyright (c) 2017-2020, VR25 (xda-developers)
+# Copyright 2017-2020, VR25 (xda-developers)
 # License: GPLv3+
 
 
@@ -124,14 +124,15 @@ exxit() {
   local exitCode=$?
   set +eux
   ! ${noEcho:-false} && ${verbose:-true} && echo
-  [[ $exitCode == [05689] ]] || {
-    [[ $exitCode == [127] || $exitCode == 10 ]] && {
+  [[ $exitCode = [05689] ]] || {
+    [[ $exitCode = [127] || $exitCode = 10 ]] && {
       logf --export
       eval "${errorAlertCmd[@]-}"
     }
     echo
   }
   rm /dev/.acc-config 2>/dev/null
+  cd /
   exit $exitCode
 }
 
@@ -282,7 +283,7 @@ case "${1-}" in
 
     dsys="$(dumpsys battery)"
 
-    { if [[ "$dsys" == *reset* ]] > /dev/null; then
+    { if [[ "$dsys" = *reset* ]] > /dev/null; then
       status=$(echo "$dsys" | sed -n 's/^  status: //p')
       level=$(echo "$dsys" | sed -n 's/^  level: //p')
       powered=$(echo "$dsys" | grep ' powered: true' > /dev/null && echo true || echo false)
@@ -440,31 +441,24 @@ case "${1-}" in
 
 
   -u|--upgrade)
+
     shift
-    local reference=""
+    local reference=$(echo "$*" | sed -E 's/-c|--changelog|-f|--force|-k|--insecure|-n|--non-interactive| //g')
 
-    case "$@" in
-      *beta*|*dev*|*rc\ *|*\ rc*)
-        reference=dev
-      ;;
-      *master*|*stable*)
-        reference=master
-      ;;
-      *)
-        grep -Eq '^version=.*-(beta|rc)' $execDir/module.prop \
-          && reference=dev \
-          || reference=master
-      ;;
-    esac
+    test -n "$reference" || {
+      grep -Eq '^version=.*-(beta|rc)' $execDir/module.prop \
+        && reference=dev \
+        || reference=master
+    }
 
-    case "$@" in
+    case "$*" in
       *--insecure*|*-k*) insecure=--insecure;;
       *) insecure=;;
     esac
 
-    [ ! -f /data/adb/bin/curl ] || {
-      [ -x /data/adb/bin/curl ] || chmod -R 0700 /data/adb/bin
-      export curlPath=true PATH=/data/adb/bin:$PATH
+    ! test -f /data/adb/bin/curl || {
+      test -x /data/adb/bin/curl \
+        || chmod -R 0700 /data/adb/bin
     }
 
     curl $insecure -Lo $TMPDIR/install-online.sh https://raw.githubusercontent.com/VR-25/acc/$reference/install-online.sh

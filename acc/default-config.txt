@@ -1,6 +1,6 @@
-configVerCode=202006150
-capacity=(-1 101 70 75 false)
-temperature=(70 80 90)
+configVerCode=202007170
+capacity=(-1 60 70 75 false)
+temperature=(40 60 90)
 cooldownRatio=()
 cooldownCustom=()
 resetBattStats=(false false)
@@ -152,7 +152,7 @@ loopCmd=()
 # acc --set pause_capacity=85 resume_capacity=80
 
 # acc -s "s=battery/charging_enabled 1 0"
-# acc --set "charging_switch=/proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0" ("::" == " ")
+# acc --set "charging_switch=/proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0" ("::" = " ")
 
 # acc -s sd=5
 # acc -s switch_delay=5
