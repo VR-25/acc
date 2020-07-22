@@ -2,9 +2,3 @@ install.sh
   upgrade acc_bundle.tar.gz and install-tarball.sh
 
 remove "# legacy"
-
-review automatic switch setting
-  switch being reset for invalid reasons?
-
-sometimes, battery % gets stuck if capacity_freeze2 is enabled
-  stuck in a wait_plug loop?

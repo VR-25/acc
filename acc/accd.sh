@@ -347,11 +347,15 @@ else
   ln -fs $execDir/${id}a.sh /dev/${id}a
   ln -fs $execDir/service.sh /dev/${id}d
 
-  for h in  /dev/$id /dev/${id}d, /dev/${id}d. \
-    /dev/${id}a /dev/${id}d
-  do
-    ln -fs $h /sbin/ 2>/dev/null || break
-  done
+  test -d /sbin && {
+    /system/bin/mount -o remount,rw / 2>/dev/null \
+      || mount -o remount,rw /
+    for h in  /dev/$id /dev/${id}d, /dev/${id}d. \
+      /dev/${id}a /dev/${id}d
+    do
+      ln -fs $h /sbin/ 2>/dev/null || break
+    done
+  }
 
 
   # fix Termux's PATH (missing /sbin/)

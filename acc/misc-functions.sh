@@ -89,6 +89,9 @@ cycle_switches_off() {
 
 disable_charging() {
 
+  local noexit=true
+  [[ "${chargingSwitch[*]}" = *-- ]] || noexit=false
+
   if $isAccd; then
     ! not_charging || return 0
   else
@@ -109,10 +112,10 @@ disable_charging() {
           }
         }
         not_charging || sleep ${switchDelay}
-        not_charging || {
+        if not_charging && ! $noexit; then
           unset_switch
           cycle_switches_off
-        }
+        fi
       else
         $isAccd || print_switch_fails
         unset_switch
@@ -134,7 +137,7 @@ disable_charging() {
         || sleep ${temperature[2]}
     }
   else
-    return 7 # total failure
+    $noexit || return 7 # total failure
   fi
 
   eval "${runCmdOnPause[@]-}"

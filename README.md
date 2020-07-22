@@ -3,9 +3,9 @@
 
 
 ---
-## LEGAL
+## LICENSE
 
-© 2017-2020, VR25 (patreon.com/vr25)
+Copyright 2017-2020, VR25 (patreon.com/vr25)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -185,7 +185,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202007170
+configVerCode=202007220
 capacity=(-1 60 70 75 false)
 temperature=(40 60 90)
 cooldownRatio=()
@@ -240,7 +240,7 @@ loopCmd=()
 
 # loopDelay=(loop_delay_charging loop_delay_discharging)
 
-# chargingSwitch=charging_switch=(ctrl_file1 on off ctrl_file2 on off)
+# chargingSwitch=charging_switch=(ctrl_file1 on off ctrl_file2 on off --)
 
 # applyOnBoot=apply_on_boot=(ctrl_file1::value1::default1 ctrl_file2::value2::default2 ... --exit)
 
@@ -432,6 +432,8 @@ loopCmd=()
 # If unset, acc cycles through its database and sets the first working switch/group that disables charging.
 # If the set switch/group doesn't work, acc unsets chargingSwitch and repeats the above.
 # If all switches fail to disable charging, chargingSwitch is unset, switchDelay is reverted to 1.5 and acc/d exit with error code 7.
+# This automated process can be disabled by appending "--" to "charging_switch=...".
+# e.g., acc -s s="battery/charge_enabled 1 0 --"
 
 # apply_on_boot (ab) #
 # Settings to apply on boot or daemon start/restart.
@@ -703,10 +705,10 @@ Options
 
   -u|--upgrade [-c|--changelog] [-f|--force] [-k|--insecure] [-n|--non-interactive]   Online upgrade/downgrade (requires curl)
     e.g.,
-      acc -u beta (upgrade to the latest beta version)
+      acc -u dev (upgrade to the latest dev version)
       acc -u (latest version from the current branch)
-      acc -u stable^1 -f (previous stable release)
-      acc -u -f beta^2 (two dev versions below the latest beta)
+      acc -u master^1 -f (previous stable release)
+      acc -u -f dev^2 (two dev versions below the latest dev)
       acc -u v2020.4.8-beta --force (force upgrade/downgrade to v2020.4.8-beta)
       acc -u -c -n (if update is available, prints version code (integer) and changelog link)
       acc -u -c (same as above, but with install prompt)
@@ -854,7 +856,7 @@ However, things don't always go well.
 This causes fast battery drain when charging is paused and the device remains plugged.
 Refer back to `DEFAULT CONFIGURATION (wake_unlock)`.
 
-- High CPU load and inability to re-enable charging were also be reported.
+- High CPU load and inability to re-enable charging were also reported.
 
 - In the worst case scenario, the battery status is reported as `discharging`, while it's actually `charging`.
 
@@ -1144,6 +1146,12 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 ---
 ## LATEST CHANGES
 
+**v2020.7.22 (202007220)**
+- Appending `--` to `charging_switch=...` disables automatic switch checks. This prevents accd from changing the set charging switches and from exiting if these fail to disable charging.
+- dmesg is included in log archive.
+- Fixed install-tarball.sh.
+- General fixes & optimizations
+
 **v2020.7.19 (202007190)**
 - accd stop timeout set to 15 seconds (more time for graceful termination).
 - Do not remount /sbin/.
@@ -1161,6 +1169,3 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 - General optimizations
 - Prepend /data/adb/bin to PATH (executables or links to these can be placed in that dir to override defaults).
 - Updated documentation (prerequisites and troubleshooting sections).
-
-**v2020.6.16 (202006160)**
-- Magisk related fixes

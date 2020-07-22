@@ -8,6 +8,7 @@ logf() {
 
     $execDir/power-supply-logger.sh
 
+    dmesg > dmesg.txt
     cp ch-switches charging-switches.txt
     cp oem-custom oem-custom.txt 2>/dev/null
     cp ch-curr-ctrl-files charging-current-ctrl-files.txt

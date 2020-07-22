@@ -1,4 +1,4 @@
-configVerCode=202007170
+configVerCode=202007220
 capacity=(-1 60 70 75 false)
 temperature=(40 60 90)
 cooldownRatio=()
@@ -53,7 +53,7 @@ loopCmd=()
 
 # loopDelay=(loop_delay_charging loop_delay_discharging)
 
-# chargingSwitch=charging_switch=(ctrl_file1 on off ctrl_file2 on off)
+# chargingSwitch=charging_switch=(ctrl_file1 on off ctrl_file2 on off --)
 
 # applyOnBoot=apply_on_boot=(ctrl_file1::value1::default1 ctrl_file2::value2::default2 ... --exit)
 
@@ -245,6 +245,8 @@ loopCmd=()
 # If unset, acc cycles through its database and sets the first working switch/group that disables charging.
 # If the set switch/group doesn't work, acc unsets chargingSwitch and repeats the above.
 # If all switches fail to disable charging, chargingSwitch is unset, switchDelay is reverted to 1.5 and acc/d exit with error code 7.
+# This automated process can be disabled by appending "--" to "charging_switch=...".
+# e.g., acc -s s="battery/charge_enabled 1 0 --"
 
 # apply_on_boot (ab) #
 # Settings to apply on boot or daemon start/restart.

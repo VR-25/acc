@@ -70,14 +70,18 @@ rm -rf ${1:-$id}[-_]*/ 2>/dev/null
 tar -xf ${1:-$id}[-_]*.tar.gz
 
 # prevent AccA from downgrading/reinstalling modules ###
-[[ $PWD != *mattecarra.accapp* ]] || {
-  get_ver() { sed -n '/^versionCode=/s/.*=//p' $1/module.prop 2>/dev/null || echo 0; }
-  [ $(get_ver ${1:-$id}[-_]*) -gt $(get_ver /data/adb/$id) ] || {
-    ln -s $(readlink -f /data/adb/$id) .
-    (cd ./${1:-$id}/; ln -fs service.sh ${1:-$id}-init.sh)
-    exit 0
-  } 2>/dev/null || :
-}
+case "$PWD" in
+  *mattecarra.accapp*)
+    get_ver() { sed -n '/^versionCode=/s/.*=//p' $1/module.prop 2>/dev/null || echo 0; }
+    bundled_ver=$(get_ver ${1:-$id}[-_]*)
+    regular_ver=$(get_ver /data/adb/$id)
+    if [ $bundled_ver -le $regular_ver ] && [ $regular_ver -ne 0 ]; then
+      ln -s $(readlink -f /data/adb/$id) .
+      (cd ./${1:-$id}/; ln -fs service.sh ${1:-$id}-init.sh)
+      exit 0
+    fi 2>/dev/null || :
+  ;;
+esac
 
 # install ${1:-$id}
 test -f ${1:-$id}[-_]*/install.sh || i=-current # legacy
