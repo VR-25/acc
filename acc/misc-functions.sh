@@ -90,7 +90,7 @@ cycle_switches_off() {
 disable_charging() {
 
   local noexit=true
-  [[ "${chargingSwitch[*]}" = *-- ]] || noexit=false
+  [[ "${chargingSwitch[*]-}" = *-- ]] || noexit=false
 
   if $isAccd; then
     ! not_charging || return 0

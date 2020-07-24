@@ -2,7 +2,7 @@ This file describes the framework ACC and other projects of mine are built upon.
 It's assumed that you are already a flashable zip and/or Magisk module creator.
 
 
-Core File Structure
+Generic Project Structure
 
 _builds/ (local only dir)
   $id-$versionCode/
@@ -15,11 +15,15 @@ _misc/ (local only dir)
   random_file
 
  $id/
+  translations/
+  aquire-lock.sh (for job control, uses flock)
   default-config.txt
-  install-zip.sh (universal shell-based-zip flasher)
+  flash-zips.sh (universal shell-based-zip flasher)
+  release-lock.sh
   select.sh ("select" for shells that lack it)
   service.sh (initialization script)
   setup-busybox.sh
+  strings.sh (core language strings)
   uninstall.sh
 
 bin/
@@ -27,7 +31,7 @@ bin/
 
 META-INF/com/google/android/
   update-binary (copy of install.sh)
-  updater-script
+  updater-script (dummy file)
 
 .gitattributes
 .gitignore
@@ -50,16 +54,16 @@ TODO.txt
 
 Tasks Carried Out By build.sh
 
-1) Check shell syntax in all scripts.
+1. Check shell syntax in all scripts.
 
-2) Update version and versionCode in module.prop (values come from README.md > LATEST CHANGES).
+2. Update version and versionCode in module.prop (values come from README.md > LATEST CHANGES).
 
-3) Set the correct id (from module.prop) in install*.sh, $id/*.sh and bundle.sh.
+3. Set the correct id (from module.prop) in install*.sh, $id/*.sh and bundle.sh.
 
-4) Patch README.md.
+4. Patch README.md.
 
-5) Update busybox config (from $id/setup-busybox.sh) in $id/uninstall.sh and install scripts.
+5. Update busybox config (from $id/setup-busybox.sh) in $id/uninstall.sh and install scripts.
 
-6) Unify installers for flashable zip (customize.sh and update-binary are copies of install.sh).
+6. Unify installers for flashable zip (customize.sh and update-binary are copies of install.sh).
 
-7) Generate flashable zips (main & uninstaller) and tarball.
+7. Generate flashable zips (main & uninstaller) and tarball.

@@ -172,6 +172,10 @@ if $acca; then
     ln -fs $installDir /data/data/mattecarra.${id}app/files/
 
     # AccA post-uninstall cleanup script
+    mkdir -p /data/adb/service.d || {
+      rm /data/adb/service.d
+      mkdir /data/adb/service.d
+    }
     echo "#!/system/bin/sh
     # AccA post-uninstall cleanup script
 

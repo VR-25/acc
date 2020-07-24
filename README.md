@@ -615,7 +615,7 @@ Options
 
   -la   Same as -l -a
 
-  -l|--log -e|--export   Export all logs to /sdcard/acc-logs-$deviceName.tar.gz
+  -l|--log -e|--export   Export all logs to /sdcard/acc-logs-$deviceName.tar.bz2
     e.g., acc -l -e
 
   -le   Same as -l -e
@@ -890,7 +890,7 @@ Persistent logs: `/data/adb/acc-data/logs/`.
 `/dev/.acc-removed` is created by the uninstaller.
 The storage location is volatile.
 
-`acc -le` exports all acc logs, plus Magisk's and extras to `/sdcard/acc-$device_codename.tar.gz`.
+`acc -le` exports all acc logs, plus Magisk's and extras to `/sdcard/acc-$device_codename.tar.bz2`.
 The logs do not contain any personal information and are never automatically sent to the developer.
 Automatic exporting (local) happens under specific conditions (refer back to `SETUP/USAGE > Terminal Commands > Exit Codes`).
 
@@ -1146,6 +1146,12 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 ---
 ## LATEST CHANGES
 
+**v2020.7.24 (202007240)**
+- Compress logs with bzip2 -9.
+- Fixed "chargingSwitch[*]: parameter not set".
+- Updated framework-details.txt.
+- Workaround for /data/adb/service.d/ not found
+
 **v2020.7.22 (202007220)**
 - Appending `--` to `charging_switch=...` disables automatic switch checks. This prevents accd from changing the set charging switches and from exiting if these fail to disable charging.
 - dmesg is included in log archive.
@@ -1161,11 +1167,3 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 - General optimizations
 - Minor changes to default config, for convenience
 - Note: config will be reset to fix the accd crash issue several users have been facing.
-
-**v2020.7.3 (202007030)**
-- Blacklisted problematic MTK charging switch.
-- Fixed "battery saver mode can't be turned off".
-- Fixed network issues.
-- General optimizations
-- Prepend /data/adb/bin to PATH (executables or links to these can be placed in that dir to override defaults).
-- Updated documentation (prerequisites and troubleshooting sections).
