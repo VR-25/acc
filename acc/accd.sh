@@ -6,6 +6,17 @@
 # devs: triple hashtags (###) mark non-generic code
 
 
+# wait until the system is ready
+pgrep -fl zygote > /dev/null && {
+  until test -d /data/data \
+    && test .$(getprop sys.boot_completed) = .1 \
+    && dumpsys battery > /dev/null 2>&1
+  do
+    sleep 10
+  done
+}
+
+
 umask 0077
 . $execDir/acquire-lock.sh
 
@@ -315,17 +326,6 @@ if [ -f $TMPDIR/ch-switches ] && ! $init; then ###
 
 
   apply_on_boot
-
-  # wait until the system is ready
-  pgrep -fl zygote > /dev/null && {
-    until test -d /data/data \
-      && test .$(getprop sys.boot_completed) = .1 \
-      && dumpsys battery > /dev/null 2>&1
-    do
-      sleep 10
-    done
-  }
-
   ctrl_charging
   exit $?
 

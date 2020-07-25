@@ -58,7 +58,7 @@ Any root solution is supported.
 - Android or Android based OS
 - Any root solution (e.g., [Magisk](https://github.com/topjohnwu/Magisk/))
 - Busybox\* (only if not rooted with Magisk)
-- curl\*\* (for acc --upgrade)
+- curl\*\* (for acc --upgrade, optional)
 - Non-Magisk users can enable acc auto-start by running /data/adb/$id/service.sh, a copy of, or a link to it - with init.d or an app that emulates it
 - Terminal emulator
 - Text editor (optional)
@@ -67,7 +67,7 @@ Any root solution is supported.
 ACC sets 0700 permissions as needed.
 Precedence: /data/adb/bin/busybox > Magisk's busybox > system's busybox
 
-\*\* A [static curl binary](https://github.com/search?o=desc&q=curl+android&s=updated&type=Repositories/) can also be placed in `/data/adb/bin/` (with execute permission).
+\*\* A [static curl binary](https://github.com/search?o=desc&q=curl+android&s=updated&type=Repositories/) (optional) can also be placed in `/data/adb/bin/` (with execute permission).
 Alternatively, one may install the Magisk module [Cross Compiled Binaries (ccbins)](https://github.com/Magisk-Modules-Repo/ccbins/).
 
 
@@ -106,8 +106,8 @@ Don't ever feel like you have to configure everything. You probably shouldn't an
 \* If you're going to flash from recovery, mount system first.
 Otherwise, recovery will throw error 255.
 
-By the way, acc runs in the recovery environment as well.
-Unless the zip is flashed again, manual intialization is required.
+ACC runs in recovery environments as well.
+Unless the zip is flashed again, manual initialization is required.
 The initialization command is `/data/adb/acc/service.sh`.
 
 
@@ -973,7 +973,7 @@ Force fast charge: `appy_on_boot="/sys/kernel/fast_charge/force_fast_charge::1::
 
 ### Google Pixel Devices
 
-Force fast wireless charging with third party wireless chargers that are supposed to charge the battery faster: `apply_on_plug=wireless/voltage_max:9000000`.
+Force fast wireless charging with third party wireless chargers that are supposed to charge the battery faster: `apply_on_plug=wireless/voltage_max::9000000`.
 
 
 ### Using [Termux:API](https://wiki.termux.com/wiki/Termux:API) for Text-to-Speech
@@ -1146,6 +1146,10 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 ---
 ## LATEST CHANGES
 
+**v2020.7.25 (202007250)**
+- Updated documentation
+- Workaround for network issues
+
 **v2020.7.24 (202007240)**
 - Compress logs with bzip2 -9.
 - Fixed "chargingSwitch[*]: parameter not set".
@@ -1157,13 +1161,3 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 - dmesg is included in log archive.
 - Fixed install-tarball.sh.
 - General fixes & optimizations
-
-**v2020.7.19 (202007190)**
-- accd stop timeout set to 15 seconds (more time for graceful termination).
-- Do not remount /sbin/.
-- Faster accd termination
-- Fixed "--upgrade not recognizing the latest version is already installed".
-- Fixed "max_temp_pause not honored".
-- General optimizations
-- Minor changes to default config, for convenience
-- Note: config will be reset to fix the accd crash issue several users have been facing.
