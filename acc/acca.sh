@@ -25,15 +25,16 @@ cd /data/adb/acc/
 export TMPDIR=/dev/.acc verbose=false
 . ./setup-busybox.sh
 
+userDir=/sdcard/Download/acc
 config=/data/adb/acc-data/config.txt
 defaultConfig=$PWD/default-config.txt
 
-mkdir -p ${config%/*}
+mkdir -p ${config%/*} $userDir
 [ -f $config ] || cp $defaultConfig $config
 
 # config backup
-! [ -d /data/media/0/?ndroid -a $config -nt /data/media/0/.acc-config-backup.txt ] \
-  || cp -f $config /data/media/0/.acc-config-backup.txt
+! test $config -nt $userDir/.acc-config-backup.txt \
+  || cp -f $config $userDir/.acc-config-backup.txt
 
 # custom config path
 case "${1-}" in

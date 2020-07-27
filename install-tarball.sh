@@ -84,7 +84,7 @@ case "$PWD" in
 esac
 
 # install ${1:-$id}
-test -f ${1:-$id}[-_]*/install.sh || i=-current # legacy
+test -f ${1:-$id}[-_]*/install.sh || i=-current #legacy
 export installDir="$2"
 /system/bin/sh ${1:-$id}[-_]*/install${i}.sh
 

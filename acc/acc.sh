@@ -413,7 +413,7 @@ case "${1-}" in
         echo
       ;;
       *)
-        [ "${1-}" != -- ] || shift ### legacy
+        [ "${1-}" != -- ] || shift #legacy
         exitCode=10
         while read chargingSwitch; do
           [ -f "$(echo "$chargingSwitch" | cut -d ' ' -f 1)" ] && {
@@ -431,7 +431,7 @@ case "${1-}" in
   ;;
 
 
-  -T|--logtail|-L) # legacy
+  -T|--logtail|-L) #legacy
     if ${verbose:-true} && [ $1 != -L ]; then
       print_quit CTRL-C
       sleep 1.5

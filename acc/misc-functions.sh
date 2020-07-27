@@ -244,12 +244,12 @@ enable_charging() {
 
 misc_stuff() {
   set -eu
-  mkdir -p ${config%/*}
+  mkdir -p ${config%/*} $userDir
   [ -f $config ] || cp $execDir/default-config.txt $config
 
   # config backup
-  ! [ -d /data/media/0/?ndroid -a $config -nt /data/media/0/.acc-config-backup.txt ] \
-   || cp -f $config /data/media/0/.acc-config-backup.txt
+  ! test $config -nt $userDir/.acc-config-backup.txt \
+    || cp -f $config $userDir/.acc-config-backup.txt
 
   # custom config path
   case "${1-}" in
@@ -323,6 +323,7 @@ id=acc
 umask 0077
 execDir=/data/adb/acc
 export TMPDIR=/dev/.acc
+userDir=/sdcard/Download/$id
 config=/data/adb/acc-data/config.txt
 config_=$config
 

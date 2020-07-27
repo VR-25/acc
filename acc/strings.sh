@@ -165,7 +165,7 @@ Options
 
   -la   Same as -l -a
 
-  -l|--log -e|--export   Export all logs to /sdcard/acc-logs-\$deviceName.tar.gz
+  -l|--log -e|--export   Export all logs to /sdcard/Download/acc/acc-logs-\$deviceName.tar.bz2
     e.g., acc -l -e
 
   -le   Same as -l -e
@@ -291,7 +291,7 @@ Exit Codes
   10. "--test" failed
   11. Current (mA) out of range
   12. Initialization failed
-  13. Failed to lock $TMPDIR/${id}.lock
+  13. Failed to lock /dev/.$id/${id}.lock
 
   Logs are exported automatically ("--log --export") on exit codes 1, 2, 7 and 10.
 

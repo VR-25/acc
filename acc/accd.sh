@@ -7,7 +7,7 @@
 
 
 # wait until the system is ready
-pgrep -fl zygote > /dev/null && {
+pgrep zygote > /dev/null && {
   until test -d /data/data \
     && test .$(getprop sys.boot_completed) = .1 \
     && dumpsys battery > /dev/null 2>&1

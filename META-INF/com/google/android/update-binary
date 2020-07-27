@@ -101,6 +101,7 @@ srcDir=${srcDir/#"${0##*/}"/"."}
 name=$(get_prop name)
 author=$(get_prop author)
 version=$(get_prop version)
+userDir=/sdcard/Download/$id
 magiskModDir=/data/adb/modules
 versionCode=$(get_prop versionCode)
 : ${installDir:=/data/data/mattecarra.${id}app/files} ###
@@ -142,7 +143,7 @@ GPLv3+
 cp -R $srcDir/$id/ $installDir/
 installDir=$(readlink -f $installDir/$id)
 cp $srcDir/module.prop $installDir/
-mkdir -p ${config%/*}/info
+mkdir -p ${config%/*}/info $userDir
 cp -f $srcDir/*.md ${config%/*}/info
 
 
@@ -160,12 +161,6 @@ cp -f $srcDir/*.md ${config%/*}/info
 
 ###
 if $acca; then
-
-  (cd $installDir && ln -s service.sh ${id}-init.sh) # legacy
-
-  # upgrade bundled version
-  #cp -f $srcDir/install-tarball.sh ${installDir%/*}/
-  #tar -cvf - . -C $srcDir --exclude .git | gzip -9 > ${installDir%/*}/acc_bundle.tar.gz
 
   ! $magisk || {
 
@@ -200,12 +195,11 @@ fi
 
 
 # restore config backup
-[ -d /data/media/0 ] || ln -s /sdcard /data/media/0 # legacy
-[ -f $config ] || cp /data/media/0/.${id}-config-backup.txt $config 2>/dev/null || :
+[ -f $config ] || cp $userDir/.${id}-config-backup.txt $config 2>/dev/null || :
 
 
 # flashable uninstaller
-cp -f $srcDir/bin/${id}-uninstaller.zip /data/media/0/
+cp -f $srcDir/bin/${id}-uninstaller.zip $userDir/
 
 
 # Termux, fix sha-bang
@@ -220,7 +214,6 @@ cp -f $srcDir/bin/${id}-uninstaller.zip /data/media/0/
 
 # set perms
 set_perms_recursive ${config%/*}
-chmod 0666 /data/media/0/${id}-uninstaller.zip
 case $installDir in
   /data/*/files/*$id)
     pkg=${installDir%/files/*$id}

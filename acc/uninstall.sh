@@ -56,17 +56,18 @@ pgrep -f "/($id|${id}a) (-|--)[det]|/${id}d" > /dev/null && { # legacy
 
 # uninstall $id ###
 rm -rf $(readlink -f /data/adb/$id) \
-  $(readlink -f /sbin/.$id/$id) \
   /data/adb/$id \
   /data/adb/modules/$id \
   /data/adb/service.d/${id}-*.sh \
-  /data/media/0/${id}-logs-*.tar.* \
   /data/data/mattecarra.accapp/files/$id \
   /data/data/com.termux/files/home/.termux/boot/${id}-init.sh \
-  $(test "${1:-}" = install || echo "/data/adb/${id}-data /data/media/0/.${id}-config-backup.txt")
+  $(test "${1:-}" = install || echo "/data/adb/${id}-data /sdcard/Download/$id")
 
-# remove flashable uninstaller
-rm ${3:-/data/media/0/${id}-uninstaller.zip}
+#legacy
+rm $(readlink -f /sbin/.$id/$id) \
+  /data/media/0/${id}-logs-*.tar.* \
+  /data/media/0/${id}-uninstaller.zip \
+  /data/media/0/.${id}-config-backup.txt 2>/dev/null
 
 touch /dev/.acc-removed
 exit 0
