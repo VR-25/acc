@@ -1,7 +1,9 @@
 #!/system/bin/sh
 # Advanced Charging Controller (ACC) Initializer
-# © 2017-2020, VR25 (xda-developers)
+# Copyright 2017-2020, VR25
 # License: GPLv3+
+#
+# devs: triple hashtags (###) mark non-generic code
 
 
 id=acc
@@ -14,4 +16,4 @@ export id execDir TMPDIR
 
 . $execDir/setup-busybox.sh
 $execDir/release-lock.sh
-exec start-stop-daemon -bx $execDir/${id}d.sh -S -- "$@" || exit 12
+exec start-stop-daemon -bx $execDir/${id}d.sh -S -- "$@" || exit 12 ###

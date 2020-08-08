@@ -1,5 +1,5 @@
 # Busybox Setup
-# Copyright 2019-2020, VR25 (xda-developers)
+# Copyright 2019-2020, VR25
 # License: GPLv3+
 #
 # Usage: . $0

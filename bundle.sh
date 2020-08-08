@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 # $id Bundler for Front-end Apps
-# Copyright 2019-2020, VR25 (xda-developers)
+# Copyright 2019-2020, VR25
 # License: GPLv3+
 
 

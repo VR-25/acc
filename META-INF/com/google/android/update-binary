@@ -1,6 +1,6 @@
 #!/system/bin/sh
 # ACC Installer/Upgrader
-# Copyright 2019-2020, VR25 (xda-developers)
+# Copyright 2019-2020, VR25
 # License: GPLv3+
 #
 # devs: triple hashtags (###) mark non-generic code
@@ -16,6 +16,7 @@ umask 0077
 
 
 # log
+[ -z "${LINENO-}" ] || export PS4='$LINENO: '
 mkdir -p /data/adb/${id}-data/logs
 chmod -R 0700 /data/adb/${id}-data/logs
 exec 2>/data/adb/${id}-data/logs/install.log
@@ -73,7 +74,7 @@ set_perms() {
   if echo $target | grep -q '.*\.sh$' || [ -d $target ]; then perms=0700; fi
   chmod $perms $target
   chown $owner:$owner $target
-  restorecon $target > /dev/null 2>&1 || :
+  chcon u:object_r:system_file:s0 $target
 }
 
 set_perms_recursive() {
@@ -109,13 +110,14 @@ config=/data/adb/${id}-data/config.txt
 
 
 [ -d $magiskModDir ] && magisk=true || magisk=false
-ls -d /data/app/mattecarra.${id}app* > /dev/null 2>&1 && acca=true || acca=false
+ls -d /data/app/mattecarra.${id}app* > /dev/null 2>&1 && acca=true || acca=false ###
 
 
 # ensure AccA's files/ exists - to prevent unwanted ACC downgrades ###
 if $acca && [ ! -d /data/data/mattecarra.${id}app/files ]; then
   mkdir -p /data/data/mattecarra.${id}app/files
-  chmod 0777 /data/data/mattecarra.${id}app/files
+  chmod 0777 /data/data/mattecarra.${id}app \
+    /data/data/mattecarra.${id}app/files
 fi
 
 
@@ -126,14 +128,14 @@ fi
 [ -d $installDir ] || installDir=/data/adb
 
 [ -d $installDir ] || {
-  echo "(!) $installDir/ not found\n"
+  printf "(!) $installDir/ not found\n"
   exit 1
 }
 
 
 ###
 echo "$name $version ($versionCode)
-© 2017-2020, $author
+Copyright 2017-2020, $author
 GPLv3+
 
 (i) Installing in $installDir/$id/..."
@@ -143,8 +145,8 @@ GPLv3+
 cp -R $srcDir/$id/ $installDir/
 installDir=$(readlink -f $installDir/$id)
 cp $srcDir/module.prop $installDir/
-mkdir -p ${config%/*}/info $userDir
-cp -f $srcDir/*.md ${config%/*}/info
+mkdir -p $userDir
+cp -f $srcDir/README.md $userDir/
 
 
 ###
@@ -156,7 +158,7 @@ cp -f $srcDir/*.md ${config%/*}/info
   ln -fs $installDir/${id}.sh $installDir/system/bin/${id}d.
   ln -fs $installDir/${id}a.sh $installDir/system/bin/${id}a
   ln -fs $installDir/service.sh $installDir/system/bin/${id}d
- }
+}
 
 
 ###
@@ -172,20 +174,19 @@ if $acca; then
       mkdir /data/adb/service.d
     }
     echo "#!/system/bin/sh
-    # AccA post-uninstall cleanup script
+      # AccA post-uninstall cleanup script
 
-    until test -d /data/data \\
-      && test .\$(getprop sys.boot_completed) = .1
-    do
+      until test -d /sdcard/Download \\
+        && test .\$(getprop sys.boot_completed) = .1
+      do
+        sleep 60
+      done
+
       sleep 60
-    done
 
-    sleep 60
+      [ -e /data/data/mattecarra.${id}app/files/$id ] || rm \$0 /data/adb/$id /data/adb/modules/$id 2>/dev/null
 
-    [ -e /data/data/mattecarra.${id}app/files/$id ] \
-      || rm \$0 /data/adb/$id /data/adb/modules/$id 2>/dev/null
-
-    exit 0" | sed 's/^      //' > /data/adb/service.d/${id}-cleanup.sh
+      exit 0" | sed 's/^      //' > /data/adb/service.d/${id}-cleanup.sh
     chmod 0700 /data/adb/service.d/${id}-cleanup.sh
   }
 fi
@@ -198,11 +199,11 @@ fi
 [ -f $config ] || cp $userDir/.${id}-config-backup.txt $config 2>/dev/null || :
 
 
-# flashable uninstaller
+# install binaries
 cp -f $srcDir/bin/${id}-uninstaller.zip $userDir/
 
 
-# Termux, fix sha-bang
+# Termux, fix shebang
 [[ $installDir != *com.termux* ]] && termux=false || {
   termux=true
   for f in $installDir/*.sh; do
@@ -225,7 +226,9 @@ case $installDir in
     ! $termux || {
       mkdir -p ${installDir%/*}/.termux/boot
       ln -sf $installDir/service.sh ${installDir%/*}/.termux/boot/${id}-init.sh
-      set_perms_recursive ${installDir%/*}/.termux $owner
+      chown -R $(stat -c %u:%g /data/data/com.termux) ${installDir%/*}/.termux
+      chmod -R 0755 ${installDir%/*}/.termux
+      /system/bin/restorecon -R ${installDir%/*}/.termux > /dev/null 2>&1
     }
   ;;
   *)
@@ -242,7 +245,7 @@ echo "- Done
 
 "
 # print links and changelog
-sed -En "\|## LINKS|,\$p" ${config%/*}/info/README.md \
+sed -En "\|## LINKS|,\$p" $srcDir/README.md \
   | grep -v '^---' | sed 's/^## //'
 
 
@@ -251,7 +254,7 @@ echo "
 
 
 (i) Rebooting is unnecessary
-- $id commands may require the "/dev/" prefix (e.g., /dev/acc) until system is rebooted.
+- $id commands may require the /dev/ prefix (e.g., /dev/$id) until system is rebooted.
 - Daemon started."
 
 

@@ -195,7 +195,9 @@ enable_charging() {
     ! not_charging || sleep ${switchDelay}
 
     # detect and block ghost charging
-    if ! $ghostCharging && ! not_charging && [[ $(cat */online) != *1* ]]; then
+    if ! $ghostCharging && ! not_charging && [[ $(cat */online) != *1* ]] \
+      && sleep ${loopDelay[0]} && ! not_charging && [[ $(cat */online) != *1* ]]
+    then
       ghostCharging=true
       disable_charging > /dev/null
       touch $TMPDIR/.ghost-charging
@@ -244,7 +246,7 @@ enable_charging() {
 
 misc_stuff() {
   set -eu
-  mkdir -p ${config%/*} $userDir
+  mkdir -p ${config%/*} $userDir || :
   [ -f $config ] || cp $execDir/default-config.txt $config
 
   # config backup
@@ -267,7 +269,7 @@ not_charging() { grep -Eiq "${1-dis|not}" $batt/status; }
 
 print_header() {
   echo "Advanced Charging Controller $accVer ($accVerCode)
-© 2017-2020, VR25 (patreon.com/vr25)
+Copyright 2017-2020, VR25
 GPLv3+"
 }
 
@@ -311,6 +313,7 @@ wait_plug() {
   }
   (while [[ $(cat */online) != *1* ]]; do
     sleep ${loopDelay[1]}
+    ! $isAccd || sync_capacity
     set +x
   done)
   enable_charging "$@"

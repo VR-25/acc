@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 # Installation Archives Builder
-# Copyright 2018-2020, VR25 (xda-developers)
+# Copyright 2018-2020, VR25
 # License: GPLv3+
 #
 # usage: $0 [any_random_arg]
@@ -11,7 +11,7 @@
 
 (cd ${0%/*} 2>/dev/null
 
-. check-syntax.sh || exit $?
+. ./check-syntax.sh || exit $?
 
 
 set_prop() {
@@ -57,14 +57,14 @@ then
     echo; sed -n '/^#\/DC#/,$p' README.md; } > README.md.tmp
 # terminal commands
   { sed -n '1,/#TC#/p' README.md.tmp; \
-    echo; . $id/strings.sh; print_help; \
+    echo; . ./$id/strings.sh; print_help; \
     echo; sed -n '/^#\/TC#/,$p' README.md.tmp; } > README.md
     rm README.md.tmp
   set +e
 fi
 
 
-# update busybox config (from acc/setup-busybox.sh) in $id/uninstall.sh and install scripts
+# update busybox config (from $id/setup-busybox.sh) in $id/uninstall.sh and install scripts
 set -e
 for file in ./$id/uninstall.sh ./install*.sh; do
   [ $file -ot $id/setup-busybox.sh ] && {

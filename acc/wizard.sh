@@ -60,8 +60,8 @@ e) $(print_exit)
     6)
       logf --export
       echo
-      print_press_enter
-      read
+      print_press_key
+      read -n 1
       exec wizard
     ;;
 
@@ -82,8 +82,8 @@ e) $(print_exit)
 
     8)
       print_quit CTRL-C
-      print_press_enter
-      read
+      print_press_key
+      read -n 1
       set +eu
       $execDir/uninstall.sh
     ;;
@@ -101,15 +101,15 @@ e) $(print_exit)
 
     b)
       /dev/acc --test || :
-      print_press_enter
-      read
+      print_press_key
+      read -n 1
       exec wizard
     ;;
 
     c)
       /dev/acc --upgrade --changelog || :
-      print_press_enter
-      read
+      print_press_key
+      read -n 1
       exec /dev/acc
     ;;
 
@@ -120,8 +120,8 @@ e) $(print_exit)
         $execDir/flash-zips.sh
       ) || :
       echo
-      print_press_enter
-      read
+      print_press_key
+      read -n 1
       exec /dev/acc
     ;;
 

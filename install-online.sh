@@ -3,7 +3,7 @@
 # $id Online Installer
 # https://raw.githubusercontent.com/VR-25/$id/$branch/install-online.sh
 #
-# Copyright 2019-2020, VR25 (xda-developers)
+# Copyright 2019-2020, VR25
 # License: GPLv3+
 #
 # Usage: sh install-online.sh [-c|--changelog] [-f|--force] [-k|--insecure] [-n|--non-interactive] [%install dir%] [reference]
@@ -17,6 +17,7 @@ id=acc
 umask 0077
 
 # log
+[ -z "${LINENO-}" ] || export PS4='$LINENO: '
 mkdir -p /data/adb/${id}-data/logs
 exec 2>/data/adb/${id}-data/logs/install-online.sh.log
 set -x

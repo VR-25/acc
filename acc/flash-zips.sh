@@ -1,10 +1,24 @@
-#!/dev/.busybox/ash
-# Universal shell-based-zip flasher
-# Copyright 2020, VR25 (xda-developers)
+#!/system/bin/sh
+# Zip Flasher
+# Copyright 2020, VR25
 # License: GPLv3+
 #
-# usage: $0 or $0 "file1 file2 ..."
-# the installation log file is stored in the zip_file directory as file.zip.log
+# usage:
+#  $0 (file picker)
+#  $0 [file...]
+#
+# Logs are save to <file>.log
+
+
+# spaces to "___" and vice-versa
+
+_s() {
+  echo "$1" | sed "s|___| |g"
+}
+
+s_() {
+  echo "$1" | sed "s| |___|g"
+}
 
 
 pick_zips() {
@@ -16,11 +30,11 @@ pick_zips() {
   select_ target $(ls -1Ap | grep -Ei '.*.zip$|/$') "<Custom path>" "<Back>" "<Exit>"
   unset IFS
   if [ -f "$target" ]; then
-   zipFiles="$zipFiles ${target// /__}"
+   zipFiles="$zipFiles $(s_ "$target")"
    echo
-   print "${zipFiles// /'\n'> }" | sed 's/__/ /'
+   echo "$zipFiles" | sed 's| |\n> |' | sed 's|___| |g'
    echo
-   print -n "Add more zips to the queue: a\nStart flashing: [enter]\nExit: CTRL-C\n> "
+   printf "Add more zips to the queue: a\nStart flashing: [enter]\nExit: CTRL-C\n> "
    read -n1 target
    [ "$target" = a ] && pick_zips .
   elif [ -d "$target" ]; then
@@ -33,7 +47,7 @@ pick_zips() {
   elif [ "$target" = "<Exit>" ]; then
     exit 0
   elif [ "$target" = "<Custom path>" ]; then
-    echo -n "> "
+    printf "> "
     read target
     cd "${target:-.}"
     echo
@@ -53,10 +67,10 @@ trap 'e=$?; echo; exit $e' EXIT
 
 # parse file names
 [ -n "$1" ] && {
-  zipFiles="${1// /__}"
+  zipFiles="$(s_ "$1")"
   shift
   while [ -n "$1" ]; do
-    zipFiles="$zipFiles ${1// /__}"
+    zipFiles="$zipFiles $(s_ "$1")"
     shift
   done
 }
@@ -75,27 +89,29 @@ esac
 
 for zipFile in $zipFiles; do
 
+  zipFile="$(_s "$zipFile")"
+
   # prepare tmpdir
   rm -rf /dev/.install-zip 2>/dev/null
   mkdir -p /dev/.install-zip
 
   # log
-  exec 2>"${zipFile//__/ }.log"
+  exec 2>"$zipFile.log"
   set -x
 
   # extract update-binary & flash zip
-  unzip -o "${zipFile//__/ }" 'META-INF/*' -d /dev/.install-zip >&2 && {
+  unzip -o "$zipFile" 'META-INF/*' -d /dev/.install-zip >&2 && {
     $noClear && echo || clear
     echo
-    sh /dev/.install-zip/META-INF/*/*/*/update-binary dummy 1 "${zipFile//__/ }" # $3 = outfd
+    /system/bin/sh /dev/.install-zip/META-INF/*/*/*/update-binary dummy 1 "$zipFile" # $3 = outfd
   }
 
   # on failure: next or abort
   e=$?
   [ $e -ne 0 ] && {
-echo -n "
-(!) ${zipFile//__/ }: *exit $e*
-> ${zipFile//__/ }.log
+printf "
+(!) $zipFile: *exit $e*
+> $zipFile.log
 
 Continue: [enter]
 Exit: CTRL-C

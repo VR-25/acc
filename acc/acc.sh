@@ -1,6 +1,6 @@
 #!/system/bin/sh
 # Advanced Charging Controller
-# Copyright 2017-2020, VR25 (xda-developers)
+# Copyright 2017-2020, VR25
 # License: GPLv3+
 
 
@@ -157,11 +157,12 @@ log=$TMPDIR/acc-${device}.log
 
 # verbose
 if ${verbose:-true} && [[ "${1-}" != *-w* ]]; then
-    touch $log
-    [ $(du -m $log | cut -f 1) -ge 2 ] && : > $log
-    echo "###$(date)###" >> $log
-    echo "versionCode=$(sed -n s/versionCode=//p $execDir/module.prop 2>/dev/null)" >> $log
-    set -x 2>>$log
+  [ -z "${LINENO-}" ] || export PS4='$LINENO: '
+  touch $log
+  [ $(du -m $log | cut -f 1) -ge 2 ] && : > $log
+  echo "###$(date)###" >> $log
+  echo "versionCode=$(sed -n s/versionCode=//p $execDir/module.prop 2>/dev/null)" >> $log
+  set -x 2>>$log
 fi
 
 
@@ -190,7 +191,7 @@ if ${verbose:-true} && [ -f $execDir/translations/$language/strings.sh ]; then
 fi
 grep -q .. $execDir/translations/$language/README.md 2>/dev/null \
   && readMe=$execDir/translations/$language/README.md \
-  || readMe=${config%/*}/info/README.md
+  || readMe=$userDir/README.md
 
 
 # aliases/shortcuts
@@ -283,7 +284,7 @@ case "${1-}" in
 
     dsys="$(dumpsys battery)"
 
-    { if [[ "$dsys" = *reset* ]] > /dev/null; then
+    { { if [[ "$dsys" = *reset* ]] > /dev/null; then
       status=$(echo "$dsys" | sed -n 's/^  status: //p')
       level=$(echo "$dsys" | sed -n 's/^  level: //p')
       powered=$(echo "$dsys" | grep ' powered: true' > /dev/null && echo true || echo false)
@@ -304,7 +305,7 @@ case "${1-}" in
 
     . $execDir/batt-info.sh
     echo "/sys/class/power_supply/$batt/uevent"
-    batt_info "${2-}" | sed 's/^/  /'
+    batt_info "${2-}" | sed 's/^/  /'; } | more
   ;;
 
 
@@ -471,7 +472,7 @@ case "${1-}" in
 
   -U|--uninstall)
     set +eu
-    $execDir/uninstall.sh
+    /system/bin/sh $execDir/uninstall.sh
   ;;
 
   -v|--version)

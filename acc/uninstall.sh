@@ -1,11 +1,10 @@
-#!/system/bin/sh
+#!/sbin/sh
 # $id uninstaller
 # id is set/corrected by build.sh
-# Copyright 2019-2020, VR25 (xda-developers)
+# Copyright 2019-2020, VR25
 # License: GPLv3+
 #
 # devs: triple hashtags (###) mark non-generic code
-
 
 set -u
 id=acc
@@ -69,5 +68,5 @@ rm $(readlink -f /sbin/.$id/$id) \
   /data/media/0/${id}-uninstaller.zip \
   /data/media/0/.${id}-config-backup.txt 2>/dev/null
 
-touch /dev/.acc-removed
+touch /dev/.${id}-removed
 exit 0

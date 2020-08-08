@@ -1,6 +1,6 @@
 #!/system/bin/sh
 # acca: acc for front-ends (faster and more efficient than acc)
-# © 2020, VR25 (xda-developers)
+# Copyright 2020, VR25
 # License: GPLv3+
 
 
@@ -29,7 +29,7 @@ userDir=/sdcard/Download/acc
 config=/data/adb/acc-data/config.txt
 defaultConfig=$PWD/default-config.txt
 
-mkdir -p ${config%/*} $userDir
+mkdir -p ${config%/*} $userDir || :
 [ -f $config ] || cp $defaultConfig $config
 
 # config backup

@@ -1,11 +1,19 @@
 # Advanced Charging Controller (ACC)
 
 
+---
+## DESCRIPTION
+
+ACC is an Android software mainly intended for [extending battery service life](https://batteryuniversity.com/learn/article/how_to_prolong_lithium_based_batteries).
+In a nutshell, this is achieved through limiting charging current, temperature and voltage.
+Any root solution is supported.
+The installation is always "systemless", whether or not the system is rooted with Magisk.
+
 
 ---
 ## LICENSE
 
-Copyright 2017-2020, VR25 (patreon.com/vr25)
+Copyright 2017-2020, VR25
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,7 +29,6 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
-
 ---
 ## DISCLAIMER
 
@@ -32,23 +39,12 @@ While no cats have been harmed, the author assumes no responsibility for anythin
 To prevent fraud, do NOT mirror any link associated with this project; do NOT share builds (zips/tarballs)! Share official links instead.
 
 
-
 ---
 ## WARNING
 
 ACC manipulates Android low level ([kernel](https://duckduckgo.com/lite/?q=kernel+android)) parameters which control the charging circuitry.
 The author assumes no responsibility under anything that might break due to the use/misuse of this software.
-By choosing to use/misuse ACC, you agree to do so at your own risk!
-
-
-
----
-## DESCRIPTION
-
-ACC is an Android software mainly intended for [extending battery service life](https://batteryuniversity.com/learn/article/how_to_prolong_lithium_based_batteries).
-In a nutshell, this is achieved through limiting charging current, temperature and voltage.
-Any root solution is supported.
-
+By choosing to use/misuse it, you agree to do so at your own risk!
 
 
 ---
@@ -56,20 +52,18 @@ Any root solution is supported.
 
 - [Must read - how to prolong lithium ion batteries lifespan](https://batteryuniversity.com/index.php/learn/article/how_to_prolong_lithium_based_batteries/)
 - Android or Android based OS
-- Any root solution (e.g., [Magisk](https://github.com/topjohnwu/Magisk/))
-- Busybox\* (only if not rooted with Magisk)
-- curl\*\* (for acc --upgrade, optional)
+- Any root method (e.g., [Magisk](https://github.com/topjohnwu/Magisk/))
+- [Busybox\*](https://github.com/search?o=desc&q=busybox+android&s=updated&type=Repositories/) (only if not rooted with Magisk)
+- [curl](https://github.com/search?o=desc&q=curl+android&s=updated&type=Repositories/) (for fbind --upgrade, optional)
 - Non-Magisk users can enable acc auto-start by running /data/adb/$id/service.sh, a copy of, or a link to it - with init.d or an app that emulates it
 - Terminal emulator
 - Text editor (optional)
 
-\* Instead of a regular install, the [busybox binary](https://github.com/search?o=desc&q=busybox+android&s=updated&type=Repositories/) can simply be placed in /data/adb/bin/.
-ACC sets 0700 permissions as needed.
+\* A busybox binary can simply be placed in /data/adb/bin/.
+Permissions (0700) are set automatically, as needed.
 Precedence: /data/adb/bin/busybox > Magisk's busybox > system's busybox
 
-\*\* A [static curl binary](https://github.com/search?o=desc&q=curl+android&s=updated&type=Repositories/) (optional) can also be placed in `/data/adb/bin/` (with execute permission).
-Alternatively, one may install the Magisk module [Cross Compiled Binaries (ccbins)](https://github.com/Magisk-Modules-Repo/ccbins/).
-
+Other executables or static binaries can also be placed in /data/adb/bin/ (with proper permissions) instead of being installed system-wide.
 
 
 ---
@@ -78,7 +72,7 @@ Alternatively, one may install the Magisk module [Cross Compiled Binaries (ccbin
 
 0. All commands/actions require root.
 
-1. Install/upgrade: flash\* the zip or use ACC front-end app (e.g. AccA).
+1. Install/upgrade: flash\* the zip or use a front-end app (e.g. AccA).
 There are two additional ways of upgrading: `acc --upgrade` (online) and `acc --flash` (zip flasher).
 Rebooting after installation/removal is generally unnecessary.
 
@@ -93,23 +87,19 @@ Oftentimes, solutions/answers will be right before your eyes.
 
 ### Notes
 
-- Steps `2` and `3` are optional because there are default settings.
+Steps `2` and `3` are optional because there are default settings.
 For details, refer to the `DEFAULT CONFIGURATION` section below.
 Users are encouraged to try step `2` - to familiarize themselves with the available options.
 
-- Settings can be overwhelming. Start with what you understand.
+Settings can be overwhelming. Start with what you understand.
 The default configuration has you covered.
 Don't ever feel like you have to configure everything. You probably shouldn't anyway - unless you really know what you're doing.
 
-- Uninstall: run `acc --uninstall` or flash\* `/sdcard/Download/acc/acc-uninstaller.zip`.
+Uninstall: run `acc --uninstall` or flash\* `/sdcard/Download/acc/acc-uninstaller.zip`.
 
-\* If you're going to flash from recovery, mount system first.
-Otherwise, recovery will throw error 255.
-
-ACC runs in recovery environments as well.
+ACC runs in some recovery environments as well.
 Unless the zip is flashed again, manual initialization is required.
 The initialization command is `/data/adb/acc/service.sh`.
-
 
 
 ---
@@ -176,8 +166,7 @@ Otherwise, the installer will follow the order above.
 - `sh install-online.sh --changelog --non-interactive` prints the version code (integer) and changelog URL (string) when an update is available.
 In interactive mode, it also asks the user whether they want to download and install the update.
 
-- You may also want to read `NOTES/TIPS FOR FRONT-END DEVELOPERS > Exit Codes` below.
-
+- You may also want to read `SETUP/USAGE > Terminal Commands > Exit Codes` below.
 
 
 ---
@@ -693,7 +682,7 @@ Options
       acc -t battery/charging_enabled 1 0
       acc -t 15 /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0 ("::" is a placeholder for " "; the default switch_delay is 7)
 
-  -t|--test [switch_delay] [file]   Test charging switches from a file (default: /ch-switches)
+  -t|--test [switch_delay] [file]   Test charging switches from a file (default: /data/data/com.termux/files/usr/tmp/ch-switches)
     This will also report whether "battery idle" mode is supported
     e.g.,
       acc -t (test known switches)
@@ -765,12 +754,11 @@ Tips
 ## NOTES/TIPS FOR FRONT-END DEVELOPERS
 
 
-Rely on `acca` over `acc` commands.
-These are optimized for front-ends (significantly faster than regular acc commands).
+Use `/dev/acca` over `acc` commands.
+These are optimized for front-ends - guaranteed to be readily available after installation/initialization and significantly faster than regular acc commands.
 
-It's best to use long options over their short equivalents - e.g., `acca --set charging_switch=` instead of `acca -s s=`.
-This makes the code more readable (less cryptic).
-Don't be lazy!
+It may be best to use long options over short equivalents - e.g., `/dev/acca --set charging_switch=` instead of `/dev/acca -s s=`.
+This makes code more readable (less cryptic).
 
 Include provided descriptions for ACC features/settings in your app(s).
 Provide additional information (trusted) where appropriate.
@@ -780,11 +768,11 @@ Take advantage of exit codes.
 Refer back to `SETUP/USAGE > Terminal Commands > Exit Codes`.
 
 
-### Online ACC Install
+### Online Install
 
 ```
 1) Check whether ACC is installed (exit code 0)
-acca --version
+"which acc"
 
 2) Download the installer (https://raw.githubusercontent.com/VR-25/acc/master/install-online.sh)
 - e.g.,
@@ -794,7 +782,7 @@ acca --version
 3) Run "sh install-online.sh" (installation progress is shown)
 ```
 
-### Offline ACC Install
+### Offline Install
 
 Refer back to the `BUILDING AND/OR INSTALLING FROM SOURCE` section.
 
@@ -802,7 +790,6 @@ Refer back to the `BUILDING AND/OR INSTALLING FROM SOURCE` section.
 ### Officially Supported Front-ends
 
 - ACC App, a.k.a., AccA (installDir=/data/data/mattecarra.accapp/files/acc/)
-
 
 
 ---
@@ -829,7 +816,7 @@ Refer to the `default configuration` section above for details.
 Recent/custom kernels (e.g., Kirisakura) support battery idle mode.
 However, at the time of this writing, the feature is not production quality.
 ACC has custom code to cover the pitfalls, though.
-`battery/op_disable_charge 0 1` must be enforced manually (`acc -ss` or `acc -s s="battery/op_disable_charge 0 1"`).
+To setup idle mode, simply run `acc -ss` and pick `battery/op_disable_charge 0 1 battery/input_suspend 0 0`.
 
 
 ### Bootloop
@@ -842,7 +829,7 @@ Most of the time, though, it's just a matter of plugging the phone before turnin
 Battery level must be below pause_capacity.
 Once booted, one can run `acc --uninstall` (or `acc -U`) to remove ACC.
 
-From recovery, you can mount system and flash `/sdcard/Download/acc/acc-uninstaller.zip` or run `mount /system; /data/adb/acc/uninstall.sh`.
+From recovery, you can flash `/sdcard/Download/acc/acc-uninstaller.zip` or run `mount /system; /data/adb/acc/uninstall.sh`.
 
 
 ### Charging Switch
@@ -867,7 +854,7 @@ Here's how to do it:
 2. Run `acc --set charging_switch` (or `acc -ss`) to enforce a working switch.
 3. Test the reliability of the set switch. If it doesn't work properly, try another.
 
-Since not everyone is tech savvy, ACC daemon applies dedicated settings for specific devices (e.g., MTK, Asus, 1+7pro) to prevent charging switch issues.
+Since not everyone is tech savvy, ACC daemon automatically applies certain settings for specific devices (e.g., MTK, Asus, 1+7pro) to prevent charging switch issues.
 These are are in `acc/oem-custom.sh`.
 
 
@@ -895,6 +882,14 @@ The logs do not contain any personal information and are never automatically sen
 Automatic exporting (local) happens under specific conditions (refer back to `SETUP/USAGE > Terminal Commands > Exit Codes`).
 
 
+### MediaTek (MTK) Devices
+
+> MTK devices are problematic by design.
+- Anonymous
+
+Some users may have to set `switch_delay=15` (or higher) or `charging_switch="/proc/mtk_battery_cmd/current_cmd 0::0 0::1"` or both.
+
+
 ### Restore Default Config
 
 This can save you a lot of time and grief.
@@ -912,7 +907,6 @@ At least one of the following may be the cause:
 - Weak adapter and/or power cord
 
 
-
 ---
 ## POWER SUPPLY LOG (HELP NEEDED)
 
@@ -927,7 +921,6 @@ Privacy Notes
 - Email: random/fake
 
 See current submissions [here](https://www.dropbox.com/sh/rolzxvqxtdkfvfa/AABceZM3BBUHUykBqOW-0DYIa?dl=0).
-
 
 
 ---
@@ -951,7 +944,6 @@ Translation Notes
 Alternatively, a _compressed_ archive of translated `strings.sh` and `README.md` files can be sent to the developer via Telegram (link below).
 
 4. Use `acc -sl` (--set --lang): language switching wizard
-
 
 
 ---
@@ -1012,7 +1004,6 @@ To set that up, paste and run the following on a terminal, as root:
 
 That's it.
 You only have to go through these steps once.
-
 
 
 ---
@@ -1124,7 +1115,6 @@ Refer back to `TROUBLESHOOTING > Charging Switch`.
 A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resume_capacity=74, pause_capacity=75.
 
 
-
 ---
 ## LINKS
 
@@ -1142,9 +1132,17 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 - [XDA thread](https://forum.xda-developers.com/apps/magisk/module-magic-charging-switch-cs-v2017-9-t3668427/)
 
 
-
 ---
 ## LATEST CHANGES
+
+**v2020.8.6 (202008060)**
+- Adaptive --info and --print (config) outputs
+- Copy README.md to /sdcard/Download/acc/.
+- Fixed "capacity_sync freezes when ghost charging is detected".
+- General fixes & optimizations
+- If supported, prepend "$LINENO: " to log lines.
+- MTK troubleshooting info (readme > troubleshooting)
+- Updated framework (in sync with fbind)
 
 **v2020.7.26 (202007260)**
 - General cleanup and optimizations
@@ -1154,9 +1152,3 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 **v2020.7.25 (202007250)**
 - Updated documentation
 - Workaround for network issues
-
-**v2020.7.24 (202007240)**
-- Compress logs with bzip2 -9.
-- Fixed "chargingSwitch[*]: parameter not set".
-- Updated framework-details.txt.
-- Workaround for /data/adb/service.d/ not found

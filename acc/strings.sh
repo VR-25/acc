@@ -353,12 +353,12 @@ print_volt_set() {
 }
 
 print_wip() {
-  echo "(i) Work in progress"
+  echo "(!) Invalid option"
   echo "- Run acc -h or -r for help"
 }
 
-print_press_enter() {
-  echo -n "(i) Press [enter] to continue..."
+print_press_key() {
+  echo -n "(i) Press any key to continue..."
 }
 
 print_lang() {

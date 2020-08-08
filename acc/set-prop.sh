@@ -50,13 +50,13 @@ set_prop() {
     # print default config
     d|--print-default)
       . $defaultConfig
-      . $execDir/print-config.sh | grep -E "${2-.}" || :
+      . $execDir/print-config.sh | { grep -E "${2-.}" | more; } || :
       return 0
     ;;
 
     # print current config
     p|--print)
-      . $execDir/print-config.sh | grep -E "${2-.}" || :
+      . $execDir/print-config.sh | { grep -E "${2-.}" | more; } || :
       return 0
     ;;
 
@@ -112,7 +112,7 @@ set_prop() {
 
     # print current config (full)
     *)
-      . $execDir/print-config.sh
+      . $execDir/print-config.sh | more
       return 0
     ;;
 

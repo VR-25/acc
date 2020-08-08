@@ -7,6 +7,7 @@ id=acc
 umask 0077
 
 # log
+[ -z "${LINENO-}" ] || export PS4='$LINENO: '
 mkdir -p /data/adb/${1:-$id}-data/logs
 exec 2>/data/adb/${1:-$id}-data/logs/install-tarball.sh.log
 set -x

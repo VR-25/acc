@@ -1,1 +1,5 @@
 remove #legacy
+
+add custom config for some mtk devices
+  sd=15
+  switch

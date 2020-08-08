@@ -1,14 +1,14 @@
 #!/system/bin/sh
 # Advanced Charging Controller Daemon (accd)
-# Copyright 2017-2020, VR25 (xda-developers)
+# Copyright 2017-2020, VR25
 # License: GPLv3+
 #
 # devs: triple hashtags (###) mark non-generic code
 
 
-# wait until the system is ready
+# wait until the system is ready and data is decrypted
 pgrep zygote > /dev/null && {
-  until test -d /data/data \
+  until test -d /sdcard/Download \
     && test .$(getprop sys.boot_completed) = .1 \
     && dumpsys battery > /dev/null 2>&1
   do
@@ -23,11 +23,11 @@ umask 0077
 
 case "$1" in
   -i|--init) init=true; shift;;
-  *) test -f $TMPDIR/.config-ver && init=false || init=true;;
+  *) test -f $TMPDIR/.config-ver && init=false || init=true;; ###
 esac
 
 
-if [ -f $TMPDIR/ch-switches ] && ! $init; then ###
+if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
 
   exxit() {
     local exitCode=$?
@@ -141,28 +141,13 @@ if [ -f $TMPDIR/ch-switches ] && ! $init; then ###
       fi
     fi
 
-    # capacitySync: corrects the battery capacity reported by Android
-    ! $capacitySync || {
-      $cooldown || {
-        if $isCharging; then
-          dumpsys battery set ac 1 \
-            && dumpsys battery set status $chgStatusCode || :
-        else
-          dumpsys battery unplug \
-            && dumpsys battery set status $dischgStatusCode || :
-        fi
-      }
-      if ! [ ${capacity[4]} = true -a $(cat $batt/capacity) -lt 2 ]; then
-        dumpsys battery set level $(cat $batt/capacity) || :
-      fi
-    }
+    sync_capacity
 
     # log buffer reset
     [ $(du -m $log | cut -f 1) -lt 2 ] || : > $log
 
     $isCharging && return 0 || return 1
   }
-
 
   ctrl_charging() {
 
@@ -283,6 +268,24 @@ if [ -f $TMPDIR/ch-switches ] && ! $init; then ###
   }
 
 
+  sync_capacity() {
+    ! $capacitySync || {
+      $cooldown || {
+        if $isCharging; then
+          dumpsys battery set ac 1 \
+            && dumpsys battery set status $chgStatusCode || :
+        else
+          dumpsys battery unplug \
+            && dumpsys battery set status $dischgStatusCode || :
+        fi
+      }
+      if ! { ${capacity[4]} && [ $(cat $batt/capacity) -lt 2 ]; }; then
+        dumpsys battery set level $(cat $batt/capacity) || :
+      fi
+    }
+  }
+
+
   # load generic functions
   . $execDir/misc-functions.sh
 
@@ -303,6 +306,7 @@ if [ -f $TMPDIR/ch-switches ] && ! $init; then ###
 
 
   # verbose
+  [ -z "${LINENO-}" ] || export PS4='$LINENO: '
   echo "###$(date)###" >> $log
   echo "versionCode=$(sed -n s/versionCode=//p $execDir/module.prop 2>/dev/null)" >> $log
   exec >> $log 2>&1

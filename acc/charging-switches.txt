@@ -1,5 +1,5 @@
 # ACC Charging Switches Database
-# Copyright 2017-2020, VR25 (xda-developers)
+# Copyright 2017-2020, VR25
 # License: GPLv3+
 #
 # "::" = " "

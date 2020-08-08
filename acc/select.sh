@@ -1,23 +1,33 @@
-# select for shells that lack it
+# "Select" For Shells That Lack It
+# Copyright 2019-2020, VR25
+# License: GPLv3+
+#
 # usage
 #  . $0
-#  select_ [var] [list]
+#  select_ <var> <list>
+#
+# "#" is an argument for read -n (optional).
+# ${PS3:-#?} is used.
+
 
 select_() {
-  local item="" list="" var=$1
-  shift
-  for item in "$@"; do
-    list="$list
-$item"
-  done
-  list="$(echo "$list" | grep -v '^$' | nl -s ") " -w 1)"
-  echo -n "
-$list
 
-${PS3:-#? }"
-  read item
-  echo
+  local item=""
+  local list=""
+  local n=""
+  local _var_="$1"
+
+  shift
+  [ $# -gt 9 ] || n="-n 1"
+
+  for item in "$@"; do
+    list="$(printf "$list\n$item")"
+  done
+
+  list="$(echo "$list" | grep -v '^$' | nl -s ") " -w 1)"
+  printf "$list\n\n${PS3:-#? }"
+  read $n item
   list="$(echo "$list" | sed -n "s|^${item}. ||p")"
-  list="$var=\"$list\""
+  list="$_var_=\"$list\""
   eval "$list"
 }
