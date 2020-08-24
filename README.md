@@ -361,7 +361,7 @@ loopCmd=()
 # This is checked during updates to determine whether config should be patched. Do NOT modify.
 
 # shutdown_capacity (sc) #
-# When the battery is discharging and its capacity <= sc, acc daemon turns the phone off to reduce the discharge rate and protect the battery from potential damage induced by voltages below the operating range.
+# When the battery is discharging and its capacity <= sc and phone has been running for 15 minutes or more, acc daemon turns the phone off to reduce the discharge rate and protect the battery from potential damage induced by voltages below the operating range.
 # On capacity <= shutdown_capacity + 5, accd enables Android battery saver, triggers 5 vibrations once - and again on each subsequent capacity drop.
 
 # cooldown_capacity (cc) #
@@ -1134,6 +1134,9 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 
 ---
 ## LATEST CHANGES
+
+**v2020.8.24 (202008240)**
+- Prevent phone off according to `shutdown_capacity`, if phone was power-on less than 15 minutes ago.
 
 **v2020.8.6 (202008060)**
 - Adaptive --info and --print (config) outputs
