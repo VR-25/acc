@@ -252,7 +252,9 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
           unset i c
 
           # auto-shutdown if battery is not charging and capacity is less than <shutdown_capacity>
-          ! test $(cat $batt/capacity) -le ${capacity[0]} || {
+          #   and system uptime 15 minutes or more
+          test $(cut -d '.' -f 1 /proc/uptime) -lt 900 \
+          || ! test $(cat $batt/capacity) -le ${capacity[0]} || {
             sleep ${loopDelay[1]}
             ! not_charging \
               || am start -n android/com.android.internal.app.ShutdownActivity < /dev/null > /dev/null 2>&1 \
