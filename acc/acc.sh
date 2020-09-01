@@ -440,22 +440,37 @@ case "${1-}" in
     tail -F $TMPDIR/accd-*.log
   ;;
 
-
   -u|--upgrade)
-
     shift
-    local reference=$(echo "$*" | sed -E 's/-c|--changelog|-f|--force|-k|--insecure|-n|--non-interactive| //g')
+    local array[0]=;
+    local insecure=;
+    local reference=;
+
+    for i; do
+      array+=("$i")
+      case "$i" in
+        -c|--changelog)
+        ;;
+        -f|--force)
+        ;;
+        -k|--insecure)
+          insecure=--insecure;
+        ;;
+        -n|--non-interactive)
+        ;;
+        *)
+          unset array[$((${#array[@]}-1))]
+          reference="$i"
+        ;;
+      esac
+    done
+    test ${#array[@]} -lt 2 || unset array[0]
 
     test -n "$reference" || {
       grep -Eq '^version=.*-(beta|rc)' $execDir/module.prop \
         && reference=dev \
         || reference=master
     }
-
-    case "$*" in
-      *--insecure*|*-k*) insecure=--insecure;;
-      *) insecure=;;
-    esac
 
     ! test -f /data/adb/bin/curl || {
       test -x /data/adb/bin/curl \
@@ -467,7 +482,7 @@ case "${1-}" in
     set +eu
     installDir=$(readlink -f $execDir)
     installDir=${installDir%/*}
-    . $TMPDIR/install-online.sh "$@" %$installDir% $reference
+    . $TMPDIR/install-online.sh "${array[@]}" %$installDir% $reference
   ;;
 
   -U|--uninstall)

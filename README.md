@@ -1135,6 +1135,9 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 ---
 ## LATEST CHANGES
 
+**v2020.9.01 (202009010)**
+- Fixed bug with handling `-u|--upgrade` option.
+
 **v2020.8.24 (202008240)**
 - Prevent phone off according to `shutdown_capacity`, if phone was power-on less than 15 minutes ago.
 
