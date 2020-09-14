@@ -6,7 +6,6 @@
 #  . $0
 #  select_ <var> <list>
 #
-# "#" is an argument for read -n (optional).
 # ${PS3:-#?} is used.
 
 

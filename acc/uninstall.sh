@@ -44,7 +44,7 @@ mkdir -p $TMPDIR/$id
   timeout 15 flock 0 || kill -KILL $pid
 }) <>$TMPDIR/${id}.lock
 ###
-pgrep -f "/($id|${id}a) (-|--)[det]|/${id}d" > /dev/null && { # legacy
+pgrep -f "/($id|${id}a) (-|--)[det]|/${id}d" > /dev/null && { #legacy
   pkill -f "/($id|${id}a) (-|--)[det]|/${id}d"
   for count in $(seq 15); do
     sleep 1
@@ -60,10 +60,11 @@ rm -rf $(readlink -f /data/adb/$id) \
   /data/adb/service.d/${id}-*.sh \
   /data/data/mattecarra.accapp/files/$id \
   /data/data/com.termux/files/home/.termux/boot/${id}-init.sh \
-  $(test "${1:-}" = install || echo "/data/adb/${id}-data /sdcard/Download/$id")
+  $(test "${1:-}" = install || echo "/sdcard/Download/$id")
 
 #legacy
-rm $(readlink -f /sbin/.$id/$id) \
+rm /data/adb/${id}-data \
+  $(readlink -f /sbin/.$id/$id) \
   /data/media/0/${id}-logs-*.tar.* \
   /data/media/0/${id}-uninstaller.zip \
   /data/media/0/.${id}-config-backup.txt 2>/dev/null

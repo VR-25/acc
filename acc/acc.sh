@@ -131,7 +131,6 @@ exxit() {
     }
     echo
   }
-  rm /dev/.acc-config 2>/dev/null
   cd /
   exit $exitCode
 }
@@ -191,7 +190,7 @@ if ${verbose:-true} && [ -f $execDir/translations/$language/strings.sh ]; then
 fi
 grep -q .. $execDir/translations/$language/README.md 2>/dev/null \
   && readMe=$execDir/translations/$language/README.md \
-  || readMe=$userDir/README.md
+  || readMe=${config%/*}/README.md
 
 
 # aliases/shortcuts
@@ -263,7 +262,7 @@ case "${1-}" in
     resume_capacity=$(( pause_capacity - 5 ))
     run_cmd_on_pause="exec /dev/accd"
 
-    cp -f $config $TMPDIR/.acc-f-config
+    grep -Ev '^$|^#' $config > $TMPDIR/.acc-f-config
     config=$TMPDIR/.acc-f-config
     . $execDir/write-config.sh
     print_charging_enabled_until ${2:-100}%
@@ -380,8 +379,8 @@ case "${1-}" in
 
     . $execDir/acquire-lock.sh
 
-    cp $config /dev/.acc-config
-    config=/dev/.acc-config
+    grep -Ev '^$|^#' $config > $TMPDIR/.config
+    config=$TMPDIR/.config
     fd3=true
     exec 3>&1
 

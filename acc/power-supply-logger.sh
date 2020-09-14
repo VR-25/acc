@@ -39,7 +39,7 @@ gather_ps_data() {
 
 export TMPDIR=/dev/.acc
 execDir=/data/adb/acc
-logsDir=/data/adb/acc-data/logs
+logsDir=/sdcard/Download/acc/logs
 
 print_wait 2>/dev/null || echo "(i) Alright, this may take a minute or so..."
 

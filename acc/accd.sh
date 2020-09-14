@@ -12,7 +12,7 @@ pgrep zygote > /dev/null && {
     && test .$(getprop sys.boot_completed) = .1 \
     && dumpsys battery > /dev/null 2>&1
   do
-    sleep 10
+    sleep 30
   done
 }
 
@@ -35,8 +35,8 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
     trap - EXIT
     vibrate() { :; }
     { dumpsys battery reset &
-    cp $config /dev/.${id}-config
-    config=/dev/.${id}-config
+    grep -Ev '^$|^#' $config > $TMPDIR/.config
+    config=$TMPDIR/.config
     enable_charging &
     apply_on_boot default &
     apply_on_plug default &
@@ -340,8 +340,9 @@ else
 
 
   # log
-  mkdir -p $TMPDIR /data/adb/${id}-data/logs
-  exec > /data/adb/${id}-data/logs/init.log 2>&1
+  data_dir=/sdcard/Download/$id
+  mkdir -p $TMPDIR $data_dir/logs
+  exec > $data_dir/logs/init.log 2>&1
   set -x
 
 
@@ -432,7 +433,7 @@ else
       while read file; do
         chmod u+r $file 2>/dev/null || continue
         defaultValue=$(cat $file)
-        ampFactor=$(sed -n 's/^ampFactor=//p' /data/adb/${id}-data/config.txt 2>/dev/null)
+        ampFactor=$(sed -n 's/^ampFactor=//p' $data_dir/config.txt 2>/dev/null)
         [ -n "$ampFactor" -o $defaultValue -ne 0 ] && {
           if [ "${ampFactor:-1}" -eq 1000 -o $defaultValue -lt 10000 ]; then
             # milliamps

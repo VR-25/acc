@@ -516,7 +516,7 @@ It's a wizard you'll either love or hate.
 
 If you feel uncomfortable with the command line, skip this section and use the [ACC App](https://github.com/MatteCarra/AccA/releases/) to manage ACC.
 
-Alternatively, you can use a `text editor` to modify `/data/adb/acc-data/config.txt`.
+Alternatively, you can use a `text editor` to modify `/sdcard/Download/acc/config.txt`.
 Restart the [daemon](https://en.wikipedia.org/wiki/Daemon_(computing)) afterwards, by running `accd`.
 The config file itself has configuration instructions.
 These instructions are the same found in the `DEFAULT CONFIG` section, above.
@@ -654,7 +654,7 @@ Options
   -s|--set r|--reset   Restore default config
     e.g.,
       acc -s r
-      rm /data/adb/acc-data/config.txt (failsafe)
+      rm /sdcard/Download/acc/config.txt (failsafe)
 
   -sr   Same as above
 
@@ -738,12 +738,13 @@ Exit Codes
 Tips
 
   Commands can be chained for extended functionality.
-    e.g., acc -e 30m && acc -d 6h && acc -e 85 && accd (recharge for 30 minutes, pause charging for 6 hours, recharge to 85% capacity and restart the daemon)
+    e.g., charge for 30 minutes, pause charging for 6 hours, charge to 85% and restart the daemon
+    acc -e 30m && acc -d 6h && acc -e 85 && accd
 
   Bedtime settings...
     acc -s /dev/.my-night-config.txt pc=45 rc=43 mcc=500 mcv=3920 && sleep $((60*60*7)) && accd
       - "For the next 7 hours, keep battery capacity between 43-45%, limit charging current to 500 mA and voltage to 3920 millivolts"
-      - For convenience, this can be written to a file and ran as "sh /path/to/file".
+      - For convenience, this can be written to a file and ran as "su -c sh /path/to/file".
 
   Refer to acc -r (or --readme) for the full documentation (recommended)
 
@@ -829,7 +830,7 @@ Most of the time, though, it's just a matter of plugging the phone before turnin
 Battery level must be below pause_capacity.
 Once booted, one can run `acc --uninstall` (or `acc -U`) to remove ACC.
 
-From recovery, you can flash `/sdcard/Download/acc/acc-uninstaller.zip` or run `mount /system; /data/adb/acc/uninstall.sh`.
+From recovery, one can flash `/sdcard/Download/acc/acc-uninstaller.zip` or run `mount /system; /data/adb/acc/uninstall.sh`.
 
 
 ### Charging Switch
@@ -868,11 +869,16 @@ That said, the existence of potential voltage/current control file doesn't neces
 \* Root is not enough.
 Kernel level permissions forbid write access to certain interfaces.
 
+Sometimes, restoring the default current may not work without a system reboot.
+A workaround is setting an absurdly high current value (e.g., 9000 mA).
+Don't worry about frying things.
+The phone will only draw the max it can take.
+
 
 ### Diagnostics/Logs
 
 Volatile logs (gone on reboot) are stored in `/dev/.acc/`.
-Persistent logs: `/data/adb/acc-data/logs/`.
+Persistent logs: `/sdcard/Download/acc/logs/`.
 
 `/dev/.acc-removed` is created by the uninstaller.
 The storage location is volatile.
@@ -894,7 +900,7 @@ Some users may have to set `switch_delay=15` (or higher) or `charging_switch="/p
 
 This can save you a lot of time and grief.
 
-`acc --set --reset`, `acc -sr` or `rm /data/adb/acc-data/config.txt` (failsafe)
+`acc --set --reset`, `acc -sr` or `rm /sdcard/Download/acc/config.txt` (failsafe)
 
 
 ### Slow Charging
@@ -910,7 +916,7 @@ At least one of the following may be the cause:
 ---
 ## POWER SUPPLY LOG (HELP NEEDED)
 
-Please run `acc -le` and upload `/data/adb/acc-data/logs/power_supply-*.log` to [my dropbox](https://www.dropbox.com/request/WYVDyCc0GkKQ8U5mLNlH/) (no account/sign-up required).
+Please run `acc -le` and upload `/sdcard/Download/acc/logs/power_supply-*.log` to [my dropbox](https://www.dropbox.com/request/WYVDyCc0GkKQ8U5mLNlH/) (no account/sign-up required).
 This file contains invaluable power supply information, such as battery details and available charging control files.
 A public database is being built for mutual benefit.
 Your cooperation is greatly appreciated.
@@ -999,7 +1005,7 @@ The default command is "vibrate <number of vibrations> <interval (seconds)>"
 Let's assume you want the phone to say _Warning! Battery is low. System will shutdown soon._
 To set that up, paste and run the following on a terminal, as root:
 
-`echo -e "\nautoShutdownAlertCmd=('! pgrep -f acc-tts.sh || echo \"Warning! Battery is low. System will shutdown soon.\" > /data/data/com.termux/files/home/acc-fifo')" >> /data/adb/acc-data/config.txt`
+`echo -e "\nautoShutdownAlertCmd=('! pgrep -f acc-tts.sh || echo \"Warning! Battery is low. System will shutdown soon.\" > /data/data/com.termux/files/home/acc-fifo')" >> /sdcard/Download/acc/config.txt`
 
 
 That's it.
@@ -1135,26 +1141,19 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 ---
 ## LATEST CHANGES
 
-**v2020.9.01 (202009010)**
-- Fixed bug with handling `-u|--upgrade` option.
 
-**v2020.8.24 (202008240)**
-- Prevent phone off according to `shutdown_capacity`, if phone was power-on less than 15 minutes ago.
+**v2020.9.14 (202009140)**
 
-**v2020.8.6 (202008060)**
-- Adaptive --info and --print (config) outputs
-- Copy README.md to /sdcard/Download/acc/.
-- Fixed "capacity_sync freezes when ghost charging is detected".
+- Ensure releae-lock.sh does not cause unwanted acc/d termination.
 - General fixes & optimizations
-- If supported, prepend "$LINENO: " to log lines.
-- MTK troubleshooting info (readme > troubleshooting)
-- Updated framework (in sync with fbind)
+- mv /data/adb/acc-data /sdcard/Download/acc
+- Reapply voltage limits on plug.
 
-**v2020.7.26 (202007260)**
-- General cleanup and optimizations
-- Moved acc files in /sdcard/ to /sdcard/Download/acc/.
-- Removed acc-init.sh in favor of service.sh.
+Release Notes
+  - All persistent acc data is now stored in /sdcard/Download/acc/.
+  - "mx4pro" users, please send me a new log archive after installing this version.
+  - Nothing was done in regards to the "MIUI 12" bootloop issue. The root cause is still unknown.
 
-**v2020.7.25 (202007250)**
-- Updated documentation
-- Workaround for network issues
+Unannounced Releases (@romanegunkov)
+  - v2020.9.01 (202009010): Fixed --upgrade bug.
+  - v2020.8.24 (202008240): Prevent auto shutdown if system has been running for less than 15 minutes.

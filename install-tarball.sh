@@ -5,11 +5,12 @@
 
 id=acc
 umask 0077
+data_dir=/sdcard/Download/${1:-$id}
 
 # log
 [ -z "${LINENO-}" ] || export PS4='$LINENO: '
-mkdir -p /data/adb/${1:-$id}-data/logs
-exec 2>/data/adb/${1:-$id}-data/logs/install-tarball.sh.log
+mkdir -p $data_dir/logs
+exec 2>$data_dir/logs/install-tarball.sh.log
 set -x
 
 # set up busybox
@@ -55,7 +56,7 @@ copy_log() {
     umask 077
     mkdir -p logs
 
-    cp -af /data/adb/${1:-$id}-data/logs/install.log logs/${1:-$id}-install.log 2>/dev/null || return 0
+    cp -af $data_dir/logs/install.log logs/${1:-$id}-install.log 2>/dev/null || return 0
 
     pkg=$(cd ..; pwd)
     pkg=${pkg##/data*/}

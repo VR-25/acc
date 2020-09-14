@@ -13,13 +13,14 @@ SKIPUNZIP=1
 echo
 id=acc
 umask 0077
+data_dir=/sdcard/Download/$id
 
 
 # log
 [ -z "${LINENO-}" ] || export PS4='$LINENO: '
-mkdir -p /data/adb/${id}-data/logs
-chmod -R 0700 /data/adb/${id}-data/logs
-exec 2>/data/adb/${id}-data/logs/install.log
+mkdir -p $data_dir/logs
+chmod -R 0700 $data_dir/logs
+exec 2>$data_dir/logs/install.log
 set -x
 
 
@@ -102,11 +103,10 @@ srcDir=${srcDir/#"${0##*/}"/"."}
 name=$(get_prop name)
 author=$(get_prop author)
 version=$(get_prop version)
-userDir=/sdcard/Download/$id
 magiskModDir=/data/adb/modules
 versionCode=$(get_prop versionCode)
 : ${installDir:=/data/data/mattecarra.${id}app/files} ###
-config=/data/adb/${id}-data/config.txt
+config=$data_dir/config.txt
 
 
 [ -d $magiskModDir ] && magisk=true || magisk=false
@@ -141,12 +141,17 @@ GPLv3+
 (i) Installing in $installDir/$id/..."
 
 
+# migrate #legacy data
+mv -f /data/adb/${id}-data/* /data/adb/${id}-data/.* \
+  $data_dir/ 2>/dev/null || :
+rm -rf $data_dir/info /data/adb/${id}-data/ 2>/dev/null || :
+
+
 /system/bin/sh $srcDir/$id/uninstall.sh install
 cp -R $srcDir/$id/ $installDir/
 installDir=$(readlink -f $installDir/$id)
 cp $srcDir/module.prop $installDir/
-mkdir -p $userDir
-cp -f $srcDir/README.md $userDir/
+cp -f $srcDir/README.md $data_dir/
 
 
 ###
@@ -195,12 +200,8 @@ fi
 [ $installDir = /data/adb/$id ] || ln -s $installDir /data/adb/
 
 
-# restore config backup
-[ -f $config ] || cp $userDir/.${id}-config-backup.txt $config 2>/dev/null || :
-
-
 # install binaries
-cp -f $srcDir/bin/${id}-uninstaller.zip $userDir/
+cp -f $srcDir/bin/${id}-uninstaller.zip $data_dir/
 
 
 # Termux, fix shebang
@@ -214,7 +215,6 @@ cp -f $srcDir/bin/${id}-uninstaller.zip $userDir/
 
 
 # set perms
-set_perms_recursive ${config%/*}
 case $installDir in
   /data/*/files/*$id)
     pkg=${installDir%/files/*$id}

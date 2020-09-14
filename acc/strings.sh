@@ -215,7 +215,7 @@ Options
   -s|--set r|--reset   Restore default config
     e.g.,
       acc -s r
-      rm /data/adb/acc-data/config.txt (failsafe)
+      rm /sdcard/Download/acc/config.txt (failsafe)
 
   -sr   Same as above
 
@@ -299,12 +299,13 @@ Exit Codes
 Tips
 
   Commands can be chained for extended functionality.
-    e.g., acc -e 30m && acc -d 6h && acc -e 85 && accd (recharge for 30 minutes, pause charging for 6 hours, recharge to 85% capacity and restart the daemon)
+    e.g., charge for 30 minutes, pause charging for 6 hours, charge to 85% and restart the daemon
+    acc -e 30m && acc -d 6h && acc -e 85 && accd
 
   Bedtime settings...
     acc -s /dev/.my-night-config.txt pc=45 rc=43 mcc=500 mcv=3920 && sleep \$((60*60*7)) && accd
       - "For the next 7 hours, keep battery capacity between 43-45%, limit charging current to 500 mA and voltage to 3920 millivolts"
-      - For convenience, this can be written to a file and ran as "sh /path/to/file".
+      - For convenience, this can be written to a file and ran as "su -c sh /path/to/file".
 
   Refer to acc -r (or --readme) for the full documentation (recommended)
 EOF

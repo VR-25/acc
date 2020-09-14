@@ -21,7 +21,7 @@ apply_on_boot() {
 
 apply_on_plug() {
   local entry="" file="" value="" default="" arg=${1:-value}
-  for entry in "${applyOnPlug[@]-}" "${maxChargingCurrent[@]-}"; do
+  for entry in "${applyOnPlug[@]-}" "${maxChargingCurrent[@]-}" "${maxChargingVoltage[@]-}"; do
     set -- ${entry//::/ }
     file=${1-}
     value=${2-}
@@ -246,12 +246,8 @@ enable_charging() {
 
 misc_stuff() {
   set -eu
-  mkdir -p ${config%/*} $userDir || :
+  mkdir -p ${config%/*} 2>/dev/null || :
   [ -f $config ] || cp $execDir/default-config.txt $config
-
-  # config backup
-  ! test $config -nt $userDir/.acc-config-backup.txt \
-    || cp -f $config $userDir/.acc-config-backup.txt
 
   # custom config path
   case "${1-}" in
@@ -326,8 +322,7 @@ id=acc
 umask 0077
 execDir=/data/adb/acc
 export TMPDIR=/dev/.acc
-userDir=/sdcard/Download/$id
-config=/data/adb/acc-data/config.txt
+config=/sdcard/Download/$id/config.txt
 config_=$config
 
 [ -f $TMPDIR/.ghost-charging ] \
