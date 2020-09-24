@@ -1,21 +1,6 @@
 remove #legacy
 
-add custom config for some mtk devices
-  sd=15
-  switch
+check #wip
+  run_xtimes()
 
-acca should show capacity from dumpsys to prevent confusion
-
-70% bug, samsung r3q (SM-A908B)
-
-
-potentially fixed
-
-  issues with charge to X once?
-
-  accd killing itself; can't restart
-    probably caused by set -e and release-lock.sh
-
-  capacity sync issues
-
-  shutdown capacity being set to -1
+change data_dir and execDir?

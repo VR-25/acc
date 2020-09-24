@@ -1,17 +1,17 @@
 (
 grep_() { grep -Eq "$1" ${2:-$config}; }
 
-get_prop() { sed -n "\|^$1=|s|.*=||p" ${2:-$config}; }
+get_prop() { sed -n "\|^$1=|s|.*=||p" ${2:-$config} 2>/dev/null || :; }
 
 set_prop_() { sed -i "\|^${1}=|s|=.*|=$2|" ${3:-$config}; }
 
 
 # patch/reset [broken/obsolete] config
-configVer=0$(get_prop configVerCode 2>/dev/null || :)
-defaultConfVer=$(get_prop configVerCode $execDir/default-config.txt)
+configVer=0$(get_prop configVerCode)
+defaultConfVer=0$(cat $TMPDIR/.config-ver)
 if (set +x; . $config) > /dev/null 2>&1; then
   [ $configVer -eq $defaultConfVer ] || {
-    if [ $configVer -lt 202007170 ]; then
+    if [ $configVer -lt 202009230 ]; then
       cp -f $execDir/default-config.txt $config
     else
       /dev/acca --set dummy=
@@ -26,14 +26,11 @@ fi 2>/dev/null
 if grep_ '^chargingSwitch=.*/op_disable_charge'; then
   [ -f $TMPDIR/oem-custom ] \
     || echo "run_xtimes 'echo 1 > battery/op_disable_charge; echo 0 > battery/input_suspend'" > $TMPDIR/oem-custom
-  grep_ "^runCmdOnPause=.*$TMPDIR/oem-custom" \
-    || set_prop_ runCmdOnPause "(. $TMPDIR/oem-custom)"
-  switchDelay=$(get_prop switchDelay)
-  [ ${switchDelay%.*} -gt 4 ] || set_prop_ switchDelay 5
+  grep_ "^loopCmd=.*$TMPDIR/oem-custom" \
+    || set_prop_ loopCmd "(. $TMPDIR/oem-custom)"
 else
-  ! grep_ "^runCmdOnPause=.*$TMPDIR/oem-custom" 2>/dev/null || {
-    set_prop_ runCmdOnPause "()"
-    set_prop_ switchDelay 1.5
+  ! grep_ "^loopCmd=.*$TMPDIR/oem-custom" 2>/dev/null || {
+    set_prop_ loopCmd "()"
   }
 fi
 
@@ -44,21 +41,23 @@ if grep_ '^chargingSwitch=./sys/module/lge_battery/parameters/charge_stop_level'
     || echo "[ \$(cat battery/input_suspend) != 1 ] || run_xtimes 'echo 0 > battery/input_suspend'" > $TMPDIR/oem-custom
   grep_ "^loopCmd=.*$TMPDIR/oem-custom" \
     || set_prop_ loopCmd "(. $TMPDIR/oem-custom)"
-  #switchDelay=$(get_prop switchDelay)
-  #[ ${switchDelay%.*} -gt 4 ] || set_prop_ switchDelay 5
 else
   ! grep_ "^loopCmd=.*$TMPDIR/oem-custom" 2>/dev/null || {
     set_prop_ loopCmd "()"
-    #set_prop_ switchDelay 1.5
   }
 fi
 
 
-# Razer
+# Razer Phones
 # default value: 65
-(set +e
-echo 1 > /sys/devices/platform/soc/*/*/*/razer_charge_limit_dropdown
-echo 1 > usb/razer_charge_limit_dropdown) 2>/dev/null || :
+set +e
+{
+  chmod u+w usb/razer_charge_limit_dropdown \
+    /sys/devices/platform/soc/*/*/*/razer_charge_limit_dropdown
+  echo 1 > /sys/devices/platform/soc/*/*/*/razer_charge_limit_dropdown
+  echo 1 > usb/razer_charge_limit_dropdown
+} 2>/dev/null
+set -e
 
 
 # block "ghost charging on steroids" (Xiaomi Redmi 3 - ido)

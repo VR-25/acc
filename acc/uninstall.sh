@@ -65,9 +65,9 @@ rm -rf $(readlink -f /data/adb/$id) \
 #legacy
 rm /data/adb/${id}-data \
   $(readlink -f /sbin/.$id/$id) \
-  /data/media/0/${id}-logs-*.tar.* \
-  /data/media/0/${id}-uninstaller.zip \
-  /data/media/0/.${id}-config-backup.txt 2>/dev/null
+  /sdcard/${id}-logs-*.tar.* \
+  /sdcard/${id}-uninstaller.zip \
+  /sdcard/.${id}-config-backup.txt \
+  /sdcard/Download/$id/*.tar.* 2>/dev/null
 
-touch /dev/.${id}-removed
 exit 0

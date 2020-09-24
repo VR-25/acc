@@ -12,7 +12,7 @@ pgrep zygote > /dev/null && {
     && test .$(getprop sys.boot_completed) = .1 \
     && dumpsys battery > /dev/null 2>&1
   do
-    sleep 30
+    sleep 300 # to prevent conflicts with fbind
   done
 }
 
@@ -33,22 +33,21 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
     local exitCode=$?
     set +eux
     trap - EXIT
-    vibrate() { :; }
-    { dumpsys battery reset &
-    grep -Ev '^$|^#' $config > $TMPDIR/.config
-    config=$TMPDIR/.config
-    enable_charging &
-    apply_on_boot default &
-    apply_on_plug default &
+    {
+      dumpsys battery reset &
+      grep -Ev '^$|^#' $config > $TMPDIR/.config
+      config=$TMPDIR/.config
+      apply_on_boot default &
+      apply_on_plug default &
+      enable_charging &
     } > /dev/null 2>&1
     [ -n "$1" ] && exitCode=$1
     [ -n "$2" ] && print "$2"
     [[ $exitCode = [127] ]] && {
       . $execDir/logf.sh
       logf --export > /dev/null 2>&1 &
-      eval "${errorAlertCmd[@]-}" &
     }
-    wait
+    timeout 10 wait
     rm $config 2>/dev/null
     cd /
     exit $exitCode
@@ -61,15 +60,12 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
 
     . $config
 
-    grep -Eiq 'dis|not' $batt/status || isCharging=true
+    not_charging || isCharging=true
 
     # run custom code
     eval "${loopCmd[@]-}"
 
     if $isCharging; then
-
-      # reset auto-shutdown warning thresholds
-      warningThresholds=$_warningThresholds
 
       # read chgStatusCode once
       [ -n "$chgStatusCode" ] || {
@@ -82,20 +78,7 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
 
       $cooldown || resetBattStatsOnUnplug=true
 
-      #$applyOnUnplug || apply_on_plug
       apply_on_plug
-      applyOnUnplug=true
-
-      # forceChargingStatusFullAt100
-      if ! $forcedChargingStatusFullAt100 \
-        && [ -n "${forceChargingStatusFullAt100-}" ] \
-        && [ $(cat $batt/capacity) -gt 99 ]
-      then
-        dumpsys battery set level 100 \
-          && dumpsys battery set status $forceChargingStatusFullAt100 \
-          && { forcedChargingStatusFullAt100=true; frozenBattSvc=true; } \
-          || sleep ${loopDelay[0]}
-      fi
 
     else
 
@@ -115,19 +98,6 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
       }
 
       if ! $cooldown; then
-
-        # applyOnUnplug
-        ! $applyOnUnplug || {
-          apply_on_plug default
-          applyOnUnplug=false
-        }
-
-        # revert forceChargingStatusFullAt100
-        ! $frozenBattSvc || {
-          dumpsys battery reset \
-            && { frozenBattSvc=false; forcedChargingStatusFullAt100=false; } \
-            || sleep ${loopDelay[1]}
-        }
 
         # resetBattStatsOnUnplug
         if $resetBattStatsOnUnplug && ${resetBattStats[1]}; then
@@ -151,84 +121,57 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
 
   ctrl_charging() {
 
-    local count=0 wakelock=""
+    local count=0
 
     while :; do
 
       if is_charging; then
 
-        # clear "rebooted on pause" flag
-        [ $(cat $batt/capacity) -gt ${capacity[2]} ] \
-          || rm ${config%/*}/.rebootedOnPause 2>/dev/null || :
-
         # disable charging under <conditions>
         test $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) -ge $(( ${temperature[1]} * 10 )) \
           && maxTempPause=true || maxTempPause=false
         if $maxTempPause || test $(cat $batt/capacity) -ge ${capacity[3]}; then
-          [ -f ${config%/*}/.rebootedOnPause ] || {
-            disable_charging
-            ! ${resetBattStats[0]} || {
-              # reset battery stats on pause
-              dumpsys batterystats --reset || :
-              rm /data/system/batterystats* || :
-            }
+          disable_charging
+          ! ${resetBattStats[0]} || {
+            # reset battery stats on pause
+            dumpsys batterystats --reset || :
+            rm /data/system/batterystats* || :
           }
-
-          # rebootOnPause
-          sleep $rebootOnPause 2>/dev/null && {
-            [ $(cat $batt/capacity) -ge ${capacity[3]} ]
-            [ ! -f ${config%/*}/.rebootedOnPause ]
-            touch ${config%/*}/.rebootedOnPause
-            { am start -a android.intent.action.REBOOT < /dev/null > /dev/null 2>&1 || reboot; }
-          } || :
-
-          [ -f ${config%/*}/.rebootedOnPause ] || {
-            # wakeUnlock
-            # won't run under "battery idle" mode ("not charging" status)
-            if grep -iq dis $batt/status && chmod u+w /sys/power/wake_unlock; then
-              for wakelock in "${wakeUnlock[@]-}"; do
-                echo $wakelock > /sys/power/wake_unlock || :
-              done
-            fi 2>/dev/null
-          }
+          ! $maxTempPause || ! not_charging || sleep ${temperature[2]}
         fi
 
-        ! $maxTempPause || sleep ${temperature[2]}
+        # cooldown cycle
+        while [[ -n "${cooldownRatio[0]-}" || -n "${cooldownCustom[0]-}" ]] \
+          && [ $(cat $batt/capacity) -lt ${capacity[3]} ] \
+          && is_charging
+        do
+          if [ $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) -ge $(( ${temperature[0]} * 10 )) ] \
+            || [ $(cat $batt/capacity) -ge ${capacity[1]} ] \
+            || [ $(sed s/-// ${cooldownCustom[0]:-cooldownCustom} 2>/dev/null || echo 0) -ge ${cooldownCustom[1]:-1} ]
+          then
+            cooldown=true
+            dumpsys battery set status $chgStatusCode || : # to prevent unwanted display wakeups
+            disable_charging
+            [ $(sed s/-// ${cooldownCustom[0]:-cooldownCustom} 2>/dev/null || echo 0) -ge ${cooldownCustom[1]:-1} ] \
+              && sleep ${cooldownCustom[3]:-1} \
+              || sleep ${cooldownRatio[1]:-1}
+            enable_charging
+            $capacitySync || dumpsys battery reset || :
+            [ ! $(sed s/-// ${cooldownCustom[0]:-cooldownCustom} 2>/dev/null || echo 0) -ge ${cooldownCustom[1]:-1} ] \
+              || cooldownRatio[0]=${cooldownCustom[2]-}
+            count=0
+            while ! not_charging && [ $count -lt ${cooldownRatio[0]:-1} ]; do
+              sleep ${loopDelay[0]}
+              [ $(cat $batt/capacity) -lt ${capacity[3]} ] \
+                && count=$(( count + ${loopDelay[0]} )) \
+                || break
+            done
+          else
+            break
+          fi
+        done
 
-        [ -f ${config%/*}/.rebootedOnPause ] || {
-
-          # cooldown cycle
-          while [ -n "${cooldownRatio[0]-}" -o -n "${cooldownCurrent[0]-}" ] && is_charging \
-            && [ $(cat $batt/capacity) -lt ${capacity[3]} ]
-          do
-            if [ $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) -ge $(( ${temperature[0]} * 10 )) ] \
-              || [ $(cat $batt/capacity) -ge ${capacity[1]} ] \
-              || [ $(sed s/-// ${cooldownCurrent[0]:-cooldownCurrent} 2>/dev/null || echo 0) -ge ${cooldownCurrent[1]:-1} ]
-            then
-              cooldown=true
-              dumpsys battery set status $chgStatusCode || : # to block unwanted display wakeups
-              disable_charging
-              [ $(sed s/-// ${cooldownCurrent[0]:-cooldownCurrent} 2>/dev/null || echo 0) -ge ${cooldownCurrent[1]:-1} ] \
-                && sleep ${cooldownCurrent[3]:-1} \
-                || sleep ${cooldownRatio[1]:-1}
-              enable_charging
-              $capacitySync || dumpsys battery reset || :
-              [ ! $(sed s/-// ${cooldownCurrent[0]:-cooldownCurrent} 2>/dev/null || echo 0) -ge ${cooldownCurrent[1]:-1} ] \
-                || cooldownRatio[0]=${cooldownCurrent[2]-}
-              count=0
-              while ! grep -Eiq 'dis|not' $batt/status && [ $count -lt ${cooldownRatio[0]:-1} ]; do
-                sleep ${loopDelay[0]}
-                [ $(cat $batt/capacity) -lt ${capacity[3]} ] \
-                  && count=$(( count + ${loopDelay[0]} )) \
-                  || break
-              done
-            else
-              break
-            fi
-          done
-          cooldown=false
-        }
-
+        cooldown=false
         sleep ${loopDelay[0]}
 
       else
@@ -239,29 +182,17 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
             || enable_charging
         }
 
-        ! not_charging || {
-
-          # auto-shutdown warnings
-          c=$(cat $batt/capacity)
-          for i in $warningThresholds; do
-            [ $c -ne $i ] || {
-              eval "${autoShutdownAlertCmd[@]-}"
-              warningThresholds=${warningThresholds/$i}
-            }
-          done
-          unset i c
-
-          # auto-shutdown if battery is not charging and capacity is less than <shutdown_capacity>
-          #   and system uptime 15 minutes or more
-          test $(cut -d '.' -f 1 /proc/uptime) -lt 900 \
-          || ! test $(cat $batt/capacity) -le ${capacity[0]} || {
-            sleep ${loopDelay[1]}
-            ! not_charging \
-              || am start -n android/com.android.internal.app.ShutdownActivity < /dev/null > /dev/null 2>&1 \
-              || reboot -p 2>/dev/null \
-              || /system/bin/reboot -p || :
-          }
-        }
+        # auto-shutdown
+        if not_charging && ! $maxTempPause \
+          && [ $(cat $batt/capacity) -le ${capacity[0]} ] \
+          && [ $(cut -d '.' -f 1 /proc/uptime) -ge 900 ]
+        then
+          sleep ${loopDelay[1]}
+          ! not_charging \
+            || am start -n android/com.android.internal.app.ShutdownActivity < /dev/null > /dev/null 2>&1 \
+            || reboot -p 2>/dev/null \
+            || /system/bin/reboot -p || :
+        fi
 
         sleep ${loopDelay[1]}
 
@@ -272,16 +203,15 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
 
   sync_capacity() {
     ! $capacitySync || {
-      $cooldown || {
-        if $isCharging; then
-          dumpsys battery set ac 1 \
-            && dumpsys battery set status $chgStatusCode || :
-        else
-          dumpsys battery unplug \
-            && dumpsys battery set status $dischgStatusCode || :
-        fi
-      }
-      if ! { ${capacity[4]} && [ $(cat $batt/capacity) -lt 2 ]; }; then
+      ! $cooldown || isCharging=true
+      if $isCharging; then
+        dumpsys battery set ac 1 \
+          && dumpsys battery set status $chgStatusCode || :
+      else
+        dumpsys battery unplug \
+          && dumpsys battery set status $dischgStatusCode || :
+      fi
+      if ${capacity[4]} && [ $(cat $batt/capacity) -ge 2 ]; then
         dumpsys battery set level $(cat $batt/capacity) || :
       fi
     }
@@ -294,17 +224,14 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
 
   isAccd=true
   cooldown=false
-  hibernate=true
   readChCurr=true
   chgStatusCode=""
   capacitySync=false
   updateConfig=false
   dischgStatusCode=""
-  frozenBattSvc=false
-  applyOnUnplug=false
+  maxTempPause=false
   resetBattStatsOnUnplug=false
   log=$TMPDIR/${id}d-${device}.log
-  forcedChargingStatusFullAt100=false
 
 
   # verbose
@@ -318,17 +245,6 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
   misc_stuff "${1-}"
   . $execDir/oem-custom.sh
   . $config
-
-
-  # set auto-shutdown warning thresholds
-  [ ${capacity[0]} -lt 0 ] || _warningThresholds="
-    $(
-      for i in 5 4 3 2 1; do
-        echo $(( ${capacity[0]} + i ))
-      done
-    )
-  "
-  warningThresholds=${_warningThresholds=}
 
 
   apply_on_boot
@@ -355,7 +271,8 @@ else
   ln -fs $execDir/service.sh /dev/${id}d
 
   test -d /sbin && {
-    /system/bin/mount -o remount,rw / 2>/dev/null \
+    ! grep -q "^tmpfs / " /proc/mounts \
+      || /system/bin/mount -o remount,rw / 2>/dev/null \
       || mount -o remount,rw /
     for h in  /dev/$id /dev/${id}d, /dev/${id}d. \
       /dev/${id}a /dev/${id}d
@@ -372,6 +289,15 @@ else
     cat ${termuxSu}.tmp > $termuxSu # preserves attributes
     rm ${termuxSu}.tmp
   }
+
+
+  # whitelist MTK-specific switch, if necessary
+  if test -f /proc/mtk_battery_cmd/current_cmd \
+    && ! test -f /proc/mtk_battery_cmd/en_power_path \
+    && grep -q "^#/proc/mtk" $execDir/charging-switches.txt
+  then
+    sed -i '/^#\/proc\/mtk/s/#//' $execDir/charging-switches.txt
+  fi
 
 
   # filter out missing and problematic charging switches (those with unrecognized values) ###
@@ -455,7 +381,7 @@ else
   done
 
 
-  # prepare default config help text and version code for write-config.sh
+  # prepare default config help text and version code for oem-custom.sh and write-config.sh
   sed -n '/^# /,$p' $execDir/default-config.txt > $TMPDIR/.config-help
   sed -n '/^configVerCode=/s/.*=//p' $execDir/default-config.txt > $TMPDIR/.config-ver
 

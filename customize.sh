@@ -19,7 +19,6 @@ data_dir=/sdcard/Download/$id
 # log
 [ -z "${LINENO-}" ] || export PS4='$LINENO: '
 mkdir -p $data_dir/logs
-chmod -R 0700 $data_dir/logs
 exec 2>$data_dir/logs/install.log
 set -x
 

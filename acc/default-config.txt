@@ -1,29 +1,19 @@
-configVerCode=202007220
+configVerCode=202009230
 capacity=(-1 60 70 75 false)
 temperature=(40 60 90)
 cooldownRatio=()
 cooldownCustom=()
 resetBattStats=(false false)
-loopDelay=(10 15)
 chargingSwitch=()
 applyOnBoot=()
 applyOnPlug=()
 maxChargingCurrent=()
 maxChargingVoltage=()
-rebootOnPause=
-switchDelay=1.5
 language=en
-wakeUnlock=()
 prioritizeBattIdleMode=true
-forceChargingStatusFullAt100=
 runCmdOnPause=()
-autoShutdownAlertCmd=(vibrate 5 0.1)
-chargDisabledNotifCmd=(vibrate 3 0.1)
-chargEnabledNotifCmd=(vibrate 4 0.1)
-errorAlertCmd=(vibrate 6 0.1)
 ampFactor=
 voltFactor=
-ctrlFileWrites=(3 0.3)
 loopCmd=()
 
 
@@ -51,8 +41,6 @@ loopCmd=()
 
 # resetBattStats=(reset_batt_stats_on_pause reset_batt_stats_on_unplug)
 
-# loopDelay=(loop_delay_charging loop_delay_discharging)
-
 # chargingSwitch=charging_switch=(ctrl_file1 on off ctrl_file2 on off --)
 
 # applyOnBoot=apply_on_boot=(ctrl_file1::value1::default1 ctrl_file2::value2::default2 ... --exit)
@@ -63,33 +51,15 @@ loopCmd=()
 
 # maxChargingVoltage=max_charging_voltage=([value] ctrl_file1::value::default1 ctrl_file2::value::default2 ...) --exit)
 
-# rebootOnPause=reboot_on_pause=seconds
-
-# switchDelay=switch_delay=seconds
-
 # language=lang=language_code
-
-# wakeUnlock=wake_unlock=(wakelock1 wakelock2 ...)
 
 # prioritizeBattIdleMode=prioritize_batt_idle_mode=true/false
 
-# forceChargingStatusFullAt100=force_charging_status_full_at_100=status_code
-
 # runCmdOnPause=run_cmd_on_pause=(. script)
-
-# autoShutdownAlertCmd=auto_shutdown_alert_cmd=(. script)
-
-# chargDisabledNotifCmd=charg_disabled_notif_cmd=(. script)
-
-# chargEnabledNotifCmd=charg_enabled_notif_cmd=(. script)
-
-# errorAlertCmd=error_alert_cmd=(. script)
 
 # ampFactor=amp_factor=[multiplier]
 
 # voltFactor=volt_factor=[multiplier]
-
-# ctrlFileWrites=ctrl_file_writes=(times interval)
 
 # loopCmd=loop_cmd=(. script)
 
@@ -114,9 +84,6 @@ loopCmd=()
 # rbsp reset_batt_stats_on_pause
 # rbsu reset_batt_stats_on_unplug
 
-# ldc loop_delay_charging
-# ldd loop_delay_discharging
-
 # s charging_switch
 
 # ab apply_on_boot
@@ -125,23 +92,13 @@ loopCmd=()
 # mcc max_charging_current
 # mcv max_charging_voltage
 
-# rp reboot_on_pause
-# sd switch_delay
 # l lang
-# wu wake_unlock
 # pbim prioritize_batt_idle_mode
-# ff force_charging_status_full_at_100
 # rcp run_cmd_on_pause
-
-# asac auto_shutdown_alert_cmd
-# cdnc charg_disabled_notif_cmd
-# cenc charg_enabled_notif_cmd
-# eac error_alert_cmd
 
 # af amp_factor
 # vf volt_factor
 
-# cfw ctrl_file_writes
 # lc loop_cmd
 
 
@@ -153,9 +110,6 @@ loopCmd=()
 
 # acc -s "s=battery/charging_enabled 1 0"
 # acc --set "charging_switch=/proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0" ("::" = " ")
-
-# acc -s sd=5
-# acc -s switch_delay=5
 
 # acc -s -v 3920 (millivolts)
 # acc -s -c 500 (milliamps)
@@ -173,8 +127,6 @@ loopCmd=()
 # acc -s volt_factor=1000000
 
 # acc -s mcc=500 mcv="3920 --exit"
-
-# acc -s cfw="9 0.1"
 
 # acc -s loop_cmd="echo 0 \\> battery/input_suspend"
 
@@ -232,19 +184,12 @@ loopCmd=()
 # Reset battery stats after pausing charging.
 
 # reset_batt_stats_on_unplug (rbsu) #
-# Reset battery stats after unplugging the charger AND loop_delay_discharging (seconds) have passed.
-# If the charger is replugged within loop_delay_discharging (seconds) after unplugging it, the operation is aborted.
-
-# loop_delay_charging (ldc) #
-# loop_delay_discharging (ldd) #
-# These are delays (seconds) between loop iterations.
-# Lower values translate to quicker acc responsiveness - but at the cost of slightly extra CPU time.
-# Don't touch these (particularly ldd), unless you know exactly what you're doing.
+# Reset battery stats if the charger has been unplugged for 10 seconds.
 
 # charging_switch (s) #
 # If unset, acc cycles through its database and sets the first working switch/group that disables charging.
 # If the set switch/group doesn't work, acc unsets chargingSwitch and repeats the above.
-# If all switches fail to disable charging, chargingSwitch is unset, switchDelay is reverted to 1.5 and acc/d exit with error code 7.
+# If all switches fail to disable charging, chargingSwitch is unset and acc/d exit with error code 7.
 # This automated process can be disabled by appending "--" to "charging_switch=...".
 # e.g., acc -s s="battery/charge_enabled 1 0 --"
 
@@ -264,49 +209,16 @@ loopCmd=()
 # Control files are automatically selected.
 # Refer back to the command examples.
 
-# reboot_on_pause (rp) #
-# If this doesn't make sense to you, you probably don't need it.
-# Essentially, this is a timeout (seconds) before rebooting - after pausing charging.
-# This reboot is a workaround for a firmware issue that causes abnormally fast battery drain after charging is paused on certain devices.
-# The issue has reportedly been fixed by the OEMs. This feature will eventually be removed.
-
-# switch_delay (sd) #
-# This is a delay (seconds) between charging status checks after toggling charging switches. It exists because some switches don't react immediately after being toggled.
-# Most devices/switches work with a value of 1.
-# Some may require a delay as high as 3. The optimal max is probably 3.5.
-# If a charging switch seems to work intermittently, or fails completely, increasing this value may fix the issue.
-# You absolutely should increase this value if "acc -t" reports total failure.
-# Some MediaTek devices require a delay as high as 15!
-# accd manages this setting dynamically.
-
 # lang (l) #
 # acc language, managed with "acc --set --lang" (acc -s l).
-
-# wake_unlock (wu) #
-# This is an attempt to release wakelocks acquired after disabling charging.
-# It's totally experimental and may or may not work (expect side effects).
 
 # prioritize_batt_idle_mode (pbim) #
 # Several devices can draw power directly from the external power supply when charging is paused. Test yours with "acc -t".
 # This setting dictates whether charging switches that support such feature should take precedence.
 
-# force_charging_status_full_at_100 (ff) #
-# Some Pixel devices were found to never report "full" status after the battery capacity reaches 100%.
-# This setting forces Android to behave as intended.
-# For Pixel devices, the status code of "full" is 5 (ff=5).
-# The status code is found through trial and error, with the commands "dumpsys battery", "dumpsys battery set status #" and "dumpsys battery reset".
-
 # run_cmd_on_pause (rcp) #
 # Run commands* after pausing charging.
 # * Usually a script ("sh some_file" or ". some_file")
-
-# auto_shutdown_alert_cmd (asac) #
-# charg_disabled_notif_cmd (cdnc) #
-# charg_enabled_notif_cmd (cenc) #
-# error_alert_cmd (eac) #
-# As the names suggest, these properties dictate commands acc/d/s should run at each event.
-# The default command is "vibrate <number of vibrations> <interval (seconds)>"
-# Termux APIs can be used for notifications, TTS, toasts and more. For details, refer to https://wiki.termux.com/wiki/Termux:API .
 
 # amp_factor (af) #
 # volt_factor (vf) #
@@ -315,10 +227,6 @@ loopCmd=()
 # e.g., if the input current is too low, the unit is miscalculated.
 # This issue is rare, though.
 # Leave these properties alone if everything is running fine.
-
-# ctrl_file_writes (cfw) #
-# This determines how many times each ctrl file should be written to, as well as the interval (seconds) between these writes.
-# That's an attempt to force changes that don't take effect immediately or at all.
 
 # loop_cmd (lc) #
 # This is meant for extending accd's functionality.

@@ -21,7 +21,9 @@ apply_on_boot() {
 
 apply_on_plug() {
   local entry="" file="" value="" default="" arg=${1:-value}
-  for entry in "${applyOnPlug[@]-}" "${maxChargingCurrent[@]-}" "${maxChargingVoltage[@]-}"; do
+  for entry in "${applyOnPlug[@]-}" "${maxChargingCurrent[@]-}" \
+    "${maxChargingVoltage[@]-}"
+  do
     set -- ${entry//::/ }
     file=${1-}
     value=${2-}
@@ -55,24 +57,13 @@ cycle_switches() {
       }
 
       [ "$1" != off ] || {
-        not_charging ${2-} || {
-          sleep $switchDelay
-          # find a working switchDelay
-          while ! not_charging ${2-}; do
-            switchDelay=$(( ${switchDelay%.?} + 2 ))
-            sleep $switchDelay
-            [ $switchDelay -lt ${mtksd-7} ] || break
-          done
-        }
-
-        if ! not_charging ${2-}; then
+        if sleep_sd not_charging ${2-}; then
+          # enforce working charging switch(es)
+          . $execDir/write-config.sh
+        else
           # reset switch/group that fails to disable charging
           run_xtimes "echo ${chargingSwitch[1]//::/ } > ${chargingSwitch[0]} || :;
             echo ${chargingSwitch[4]//::/ } > ${chargingSwitch[3]:-/dev/null} || :" 2>/dev/null
-          switchDelay=1.5
-        else
-          # enforce working charging switch(es) and switchDelay
-          . $execDir/write-config.sh
           break
         fi
       }
@@ -89,8 +80,8 @@ cycle_switches_off() {
 
 disable_charging() {
 
-  local noexit=true
-  [[ "${chargingSwitch[*]-}" = *-- ]] || noexit=false
+  local autoMode=true
+  [[ "${chargingSwitch[*]-}" = *-- ]] || autoMode=false
 
   if $isAccd; then
     ! not_charging || return 0
@@ -111,8 +102,7 @@ disable_charging() {
             cycle_switches_off
           }
         }
-        not_charging || sleep ${switchDelay}
-        if not_charging && ! $noexit; then
+        if $autoMode && ! sleep_sd not_charging; then
           unset_switch
           cycle_switches_off
         fi
@@ -130,21 +120,9 @@ disable_charging() {
     cycle_switches_off
   fi
 
-  if not_charging; then
-    # if maxTemp is reached, keep charging paused for ${temperature[2]} seconds more
-    ! $isAccd || {
-      [ ! $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) -ge $(( ${temperature[1]} * 10 )) ] \
-        || sleep ${temperature[2]}
-    }
-  else
-    $noexit || return 7 # total failure
-  fi
+  not_charging || ! $autoMode || return 7 # total failure
 
   eval "${runCmdOnPause[@]-}"
-
-  ${cooldown-false} || {
-    eval "${chargDisabledNotifCmd[@]-}"
-  }
 
   if [ -n "${1-}" ]; then
     case $1 in
@@ -183,16 +161,12 @@ enable_charging() {
 
   if ! $ghostCharging || { $ghostCharging && [[ $(cat */online) = *1* ]]; }; then
 
-    $isAccd || {
-      [ "${2-}" = noap ] || apply_on_plug
-    }
+    $isAccd || apply_on_plug
 
     chmod u+w ${chargingSwitch[0]-} ${chargingSwitch[3]-} 2>/dev/null \
       && run_xtimes "echo ${chargingSwitch[1]//::/ } > ${chargingSwitch[0]-}
         echo ${chargingSwitch[4]//::/ } > ${chargingSwitch[3]:-/dev/null}" 2>/dev/null \
       || cycle_switches on
-
-    ! not_charging || sleep ${switchDelay}
 
     # detect and block ghost charging
     if ! $ghostCharging && ! not_charging && [[ $(cat */online) != *1* ]] \
@@ -204,10 +178,6 @@ enable_charging() {
       wait_plug
       return 0
     fi
-
-    ${cooldown-false} || {
-      not_charging || eval "${chargEnabledNotifCmd[@]-}"
-    }
 
     if [ -n "${1-}" ]; then
       case $1 in
@@ -277,6 +247,9 @@ print_wait_plug() {
 
 
 run_xtimes() {
+  eval "$@"
+  return $?
+  #wip
   local count=0
   for count in $(seq ${ctrlFileWrites[0]}); do
     eval "$@"
@@ -285,20 +258,18 @@ run_xtimes() {
 }
 
 
-unset_switch() {
-  chargingSwitch=()
-  switchDelay=1.5
-  . $execDir/write-config.sh
+sleep_sd() {
+  local i=
+  for i in $(seq $switchDelay); do
+    eval "$@" && return 0 || sleep 1
+  done
+  return 1
 }
 
 
-vibrate() {
-  [ $1 != "-" -a $isAccd = false ] || return 0
-  local count=0
-  for count in $(seq $1); do
-    ${fd3-false} && print -n '\a' >&3 || print -n '\a' || :
-    sleep $2
-  done
+unset_switch() {
+  charging_switch=
+  . $execDir/write-config.sh
 }
 
 
@@ -320,7 +291,10 @@ wait_plug() {
 
 id=acc
 umask 0077
+switchDelay=7
+loopDelay=(5 10)
 execDir=/data/adb/acc
+ctrlFileWrites=(3 0.3)
 export TMPDIR=/dev/.acc
 config=/sdcard/Download/$id/config.txt
 config_=$config
@@ -356,4 +330,4 @@ done 2>/dev/null || :
 pgrep -f zygote > /dev/null || dumpsys() { :; }
 
 # set max switch_delay for mtk devices
-! grep -q mtk_battery_cmd $TMPDIR/ch-switches || mtksd=20
+! grep -q mtk_battery_cmd $TMPDIR/ch-switches || switchDelay=20

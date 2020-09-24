@@ -174,32 +174,22 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202007220
+configVerCode=202009230
 capacity=(-1 60 70 75 false)
 temperature=(40 60 90)
 cooldownRatio=()
 cooldownCustom=()
 resetBattStats=(false false)
-loopDelay=(10 15)
 chargingSwitch=()
 applyOnBoot=()
 applyOnPlug=()
 maxChargingCurrent=()
 maxChargingVoltage=()
-rebootOnPause=
-switchDelay=1.5
 language=en
-wakeUnlock=()
 prioritizeBattIdleMode=true
-forceChargingStatusFullAt100=
 runCmdOnPause=()
-autoShutdownAlertCmd=(vibrate 5 0.1)
-chargDisabledNotifCmd=(vibrate 3 0.1)
-chargEnabledNotifCmd=(vibrate 4 0.1)
-errorAlertCmd=(vibrate 6 0.1)
 ampFactor=
 voltFactor=
-ctrlFileWrites=(3 0.3)
 loopCmd=()
 
 
@@ -227,8 +217,6 @@ loopCmd=()
 
 # resetBattStats=(reset_batt_stats_on_pause reset_batt_stats_on_unplug)
 
-# loopDelay=(loop_delay_charging loop_delay_discharging)
-
 # chargingSwitch=charging_switch=(ctrl_file1 on off ctrl_file2 on off --)
 
 # applyOnBoot=apply_on_boot=(ctrl_file1::value1::default1 ctrl_file2::value2::default2 ... --exit)
@@ -239,33 +227,15 @@ loopCmd=()
 
 # maxChargingVoltage=max_charging_voltage=([value] ctrl_file1::value::default1 ctrl_file2::value::default2 ...) --exit)
 
-# rebootOnPause=reboot_on_pause=seconds
-
-# switchDelay=switch_delay=seconds
-
 # language=lang=language_code
-
-# wakeUnlock=wake_unlock=(wakelock1 wakelock2 ...)
 
 # prioritizeBattIdleMode=prioritize_batt_idle_mode=true/false
 
-# forceChargingStatusFullAt100=force_charging_status_full_at_100=status_code
-
 # runCmdOnPause=run_cmd_on_pause=(. script)
-
-# autoShutdownAlertCmd=auto_shutdown_alert_cmd=(. script)
-
-# chargDisabledNotifCmd=charg_disabled_notif_cmd=(. script)
-
-# chargEnabledNotifCmd=charg_enabled_notif_cmd=(. script)
-
-# errorAlertCmd=error_alert_cmd=(. script)
 
 # ampFactor=amp_factor=[multiplier]
 
 # voltFactor=volt_factor=[multiplier]
-
-# ctrlFileWrites=ctrl_file_writes=(times interval)
 
 # loopCmd=loop_cmd=(. script)
 
@@ -290,9 +260,6 @@ loopCmd=()
 # rbsp reset_batt_stats_on_pause
 # rbsu reset_batt_stats_on_unplug
 
-# ldc loop_delay_charging
-# ldd loop_delay_discharging
-
 # s charging_switch
 
 # ab apply_on_boot
@@ -301,23 +268,13 @@ loopCmd=()
 # mcc max_charging_current
 # mcv max_charging_voltage
 
-# rp reboot_on_pause
-# sd switch_delay
 # l lang
-# wu wake_unlock
 # pbim prioritize_batt_idle_mode
-# ff force_charging_status_full_at_100
 # rcp run_cmd_on_pause
-
-# asac auto_shutdown_alert_cmd
-# cdnc charg_disabled_notif_cmd
-# cenc charg_enabled_notif_cmd
-# eac error_alert_cmd
 
 # af amp_factor
 # vf volt_factor
 
-# cfw ctrl_file_writes
 # lc loop_cmd
 
 
@@ -329,9 +286,6 @@ loopCmd=()
 
 # acc -s "s=battery/charging_enabled 1 0"
 # acc --set "charging_switch=/proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0" ("::" = " ")
-
-# acc -s sd=5
-# acc -s switch_delay=5
 
 # acc -s -v 3920 (millivolts)
 # acc -s -c 500 (milliamps)
@@ -349,8 +303,6 @@ loopCmd=()
 # acc -s volt_factor=1000000
 
 # acc -s mcc=500 mcv="3920 --exit"
-
-# acc -s cfw="9 0.1"
 
 # acc -s loop_cmd="echo 0 \\> battery/input_suspend"
 
@@ -408,19 +360,12 @@ loopCmd=()
 # Reset battery stats after pausing charging.
 
 # reset_batt_stats_on_unplug (rbsu) #
-# Reset battery stats after unplugging the charger AND loop_delay_discharging (seconds) have passed.
-# If the charger is replugged within loop_delay_discharging (seconds) after unplugging it, the operation is aborted.
-
-# loop_delay_charging (ldc) #
-# loop_delay_discharging (ldd) #
-# These are delays (seconds) between loop iterations.
-# Lower values translate to quicker acc responsiveness - but at the cost of slightly extra CPU time.
-# Don't touch these (particularly ldd), unless you know exactly what you're doing.
+# Reset battery stats if the charger has been unplugged for 10 seconds.
 
 # charging_switch (s) #
 # If unset, acc cycles through its database and sets the first working switch/group that disables charging.
 # If the set switch/group doesn't work, acc unsets chargingSwitch and repeats the above.
-# If all switches fail to disable charging, chargingSwitch is unset, switchDelay is reverted to 1.5 and acc/d exit with error code 7.
+# If all switches fail to disable charging, chargingSwitch is unset and acc/d exit with error code 7.
 # This automated process can be disabled by appending "--" to "charging_switch=...".
 # e.g., acc -s s="battery/charge_enabled 1 0 --"
 
@@ -440,49 +385,16 @@ loopCmd=()
 # Control files are automatically selected.
 # Refer back to the command examples.
 
-# reboot_on_pause (rp) #
-# If this doesn't make sense to you, you probably don't need it.
-# Essentially, this is a timeout (seconds) before rebooting - after pausing charging.
-# This reboot is a workaround for a firmware issue that causes abnormally fast battery drain after charging is paused on certain devices.
-# The issue has reportedly been fixed by the OEMs. This feature will eventually be removed.
-
-# switch_delay (sd) #
-# This is a delay (seconds) between charging status checks after toggling charging switches. It exists because some switches don't react immediately after being toggled.
-# Most devices/switches work with a value of 1.
-# Some may require a delay as high as 3. The optimal max is probably 3.5.
-# If a charging switch seems to work intermittently, or fails completely, increasing this value may fix the issue.
-# You absolutely should increase this value if "acc -t" reports total failure.
-# Some MediaTek devices require a delay as high as 15!
-# accd manages this setting dynamically.
-
 # lang (l) #
 # acc language, managed with "acc --set --lang" (acc -s l).
-
-# wake_unlock (wu) #
-# This is an attempt to release wakelocks acquired after disabling charging.
-# It's totally experimental and may or may not work (expect side effects).
 
 # prioritize_batt_idle_mode (pbim) #
 # Several devices can draw power directly from the external power supply when charging is paused. Test yours with "acc -t".
 # This setting dictates whether charging switches that support such feature should take precedence.
 
-# force_charging_status_full_at_100 (ff) #
-# Some Pixel devices were found to never report "full" status after the battery capacity reaches 100%.
-# This setting forces Android to behave as intended.
-# For Pixel devices, the status code of "full" is 5 (ff=5).
-# The status code is found through trial and error, with the commands "dumpsys battery", "dumpsys battery set status #" and "dumpsys battery reset".
-
 # run_cmd_on_pause (rcp) #
 # Run commands* after pausing charging.
 # * Usually a script ("sh some_file" or ". some_file")
-
-# auto_shutdown_alert_cmd (asac) #
-# charg_disabled_notif_cmd (cdnc) #
-# charg_enabled_notif_cmd (cenc) #
-# error_alert_cmd (eac) #
-# As the names suggest, these properties dictate commands acc/d/s should run at each event.
-# The default command is "vibrate <number of vibrations> <interval (seconds)>"
-# Termux APIs can be used for notifications, TTS, toasts and more. For details, refer to https://wiki.termux.com/wiki/Termux:API .
 
 # amp_factor (af) #
 # volt_factor (vf) #
@@ -491,10 +403,6 @@ loopCmd=()
 # e.g., if the input current is too low, the unit is miscalculated.
 # This issue is rare, though.
 # Leave these properties alone if everything is running fine.
-
-# ctrl_file_writes (cfw) #
-# This determines how many times each ctrl file should be written to, as well as the interval (seconds) between these writes.
-# That's an attempt to force changes that don't take effect immediately or at all.
 
 # loop_cmd (lc) #
 # This is meant for extending accd's functionality.
@@ -604,7 +512,7 @@ Options
 
   -la   Same as -l -a
 
-  -l|--log -e|--export   Export all logs to /sdcard/Download/acc/acc-logs-$deviceName.tar.bz2
+  -l|--log -e|--export   Export all logs to /sdcard/Download/acc/logs/acc-logs-$deviceName.tar.bz2
     e.g., acc -l -e
 
   -le   Same as -l -e
@@ -677,16 +585,15 @@ Options
 
   -sv [millivolts|-] [--exit]   Same as above
 
-  -t|--test [switch_delay] [ctrl_file1 on off [ctrl_file2 on off]]   Test custom charging switches
+  -t|--test [ctrl_file1 on off [ctrl_file2 on off]]   Test custom charging switches
     e.g.,
       acc -t battery/charging_enabled 1 0
-      acc -t 15 /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0 ("::" is a placeholder for " "; the default switch_delay is 7)
+      acc -t /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0 ("::" is a placeholder for " ")
 
-  -t|--test [switch_delay] [file]   Test charging switches from a file (default: /data/data/com.termux/files/usr/tmp/ch-switches)
+  -t|--test [file]   Test charging switches from a file (default: /data/data/com.termux/files/usr/tmp/ch-switches)
     This will also report whether "battery idle" mode is supported
     e.g.,
       acc -t (test known switches)
-      acc -t 15 (test known switches, switch_delay=15; default sd is 7)
       acc -t /sdcard/experimental_switches.txt (test custom/foreign switches)
 
   -T|--logtail   Monitor accd log (tail -F)
@@ -754,7 +661,6 @@ Tips
 ---
 ## NOTES/TIPS FOR FRONT-END DEVELOPERS
 
-
 Use `/dev/acca` over `acc` commands.
 These are optimized for front-ends - guaranteed to be readily available after installation/initialization and significantly faster than regular acc commands.
 
@@ -767,6 +673,8 @@ Explain settings/concepts as clearly and with as few words as possible.
 
 Take advantage of exit codes.
 Refer back to `SETUP/USAGE > Terminal Commands > Exit Codes`.
+
+Note: after updating charging_switch or shutdown_capacity, accd has to be restarted (`/dev/accd`) by the front-end itself for these changes to take effect immediately.
 
 
 ### Online Install
@@ -795,11 +703,6 @@ Refer back to the `BUILDING AND/OR INSTALLING FROM SOURCE` section.
 
 ---
 ## TROUBLESHOOTING
-
-
-### `acc -t` Reports Total Failure
-
-Refer back to `DEFAULT CONFIGURATION (switch_delay)`.
 
 
 ### Battery Capacity (% Level) Doesn't Seem Right
@@ -877,23 +780,11 @@ The phone will only draw the max it can take.
 
 ### Diagnostics/Logs
 
-Volatile logs (gone on reboot) are stored in `/dev/.acc/`.
-Persistent logs: `/sdcard/Download/acc/logs/`.
-
-`/dev/.acc-removed` is created by the uninstaller.
-The storage location is volatile.
+Volatile logs (gone on reboot) are stored in `/dev/.acc/`, persistent logs - `/sdcard/Download/acc/logs/`.
 
 `acc -le` exports all acc logs, plus Magisk's and extras to `/sdcard/acc-$device_codename.tar.bz2`.
 The logs do not contain any personal information and are never automatically sent to the developer.
 Automatic exporting (local) happens under specific conditions (refer back to `SETUP/USAGE > Terminal Commands > Exit Codes`).
-
-
-### MediaTek (MTK) Devices
-
-> MTK devices are problematic by design.
-- Anonymous
-
-Some users may have to set `switch_delay=15` (or higher) or `charging_switch="/proc/mtk_battery_cmd/current_cmd 0::0 0::1"` or both.
 
 
 ### Restore Default Config
@@ -973,43 +864,8 @@ Force fast charge: `appy_on_boot="/sys/kernel/fast_charge/force_fast_charge::1::
 
 Force fast wireless charging with third party wireless chargers that are supposed to charge the battery faster: `apply_on_plug=wireless/voltage_max::9000000`.
 
-
-### Using [Termux:API](https://wiki.termux.com/wiki/Termux:API) for Text-to-Speech
-
-
-1) Install Termux, Termux:Boot and Termux:API APKs.
-If you're not willing to pay for Termux add-ons, go for the F-Droid versions of these AND Termux itself.
-Since package signatures mismatch, you can't install the add-ons from F-Droid if Termux was obtained from Play Store and vice versa.
-
-
-2) Exclude Termux:Boot from battery optimization, then launch (to enable auto-start) and close it.
-
-
-3) Paste and run the following on Termux, as a regular (non-root) user:
-```
-mkfifo ~/acc-fifo; mkdir -p ~/.termux/boot; pkg install termux-api; echo -e '#!/data/data/com.termux/files/usr/bin/sh\nwhile :; do\n  cat ~/acc-fifo\ndone | termux-tts-speak' > ~/.termux/boot/acc-tts.sh; chmod 0755 ~/.termux/boot/acc-tts.sh; sh ~/.termux/boot/acc-tts.sh &
-```
-Let that session run in the background.
-
-
-4) ACC has the following:
-
-auto_shutdown_alert_cmd (asac)
-charg_disabled_notif_cmd (cdnc)
-charg_enabled_notif_cmd (cenc)
-error_alert_cmd (eac)
-
-As the names suggest, these properties dictate commands acc/d should run on each event.
-The default command is "vibrate <number of vibrations> <interval (seconds)>"
-
-Let's assume you want the phone to say _Warning! Battery is low. System will shutdown soon._
-To set that up, paste and run the following on a terminal, as root:
-
-`echo -e "\nautoShutdownAlertCmd=('! pgrep -f acc-tts.sh || echo \"Warning! Battery is low. System will shutdown soon.\" > /data/data/com.termux/files/home/acc-fifo')" >> /sdcard/Download/acc/config.txt`
-
-
-That's it.
-You only have to go through these steps once.
+This may not work on all Pixel devices.
+There are no negative consequences when it doesn't.
 
 
 ---
@@ -1020,7 +876,7 @@ You only have to go through these steps once.
 
 Open issues on GitHub or contact the developer on Facebook, Telegram (preferred) or XDA (links below).
 Always provide as much information as possible.
-Attach `/sdcard/Download/acc/acc-logs-*tar.bz2` - generated by `acc -le` _right after_ the problem occurs.
+Attach `/sdcard/Download/acc/logs/acc-logs-*tar.bz2` - generated by `acc -le` _right after_ the problem occurs.
 Refer back to `TROUBLESHOOTING > Diagnostics/Logs` for additional details.
 
 
@@ -1141,19 +997,40 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 ---
 ## LATEST CHANGES
 
+**v2020.9.24 (202009240)**
+
+- Cooldown no longer interferes with capacity_sync.
+- Delay accd initialization (5 minutes) to prevent conflicts with fbind.
+- Do not auto-shutdown if charging was disabled by accd itself at temp >= max_temp.
+- Do not remount / rw if it's not tmpfs.
+- Fixed cooldown_custom.
+- Major optimizations
+- MTK and Razer specific tweaks
+- New charging switch for Motorola One Vision
+- Removed obsolete features.
+- Simplified config.
+- Updated documentation.
+
+Release Notes
+
+- Config will be reset.
+- MIUI bootloop issue possibly fixed.
+
 
 **v2020.9.14 (202009140)**
 
-- Ensure releae-lock.sh does not cause unwanted acc/d termination.
+- Ensure release-lock.sh does not cause unwanted acc/d termination.
 - General fixes & optimizations
 - mv /data/adb/acc-data /sdcard/Download/acc
 - Reapply voltage limits on plug.
 
 Release Notes
-  - All persistent acc data is now stored in /sdcard/Download/acc/.
-  - "mx4pro" users, please send me a new log archive after installing this version.
-  - Nothing was done in regards to the "MIUI 12" bootloop issue. The root cause is still unknown.
+
+- All persistent acc data is now stored in /sdcard/Download/acc/.
+- "mx4pro" users, please send me a new log archive after installing this version.
+- Nothing was done in regards to the "MIUI 12" bootloop issue. The root cause is still unknown.
 
 Unannounced Releases (@romanegunkov)
-  - v2020.9.01 (202009010): Fixed --upgrade bug.
-  - v2020.8.24 (202008240): Prevent auto shutdown if system has been running for less than 15 minutes.
+
+- v2020.9.01 (202009010): Fixed --upgrade bug.
+- v2020.8.24 (202008240): Prevent auto shutdown if system has been running for less than 15 minutes.

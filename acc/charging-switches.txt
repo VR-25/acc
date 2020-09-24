@@ -4,7 +4,7 @@
 #
 # "::" = " "
 # PWD=/sys/class/power_supply
-# Last updated: Thu, Jul 2, 2020
+# Last updated: Wed, Sep 23, 2020
 
 battery/charger_control 1 0
 */charge_disable 0 1
@@ -54,6 +54,7 @@ battery/device/smartchg_stop_charging 0 1
 /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0
 /proc/driver/charger_limit_enable 0 1 /proc/driver/charger_limit 100 1
 /sys/module/lge_battery/parameters/charge_stop_level 100 1 battery/input_suspend 0 0
+/sys/devices/platform/*.i2c/i2c-?/?-*/*-battery/power_supply/battery/charging_enabled 1 0
 
 battery/input_suspend 0 1
 

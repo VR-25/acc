@@ -92,14 +92,13 @@ get_prop() { sed -n "s|^$1=||p" ${2:-$config}; }
 
 test_charging_switch() {
 
-  local failed=false switchDelay=${switchDelay_-${mtksd-7}}
+  local failed=false
 
   chmod u+w $1 ${4-} \
     && run_xtimes "echo ${3//::/ } > $1 && echo ${6//::/ } > ${4:-/dev/null}" \
-    && sleep $switchDelay
+    && sleep_sd not_charging || :
 
   ! not_charging && failed=true || {
-    eval "${chargDisabledNotifCmd[@]-}"
     grep -iq 'not' $batt/status \
       && battIdleMode=true \
       || battIdleMode=false
@@ -107,7 +106,7 @@ test_charging_switch() {
 
   if ! $failed \
     && run_xtimes "echo ${2//::/ } > $1 && echo ${5//::/ } > ${4:-/dev/null}" \
-    && sleep $switchDelay && ! not_charging && eval "${chargEnabledNotifCmd[@]-}"
+    && sleep_sd "! not_charging"
   then
     print_switch_works "$@"
     echo "- battIdleMode=$battIdleMode"
@@ -125,10 +124,7 @@ exxit() {
   set +eux
   ! ${noEcho:-false} && ${verbose:-true} && echo
   [[ $exitCode = [05689] ]] || {
-    [[ $exitCode = [127] || $exitCode = 10 ]] && {
-      logf --export
-      eval "${errorAlertCmd[@]-}"
-    }
+    [[ $exitCode = [127] || $exitCode = 10 ]] && logf --export
     echo
   }
   cd /
@@ -262,7 +258,7 @@ case "${1-}" in
     resume_capacity=$(( pause_capacity - 5 ))
     run_cmd_on_pause="exec /dev/accd"
 
-    grep -Ev '^$|^#' $config > $TMPDIR/.acc-f-config
+    cp -f $config $TMPDIR/.acc-f-config
     config=$TMPDIR/.acc-f-config
     . $execDir/write-config.sh
     print_charging_enabled_until ${2:-100}%
@@ -281,30 +277,41 @@ case "${1-}" in
 
   -i|--info)
 
+    set +e
     dsys="$(dumpsys battery)"
 
-    { { if [[ "$dsys" = *reset* ]] > /dev/null; then
-      status=$(echo "$dsys" | sed -n 's/^  status: //p')
-      level=$(echo "$dsys" | sed -n 's/^  level: //p')
-      powered=$(echo "$dsys" | grep ' powered: true' > /dev/null && echo true || echo false)
-      dumpsys battery reset
-      dumpsys battery
-      dumpsys battery set status $status
-      dumpsys battery set level $level
-      if $powered; then
-        dumpsys battery set ac 1
-      else
-        dumpsys battery unplug
-      fi
-    else
-      echo "$dsys"
-    fi \
-      | grep -Ei "${2-.*}" \
-      | sed -e '1s/.*/dumpsys battery/' && echo; } || :
+    {
+      {
 
-    . $execDir/batt-info.sh
-    echo "/sys/class/power_supply/$batt/uevent"
-    batt_info "${2-}" | sed 's/^/  /'; } | more
+        if [[ "$dsys" = *reset* ]] > /dev/null; then
+
+          status=$(echo "$dsys" | sed -n 's/^  status: //p')
+          level=$(echo "$dsys" | sed -n 's/^  level: //p')
+          powered=$(echo "$dsys" | grep ' powered: true' > /dev/null && echo true || echo false)
+
+          dumpsys battery reset
+          dumpsys battery
+          dumpsys battery set status $status
+          dumpsys battery set level $level
+
+          if $powered; then
+            dumpsys battery set ac 1
+          else
+            dumpsys battery unplug
+          fi
+
+        else
+          echo "$dsys"
+        fi
+
+      } | grep -Ei "${2-.*}" \
+          | sed -e '1s/.*/dumpsys battery/' && echo
+
+      . $execDir/batt-info.sh
+      echo "/sys/class/power_supply/$batt/uevent"
+      batt_info "${2-}" | sed 's/^/  /'
+
+    } | more
   ;;
 
 
@@ -375,19 +382,20 @@ case "${1-}" in
 
     shift
     print_unplugged
-    daemon_ctrl stop > /dev/null && daemonWasUp=true || daemonWasUp=false
+
+    daemon_ctrl stop > /dev/null \
+      && daemonWasUp=true || daemonWasUp=false
 
     . $execDir/acquire-lock.sh
 
-    grep -Ev '^$|^#' $config > $TMPDIR/.config
+    cp -f $config $TMPDIR/.config
     config=$TMPDIR/.config
-    fd3=true
-    exec 3>&1
 
     set +e
     trap '! $daemonWasUp || exec /dev/accd $config_' EXIT
 
     not_charging && enable_charging > /dev/null
+
     not_charging && {
       (print_wait_plug
       while not_charging; do
@@ -397,14 +405,6 @@ case "${1-}" in
     }
 
     print_wait
-
-    # custom switch delay
-    case "${1-}" in
-      [0-9]|[0-9][0-9]|[0-9].[0-9])
-        switchDelay_=$1
-        shift
-      ;;
-    esac
 
     case "${1-}" in
       */*)

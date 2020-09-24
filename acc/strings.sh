@@ -165,7 +165,7 @@ Options
 
   -la   Same as -l -a
 
-  -l|--log -e|--export   Export all logs to /sdcard/Download/acc/acc-logs-\$deviceName.tar.bz2
+  -l|--log -e|--export   Export all logs to /sdcard/Download/acc/logs/acc-logs-\$deviceName.tar.bz2
     e.g., acc -l -e
 
   -le   Same as -l -e
@@ -238,16 +238,15 @@ Options
 
   -sv [millivolts|-] [--exit]   Same as above
 
-  -t|--test [switch_delay] [ctrl_file1 on off [ctrl_file2 on off]]   Test custom charging switches
+  -t|--test [ctrl_file1 on off [ctrl_file2 on off]]   Test custom charging switches
     e.g.,
       acc -t battery/charging_enabled 1 0
-      acc -t 15 /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0 ("::" is a placeholder for " "; the default switch_delay is 7)
+      acc -t /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0 ("::" is a placeholder for " ")
 
-  -t|--test [switch_delay] [file]   Test charging switches from a file (default: $TMPDIR/ch-switches)
+  -t|--test [file]   Test charging switches from a file (default: $TMPDIR/ch-switches)
     This will also report whether "battery idle" mode is supported
     e.g.,
       acc -t (test known switches)
-      acc -t 15 (test known switches, switch_delay=15; default sd is 7)
       acc -t /sdcard/experimental_switches.txt (test custom/foreign switches)
 
   -T|--logtail   Monitor accd log (tail -F)

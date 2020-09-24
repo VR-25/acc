@@ -18,9 +18,6 @@ cooldown_custom=${cooldownCustom[@]}
 reset_batt_stats_on_pause=${resetBattStats[0]}
 reset_batt_stats_on_unplug=${resetBattStats[1]}
 
-loop_delay_charging=${loopDelay[0]}
-loop_delay_discharging=${loopDelay[1]}
-
 charging_switch=${chargingSwitch[@]}
 
 apply_on_boot=${applyOnBoot[@]}
@@ -31,28 +28,13 @@ max_charging_current=${maxChargingCurrent[@]}
 
 max_charging_voltage=${maxChargingVoltage[@]}
 
-reboot_on_pause=$rebootOnPause
-switch_delay=$switchDelay
 lang=$language
 
-wake_unlock=${wakeUnlock[@]}
-
 prioritize_batt_idle_mode=$prioritizeBattIdleMode
-force_charging_status_full_at_100=$forceChargingStatusFullAt100
 
 run_cmd_on_pause=${runCmdOnPause[@]}
 
-auto_shutdown_alert_cmd=${autoShutdownAlertCmd[@]}
-
-charg_enabled_notif_cmd=${chargEnabledNotifCmd[@]}
-
-error_alert_cmd=${errorAlertCmd[@]}
-
-charg_disabled_notif_cmd=${chargDisabledNotifCmd[@]}
-
 amp_factor=$ampFactor
 volt_factor=$voltFactor
-
-ctrl_file_writes=${ctrlFileWrites[@]}
 
 loop_cmd=${loopCmd[@]}"
