@@ -140,7 +140,7 @@ set_prop_() {
 
 ! ${verbose:-true} || echo
 isAccd=false
-execDir=/data/adb/acc
+execDir=/data/adb/vr25/acc
 defaultConfig=$execDir/default-config.txt
 
 # load generic functions

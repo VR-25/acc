@@ -13,7 +13,7 @@ SKIPUNZIP=1
 echo
 id=acc
 umask 0077
-data_dir=/sdcard/Download/$id
+data_dir=/sdcard/vr25/$id
 
 
 # log
@@ -121,14 +121,11 @@ fi
 
 
 # check/change parent installation directory
-
 ! $magisk || installDir=$magiskModDir
-
-[ -d $installDir ] || installDir=/data/adb
-
+[ $installDir != /data/adb/vr25 ] || mkdir -p $installDir
 [ -d $installDir ] || {
-  printf "(!) $installDir/ not found\n"
-  exit 1
+  installDir=/data/adb/vr25
+  mkdir -p $installDir
 }
 
 
@@ -141,9 +138,14 @@ GPLv3+
 
 
 # migrate #legacy data
-mv -f /data/adb/${id}-data/* /data/adb/${id}-data/.* \
-  $data_dir/ 2>/dev/null || :
-rm -rf $data_dir/info /data/adb/${id}-data/ 2>/dev/null || :
+if [ -d /data/adb/${id}-data ]; then
+  mv -f /data/adb/${id}-data/* /data/adb/${id}-data/.* \
+    $data_dir/ 2>/dev/null || :
+else
+  mv -f /sdcard/Download/$id/* /sdcard/Download/$id/.* \
+    $data_dir/ 2>/dev/null || :
+fi
+rm -rf $data_dir/info 2>/dev/null || :
 
 
 /system/bin/sh $srcDir/$id/uninstall.sh install
@@ -188,7 +190,7 @@ if $acca; then
 
       sleep 60
 
-      [ -e /data/data/mattecarra.${id}app/files/$id ] || rm \$0 /data/adb/$id /data/adb/modules/$id 2>/dev/null
+      [ -e /data/data/mattecarra.${id}app/files/$id ] || rm -rf \$0 /data/adb/vr25/$id /data/adb/modules/$id 2>/dev/null
 
       exit 0" | sed 's/^      //' > /data/adb/service.d/${id}-cleanup.sh
     chmod 0700 /data/adb/service.d/${id}-cleanup.sh
@@ -196,7 +198,10 @@ if $acca; then
 fi
 
 
-[ $installDir = /data/adb/$id ] || ln -s $installDir /data/adb/
+[ $installDir = /data/adb/vr25/$id ] || {
+  mkdir -p /data/adb/vr25
+  ln -s $installDir /data/adb/vr25/
+}
 
 
 # install binaries
@@ -258,10 +263,10 @@ echo "
 
 
 [ $installDir = /data/adb ] && echo "
-(i) Non-Magisk users can enable $id auto-start by running /data/adb/$id/service.sh, a copy of, or a link to it - with init.d or an app that emulates it."
+(i) Non-Magisk users can enable $id auto-start by running /data/adb/vr25/$id/service.sh, a copy of, or a link to it - with init.d or an app that emulates it."
 
 
 # initialize $id
-/data/adb/$id/service.sh --init
+/data/adb/vr25/$id/service.sh --init
 
 exit 0

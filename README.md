@@ -36,7 +36,7 @@ Always read/reread this reference prior to installing/upgrading this software.
 
 While no cats have been harmed, the author assumes no responsibility for anything that might break due to the use/misuse of it.
 
-To prevent fraud, do NOT mirror any link associated with this project; do NOT share builds (zips/tarballs)! Share official links instead.
+To prevent fraud, do NOT mirror any link associated with this project; do NOT share builds (tarballs/zips)! Share official links instead.
 
 
 ---
@@ -52,10 +52,10 @@ By choosing to use/misuse it, you agree to do so at your own risk!
 
 - [Must read - how to prolong lithium ion batteries lifespan](https://batteryuniversity.com/index.php/learn/article/how_to_prolong_lithium_based_batteries/)
 - Android or Android based OS
-- Any root method (e.g., [Magisk](https://github.com/topjohnwu/Magisk/))
+- Any root solution (e.g., [Magisk](https://github.com/topjohnwu/Magisk/))
 - [Busybox\*](https://github.com/search?o=desc&q=busybox+android&s=updated&type=Repositories/) (only if not rooted with Magisk)
-- [curl](https://github.com/search?o=desc&q=curl+android&s=updated&type=Repositories/) (for fbind --upgrade, optional)
-- Non-Magisk users can enable acc auto-start by running /data/adb/$id/service.sh, a copy of, or a link to it - with init.d or an app that emulates it
+- [curl](https://github.com/search?o=desc&q=curl+android&s=updated&type=Repositories/) (for acc --upgrade, optional)
+- Non-Magisk users can enable acc auto-start by running /data/adb/vr25/acc/service.sh, a copy of, or a link to it - with init.d or an app that emulates it.
 - Terminal emulator
 - Text editor (optional)
 
@@ -95,11 +95,11 @@ Settings can be overwhelming. Start with what you understand.
 The default configuration has you covered.
 Don't ever feel like you have to configure everything. You probably shouldn't anyway - unless you really know what you're doing.
 
-Uninstall: run `acc --uninstall` or flash\* `/sdcard/Download/acc/acc-uninstaller.zip`.
+Uninstall: run `acc --uninstall` or flash\* `/sdcard/vr25/acc/acc-uninstaller.zip`.
 
 ACC runs in some recovery environments as well.
 Unless the zip is flashed again, manual initialization is required.
-The initialization command is `/data/adb/acc/service.sh`.
+The initialization command is `/data/adb/vr25/acc/service.sh`.
 
 
 ---
@@ -424,7 +424,7 @@ It's a wizard you'll either love or hate.
 
 If you feel uncomfortable with the command line, skip this section and use the [ACC App](https://github.com/MatteCarra/AccA/releases/) to manage ACC.
 
-Alternatively, you can use a `text editor` to modify `/sdcard/Download/acc/config.txt`.
+Alternatively, you can use a `text editor` to modify `/sdcard/vr25/acc/config.txt`.
 Restart the [daemon](https://en.wikipedia.org/wiki/Daemon_(computing)) afterwards, by running `accd`.
 The config file itself has configuration instructions.
 These instructions are the same found in the `DEFAULT CONFIG` section, above.
@@ -495,7 +495,7 @@ Options
     e.g.,
       acc -F (lauches a zip flashing wizard)
       acc -F "file1" "file2" "fileN" ... (install multiple zips)
-      acc -F "/sdcard/Download/Magisk-v20.0(20000).zip"
+      acc -F "/sdcard/vr25/Magisk-v20.0(20000).zip"
 
   -i|--info [case insentive egrep regex (default: ".")]   Show battery info
     e.g.,
@@ -512,7 +512,7 @@ Options
 
   -la   Same as -l -a
 
-  -l|--log -e|--export   Export all logs to /sdcard/Download/acc/logs/acc-logs-$deviceName.tar.bz2
+  -l|--log -e|--export   Export all logs to /sdcard/vr25/acc/logs/acc-logs-$deviceName.tar.bz2
     e.g., acc -l -e
 
   -le   Same as -l -e
@@ -562,7 +562,7 @@ Options
   -s|--set r|--reset   Restore default config
     e.g.,
       acc -s r
-      rm /sdcard/Download/acc/config.txt (failsafe)
+      rm /sdcard/vr25/acc/config.txt (failsafe)
 
   -sr   Same as above
 
@@ -590,7 +590,7 @@ Options
       acc -t battery/charging_enabled 1 0
       acc -t /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0 ("::" is a placeholder for " ")
 
-  -t|--test [file]   Test charging switches from a file (default: /data/data/com.termux/files/usr/tmp/ch-switches)
+  -t|--test [file]   Test charging switches from a file (default: /dev/.acc/ch-switches)
     This will also report whether "battery idle" mode is supported
     e.g.,
       acc -t (test known switches)
@@ -681,7 +681,7 @@ Note: after updating charging_switch or shutdown_capacity, accd has to be restar
 
 ```
 1) Check whether ACC is installed (exit code 0)
-"which acc"
+"/dev/acca --version"
 
 2) Download the installer (https://raw.githubusercontent.com/VR-25/acc/master/install-online.sh)
 - e.g.,
@@ -733,7 +733,7 @@ Most of the time, though, it's just a matter of plugging the phone before turnin
 Battery level must be below pause_capacity.
 Once booted, one can run `acc --uninstall` (or `acc -U`) to remove ACC.
 
-From recovery, one can flash `/sdcard/Download/acc/acc-uninstaller.zip` or run `mount /system; /data/adb/acc/uninstall.sh`.
+From recovery, one can flash `/sdcard/vr25/acc/acc-uninstaller.zip` or run `mount /system; /data/adb/vr25/acc/uninstall.sh`.
 
 
 ### Charging Switch
@@ -780,7 +780,7 @@ The phone will only draw the max it can take.
 
 ### Diagnostics/Logs
 
-Volatile logs (gone on reboot) are stored in `/dev/.acc/`, persistent logs - `/sdcard/Download/acc/logs/`.
+Volatile logs (gone on reboot) are stored in `/dev/.acc/`, persistent logs - `/sdcard/vr25/acc/logs/`.
 
 `acc -le` exports all acc logs, plus Magisk's and extras to `/sdcard/acc-$device_codename.tar.bz2`.
 The logs do not contain any personal information and are never automatically sent to the developer.
@@ -791,7 +791,7 @@ Automatic exporting (local) happens under specific conditions (refer back to `SE
 
 This can save you a lot of time and grief.
 
-`acc --set --reset`, `acc -sr` or `rm /sdcard/Download/acc/config.txt` (failsafe)
+`acc --set --reset`, `acc -sr` or `rm /sdcard/vr25/acc/config.txt` (failsafe)
 
 
 ### Slow Charging
@@ -807,7 +807,7 @@ At least one of the following may be the cause:
 ---
 ## POWER SUPPLY LOG (HELP NEEDED)
 
-Please run `acc -le` and upload `/sdcard/Download/acc/logs/power_supply-*.log` to [my dropbox](https://www.dropbox.com/request/WYVDyCc0GkKQ8U5mLNlH/) (no account/sign-up required).
+Please run `acc -le` and upload `/sdcard/vr25/acc/logs/power_supply-*.log` to [my dropbox](https://www.dropbox.com/request/WYVDyCc0GkKQ8U5mLNlH/) (no account/sign-up required).
 This file contains invaluable power supply information, such as battery details and available charging control files.
 A public database is being built for mutual benefit.
 Your cooperation is greatly appreciated.
@@ -876,7 +876,7 @@ There are no negative consequences when it doesn't.
 
 Open issues on GitHub or contact the developer on Facebook, Telegram (preferred) or XDA (links below).
 Always provide as much information as possible.
-Attach `/sdcard/Download/acc/logs/acc-logs-*tar.bz2` - generated by `acc -le` _right after_ the problem occurs.
+Attach `/sdcard/vr25/acc/logs/acc-logs-*tar.bz2` - generated by `acc -le` _right after_ the problem occurs.
 Refer back to `TROUBLESHOOTING > Diagnostics/Logs` for additional details.
 
 
@@ -996,6 +996,21 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 
 ---
 ## LATEST CHANGES
+
+
+**v2020.10.1 (202010010)**
+
+- Fixed automatic charging switch management issues.
+- Fixed ghost charging problem related to cooldown and capacity_sync/capacity_freeze2.
+- General optimizations
+- Persistent data is now saved in /sdcard/vr25/acc/.
+- Workaround for EdXposed's service.sh bug
+
+Release Notes
+
+- Confirmed: the MIUI bootloop issue is gone.
+- If you face any other issue, run `rm /sdcard/vr25/acc/config.txt; accd` to reset the config and restart accd.
+
 
 **v2020.9.24 (202009240)**
 

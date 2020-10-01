@@ -37,7 +37,7 @@ esac
 exec 2>/dev/null
 
 # terminate/kill $id processes
-mkdir -p $TMPDIR/$id
+mkdir -p $TMPDIR
 (flock -n 0 || {
   read pid
   kill $pid
@@ -54,20 +54,22 @@ pgrep -f "/($id|${id}a) (-|--)[det]|/${id}d" > /dev/null && { #legacy
 }
 
 # uninstall $id ###
-rm -rf $(readlink -f /data/adb/$id) \
-  /data/adb/$id \
+rm -rf /data/adb/vr25/$id \
   /data/adb/modules/$id \
   /data/adb/service.d/${id}-*.sh \
   /data/data/mattecarra.accapp/files/$id \
-  /data/data/com.termux/files/home/.termux/boot/${id}-init.sh \
-  $(test "${1:-}" = install || echo "/sdcard/Download/$id")
+  $(test "${1:-}" = install || echo "/sdcard/vr25/$id")
 
 #legacy
-rm /data/adb/${id}-data \
+rm -rf $(readlink -f /data/adb/$id) \
+  /data/adb/$id \
+  /data/adb/${id}-data \
   $(readlink -f /sbin/.$id/$id) \
   /sdcard/${id}-logs-*.tar.* \
   /sdcard/${id}-uninstaller.zip \
   /sdcard/.${id}-config-backup.txt \
-  /sdcard/Download/$id/*.tar.* 2>/dev/null
+  /sdcard/Download/$id \
+  /sdcard/vr25/$id/.acc-config-backup.txt \
+  /data/data/com.termux/files/home/.termux/boot/${id}-init.sh 2>/dev/null
 
 exit 0

@@ -2,7 +2,7 @@ set_ch_volt() {
   if [ -n "${1-}" ]; then
 
     ${verbose:-true} || {
-      execDir=/data/adb/acc
+      execDir=/data/adb/vr25/acc
       exxit() { exit $?; }
       . $execDir/misc-functions.sh
       cd $execDir

@@ -21,11 +21,11 @@ daemon_ctrl() {
 
 
 set -eu
-cd /data/adb/acc/
+cd /data/adb/vr25/acc/
 export TMPDIR=/dev/.acc verbose=false
 . ./setup-busybox.sh
 
-config=/sdcard/Download/acc/config.txt
+config=/sdcard/vr25/acc/config.txt
 defaultConfig=$PWD/default-config.txt
 
 mkdir -p ${config%/*} 2>/dev/null || :
@@ -57,7 +57,7 @@ case "$@" in
          && grep -q '^POWER_SUPPLY_STATUS=' $batt \
          && batt=${batt%/*} && break
     done 2>/dev/null || :
-    . /data/adb/acc/batt-info.sh
+    . /data/adb/vr25/acc/batt-info.sh
     batt_info "${2-}"
     exit 0
   ;;

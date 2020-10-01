@@ -1,7 +1,7 @@
 set_ch_curr() {
 
   ${verbose:-true} || {
-    execDir=/data/adb/acc
+    execDir=/data/adb/vr25/acc
     exxit() { exit $?; }
     . $execDir/misc-functions.sh
     cd $execDir

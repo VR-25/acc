@@ -8,7 +8,7 @@
 
 id=acc
 TMPDIR=/dev/.$id
-execDir=/data/adb/$id
+execDir=/data/adb/vr25/$id
 
 umask 0077
 mkdir -p $TMPDIR

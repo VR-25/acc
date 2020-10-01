@@ -148,7 +148,7 @@ Options
     e.g.,
       acc -F (lauches a zip flashing wizard)
       acc -F "file1" "file2" "fileN" ... (install multiple zips)
-      acc -F "/sdcard/Download/Magisk-v20.0(20000).zip"
+      acc -F "/sdcard/vr25/Magisk-v20.0(20000).zip"
 
   -i|--info [case insentive egrep regex (default: ".")]   Show battery info
     e.g.,
@@ -165,7 +165,7 @@ Options
 
   -la   Same as -l -a
 
-  -l|--log -e|--export   Export all logs to /sdcard/Download/acc/logs/acc-logs-\$deviceName.tar.bz2
+  -l|--log -e|--export   Export all logs to /sdcard/vr25/acc/logs/acc-logs-\$deviceName.tar.bz2
     e.g., acc -l -e
 
   -le   Same as -l -e
@@ -215,7 +215,7 @@ Options
   -s|--set r|--reset   Restore default config
     e.g.,
       acc -s r
-      rm /sdcard/Download/acc/config.txt (failsafe)
+      rm /sdcard/vr25/acc/config.txt (failsafe)
 
   -sr   Same as above
 
@@ -243,7 +243,7 @@ Options
       acc -t battery/charging_enabled 1 0
       acc -t /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0 ("::" is a placeholder for " ")
 
-  -t|--test [file]   Test charging switches from a file (default: $TMPDIR/ch-switches)
+  -t|--test [file]   Test charging switches from a file (default: /dev/.acc/ch-switches)
     This will also report whether "battery idle" mode is supported
     e.g.,
       acc -t (test known switches)

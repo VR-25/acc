@@ -12,7 +12,7 @@ pgrep zygote > /dev/null && {
     && test .$(getprop sys.boot_completed) = .1 \
     && dumpsys battery > /dev/null 2>&1
   do
-    sleep 300 # to prevent conflicts with fbind
+    sleep 30
   done
 }
 
@@ -128,7 +128,7 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
       if is_charging; then
 
         # disable charging under <conditions>
-        test $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) -ge $(( ${temperature[1]} * 10 )) \
+        test $(cat $batt/temp $batt/batt_temp 2>/dev/null) -ge $(( ${temperature[1]} * 10 )) \
           && maxTempPause=true || maxTempPause=false
         if $maxTempPause || test $(cat $batt/capacity) -ge ${capacity[3]}; then
           disable_charging
@@ -141,11 +141,11 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
         fi
 
         # cooldown cycle
-        while [[ -n "${cooldownRatio[0]-}" || -n "${cooldownCustom[0]-}" ]] \
+        while [ -n "${cooldownRatio[0]-}${cooldownCustom[0]-}" ] \
           && [ $(cat $batt/capacity) -lt ${capacity[3]} ] \
           && is_charging
         do
-          if [ $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) -ge $(( ${temperature[0]} * 10 )) ] \
+          if [ $(cat $batt/temp $batt/batt_temp 2>/dev/null) -ge $(( ${temperature[0]} * 10 )) ] \
             || [ $(cat $batt/capacity) -ge ${capacity[1]} ] \
             || [ $(sed s/-// ${cooldownCustom[0]:-cooldownCustom} 2>/dev/null || echo 0) -ge ${cooldownCustom[1]:-1} ]
           then
@@ -178,7 +178,7 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
 
         # enable charging under <conditions>
         [ ! $(cat $batt/capacity) -le ${capacity[2]} ] || {
-          [ ! $(cat $batt/temp 2>/dev/null || cat $batt/batt_temp) -lt $(( ${temperature[1]} * 10 )) ] \
+          [ ! $(cat $batt/temp $batt/batt_temp 2>/dev/null) -lt $(( ${temperature[1]} * 10 )) ] \
             || enable_charging
         }
 
@@ -202,6 +202,7 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
 
 
   sync_capacity() {
+    local isCharging_=$isCharging
     ! $capacitySync || {
       ! $cooldown || isCharging=true
       if $isCharging; then
@@ -211,6 +212,7 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
         dumpsys battery unplug \
           && dumpsys battery set status $dischgStatusCode || :
       fi
+      isCharging=$isCharging_
       if ${capacity[4]} && [ $(cat $batt/capacity) -ge 2 ]; then
         dumpsys battery set level $(cat $batt/capacity) || :
       fi
@@ -256,7 +258,7 @@ else
 
 
   # log
-  data_dir=/sdcard/Download/$id
+  data_dir=/sdcard/vr25/$id
   mkdir -p $TMPDIR $data_dir/logs
   exec > $data_dir/logs/init.log 2>&1
   set -x

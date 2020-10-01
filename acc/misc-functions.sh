@@ -56,17 +56,19 @@ cycle_switches() {
           && run_xtimes "echo \$$1 > ${chargingSwitch[3]}" || :
       }
 
-      [ "$1" != off ] || {
+      if [ "$1" = on ]; then
+        not_charging || break
+      else
         if sleep_sd not_charging ${2-}; then
-          # enforce working charging switch(es)
+          # set working charging switch(es)
           . $execDir/write-config.sh
+          break
         else
           # reset switch/group that fails to disable charging
           run_xtimes "echo ${chargingSwitch[1]//::/ } > ${chargingSwitch[0]} || :;
             echo ${chargingSwitch[4]//::/ } > ${chargingSwitch[3]:-/dev/null} || :" 2>/dev/null
-          break
         fi
-      }
+      fi
     }
   done < $TMPDIR/ch-switches
 }
@@ -247,9 +249,6 @@ print_wait_plug() {
 
 
 run_xtimes() {
-  eval "$@"
-  return $?
-  #wip
   local count=0
   for count in $(seq ${ctrlFileWrites[0]}); do
     eval "$@"
@@ -293,10 +292,10 @@ id=acc
 umask 0077
 switchDelay=7
 loopDelay=(5 10)
-execDir=/data/adb/acc
+execDir=/data/adb/vr25/acc
 ctrlFileWrites=(3 0.3)
 export TMPDIR=/dev/.acc
-config=/sdcard/Download/$id/config.txt
+config=/sdcard/vr25/$id/config.txt
 config_=$config
 
 [ -f $TMPDIR/.ghost-charging ] \

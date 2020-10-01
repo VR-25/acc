@@ -5,7 +5,7 @@
 
 id=acc
 umask 0077
-data_dir=/sdcard/Download/${1:-$id}
+data_dir=/sdcard/vr25/${1:-$id}
 
 # log
 [ -z "${LINENO-}" ] || export PS4='$LINENO: '
@@ -76,9 +76,9 @@ case "$PWD" in
   *mattecarra.accapp*)
     get_ver() { sed -n '/^versionCode=/s/.*=//p' $1/module.prop 2>/dev/null || echo 0; }
     bundled_ver=$(get_ver ${1:-$id}[-_]*)
-    regular_ver=$(get_ver /data/adb/$id)
+    regular_ver=$(get_ver /data/adb/vr25/$id)
     if [ $bundled_ver -le $regular_ver ] && [ $regular_ver -ne 0 ]; then
-      ln -s $(readlink -f /data/adb/$id) .
+      ln -s $(readlink -f /data/adb/vr25/$id) .
       (cd ./${1:-$id}/; ln -fs service.sh ${1:-$id}-init.sh)
       exit 0
     fi 2>/dev/null || :
