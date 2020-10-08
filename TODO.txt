@@ -1,1 +1,8 @@
 remove #legacy
+
+cooldown with current reduction
+stop/slowdown charging with current reduction
+
+profiles
+  config.txt
+    profile=[file]

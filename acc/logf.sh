@@ -22,7 +22,7 @@ logf() {
       [ -f $file ] && cp $file ./ && break
     done
 
-    data_dir=/sdcard/vr25/acc
+    data_dir=/sdcard/Documents/vr25/acc
     mkdir -p $data_dir
 
     cp $data_dir/logs/* ./ 2>/dev/null

@@ -13,7 +13,7 @@ SKIPUNZIP=1
 echo
 id=acc
 umask 0077
-data_dir=/sdcard/vr25/$id
+data_dir=/sdcard/Documents/vr25/$id
 
 
 # log
@@ -141,8 +141,11 @@ GPLv3+
 if [ -d /data/adb/${id}-data ]; then
   mv -f /data/adb/${id}-data/* /data/adb/${id}-data/.* \
     $data_dir/ 2>/dev/null || :
-else
+elif [ -d /sdcard/Download/$id ]; then
   mv -f /sdcard/Download/$id/* /sdcard/Download/$id/.* \
+    $data_dir/ 2>/dev/null || :
+else
+  mv -f /sdcard/vr25/$id/* /sdcard/vr25/$id/.* \
     $data_dir/ 2>/dev/null || :
 fi
 rm -rf $data_dir/info 2>/dev/null || :

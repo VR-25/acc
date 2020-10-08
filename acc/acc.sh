@@ -289,15 +289,15 @@ case "${1-}" in
           level=$(echo "$dsys" | sed -n 's/^  level: //p')
           powered=$(echo "$dsys" | grep ' powered: true' > /dev/null && echo true || echo false)
 
-          dumpsys battery reset
+          cmd_batt reset
           dumpsys battery
-          dumpsys battery set status $status
-          dumpsys battery set level $level
+          cmd_batt set status $status
+          cmd_batt set level $level
 
           if $powered; then
-            dumpsys battery set ac 1
+            cmd_batt set ac 1
           else
-            dumpsys battery unplug
+            cmd_batt unplug
           fi
 
         else
@@ -305,7 +305,7 @@ case "${1-}" in
         fi
 
       } | grep -Ei "${2-.*}" \
-          | sed -e '1s/.*/dumpsys battery/' && echo
+          | sed -e '1s/.*/Battery Service/' && echo
 
       . $execDir/batt-info.sh
       echo "/sys/class/power_supply/$batt/uevent"
@@ -334,7 +334,7 @@ case "${1-}" in
   ;;
 
   -R|--resetbs)
-    dumpsys batterystats --reset || :
+    dumpsys batterystats --reset
     rm /data/system/batterystats* 2>/dev/null || :
   ;;
 

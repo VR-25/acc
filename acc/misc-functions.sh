@@ -33,6 +33,9 @@ apply_on_plug() {
 }
 
 
+cmd_batt() { /system/bin/cmd battery "$@" < /dev/null > /dev/null 2>&1 || :; }
+
+
 cycle_switches() {
 
   local on="" off=""
@@ -85,12 +88,7 @@ disable_charging() {
   local autoMode=true
   [[ "${chargingSwitch[*]-}" = *-- ]] || autoMode=false
 
-  if $isAccd; then
-    ! not_charging || return 0
-  else
-    apply_on_boot default
-    apply_on_plug default
-  fi
+  ! $isAccd || ! not_charging || return 0
 
   if [[ "${chargingSwitch[0]-}" = */* ]]; then
     if [ -f ${chargingSwitch[0]} ]; then
@@ -157,13 +155,14 @@ disable_charging() {
 }
 
 
+dumpsys() { /system/bin/dumpsys "$@" || :; }
+
+
 enable_charging() {
 
   ! $isAccd || not_charging || return 0
 
   if ! $ghostCharging || { $ghostCharging && [[ $(cat */online) = *1* ]]; }; then
-
-    $isAccd || apply_on_plug
 
     chmod u+w ${chargingSwitch[0]-} ${chargingSwitch[3]-} 2>/dev/null \
       && run_xtimes "echo ${chargingSwitch[1]//::/ } > ${chargingSwitch[0]-}
@@ -258,9 +257,9 @@ run_xtimes() {
 
 
 sleep_sd() {
-  local i=
-  for i in $(seq $switchDelay); do
-    eval "$@" && return 0 || sleep 1
+  local i
+  for i in 1 2 3 4; do
+    eval "$@" && return 0 || sleep $switchDelay
   done
   return 1
 }
@@ -290,12 +289,12 @@ wait_plug() {
 
 id=acc
 umask 0077
-switchDelay=7
-loopDelay=(5 10)
+switchDelay=2
+loopDelay=(10 10)
 execDir=/data/adb/vr25/acc
 ctrlFileWrites=(3 0.3)
 export TMPDIR=/dev/.acc
-config=/sdcard/vr25/$id/config.txt
+config=/sdcard/Documents/vr25/$id/config.txt
 config_=$config
 
 [ -f $TMPDIR/.ghost-charging ] \
@@ -318,15 +317,15 @@ for batt in $(ls */uevent); do
    && break
 done 2>/dev/null || :
 
-# dumpsys wrapper for Termux
+# cmd and dumpsys wrappers for Termux and recovery
 [[ $(readlink -f $execDir) != *com.termux* ]] || {
-  bin=$(su -c "which dumpsys")
-  eval "dumpsys() { su -c $bin; }"
-  unset bin
+  cmd_batt() { su -c /system/bin/cmd battery "$@" < /dev/null > /dev/null 2>&1 || :; }
+  dumpsys() { su -c /system/bin/dumpsys "$@" || :; }
+}
+pgrep -f zygote > /dev/null || {
+  cmd_batt() { :; }
+  dumpsys() { :; }
 }
 
-# dumpsys wrapper for recovery
-pgrep -f zygote > /dev/null || dumpsys() { :; }
-
 # set max switch_delay for mtk devices
-! grep -q mtk_battery_cmd $TMPDIR/ch-switches || switchDelay=20
+! grep -q mtk_battery_cmd $TMPDIR/ch-switches || switchDelay=4

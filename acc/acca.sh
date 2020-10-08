@@ -25,7 +25,7 @@ cd /data/adb/vr25/acc/
 export TMPDIR=/dev/.acc verbose=false
 . ./setup-busybox.sh
 
-config=/sdcard/vr25/acc/config.txt
+config=/sdcard/Documents/vr25/acc/config.txt
 defaultConfig=$PWD/default-config.txt
 
 mkdir -p ${config%/*} 2>/dev/null || :

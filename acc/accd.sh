@@ -8,9 +8,8 @@
 
 # wait until the system is ready and data is decrypted
 pgrep zygote > /dev/null && {
-  until test -d /sdcard/Download \
-    && test .$(getprop sys.boot_completed) = .1 \
-    && dumpsys battery > /dev/null 2>&1
+  until [ -d /sdcard/Download ] \
+    && [ .$(getprop sys.boot_completed) = .1 ]
   do
     sleep 30
   done
@@ -34,7 +33,7 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
     set +eux
     trap - EXIT
     {
-      dumpsys battery reset &
+      cmd_batt reset &
       grep -Ev '^$|^#' $config > $TMPDIR/.config
       config=$TMPDIR/.config
       apply_on_boot default &
@@ -69,8 +68,8 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
 
       # read chgStatusCode once
       [ -n "$chgStatusCode" ] || {
-        dumpsys battery reset \
-          && chgStatusCode=$(dumpsys battery 2>/dev/null | sed -n 's/^  status: //p') || :
+        cmd_batt reset
+        chgStatusCode=$(dumpsys battery 2>/dev/null | sed -n 's/^  status: //p') || :
       }
 
       # read charging current ctrl files (part 2) once
@@ -85,7 +84,7 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
       # read dischgStatusCode once
       #   and dynamically enable/disable capacitySync
       [ -n "$dischgStatusCode" ] || {
-        ! dumpsys battery reset || {
+        ! cmd_batt reset || {
           ! dischgStatusCode=$(dumpsys battery 2>/dev/null | sed -n 's/^  status: //p') || {
             if ${capacity[4]} || { [ $(dumpsys battery 2>/dev/null | sed -n 's/^  level: //p') -ne $(cat $batt/capacity) ] \
               && sleep 2 \
@@ -103,7 +102,7 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
         if $resetBattStatsOnUnplug && ${resetBattStats[1]}; then
           sleep ${loopDelay[1]}
           ! grep -iq dis $batt/status || {
-            dumpsys batterystats --reset || :
+            dumpsys batterystats --reset < /dev/null > /dev/null 2>&1 || :
             rm /data/system/batterystats* || :
             resetBattStatsOnUnplug=false
           } 2>/dev/null
@@ -134,7 +133,7 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
           disable_charging
           ! ${resetBattStats[0]} || {
             # reset battery stats on pause
-            dumpsys batterystats --reset || :
+            dumpsys batterystats --reset < /dev/null > /dev/null 2>&1 || :
             rm /data/system/batterystats* || :
           }
           ! $maxTempPause || ! not_charging || sleep ${temperature[2]}
@@ -150,13 +149,13 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
             || [ $(sed s/-// ${cooldownCustom[0]:-cooldownCustom} 2>/dev/null || echo 0) -ge ${cooldownCustom[1]:-1} ]
           then
             cooldown=true
-            dumpsys battery set status $chgStatusCode || : # to prevent unwanted display wakeups
+            cmd_batt set status $chgStatusCode # to prevent unwanted display wakeups
             disable_charging
             [ $(sed s/-// ${cooldownCustom[0]:-cooldownCustom} 2>/dev/null || echo 0) -ge ${cooldownCustom[1]:-1} ] \
               && sleep ${cooldownCustom[3]:-1} \
               || sleep ${cooldownRatio[1]:-1}
             enable_charging
-            $capacitySync || dumpsys battery reset || :
+            $capacitySync || cmd_batt reset
             [ ! $(sed s/-// ${cooldownCustom[0]:-cooldownCustom} 2>/dev/null || echo 0) -ge ${cooldownCustom[1]:-1} ] \
               || cooldownRatio[0]=${cooldownCustom[2]-}
             count=0
@@ -206,15 +205,17 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
     ! $capacitySync || {
       ! $cooldown || isCharging=true
       if $isCharging; then
-        dumpsys battery set ac 1 \
-          && dumpsys battery set status $chgStatusCode || :
+        cmd_batt set ac 1
+        cmd_batt set status $chgStatusCode
       else
-        dumpsys battery unplug \
-          && dumpsys battery set status $dischgStatusCode || :
+        cmd_batt unplug
+        cmd_batt set status $dischgStatusCode
       fi
       isCharging=$isCharging_
-      if ${capacity[4]} && [ $(cat $batt/capacity) -ge 2 ]; then
-        dumpsys battery set level $(cat $batt/capacity) || :
+      if ! ${capacity[4]} \
+        || { ${capacity[4]} && [ $(cat $batt/capacity) -ge 2 ]; }
+      then
+        cmd_batt set level $(cat $batt/capacity)
       fi
     }
   }
@@ -258,7 +259,7 @@ else
 
 
   # log
-  data_dir=/sdcard/vr25/$id
+  data_dir=/sdcard/Documents/vr25/$id
   mkdir -p $TMPDIR $data_dir/logs
   exec > $data_dir/logs/init.log 2>&1
   set -x

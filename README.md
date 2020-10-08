@@ -95,7 +95,7 @@ Settings can be overwhelming. Start with what you understand.
 The default configuration has you covered.
 Don't ever feel like you have to configure everything. You probably shouldn't anyway - unless you really know what you're doing.
 
-Uninstall: run `acc --uninstall` or flash\* `/sdcard/vr25/acc/acc-uninstaller.zip`.
+Uninstall: run `acc --uninstall` or flash\* `/sdcard/Documents/vr25/acc/acc-uninstaller.zip`.
 
 ACC runs in some recovery environments as well.
 Unless the zip is flashed again, manual initialization is required.
@@ -424,7 +424,7 @@ It's a wizard you'll either love or hate.
 
 If you feel uncomfortable with the command line, skip this section and use the [ACC App](https://github.com/MatteCarra/AccA/releases/) to manage ACC.
 
-Alternatively, you can use a `text editor` to modify `/sdcard/vr25/acc/config.txt`.
+Alternatively, you can use a `text editor` to modify `/sdcard/Documents/vr25/acc/config.txt`.
 Restart the [daemon](https://en.wikipedia.org/wiki/Daemon_(computing)) afterwards, by running `accd`.
 The config file itself has configuration instructions.
 These instructions are the same found in the `DEFAULT CONFIG` section, above.
@@ -495,7 +495,7 @@ Options
     e.g.,
       acc -F (lauches a zip flashing wizard)
       acc -F "file1" "file2" "fileN" ... (install multiple zips)
-      acc -F "/sdcard/vr25/Magisk-v20.0(20000).zip"
+      acc -F "/sdcard/Documents/vr25/Magisk-v20.0(20000).zip"
 
   -i|--info [case insentive egrep regex (default: ".")]   Show battery info
     e.g.,
@@ -512,7 +512,7 @@ Options
 
   -la   Same as -l -a
 
-  -l|--log -e|--export   Export all logs to /sdcard/vr25/acc/logs/acc-logs-$deviceName.tar.bz2
+  -l|--log -e|--export   Export all logs to /sdcard/Documents/vr25/acc/logs/acc-logs-$deviceName.tar.bz2
     e.g., acc -l -e
 
   -le   Same as -l -e
@@ -562,7 +562,7 @@ Options
   -s|--set r|--reset   Restore default config
     e.g.,
       acc -s r
-      rm /sdcard/vr25/acc/config.txt (failsafe)
+      rm /sdcard/Documents/vr25/acc/config.txt (failsafe)
 
   -sr   Same as above
 
@@ -705,6 +705,14 @@ Refer back to the `BUILDING AND/OR INSTALLING FROM SOURCE` section.
 ## TROUBLESHOOTING
 
 
+### [Samsung] Charging _Always_ Stops at 70% Capacity
+
+This is a device-specific issue (by design?).
+It's caused by the store_mode charging control file.
+Switch to batt_slate_mode to prevent it.
+Refer to `### Charging Switch` below for details on that.
+
+
 ### Battery Capacity (% Level) Doesn't Seem Right
 
 When Android's battery level differs from that of the kernel, ACC daemon automatically syncs it by stopping the battery service and feeding it the real value every few seconds.
@@ -733,7 +741,7 @@ Most of the time, though, it's just a matter of plugging the phone before turnin
 Battery level must be below pause_capacity.
 Once booted, one can run `acc --uninstall` (or `acc -U`) to remove ACC.
 
-From recovery, one can flash `/sdcard/vr25/acc/acc-uninstaller.zip` or run `mount /system; /data/adb/vr25/acc/uninstall.sh`.
+From recovery, one can flash `/sdcard/Documents/vr25/acc/acc-uninstaller.zip` or run `mount /system; /data/adb/vr25/acc/uninstall.sh`.
 
 
 ### Charging Switch
@@ -773,14 +781,23 @@ That said, the existence of potential voltage/current control file doesn't neces
 Kernel level permissions forbid write access to certain interfaces.
 
 Sometimes, restoring the default current may not work without a system reboot.
-A workaround is setting an absurdly high current value (e.g., 9000 mA).
+A workaround is setting the default max current value or any arbitrary high number (e.g., 9000 mA).
 Don't worry about frying things.
 The phone will only draw the max it can take.
+
+WARNING: limiting voltage causes battery state of charge (SoC) deviation on some devices.
+The  battery management system self-calibrates constantly, though.
+Thus, as soon as the default voltage limit is restored, it'll start "fixing" itself.
+
+Limiting current, on the other hand, has been found to be universally safe.
+Some devices do not support just any current value, though.
+That's not to say out-of-range values cause issues.
+These are simply ignored.
 
 
 ### Diagnostics/Logs
 
-Volatile logs (gone on reboot) are stored in `/dev/.acc/`, persistent logs - `/sdcard/vr25/acc/logs/`.
+Volatile logs (gone on reboot) are stored in `/dev/.acc/`, persistent logs - `/sdcard/Documents/vr25/acc/logs/`.
 
 `acc -le` exports all acc logs, plus Magisk's and extras to `/sdcard/acc-$device_codename.tar.bz2`.
 The logs do not contain any personal information and are never automatically sent to the developer.
@@ -791,7 +808,7 @@ Automatic exporting (local) happens under specific conditions (refer back to `SE
 
 This can save you a lot of time and grief.
 
-`acc --set --reset`, `acc -sr` or `rm /sdcard/vr25/acc/config.txt` (failsafe)
+`acc --set --reset`, `acc -sr` or `rm /sdcard/Documents/vr25/acc/config.txt` (failsafe)
 
 
 ### Slow Charging
@@ -807,7 +824,7 @@ At least one of the following may be the cause:
 ---
 ## POWER SUPPLY LOG (HELP NEEDED)
 
-Please run `acc -le` and upload `/sdcard/vr25/acc/logs/power_supply-*.log` to [my dropbox](https://www.dropbox.com/request/WYVDyCc0GkKQ8U5mLNlH/) (no account/sign-up required).
+Please run `acc -le` and upload `/sdcard/Documents/vr25/acc/logs/power_supply-*.log` to [my dropbox](https://www.dropbox.com/request/WYVDyCc0GkKQ8U5mLNlH/) (no account/sign-up required).
 This file contains invaluable power supply information, such as battery details and available charging control files.
 A public database is being built for mutual benefit.
 Your cooperation is greatly appreciated.
@@ -849,12 +866,13 @@ Alternatively, a _compressed_ archive of translated `strings.sh` and `README.md`
 
 ### Generic
 
-Emulate _battery idle mode_ with a voltage limit: `acc 101 -1; acc -s v 3920`.
-The first command disables the regular - charging switch driven - pause/resume functionality.
-The second sets a voltage limit that will dictate how much the battery should charge.
+Emulate _battery idle mode_ with a voltage limit: `acc 101 0; acc -s v 3920`.
+The first command disables the regular charging pause/resume functionality.
+The latter sets a voltage limit that will dictate how much the battery should charge.
 The battery enters a _pseudo idle mode_ when its voltage peaks.
+Essentially, it works as a power buffer.
 
-Limiting the charging current to zero mA (`acc -sc 0`) may emulate idle mode as well.
+Limiting the charging current to zero mA (`acc -sc 0`) may produce the same effect.
 `acc -sc -` restores the default limit.
 
 Force fast charge: `appy_on_boot="/sys/kernel/fast_charge/force_fast_charge::1::0 usb/boost_current::1::0 charger/boost_current::1::0"`
@@ -868,6 +886,19 @@ This may not work on all Pixel devices.
 There are no negative consequences when it doesn't.
 
 
+### _Always_ Limit the Charging Current If Your Battery is Old and/or Tends to Discharge Too Fast
+
+This extends the battery's lifespan and may even _reduce_ its discharge rate.
+
+750-1000mA is a good range for regular use.
+
+500mA is a comfortable minimum - and also very compatible.
+
+0mA is for idle mode.
+
+If your device does not support custom current limits, use a dedicated ("slow") power adapter.
+
+
 ---
 ## FREQUENTLY ASKED QUESTIONS (FAQ)
 
@@ -876,7 +907,7 @@ There are no negative consequences when it doesn't.
 
 Open issues on GitHub or contact the developer on Facebook, Telegram (preferred) or XDA (links below).
 Always provide as much information as possible.
-Attach `/sdcard/vr25/acc/logs/acc-logs-*tar.bz2` - generated by `acc -le` _right after_ the problem occurs.
+Attach `/sdcard/Documents/vr25/acc/logs/acc-logs-*tar.bz2` - generated by `acc -le` _right after_ the problem occurs.
 Refer back to `TROUBLESHOOTING > Diagnostics/Logs` for additional details.
 
 
@@ -888,7 +919,7 @@ Lastly, some systems don't support custom charging control at all;  in such case
 Refer back to `POWER SUPPLY LOGS (HELP NEEDED)`.
 
 
-> Why, when and how should I calibrate the battery?
+> Why, when and how should I calibrate the battery manager?
 
 With modern battery management systems, that's generally unnecessary.
 
@@ -998,20 +1029,6 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 ## LATEST CHANGES
 
 
-**v2020.10.1 (202010010)**
-
-- Fixed automatic charging switch management issues.
-- Fixed ghost charging problem related to cooldown and capacity_sync/capacity_freeze2.
-- General optimizations
-- Persistent data is now saved in /sdcard/vr25/acc/.
-- Workaround for EdXposed's service.sh bug
-
-Release Notes
-
-- Confirmed: the MIUI bootloop issue is gone.
-- If you face any other issue, run `rm /sdcard/vr25/acc/config.txt; accd` to reset the config and restart accd.
-
-
 **v2020.9.24 (202009240)**
 
 - Cooldown no longer interferes with capacity_sync.
@@ -1032,20 +1049,26 @@ Release Notes
 - MIUI bootloop issue possibly fixed.
 
 
-**v2020.9.14 (202009140)**
+**v2020.10.1 (202010010)**
 
-- Ensure release-lock.sh does not cause unwanted acc/d termination.
-- General fixes & optimizations
-- mv /data/adb/acc-data /sdcard/Download/acc
-- Reapply voltage limits on plug.
+- Fixed automatic charging switch management issues.
+- Fixed ghost charging problem related to cooldown and capacity_sync/capacity_freeze2.
+- General optimizations
+- Persistent data is now saved in /sdcard/vr25/acc/.
+- Workaround for EdXposed's service.sh bug
 
 Release Notes
 
-- All persistent acc data is now stored in /sdcard/Download/acc/.
-- "mx4pro" users, please send me a new log archive after installing this version.
-- Nothing was done in regards to the "MIUI 12" bootloop issue. The root cause is still unknown.
+- Confirmed: the MIUI bootloop issue is gone.
+- If you face any other issue, run `rm /sdcard/Documents/vr25/acc/config.txt; accd` to reset the config and restart accd.
 
-Unannounced Releases (@romanegunkov)
 
-- v2020.9.01 (202009010): Fixed --upgrade bug.
-- v2020.8.24 (202008240): Prevent auto shutdown if system has been running for less than 15 minutes.
+**v2020.10.8 (202010080)**
+
+- Changelog is sorted in reverse order (older first).
+- Enhanced dynamic switch delay.
+- Fixed capacity_freeze2 and capacity_sync.
+- General optimizations
+- Move persistent data to /sdcard/Documents/vr25/acc/ for compatibility with Android 11 storage isolation.
+- Updated documentation (FAQ, tips, voltage issues, Samsung's "70% problem", etc.).
+- Use `cmd` in place of most `dumpsys` calls.

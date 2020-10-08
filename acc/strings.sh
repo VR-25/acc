@@ -148,7 +148,7 @@ Options
     e.g.,
       acc -F (lauches a zip flashing wizard)
       acc -F "file1" "file2" "fileN" ... (install multiple zips)
-      acc -F "/sdcard/vr25/Magisk-v20.0(20000).zip"
+      acc -F "/sdcard/Documents/vr25/Magisk-v20.0(20000).zip"
 
   -i|--info [case insentive egrep regex (default: ".")]   Show battery info
     e.g.,
@@ -165,7 +165,7 @@ Options
 
   -la   Same as -l -a
 
-  -l|--log -e|--export   Export all logs to /sdcard/vr25/acc/logs/acc-logs-\$deviceName.tar.bz2
+  -l|--log -e|--export   Export all logs to /sdcard/Documents/vr25/acc/logs/acc-logs-\$deviceName.tar.bz2
     e.g., acc -l -e
 
   -le   Same as -l -e
@@ -215,7 +215,7 @@ Options
   -s|--set r|--reset   Restore default config
     e.g.,
       acc -s r
-      rm /sdcard/vr25/acc/config.txt (failsafe)
+      rm /sdcard/Documents/vr25/acc/config.txt (failsafe)
 
   -sr   Same as above
 

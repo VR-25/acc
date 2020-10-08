@@ -58,7 +58,7 @@ rm -rf /data/adb/vr25/$id \
   /data/adb/modules/$id \
   /data/adb/service.d/${id}-*.sh \
   /data/data/mattecarra.accapp/files/$id \
-  $(test "${1:-}" = install || echo "/sdcard/vr25/$id")
+  $(test "${1:-}" = install || echo "/sdcard/Documents/vr25/$id")
 
 #legacy
 rm -rf $(readlink -f /data/adb/$id) \
@@ -69,7 +69,8 @@ rm -rf $(readlink -f /data/adb/$id) \
   /sdcard/${id}-uninstaller.zip \
   /sdcard/.${id}-config-backup.txt \
   /sdcard/Download/$id \
-  /sdcard/vr25/$id/.acc-config-backup.txt \
+  /sdcard/vr25 \
+  /sdcard/Documents/vr25/$id/.acc-config-backup.txt \
   /data/data/com.termux/files/home/.termux/boot/${id}-init.sh 2>/dev/null
 
 exit 0

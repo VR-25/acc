@@ -23,10 +23,10 @@ set_prop() {
 id=$(sed -n "s/^id=//p" module.prop)
 
 version=$(grep '\*\*.*\(.*\)\*\*' README.md \
-  | head -n 1 | sed 's/\*\*//; s/ .*//')
+  | tail -n 1 | sed 's/\*\*//; s/ .*//')
 
 versionCode=$(grep '\*\*.*\(.*\)\*\*' README.md \
-  | head -n 1 | sed 's/\*\*//g; s/.* //' | tr -d ')' | tr -d '(')
+  | tail -n 1 | sed 's/\*\*//g; s/.* //' | tr -d ')' | tr -d '(')
 
 tmpDir=.tmp/META-INF/com/google/android
 

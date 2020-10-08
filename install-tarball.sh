@@ -5,7 +5,7 @@
 
 id=acc
 umask 0077
-data_dir=/sdcard/vr25/${1:-$id}
+data_dir=/sdcard/Documents/vr25/${1:-$id}
 
 # log
 [ -z "${LINENO-}" ] || export PS4='$LINENO: '
