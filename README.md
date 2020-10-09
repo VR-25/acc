@@ -1072,3 +1072,8 @@ Release Notes
 - Move persistent data to /sdcard/Documents/vr25/acc/ for compatibility with Android 11 storage isolation.
 - Updated documentation (FAQ, tips, voltage issues, Samsung's "70% problem", etc.).
 - Use `cmd` in place of most `dumpsys` calls.
+
+
+**v2020.10.9 (202010090)**
+
+- Fixed start on boot.
