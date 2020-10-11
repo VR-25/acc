@@ -1074,6 +1074,6 @@ Release Notes
 - Use `cmd` in place of most `dumpsys` calls.
 
 
-**v2020.10.9 (202010090)**
+**v2020.10.11 (202010110)**
 
 - Fixed start on boot.

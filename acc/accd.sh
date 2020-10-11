@@ -6,15 +6,13 @@
 # devs: triple hashtags (###) mark non-generic code
 
 
-# wait until the system is ready
-until [ .$(getprop sys.boot_completed) = .1 ]
+# wait until the data is decrypted and system is ready
+until [ -d /sdcard/Download ]
 do
   sleep 30
 done
-
-# wait until the data is decrypted
 pgrep zygote > /dev/null && {
-  until (cd /sdcard)
+  until [ .$(getprop sys.boot_completed) = .1 ]
   do
     sleep 30
   done
