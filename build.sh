@@ -103,6 +103,8 @@ fi
   rm -rf _builds/${id}_${version}_\(${versionCode}\)/ 2>/dev/null
   mkdir -p _builds/${id}_${version}_\(${versionCode}\)/${id}_${version}_\(${versionCode}\)
 
+  cp bin/${id}-uninstaller.zip _builds/${id}_${version}_\(${versionCode}\)/
+
   # generate $id flashable zip
   echo "=> _builds/${id}_${version}_(${versionCode})/${id}_${version}_(${versionCode}).zip"
   zip -r9 _builds/${id}_${version}_\(${versionCode}\)/${id}_${version}_\(${versionCode}\).zip \

@@ -13,6 +13,8 @@ cooldown_pause=${cooldownRatio[1]}
 max_temp=${temperature[1]}
 max_temp_pause=${temperature[2]}
 
+cooldown_current=$cooldownCurrent
+
 cooldown_custom=${cooldownCustom[@]}
 
 reset_batt_stats_on_pause=${resetBattStats[0]}

@@ -99,7 +99,7 @@ test_charging_switch() {
     && sleep_sd not_charging || :
 
   ! not_charging && failed=true || {
-    grep -iq 'not' $batt/status \
+    not_charging not \
       && battIdleMode=true \
       || battIdleMode=false
   }
@@ -308,7 +308,7 @@ case "${1-}" in
           | sed -e '1s/.*/Battery Service/' && echo
 
       . $execDir/batt-info.sh
-      echo "/sys/class/power_supply/$batt/uevent"
+      echo Uevent
       batt_info "${2-}" | sed 's/^/  /'
 
     } | more

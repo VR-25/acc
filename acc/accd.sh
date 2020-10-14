@@ -6,16 +6,6 @@
 # devs: triple hashtags (###) mark non-generic code
 
 
-# wait until the system is ready and data is decrypted
-pgrep zygote > /dev/null && {
-  until [ -d /sdcard/Download ] \
-    && [ .$(getprop sys.boot_completed) = .1 ]
-  do
-    sleep 30
-  done
-}
-
-
 umask 0077
 . $execDir/acquire-lock.sh
 
@@ -26,27 +16,54 @@ case "$1" in
 esac
 
 
+# wait until data is decrypted and system is ready
+until [ -d /sdcard/Download ]
+do
+  sleep 30
+done
+pgrep zygote > /dev/null && {
+  until [ .$(getprop sys.boot_completed) = .1 ]
+  do
+    sleep 30
+  done
+}
+
+
 if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
 
   exxit() {
-    local exitCode=$?
+    exitCode=$?
     set +eux
     trap - EXIT
     {
       cmd_batt reset &
+      pids=($!)
       grep -Ev '^$|^#' $config > $TMPDIR/.config
       config=$TMPDIR/.config
       apply_on_boot default &
+      pids+=($!)
       apply_on_plug default &
+      pids+=($!)
       enable_charging &
+      pids+=($!)
     } > /dev/null 2>&1
     [ -n "$1" ] && exitCode=$1
     [ -n "$2" ] && print "$2"
     [[ $exitCode = [127] ]] && {
       . $execDir/logf.sh
       logf --export > /dev/null 2>&1 &
+      pids+=($!)
     }
-    timeout 10 wait
+    count=0
+    while [ -n "${pids[0]-}" ] && [ $count -lt 10 ]
+    do
+      count=$(( count + 1 ))
+      kill -0 ${pids[$((${#pids[@]}-1))]} > /dev/null 2>&1 || {
+        unset pids[$((${#pids[@]}-1))]
+        [ -n "${pids[0]-}" ] || break
+      }
+      sleep 1
+    done
     rm $config 2>/dev/null
     cd /
     exit $exitCode
@@ -73,7 +90,7 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
       }
 
       # read charging current ctrl files (part 2) once
-      ! $readChCurr || . $execDir/read-ch-curr-ctrl-files-p2.sh
+      [ -f $TMPDIR/.ch-curr-read ] || . $execDir/read-ch-curr-ctrl-files-p2.sh
 
       $cooldown || resetBattStatsOnUnplug=true
 
@@ -101,7 +118,7 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
         # resetBattStatsOnUnplug
         if $resetBattStatsOnUnplug && ${resetBattStats[1]}; then
           sleep ${loopDelay[1]}
-          ! grep -iq dis $batt/status || {
+          ! not_charging dis || {
             dumpsys batterystats --reset < /dev/null > /dev/null 2>&1 || :
             rm /data/system/batterystats* || :
             resetBattStatsOnUnplug=false
@@ -149,22 +166,44 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
             || [ $(sed s/-// ${cooldownCustom[0]:-cooldownCustom} 2>/dev/null || echo 0) -ge ${cooldownCustom[1]:-1} ]
           then
             cooldown=true
-            cmd_batt set status $chgStatusCode # to prevent unwanted display wakeups
-            disable_charging
-            [ $(sed s/-// ${cooldownCustom[0]:-cooldownCustom} 2>/dev/null || echo 0) -ge ${cooldownCustom[1]:-1} ] \
-              && sleep ${cooldownCustom[3]:-1} \
-              || sleep ${cooldownRatio[1]:-1}
-            enable_charging
-            $capacitySync || cmd_batt reset
-            [ ! $(sed s/-// ${cooldownCustom[0]:-cooldownCustom} 2>/dev/null || echo 0) -ge ${cooldownCustom[1]:-1} ] \
-              || cooldownRatio[0]=${cooldownCustom[2]-}
-            count=0
-            while ! not_charging && [ $count -lt ${cooldownRatio[0]:-1} ]; do
-              sleep ${loopDelay[0]}
-              [ $(cat $batt/capacity) -lt ${capacity[3]} ] \
-                && count=$(( count + ${loopDelay[0]} )) \
-                || break
-            done
+            if [ -n "${cooldownCurrent-}" ] && grep -q / $TMPDIR/ch-curr-ctrl-files 2>/dev/null
+            then
+              # cooldown by limiting current
+              cmd_batt set status $chgStatusCode # to prevent unwanted display wakeups
+              set +e
+              maxChargingCurrent0=${maxChargingCurrent[0]-}
+              set_ch_curr ${cooldownCurrent:-0} > /dev/null 2>&1
+              sleep ${cooldownRatio[1]:-1}
+              set_ch_curr ${maxChargingCurrent0:--} > /dev/null 2>&1
+              set -e
+              $capacitySync || cmd_batt reset
+              count=0
+              while [ $count -lt ${cooldownRatio[0]:-1} ]
+              do
+                sleep ${loopDelay[0]}
+                [ $(cat $batt/capacity) -lt ${capacity[3]} ] \
+                  && count=$(( count + ${loopDelay[0]} )) \
+                  || break
+              done
+            else
+              # regular cooldown
+              cmd_batt set status $chgStatusCode
+              disable_charging
+              [ $(sed s/-// ${cooldownCustom[0]:-cooldownCustom} 2>/dev/null || echo 0) -ge ${cooldownCustom[1]:-1} ] \
+                && sleep ${cooldownCustom[3]:-1} \
+                || sleep ${cooldownRatio[1]:-1}
+              enable_charging
+              $capacitySync || cmd_batt reset
+              [ ! $(sed s/-// ${cooldownCustom[0]:-cooldownCustom} 2>/dev/null || echo 0) -ge ${cooldownCustom[1]:-1} ] \
+                || cooldownRatio[0]=${cooldownCustom[2]-}
+              count=0
+              while ! not_charging && [ $count -lt ${cooldownRatio[0]:-1} ]; do
+                sleep ${loopDelay[0]}
+                [ $(cat $batt/capacity) -lt ${capacity[3]} ] \
+                  && count=$(( count + ${loopDelay[0]} )) \
+                  || break
+              done
+            fi
           else
             break
           fi
@@ -223,14 +262,13 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
 
   # load generic functions
   . $execDir/misc-functions.sh
+  . $execDir/set-ch-curr.sh
 
 
   isAccd=true
   cooldown=false
-  readChCurr=true
   chgStatusCode=""
   capacitySync=false
-  updateConfig=false
   dischgStatusCode=""
   maxTempPause=false
   resetBattStatsOnUnplug=false
@@ -327,54 +365,60 @@ else
 
 
   # read charging voltage control files ###
-  : > $TMPDIR/ch-volt-ctrl-files_
-  ls -1 */constant_charge_voltage* */voltage_max \
-    */batt_tune_float_voltage */fg_full_voltage 2>/dev/null | \
-      while read file; do
-        chmod u+r $file 2>/dev/null && grep -Eq '^4[1-4][0-9]{2}' $file || continue
-        echo ${file}::$(sed -n 's/^..../v/p' $file)::$(cat $file) \
-          >> $TMPDIR/ch-volt-ctrl-files_
-      done
+  grep -q / $TMPDIR/ch-volt-ctrl-files 2>/dev/null || {
+    : > $TMPDIR/ch-volt-ctrl-files_
+    ls -1 */constant_charge_voltage* */voltage_max \
+      */batt_tune_float_voltage */fg_full_voltage 2>/dev/null | \
+        while read file; do
+          chmod u+r $file 2>/dev/null && grep -Eq '^4[1-4][0-9]{2}' $file || continue
+          echo ${file}::$(sed -n 's/^..../v/p' $file)::$(cat $file) \
+            >> $TMPDIR/ch-volt-ctrl-files_
+        done
+  }
 
 
   # read charging current control files (part 1) ###
-  # part 2 is handled by accd - while charging only
+  # part 2 runs while charging only
 
-  : > $TMPDIR/ch-curr-ctrl-files_
-  ls -1 */input_current_limited */restrict*_ch*g* \
-    /sys/class/qcom-battery/restrict*_ch*g* 2>/dev/null | \
-    while read file; do
-      chmod u+r $file 2>/dev/null || continue
-      grep -q '^[01]$' $file && echo ${file}::1::0 >> $TMPDIR/ch-curr-ctrl-files
-    done
-
-  ls -1 */constant_charge_current_max \
-    */restrict*_cur* \
-    /sys/class/qcom-battery/restrict*_cur* \
-    */batt_tune_*_charge_current */ac_input \
-    */mhl_2000_charge */mhl_2000_input \
-    */hv_charge */ac_charge \
-    */batt_tune_chg_limit_cur */so_limit_input \
-    */so_limit_charge */car_input */sdp_input \
-    */aca_charge */sdp_charge */aca_input \
-    *dcp_input */wc_input */car_charge \
-    */dcp_charge */wc_charge 2>/dev/null | \
+  if [ ! -f $TMPDIR/.ch-curr-read ] \
+    || ! grep -q / $TMPDIR/ch-curr-ctrl-files 2>/dev/null
+  then
+    : > $TMPDIR/ch-curr-ctrl-files_
+    ls -1 */input_current_limited */restrict*_ch*g* \
+      /sys/class/qcom-battery/restrict*_ch*g* 2>/dev/null | \
       while read file; do
         chmod u+r $file 2>/dev/null || continue
-        defaultValue=$(cat $file)
-        ampFactor=$(sed -n 's/^ampFactor=//p' $data_dir/config.txt 2>/dev/null)
-        [ -n "$ampFactor" -o $defaultValue -ne 0 ] && {
-          if [ "${ampFactor:-1}" -eq 1000 -o $defaultValue -lt 10000 ]; then
-            # milliamps
-            echo ${file}::v::$defaultValue \
-              >> $TMPDIR/ch-curr-ctrl-files_
-          else
-            # microamps
-            echo ${file}::v000::$defaultValue \
-              >> $TMPDIR/ch-curr-ctrl-files_
-          fi
-        }
+        grep -q '^[01]$' $file && echo ${file}::1::0 >> $TMPDIR/ch-curr-ctrl-files
       done
+
+    ls -1 */constant_charge_current_max \
+      */restrict*_cur* \
+      /sys/class/qcom-battery/restrict*_cur* \
+      */batt_tune_*_charge_current */ac_input \
+      */mhl_2000_charge */mhl_2000_input \
+      */hv_charge */ac_charge \
+      */batt_tune_chg_limit_cur */so_limit_input \
+      */so_limit_charge */car_input */sdp_input \
+      */aca_charge */sdp_charge */aca_input \
+      *dcp_input */wc_input */car_charge \
+      */dcp_charge */wc_charge 2>/dev/null | \
+        while read file; do
+          chmod u+r $file 2>/dev/null || continue
+          defaultValue=$(cat $file)
+          ampFactor=$(sed -n 's/^ampFactor=//p' $data_dir/config.txt 2>/dev/null)
+          [ -n "$ampFactor" -o $defaultValue -ne 0 ] && {
+            if [ "${ampFactor:-1}" -eq 1000 -o $defaultValue -lt 10000 ]; then
+              # milliamps
+              echo ${file}::v::$defaultValue \
+                >> $TMPDIR/ch-curr-ctrl-files_
+            else
+              # microamps
+              echo ${file}::v000::$defaultValue \
+                >> $TMPDIR/ch-curr-ctrl-files_
+            fi
+          }
+        done
+  fi
 
 
   # remove duplicates and parallel/ ctrl files

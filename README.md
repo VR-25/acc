@@ -174,10 +174,11 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202009230
+configVerCode=202010120
 capacity=(-1 60 70 75 false)
 temperature=(40 60 90)
 cooldownRatio=()
+cooldownCurrent=0
 cooldownCustom=()
 resetBattStats=(false false)
 chargingSwitch=()
@@ -214,6 +215,8 @@ loopCmd=()
 # cooldownRatio=(cooldown_charge cooldown_pause)
 
 # cooldownCustom=cooldown_custom=(file raw_value charge_seconds pause_seconds)
+
+# cooldownCurrent=cooldown_current=[Milliamps]
 
 # resetBattStats=(reset_batt_stats_on_pause reset_batt_stats_on_unplug)
 
@@ -256,6 +259,7 @@ loopCmd=()
 # mtp max_temp_pause
 
 # ccu cooldown_custom
+# cdc cooldown_current
 
 # rbsp reset_batt_stats_on_pause
 # rbsu reset_batt_stats_on_unplug
@@ -306,6 +310,8 @@ loopCmd=()
 
 # acc -s loop_cmd="echo 0 \\> battery/input_suspend"
 
+# acc -s cooldown_current=500
+
 
 # FINE, BUT WHAT DOES EACH OF THESE VARIABLES ACTUALLY MEAN?
 
@@ -355,6 +361,10 @@ loopCmd=()
 # When cooldown_capacity and/or cooldown_temp don't suit your needs, this comes to the rescue.
 # It takes precedence over the regular cooldown settings.
 # Refer back the command examples.
+
+# cooldown_current (cdc) #
+# Instead of pausing charging periodically during the cooldown phase, lower the charging current.
+# This is the default behavior (smoother).
 
 # reset_batt_stats_on_pause (rbsp) #
 # Reset battery stats after pausing charging.
@@ -1029,26 +1039,6 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 ## LATEST CHANGES
 
 
-**v2020.9.24 (202009240)**
-
-- Cooldown no longer interferes with capacity_sync.
-- Delay accd initialization (5 minutes) to prevent conflicts with fbind.
-- Do not auto-shutdown if charging was disabled by accd itself at temp >= max_temp.
-- Do not remount / rw if it's not tmpfs.
-- Fixed cooldown_custom.
-- Major optimizations
-- MTK and Razer specific tweaks
-- New charging switch for Motorola One Vision
-- Removed obsolete features.
-- Simplified config.
-- Updated documentation.
-
-Release Notes
-
-- Config will be reset.
-- MIUI bootloop issue possibly fixed.
-
-
 **v2020.10.1 (202010010)**
 
 - Fixed automatic charging switch management issues.
@@ -1072,3 +1062,15 @@ Release Notes
 - Move persistent data to /sdcard/Documents/vr25/acc/ for compatibility with Android 11 storage isolation.
 - Updated documentation (FAQ, tips, voltage issues, Samsung's "70% problem", etc.).
 - Use `cmd` in place of most `dumpsys` calls.
+
+
+**v2020.10.14 (202010140)**
+
+- acc -i: show additional power supply info, if any.
+- build.sh: copy uninstaller to build dir.
+- cooldown_current: instead of pausing charging periodically during the cooldown phase, lower the charging current (0mA or custom). This is the default behavior (smoother).
+- Fetch current and voltage control files only once per boot session to prevent loss of default values.
+- Fixed daemon restart/stop timeout issues.
+- Fixed Zygote-related issue that prevented accd initialization on boot.
+- Misc fixes & optimizations
+- MTK switch delay ranges from 5 to 20 seconds.

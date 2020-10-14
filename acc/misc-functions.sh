@@ -231,7 +231,9 @@ misc_stuff() {
 }
 
 
-not_charging() { grep -Eiq "${1-dis|not}" $batt/status; }
+not_charging() {
+  grep -Eiq "${1-dis|not}" $batt/status
+}
 
 
 print_header() {
@@ -327,5 +329,5 @@ pgrep -f zygote > /dev/null || {
   dumpsys() { :; }
 }
 
-# set max switch_delay for mtk devices
-! grep -q mtk_battery_cmd $TMPDIR/ch-switches || switchDelay=4
+# set switchDelay for mtk devices
+! grep -q mtk_battery_cmd $TMPDIR/ch-switches || switchDelay=5

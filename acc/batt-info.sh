@@ -21,14 +21,12 @@ batt_info() {
 
   # raw battery info from $batt/uevent
   info="$(
-    sed -e 's/^POWER_SUPPLY_//' -e 's/^BATT_VOL=/VOLTAGE_NOW=/' -e 's/^BATT_TEMP=/TEMP=/' $batt/uevent
-
-    [ ! -f bms/uevent ] || {
-      grep -q '^P.*_PPLY_TEMP=' $batt/uevent \
-        || sed -n '/^P.*_PPLY_TEMP=/s/.*Y_T/T/p' bms/uevent || :
-      grep -q '^P.*_PPLY_VOLTAGE_NOW=' $batt/uevent \
-        || sed -n '/^P.*_PPLY_VOLTAGE_NOW=/s/.*Y_V/V/p' bms/uevent || :
-    }
+    set +e
+    sort -u $batt/uevent bms/uevent 2>/dev/null | \
+    sed -e 's/^POWER_SUPPLY_//' \
+      -e 's/^BATT_VOL=/VOLTAGE_NOW=/' \
+      -e 's/^BATT_TEMP=/TEMP=/' $batt/uevent | \
+    sed '/^NAME=/d'
   )"
 
 

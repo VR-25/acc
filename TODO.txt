@@ -1,8 +1,27 @@
 remove #legacy
 
-cooldown with current reduction
-stop/slowdown charging with current reduction
+support voltage control files with space-separated values (Samsung)
 
-profiles
-  config.txt
-    profile=[file]
+alerts
+
+
+alternate charging control logic
+
+  disable_charging() {
+    maxChargingCurrent0=${maxChargingCurrent[0]-}
+    set +e
+    set_ch_curr 0 > /dev/null 2>&1
+    set -e
+    touch $TMPDIR/.ch-disabled
+  }
+
+  enable_charging() {
+    set +e
+    set_ch_curr ${maxChargingCurrent0:--} > /dev/null 2>&1
+    set -e
+    rm $TMPDIR/.ch-disabled
+  }
+
+  not_charging() {
+    grep -Eiq "${1-dis|not}" $batt/status && [ ! -f $TMPDIR/.ch-disabled ]
+  }

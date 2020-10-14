@@ -10,7 +10,7 @@ daemon_ctrl() {
       exec /dev/accd $config
     ;;
     stop)
-      . ./release-lock.sh
+      . $execDir/release-lock.sh
       exit 0
     ;;
     *)
@@ -21,12 +21,16 @@ daemon_ctrl() {
 
 
 set -eu
-cd /data/adb/vr25/acc/
-export TMPDIR=/dev/.acc verbose=false
-. ./setup-busybox.sh
 
+execDir=/data/adb/vr25/acc
 config=/sdcard/Documents/vr25/acc/config.txt
-defaultConfig=$PWD/default-config.txt
+defaultConfig=$execDir/default-config.txt
+TMPDIR=/dev/.acc
+verbose=false
+
+export execDir TMPDIR verbose
+cd /sys/class/power_supply/
+. $execDir/setup-busybox.sh
 
 mkdir -p ${config%/*} 2>/dev/null || :
 [ -f $config ] || cp $defaultConfig $config
@@ -50,14 +54,13 @@ case "$@" in
 
   # print battery uevent data
   -i*|--info*)
-    cd /sys/class/power_supply/
     for batt in $(ls */uevent); do
       chmod u+r $batt \
          && grep -q '^POWER_SUPPLY_CAPACITY=' $batt \
          && grep -q '^POWER_SUPPLY_STATUS=' $batt \
          && batt=${batt%/*} && break
     done 2>/dev/null || :
-    . /data/adb/vr25/acc/batt-info.sh
+    . $execDir/batt-info.sh
     batt_info "${2-}"
     exit 0
   ;;
@@ -76,37 +79,22 @@ case "$@" in
     flock 0 <&4
     shift
 
-    # since this runs asynchronously, restarting accd from here is potentially troublesome
-    # the front-end itself should do it
-    # case "$*" in
-    #   s=*|*\ s=*|*charging_switch=*|*sc=*|*shutdown_capacity=*)
-    #     ! daemon_ctrl stop > /dev/null || restartDaemon=true
-    #     trap 'e=$?; ! ${restartDaemon:-false} || /dev/accd; exit $e' EXIT
-    #   ;;
-    # esac
-
     . $defaultConfig
     . $config
 
     export "$@"
 
-    case "$*" in
-      *ab=*|*apply_on_boot=*)
-        apply_on_boot
-      ;;
-    esac
-
     [ .${mcc-${max_charging_current-x}} = .x ] || {
-      . ./set-ch-curr.sh
+      . $execDir/set-ch-curr.sh
       set_ch_curr ${mcc:-${max_charging_current:--}} || :
     }
 
     [ .${mcv-${max_charging_voltage-x}} = .x ] || {
-      . ./set-ch-volt.sh
+      . $execDir/set-ch-volt.sh
       set_ch_volt ${mcv:-${max_charging_voltage:--}} || :
     }
 
-    . ./write-config.sh
+    . $execDir/write-config.sh
     exit 0
   ;;
 
@@ -115,7 +103,7 @@ case "$@" in
   -s\ d*|-s\ --print-default*|--set\ d*|--set\ --print-default*|-sd*)
     [ $1 = -sd ] && shift || shift 2
     . $defaultConfig
-    . ./print-config.sh | grep -E "${1:-...}" || :
+    . $execDir/print-config.sh | grep -E "${1:-...}" || :
     exit 0
   ;;
 
@@ -123,7 +111,7 @@ case "$@" in
   -s\ p*|-s\ --print|-s\ --print\ *|--set\ p|--set\ --print|--set\ --print\ *|-sp*)
     [ $1 = -sp ] && shift || shift 2
     . $config
-    . ./print-config.sh | grep -E "${1:-...}" || :
+    . $execDir/print-config.sh | grep -E "${1:-...}" || :
     exit 0
   ;;
 

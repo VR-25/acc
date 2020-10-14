@@ -1,7 +1,8 @@
-configVerCode=202009230
+configVerCode=202010120
 capacity=(-1 60 70 75 false)
 temperature=(40 60 90)
 cooldownRatio=()
+cooldownCurrent=0
 cooldownCustom=()
 resetBattStats=(false false)
 chargingSwitch=()
@@ -38,6 +39,8 @@ loopCmd=()
 # cooldownRatio=(cooldown_charge cooldown_pause)
 
 # cooldownCustom=cooldown_custom=(file raw_value charge_seconds pause_seconds)
+
+# cooldownCurrent=cooldown_current=[Milliamps]
 
 # resetBattStats=(reset_batt_stats_on_pause reset_batt_stats_on_unplug)
 
@@ -80,6 +83,7 @@ loopCmd=()
 # mtp max_temp_pause
 
 # ccu cooldown_custom
+# cdc cooldown_current
 
 # rbsp reset_batt_stats_on_pause
 # rbsu reset_batt_stats_on_unplug
@@ -130,6 +134,8 @@ loopCmd=()
 
 # acc -s loop_cmd="echo 0 \\> battery/input_suspend"
 
+# acc -s cooldown_current=500
+
 
 # FINE, BUT WHAT DOES EACH OF THESE VARIABLES ACTUALLY MEAN?
 
@@ -179,6 +185,10 @@ loopCmd=()
 # When cooldown_capacity and/or cooldown_temp don't suit your needs, this comes to the rescue.
 # It takes precedence over the regular cooldown settings.
 # Refer back the command examples.
+
+# cooldown_current (cdc) #
+# Instead of pausing charging periodically during the cooldown phase, lower the charging current.
+# This is the default behavior (smoother).
 
 # reset_batt_stats_on_pause (rbsp) #
 # Reset battery stats after pausing charging.

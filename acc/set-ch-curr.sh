@@ -1,10 +1,8 @@
 set_ch_curr() {
 
   ${verbose:-true} || {
-    execDir=/data/adb/vr25/acc
     exxit() { exit $?; }
     . $execDir/misc-functions.sh
-    cd $execDir
   }
 
   # check support
@@ -39,7 +37,14 @@ set_ch_curr() {
     else
 
       apply_current() {
-        eval "maxChargingCurrent=($1 $(sed "s|::v|::$1|" $TMPDIR/ch-curr-ctrl-files))" \
+        eval "
+          if [ $1 -ne 0 ]
+          then
+            maxChargingCurrent=($1 $(sed "s|::v|::$1|" $TMPDIR/ch-curr-ctrl-files))
+          else
+            maxChargingCurrent=($1 $(sed "s|::v.*::|::$1::|" $TMPDIR/ch-curr-ctrl-files))
+          fi
+        " \
           && unset max_charging_current mcc \
           && apply_on_plug \
           && {

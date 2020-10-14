@@ -10,6 +10,8 @@ ct=${cooldown_temp-${ct-${temperature[0]}}}
 mt=${max_temp-${mt-${temperature[1]}}}
 mtp=${max_temp_pause-${mtp-${temperature[2]}}}
 
+cdc=${cooldown_current-${cdc-$cooldownCurrent}}
+
 ccu="${cooldown_custom-${ccu-${cooldownCustom[@]}}}"
 
 cch=${cooldown_charge-${cch-${cooldownRatio[0]}}}
@@ -42,6 +44,7 @@ echo "configVerCode=$(cat $TMPDIR/.config-ver)
 capacity=(${sc:--1} ${cc:-60} ${rc:-70} ${pc:-75} ${cft:-false})
 temperature=(${ct:-40} ${mt:-60} ${mtp:-90})
 cooldownRatio=($cch $cp)
+cooldownCurrent=${cdc-0}
 cooldownCustom=($ccu)
 resetBattStats=(${rbsp:-false} ${rbsu:-false})
 chargingSwitch=($s)

@@ -23,4 +23,4 @@
     mv -f $TMPDIR/ch-curr-ctrl-files_ $TMPDIR/ch-curr-ctrl-files
   }
 ) || :
-readChCurr=false
+touch $TMPDIR/.ch-curr-read
