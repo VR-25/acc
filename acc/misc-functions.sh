@@ -311,6 +311,7 @@ device=$(getprop ro.product.device | grep .. || getprop ro.build.product)
 
 cd /sys/class/power_supply/
 
+# find battery uevent
 for batt in $(ls */uevent); do
   chmod u+r $batt \
    && grep -q '^POWER_SUPPLY_CAPACITY=' $batt \
@@ -318,6 +319,19 @@ for batt in $(ls */uevent); do
    && batt=${batt%/*} \
    && break
 done 2>/dev/null || :
+
+# set temperature reporter
+temp=$batt/temp
+[ -f $temp ] || {
+  temp=$batt/batt_temp
+  [ -f $temp ] || {
+    temp=bms/temp
+    [ -f $temp ] || {
+      echo 250 > $TMPDIR/.dummy-temp
+      temp=$TMPDIR/.dummy-temp
+    }
+  }
+}
 
 # cmd and dumpsys wrappers for Termux and recovery
 [[ $(readlink -f $execDir) != *com.termux* ]] || {

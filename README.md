@@ -1039,20 +1039,6 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 ## LATEST CHANGES
 
 
-**v2020.10.1 (202010010)**
-
-- Fixed automatic charging switch management issues.
-- Fixed ghost charging problem related to cooldown and capacity_sync/capacity_freeze2.
-- General optimizations
-- Persistent data is now saved in /sdcard/vr25/acc/.
-- Workaround for EdXposed's service.sh bug
-
-Release Notes
-
-- Confirmed: the MIUI bootloop issue is gone.
-- If you face any other issue, run `rm /sdcard/Documents/vr25/acc/config.txt; accd` to reset the config and restart accd.
-
-
 **v2020.10.8 (202010080)**
 
 - Changelog is sorted in reverse order (older first).
@@ -1074,3 +1060,9 @@ Release Notes
 - Fixed Zygote-related issue that prevented accd initialization on boot.
 - Misc fixes & optimizations
 - MTK switch delay ranges from 5 to 20 seconds.
+
+
+**v2020.10.15 (202010150)**
+
+- Current control optimizations
+- Dynamically determine the right temperature reporter; use a dummy file (25°C) if none is found.

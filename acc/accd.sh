@@ -90,7 +90,14 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
       }
 
       # read charging current ctrl files (part 2) once
-      [ -f $TMPDIR/.ch-curr-read ] || . $execDir/read-ch-curr-ctrl-files-p2.sh
+      $chCurrRead || {
+        if [ ! -f $TMPDIR/.ch-curr-read ] \
+          || ! grep -q / $TMPDIR/ch-curr-ctrl-files 2>/dev/null
+        then
+          . $execDir/read-ch-curr-ctrl-files-p2.sh
+          chCurrRead=true
+        fi
+      }
 
       $cooldown || resetBattStatsOnUnplug=true
 
@@ -144,7 +151,7 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
       if is_charging; then
 
         # disable charging under <conditions>
-        test $(cat $batt/temp $batt/batt_temp 2>/dev/null) -ge $(( ${temperature[1]} * 10 )) \
+        test $(cat $temp) -ge $(( ${temperature[1]} * 10 )) \
           && maxTempPause=true || maxTempPause=false
         if $maxTempPause || test $(cat $batt/capacity) -ge ${capacity[3]}; then
           disable_charging
@@ -161,7 +168,7 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
           && [ $(cat $batt/capacity) -lt ${capacity[3]} ] \
           && is_charging
         do
-          if [ $(cat $batt/temp $batt/batt_temp 2>/dev/null) -ge $(( ${temperature[0]} * 10 )) ] \
+          if [ $(cat $temp) -ge $(( ${temperature[0]} * 10 )) ] \
             || [ $(cat $batt/capacity) -ge ${capacity[1]} ] \
             || [ $(sed s/-// ${cooldownCustom[0]:-cooldownCustom} 2>/dev/null || echo 0) -ge ${cooldownCustom[1]:-1} ]
           then
@@ -172,9 +179,9 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
               cmd_batt set status $chgStatusCode # to prevent unwanted display wakeups
               set +e
               maxChargingCurrent0=${maxChargingCurrent[0]-}
-              set_ch_curr ${cooldownCurrent:-0} > /dev/null 2>&1
+              set_ch_curr ${cooldownCurrent:-0}
               sleep ${cooldownRatio[1]:-1}
-              set_ch_curr ${maxChargingCurrent0:--} > /dev/null 2>&1
+              set_ch_curr ${maxChargingCurrent0:--}
               set -e
               $capacitySync || cmd_batt reset
               count=0
@@ -216,7 +223,7 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
 
         # enable charging under <conditions>
         [ ! $(cat $batt/capacity) -le ${capacity[2]} ] || {
-          [ ! $(cat $batt/temp $batt/batt_temp 2>/dev/null) -lt $(( ${temperature[1]} * 10 )) ] \
+          [ ! $(cat $temp) -lt $(( ${temperature[1]} * 10 )) ] \
             || enable_charging
         }
 
@@ -267,6 +274,7 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
 
   isAccd=true
   cooldown=false
+  chCurrRead=false
   chgStatusCode=""
   capacitySync=false
   dischgStatusCode=""

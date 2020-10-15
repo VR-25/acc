@@ -1,30 +1,32 @@
 set_ch_curr() {
 
-  ${verbose:-true} || {
+  local verbose=${verbose:-true}
+
+  $verbose || {
     exxit() { exit $?; }
     . $execDir/misc-functions.sh
   }
 
+  ! ${isAccd:-false} || verbose=false
+
   # check support
-  grep -q ::v $TMPDIR/ch-curr-ctrl-files || {
-    if ${verbose:-true} && not_charging; then
-      print_read_curr
-      print_wait_plug
+  if [ ! -f $TMPDIR/.ch-curr-read ] \
+    || ! grep -q / $TMPDIR/ch-curr-ctrl-files 2>/dev/null
+  then
+    if not_charging; then
+      ! $verbose || {
+        print_read_curr
+        print_wait_plug
+        echo
+      }
       (while not_charging; do sleep 1; set +x; done)
-      echo
-      . $execDir/read-ch-curr-ctrl-files-p2.sh
-      grep -q ::v $TMPDIR/ch-curr-ctrl-files || {
-        print_no_ctrl_file
-        return 1
-      }
-    else
-      . $execDir/read-ch-curr-ctrl-files-p2.sh
-      grep -q ::v $TMPDIR/ch-curr-ctrl-files || {
-        ! ${verbose:-true} || print_no_ctrl_file
-        return 1
-      }
     fi
-  }
+    . $execDir/read-ch-curr-ctrl-files-p2.sh
+    grep -q / $TMPDIR/ch-curr-ctrl-files || {
+      ! $verbose || print_no_ctrl_file
+      return 1
+    }
+  fi
 
   if [ -n "${1-}" ]; then
 
@@ -32,7 +34,7 @@ set_ch_curr() {
     if [ $1 = - ]; then
       apply_on_plug default
       max_charging_current=
-      ! ${verbose:-true} || print_curr_restored
+      ! $verbose || print_curr_restored
 
     else
 
@@ -49,7 +51,7 @@ set_ch_curr() {
           && apply_on_plug \
           && {
             noEcho=true
-            ! ${verbose:-true} || print_curr_set $1
+            ! $verbose || print_curr_set $1
           } || return 1
       }
 
@@ -57,14 +59,14 @@ set_ch_curr() {
       if [ $1 -ge 0 -a $1 -le 9999 ]; then
         apply_current $1 || return 1
       else
-        ! ${verbose:-true} || echo "(!) [0-9999]$(print_mA; print_only)"
+        ! $verbose || echo "(!) [0-9999]$(print_mA; print_only)"
         return 11
       fi
     fi
 
   else
     # print current value
-    ! ${verbose:-true} && echo ${maxChargingCurrent[0]-} \
+    ! $verbose && echo ${maxChargingCurrent[0]-} \
       || echo "${maxChargingCurrent[0]:-$(print_default)}$(print_mA)"
     return 0
   fi
