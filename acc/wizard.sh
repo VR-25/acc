@@ -32,7 +32,7 @@ e) $(print_exit)
 
     1)
       . $execDir/set-prop.sh; set_prop --lang
-      exec /dev/acc
+      exec /dev/.vr25/acc/acc
     ;;
 
     2)
@@ -47,7 +47,7 @@ e) $(print_exit)
     ;;
 
     4)
-      /dev/accd
+      /dev/.vr25/acc/accd
       sleep 1
       exec wizard
     ;;
@@ -76,7 +76,7 @@ e) $(print_exit)
       echo -n "%? "
       read level
       clear
-      /dev/acc --full ${level-}
+      /dev/.vr25/acc/acc --full ${level-}
       exit $?
     ;;
 
@@ -100,17 +100,17 @@ e) $(print_exit)
     ;;
 
     b)
-      /dev/acc --test || :
+      /dev/.vr25/acc/acc --test || :
       print_press_key
       read -n 1
       exec wizard
     ;;
 
     c)
-      /dev/acc --upgrade --changelog || :
+      /dev/.vr25/acc/acc --upgrade --changelog || :
       print_press_key
       read -n 1
-      exec /dev/acc
+      exec /dev/.vr25/acc/acc
     ;;
 
     d)
@@ -122,7 +122,7 @@ e) $(print_exit)
       echo
       print_press_key
       read -n 1
-      exec /dev/acc
+      exec /dev/.vr25/acc/acc
     ;;
 
     e)

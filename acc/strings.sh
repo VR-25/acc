@@ -243,7 +243,7 @@ Options
       acc -t battery/charging_enabled 1 0
       acc -t /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0 ("::" is a placeholder for " ")
 
-  -t|--test [file]   Test charging switches from a file (default: /dev/.acc/ch-switches)
+  -t|--test [file]   Test charging switches from a file (default: /dev/.vr25/acc/ch-switches)
     This will also report whether "battery idle" mode is supported
     e.g.,
       acc -t (test known switches)
@@ -290,7 +290,7 @@ Exit Codes
   10. "--test" failed
   11. Current (mA) out of range
   12. Initialization failed
-  13. Failed to lock /dev/.$id/${id}.lock
+  13. Failed to lock /dev/.vr25/acc/acc.lock
 
   Logs are exported automatically ("--log --export") on exit codes 1, 2, 7 and 10.
 

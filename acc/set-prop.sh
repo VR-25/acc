@@ -1,31 +1,28 @@
+print_charging_enabled() {
+  :
+}
+
+
+reset_switch() {
+  if not_charging && \
+    [ $(cat $batt/capacity) -ge ${capacity[2]} ]
+  then
+    enable_charging
+  fi
+}
+
+
 set_prop() {
 
-  local daemonWasUp=true restartDaemon=false
-
-  daemon_ctrl > /dev/null || daemonWasUp=false
-
-  (case ${1-} in
+  case ${1-} in
 
     # set multiple properties
     *=*)
-
-      case "$*" in
-        s=*|*\ s=*|*charging_switch=*|*sc=*|*shutdown_capacity=*)
-          ! $daemonWasUp || daemon_ctrl stop > /dev/null
-          restartDaemon=true
-        ;;
-      esac
 
       . $defaultConfig
       . $config
 
       export "$@"
-
-      case "$*" in
-        *ab=*|*apply_on_boot=*)
-          apply_on_boot
-        ;;
-      esac
 
       [ .${mcc-${max_charging_current-x}} = .x ] || {
         . $execDir/set-ch-curr.sh
@@ -40,10 +37,9 @@ set_prop() {
 
     # reset config
     r|--reset)
-      ! $daemonWasUp || daemon_ctrl stop > /dev/null
+      reset_switch
       cp -f $defaultConfig $config
       print_config_reset
-      ! $daemonWasUp || /dev/accd
       return 0
     ;;
 
@@ -62,21 +58,20 @@ set_prop() {
 
     # set charging switch
     s|--charging*witch)
-      ! $daemonWasUp || daemon_ctrl stop > /dev/null
-      restartDaemon=true
       IFS=$'\n'
       PS3="$(print_choice_prompt)"
       print_known_switches
       . $execDir/select.sh
-      select_ charging_switch $(print_auto; cat $TMPDIR/ch-switches; print_exit)
-      [ ${chargingSwitch:-x} != $(print_exit) ] || exit 0
-      [ ${chargingSwitch:-x} != $(print_auto) ] || charging_switch=
+      select_ charging_switch $(print_auto; cat $TMPDIR/ch-switches; ! grep -q / $TMPDIR/ch-curr-ctrl-files || printf '0\n250\n'; print_exit)
+      [ ${charging_switch:-x} != $(print_exit) ] || exit 0
+      [ ${charging_switch:-x} != $(print_auto) ] || charging_switch=
       unset IFS
     ;;
 
     # print switches
     s:|--charging*witch:)
       cat $TMPDIR/ch-switches
+      ! grep -q / $TMPDIR/ch-curr-ctrl-files || printf '0\n250\n'
       return 0
     ;;
 
@@ -118,8 +113,8 @@ set_prop() {
 
   esac
 
+  [ ".${s-${charging_switch-x}}" = .x ] || reset_switch
+
   # update config.txt
   . $execDir/write-config.sh
-
-  ! $restartDaemon || { ! $daemonWasUp || /dev/accd; })
 }

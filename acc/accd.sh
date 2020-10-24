@@ -12,7 +12,7 @@ umask 0077
 
 case "$1" in
   -i|--init) init=true; shift;;
-  *) test -f $TMPDIR/.config-ver && init=false || init=true;; ###
+  *) [ -f $TMPDIR/.config-ver ] && init=false || init=true;; ###
 esac
 
 
@@ -29,7 +29,7 @@ pgrep zygote > /dev/null && {
 }
 
 
-if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
+if ! $init; then
 
   exxit() {
     exitCode=$?
@@ -75,11 +75,17 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
     local file="" value="" isCharging=false
 
     . $config
-
     not_charging || isCharging=true
 
     # run custom code
     eval "${loopCmd[@]-}"
+
+    # shutdown if battery temp >= shutdown_temp
+    [ $(cat $temp) -lt $(( ${temperature[3]} * 10 )) ] || {
+      am start -n android/com.android.internal.app.ShutdownActivity < /dev/null > /dev/null 2>&1 \
+        || reboot -p 2>/dev/null \
+          || /system/bin/reboot -p || :
+    }
 
     if $isCharging; then
 
@@ -100,10 +106,12 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
       }
 
       $cooldown || resetBattStatsOnUnplug=true
-
-      apply_on_plug
+      ${chargingDisabled:-false} || apply_on_plug
+      [ -z "${chargingDisabled-}" ] || enable_charging
 
     else
+
+      [ -z "${chargingDisabled-}" ] || chargingDisabled=false
 
       # read dischgStatusCode once
       #   and dynamically enable/disable capacitySync
@@ -296,6 +304,9 @@ if [ -f $TMPDIR/.config-ver ] && ! $init; then ###
   . $config
 
 
+  ! test ${chargingSwitch[0]:--1} -ge 0 2>/dev/null= || . $execDir/alt-functions.sh
+
+
   apply_on_boot
   ctrl_charging
   exit $?
@@ -313,18 +324,28 @@ else
 
   # prepare executables ###
 
+  #legacy
   ln -fs $execDir/${id}.sh /dev/$id
   ln -fs $execDir/${id}.sh /dev/${id}d,
   ln -fs $execDir/${id}.sh /dev/${id}d.
   ln -fs $execDir/${id}a.sh /dev/${id}a
   ln -fs $execDir/service.sh /dev/${id}d
 
+  mkdir -p /dev/.$domain/$id
+
+  ln -fs $execDir/${id}.sh /dev/.$domain/$id/$id
+  ln -fs $execDir/${id}.sh /dev/.$domain/$id/${id}d,
+  ln -fs $execDir/${id}.sh /dev/.$domain/$id/${id}d.
+  ln -fs $execDir/${id}a.sh /dev/.$domain/$id/${id}a
+  ln -fs $execDir/service.sh /dev/.$domain/$id/${id}d
+
   test -d /sbin && {
     ! grep -q "^tmpfs / " /proc/mounts \
       || /system/bin/mount -o remount,rw / 2>/dev/null \
       || mount -o remount,rw /
-    for h in  /dev/$id /dev/${id}d, /dev/${id}d. \
-      /dev/${id}a /dev/${id}d
+    for h in  /dev/.$domain/$id/$id \
+        /dev/.$domain/$id/${id}d, /dev/.$domain/$id/${id}d. \
+      /dev/.$domain/$id/${id}a /dev/.$domain/$id/${id}d
     do
       ln -fs $h /sbin/ 2>/dev/null || break
     done
@@ -442,7 +463,7 @@ else
 
 
   # start $id daemon
-  rm /dev/.$id/.ghost-charging 2>/dev/null ###
+  rm /dev/.$domain/$id/.ghost-charging 2>/dev/null ###
   exec $0 "$@"
 fi
 

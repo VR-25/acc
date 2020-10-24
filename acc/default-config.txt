@@ -1,8 +1,8 @@
-configVerCode=202010120
-capacity=(-1 60 70 75 false)
-temperature=(40 60 90)
+configVerCode=202010240
+capacity=(0 60 70 75 false)
+temperature=(40 60 90 65)
 cooldownRatio=()
-cooldownCurrent=0
+cooldownCurrent=
 cooldownCustom=()
 resetBattStats=(false false)
 chargingSwitch=()
@@ -11,7 +11,6 @@ applyOnPlug=()
 maxChargingCurrent=()
 maxChargingVoltage=()
 language=en
-prioritizeBattIdleMode=true
 runCmdOnPause=()
 ampFactor=
 voltFactor=
@@ -20,21 +19,31 @@ loopCmd=()
 
 # WARNINGS
 
+# Do not edit this in Windows Notepad, ever!
+# It replaces LF (Linux/Unix) with CRLF (Windows) line endings.
+
 # As seen above, whatever is null can be null.
 # Nullifying values that should not be null causes nasty errors.
 # However, doing so with "--set var=" restores the default value of "var".
 # In other words, for regular users, "--set" is safer than modifying the config file directly.
 
-# Do NOT feel like you must configure everything!
-# If you don't know EXACTLY how to and why you want to do it, it's a very dumb idea.
-# Help is always available, from multiple sources - plus, you don't have to pay a penny for it.
+# Do not feel like you must configure everything!
+# Do not change what you don't understand.
+# Help is always available, from multiple sources - besides, I don't charge a penny for it.
 
 
-# BASIC CONFIG EXPLANATION
+# NOTES
+
+# The daemon does not have to be restarted after making changes to this file - unless one of the changes is charging_switch and the following logical condition is true: not_charging AND capacity >= resume_capacity.
+
+# If charging_switch is changed with --set (e.g., -ss, -s s="...", --set charging_switch="..."), accd is restarted automatically, according to the aforementioned condition.
+
+
+# BASICS
 
 # capacity=(shutdown_capacity cooldown_capacity resume_capacity pause_capacity capacity_freeze2)
 
-# temperature=(cooldown_temp max_temp max_temp_pause)
+# temperature=(cooldown_temp max_temp max_temp_pause shutdown_temp)
 
 # cooldownRatio=(cooldown_charge cooldown_pause)
 
@@ -55,8 +64,6 @@ loopCmd=()
 # maxChargingVoltage=max_charging_voltage=([value] ctrl_file1::value::default1 ctrl_file2::value::default2 ...) --exit)
 
 # language=lang=language_code
-
-# prioritizeBattIdleMode=prioritize_batt_idle_mode=true/false
 
 # runCmdOnPause=run_cmd_on_pause=(. script)
 
@@ -82,6 +89,8 @@ loopCmd=()
 # mt max_temp
 # mtp max_temp_pause
 
+# st shutdown_temp
+
 # ccu cooldown_custom
 # cdc cooldown_current
 
@@ -97,7 +106,6 @@ loopCmd=()
 # mcv max_charging_voltage
 
 # l lang
-# pbim prioritize_batt_idle_mode
 # rcp run_cmd_on_pause
 
 # af amp_factor
@@ -136,6 +144,8 @@ loopCmd=()
 
 # acc -s cooldown_current=500
 
+# acc -s st=60
+
 
 # FINE, BUT WHAT DOES EACH OF THESE VARIABLES ACTUALLY MEAN?
 
@@ -143,8 +153,7 @@ loopCmd=()
 # This is checked during updates to determine whether config should be patched. Do NOT modify.
 
 # shutdown_capacity (sc) #
-# When the battery is discharging and its capacity <= sc and phone has been running for 15 minutes or more, acc daemon turns the phone off to reduce the discharge rate and protect the battery from potential damage induced by voltages below the operating range.
-# On capacity <= shutdown_capacity + 5, accd enables Android battery saver, triggers 5 vibrations once - and again on each subsequent capacity drop.
+# When the battery is discharging and its capacity <= sc and phone has been running for 15 minutes or more, acc daemon turns the phone off to reduce the discharge rate and protect the battery from potential damage induced by voltage below the operating range.
 
 # cooldown_capacity (cc) #
 # Capacity at which the cooldown cycle starts.
@@ -173,6 +182,9 @@ loopCmd=()
 # Unlike the cooldown cycle, which aims at reducing BOTH high temperature and high voltage induced stress - this is ONLY meant specifically for reducing high temperature induced stress.
 # Even though both are separate features, this complements the cooldown cycle when environmental temperatures are off the charts.
 
+# shutdown_temp (st) #
+# Shutdown the system if battery temperature >= this value.
+
 # cooldown_charge (cch) #
 # cooldown_pause (cp) #
 # These two dictate the cooldown cycle intervals (seconds).
@@ -187,8 +199,7 @@ loopCmd=()
 # Refer back the command examples.
 
 # cooldown_current (cdc) #
-# Instead of pausing charging periodically during the cooldown phase, lower the charging current.
-# This is the default behavior (smoother).
+# Instead of pausing charging periodically during the cooldown phase, limit the max charging current (e.g., to 500 mA)
 
 # reset_batt_stats_on_pause (rbsp) #
 # Reset battery stats after pausing charging.
@@ -221,10 +232,6 @@ loopCmd=()
 
 # lang (l) #
 # acc language, managed with "acc --set --lang" (acc -s l).
-
-# prioritize_batt_idle_mode (pbim) #
-# Several devices can draw power directly from the external power supply when charging is paused. Test yours with "acc -t".
-# This setting dictates whether charging switches that support such feature should take precedence.
 
 # run_cmd_on_pause (rcp) #
 # Run commands* after pausing charging.

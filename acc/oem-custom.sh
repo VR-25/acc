@@ -1,5 +1,4 @@
-(
-grep_() { grep -Eq "$1" ${2:-$config}; }
+(grep_() { grep -Eq "$1" ${2:-$config}; }
 
 get_prop() { sed -n "\|^$1=|s|.*=||p" ${2:-$config} 2>/dev/null || :; }
 
@@ -13,17 +12,20 @@ if (set +x; . $config) > /dev/null 2>&1; then
   [ $configVer -eq $defaultConfVer ] || {
     if [ $configVer -lt 202009230 ]; then
       cp -f $execDir/default-config.txt $config
+    elif [ $configVer -lt 202010220 ]; then
+      ! grep_ cooldownCurrent=0 || /dev/.vr25/acc/acca --set cooldown_current=
     else
-      /dev/acca --set dummy=
+      /dev/.vr25/acc/acca --set dummy=
     fi
+    ! grep_ prioritize || /dev/.vr25/acc/acca --set dummy=
   }
 else
   cp -f $execDir/default-config.txt $config
 fi 2>/dev/null
 
 
-# battery idle mode for OnePlus 7/Pro
-if grep_ '^chargingSwitch=.*/op_disable_charge'; then
+# battery idle mode for OnePlus devices
+if grep_ '^chargingSwitch=.*battery/op_disable_charge'; then
   [ -f $TMPDIR/oem-custom ] \
     || echo "run_xtimes 'echo 1 > battery/op_disable_charge; echo 0 > battery/input_suspend'" > $TMPDIR/oem-custom
   grep_ "^loopCmd=.*$TMPDIR/oem-custom" \
@@ -79,5 +81,4 @@ set -e
     sed -i /charge_control_limit/d $TMPDIR/ch-switches
     sed -i /charge_control_limit/d $execDir/charging-switches.txt
   }
-}
-)
+})

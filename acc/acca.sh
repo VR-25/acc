@@ -7,7 +7,7 @@
 daemon_ctrl() {
   case "${1-}" in
     start|restart)
-      exec /dev/accd $config
+      exec /dev/.vr25/acc/accd $config
     ;;
     stop)
       . $execDir/release-lock.sh
@@ -25,7 +25,7 @@ set -eu
 execDir=/data/adb/vr25/acc
 config=/sdcard/Documents/vr25/acc/config.txt
 defaultConfig=$execDir/default-config.txt
-TMPDIR=/dev/.acc
+TMPDIR=/dev/.vr25/acc
 verbose=false
 
 export execDir TMPDIR verbose
@@ -120,4 +120,4 @@ esac
 
 # other acc commands
 set +eu
-exec /dev/acc $config "$@"
+exec /dev/.vr25/acc/acc $config "$@"

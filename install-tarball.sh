@@ -4,8 +4,9 @@
 # License: GPLv3+
 
 id=acc
+domain=vr25
 umask 0077
-data_dir=/sdcard/Documents/vr25/${1:-$id}
+data_dir=/sdcard/Documents/$domain/${1:-$id}
 
 # log
 [ -z "${LINENO-}" ] || export PS4='$LINENO: '
@@ -76,9 +77,9 @@ case "$PWD" in
   *mattecarra.accapp*)
     get_ver() { sed -n '/^versionCode=/s/.*=//p' $1/module.prop 2>/dev/null || echo 0; }
     bundled_ver=$(get_ver ${1:-$id}[-_]*)
-    regular_ver=$(get_ver /data/adb/vr25/$id)
+    regular_ver=$(get_ver /data/adb/$domain/$id)
     if [ $bundled_ver -le $regular_ver ] && [ $regular_ver -ne 0 ]; then
-      ln -s $(readlink -f /data/adb/vr25/$id) .
+      ln -s $(readlink -f /data/adb/$domain/$id) .
       (cd ./${1:-$id}/; ln -fs service.sh ${1:-$id}-init.sh)
       exit 0
     fi 2>/dev/null || :

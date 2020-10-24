@@ -1,27 +1,3 @@
 remove #legacy
 
-support voltage control files with space-separated values (Samsung)
-
 alerts
-
-
-alternate charging control logic
-
-  disable_charging() {
-    maxChargingCurrent0=${maxChargingCurrent[0]-}
-    set +e
-    set_ch_curr 0
-    set -e
-    touch $TMPDIR/.ch-disabled
-  }
-
-  enable_charging() {
-    set +e
-    set_ch_curr ${maxChargingCurrent0:--}
-    set -e
-    rm $TMPDIR/.ch-disabled
-  }
-
-  not_charging() {
-    grep -Eiq "${1-dis|not}" $batt/status && [ ! -f $TMPDIR/.ch-disabled ]
-  }

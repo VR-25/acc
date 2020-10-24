@@ -1,6 +1,6 @@
-#!/system/bin/sh
-id=acc
-(pid=
+# usage: . $0
+(id=acc
+pid=
 set +euo sh 2>/dev/null || :
 flock -n 0 || {
   read pid

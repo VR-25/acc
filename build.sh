@@ -22,6 +22,8 @@ set_prop() {
 
 id=$(sed -n "s/^id=//p" module.prop)
 
+domain=$(sed -n "s/^domain=//p" module.prop)
+
 version=$(grep '\*\*.*\(.*\)\*\*' README.md \
   | tail -n 1 | sed 's/\*\*//; s/ .*//')
 
@@ -42,6 +44,14 @@ grep -q "$versionCode" module.prop || {
 for file in ./install*.sh ./$id/*.sh ./bundle.sh; do
   if [ -f "$file" ] && grep -Eq '(^|\()id=' $file; then
     grep -Eq "(^|\()id=$id" $file || set_prop id $id $file
+  fi
+done
+
+
+# set domain
+for file in ./install*.sh ./$id/*.sh ./bundle.sh; do
+  if [ -f "$file" ] && grep -Eq '(^|\()domain=' $file; then
+    grep -Eq "(^|\()domain=$domain" $file || set_prop domain $domain $file
   fi
 done
 

@@ -13,6 +13,8 @@ cooldown_pause=${cooldownRatio[1]}
 max_temp=${temperature[1]}
 max_temp_pause=${temperature[2]}
 
+shutdown_temp=${temperature[3]}
+
 cooldown_current=$cooldownCurrent
 
 cooldown_custom=${cooldownCustom[@]}
@@ -31,8 +33,6 @@ max_charging_current=${maxChargingCurrent[@]}
 max_charging_voltage=${maxChargingVoltage[@]}
 
 lang=$language
-
-prioritize_batt_idle_mode=$prioritizeBattIdleMode
 
 run_cmd_on_pause=${runCmdOnPause[@]}
 

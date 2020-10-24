@@ -12,8 +12,9 @@ SKIPUNZIP=1
 
 echo
 id=acc
+domain=vr25
 umask 0077
-data_dir=/sdcard/Documents/vr25/$id
+data_dir=/sdcard/Documents/$domain/$id
 
 
 # log
@@ -26,7 +27,7 @@ set -x
 exxit() {
   local e=$?
   set +eu
-  rm -rf /dev/.${id}-install /data/adb/modules_update/$id
+  rm -rf /dev/.$domain.${id}-install /data/adb/modules_update/$id
   (abort) > /dev/null
   echo
   exit $e
@@ -92,7 +93,7 @@ srcDir=${srcDir/#"${0##*/}"/"."}
 
 # extract flashable zip if source code is unavailable
 [ -f $srcDir/module.prop ] || {
-  srcDir=/dev/.${id}-install
+  srcDir=/dev/.$domain.${id}-install
   rm -rf $srcDir 2>/dev/null || :
   mkdir $srcDir
   unzip "${3:-${ZIPFILE}}" -d $srcDir/ >&2
@@ -138,6 +139,7 @@ GPLv3+
 
 
 # migrate #legacy data
+
 if [ -d /data/adb/${id}-data ]; then
   mv -f /data/adb/${id}-data/* /data/adb/${id}-data/.* \
     $data_dir/ 2>/dev/null || :
@@ -145,10 +147,13 @@ elif [ -d /sdcard/Download/$id ]; then
   mv -f /sdcard/Download/$id/* /sdcard/Download/$id/.* \
     $data_dir/ 2>/dev/null || :
 else
-  mv -f /sdcard/vr25/$id/* /sdcard/vr25/$id/.* \
+  mv -f /sdcard/$domain/$id/* /sdcard/$domain/$id/.* \
     $data_dir/ 2>/dev/null || :
 fi
 rm -rf $data_dir/info 2>/dev/null || :
+
+mkdir -p /dev/.$domain
+mv /dev/.$id /dev/.$domain/$id 2>/dev/null || :
 
 
 /system/bin/sh $srcDir/$id/uninstall.sh install
@@ -193,7 +198,7 @@ if $acca; then
 
       sleep 60
 
-      [ -e /data/data/mattecarra.${id}app/files/$id ] || rm -rf \$0 /data/adb/vr25/$id /data/adb/modules/$id 2>/dev/null
+      [ -e /data/data/mattecarra.${id}app/files/$id ] || rm -rf \$0 /data/adb/$domain/$id /data/adb/modules/$id 2>/dev/null
 
       exit 0" | sed 's/^      //' > /data/adb/service.d/${id}-cleanup.sh
     chmod 0700 /data/adb/service.d/${id}-cleanup.sh
@@ -201,9 +206,9 @@ if $acca; then
 fi
 
 
-[ $installDir = /data/adb/vr25/$id ] || {
+[ $installDir = /data/adb/$domain/$id ] || {
   mkdir -p /data/adb/vr25
-  ln -s $installDir /data/adb/vr25/
+  ln -s $installDir /data/adb/$domain/
 }
 
 
@@ -261,15 +266,15 @@ echo "
 
 
 (i) Rebooting is unnecessary
-- $id commands may require the /dev/ prefix (e.g., /dev/$id) until system is rebooted.
+- $id commands may require the "/dev/.$domain/$id/" prefix (e.g., /dev/.$domain/$id/$id -v) until system is rebooted.
 - Daemon started."
 
 
 [ $installDir = /data/adb ] && echo "
-(i) Non-Magisk users can enable $id auto-start by running /data/adb/vr25/$id/service.sh, a copy of, or a link to it - with init.d or an app that emulates it."
+(i) Non-Magisk users can enable $id auto-start by running /data/adb/$domain/$id/service.sh, a copy of, or a link to it - with init.d or an app that emulates it."
 
 
 # initialize $id
-/data/adb/vr25/$id/service.sh --init
+/data/adb/$domain/$id/service.sh --init
 
 exit 0

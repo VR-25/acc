@@ -14,8 +14,9 @@
 set +x
 echo
 id=acc
+domain=vr25
 umask 0077
-data_dir=/sdcard/Documents/vr25/$id
+data_dir=/sdcard/Documents/$domain/$id
 
 # log
 [ -z "${LINENO-}" ] || export PS4='$LINENO: '
@@ -79,7 +80,7 @@ reference=$(echo "$*" | sed -E 's/%.*%|-c|--changelog|-f|--force|-k|--insecure|-
 
 tarball=https://github.com/VR-25/$id/archive/${reference}.tar.gz
 
-installedVersion=$(get_ver /data/adb/vr25/$id/module.prop 2>/dev/null || :)
+installedVersion=$(get_ver /data/adb/$domain/$id/module.prop 2>/dev/null || :)
 
 onlineVersion=$(curl -L $insecure https://raw.githubusercontent.com/VR-25/$id/${reference}/module.prop | get_ver)
 

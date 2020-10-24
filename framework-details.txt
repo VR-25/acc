@@ -58,7 +58,7 @@ Tasks Carried Out By build.sh
 
 2. Update version and versionCode in module.prop (values come from README.md > LATEST CHANGES).
 
-3. Set the correct id (from module.prop) in install*.sh, $id/*.sh and bundle.sh.
+3. Set the correct id and domain (from module.prop) in install*.sh, $id/*.sh and bundle.sh.
 
 4. Patch README.md.
 

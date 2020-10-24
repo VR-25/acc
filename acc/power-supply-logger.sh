@@ -37,7 +37,7 @@ gather_ps_data() {
 }
 
 
-export TMPDIR=/dev/.acc
+export TMPDIR=/dev/.vr25/acc
 execDir=/data/adb/vr25/acc
 logsDir=/sdcard/Documents/vr25/acc/logs
 

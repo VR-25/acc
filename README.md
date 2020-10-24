@@ -174,11 +174,11 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202010120
-capacity=(-1 60 70 75 false)
-temperature=(40 60 90)
+configVerCode=202010240
+capacity=(0 60 70 75 false)
+temperature=(40 60 90 65)
 cooldownRatio=()
-cooldownCurrent=0
+cooldownCurrent=
 cooldownCustom=()
 resetBattStats=(false false)
 chargingSwitch=()
@@ -187,7 +187,6 @@ applyOnPlug=()
 maxChargingCurrent=()
 maxChargingVoltage=()
 language=en
-prioritizeBattIdleMode=true
 runCmdOnPause=()
 ampFactor=
 voltFactor=
@@ -196,21 +195,31 @@ loopCmd=()
 
 # WARNINGS
 
+# Do not edit this in Windows Notepad, ever!
+# It replaces LF (Linux/Unix) with CRLF (Windows) line endings.
+
 # As seen above, whatever is null can be null.
 # Nullifying values that should not be null causes nasty errors.
 # However, doing so with "--set var=" restores the default value of "var".
 # In other words, for regular users, "--set" is safer than modifying the config file directly.
 
-# Do NOT feel like you must configure everything!
-# If you don't know EXACTLY how to and why you want to do it, it's a very dumb idea.
-# Help is always available, from multiple sources - plus, you don't have to pay a penny for it.
+# Do not feel like you must configure everything!
+# Do not change what you don't understand.
+# Help is always available, from multiple sources - besides, I don't charge a penny for it.
 
 
-# BASIC CONFIG EXPLANATION
+# NOTES
+
+# The daemon does not have to be restarted after making changes to this file - unless one of the changes is charging_switch and the following logical condition is true: not_charging AND capacity >= resume_capacity.
+
+# If charging_switch is changed with --set (e.g., -ss, -s s="...", --set charging_switch="..."), accd is restarted automatically, according to the aforementioned condition.
+
+
+# BASICS
 
 # capacity=(shutdown_capacity cooldown_capacity resume_capacity pause_capacity capacity_freeze2)
 
-# temperature=(cooldown_temp max_temp max_temp_pause)
+# temperature=(cooldown_temp max_temp max_temp_pause shutdown_temp)
 
 # cooldownRatio=(cooldown_charge cooldown_pause)
 
@@ -231,8 +240,6 @@ loopCmd=()
 # maxChargingVoltage=max_charging_voltage=([value] ctrl_file1::value::default1 ctrl_file2::value::default2 ...) --exit)
 
 # language=lang=language_code
-
-# prioritizeBattIdleMode=prioritize_batt_idle_mode=true/false
 
 # runCmdOnPause=run_cmd_on_pause=(. script)
 
@@ -258,6 +265,8 @@ loopCmd=()
 # mt max_temp
 # mtp max_temp_pause
 
+# st shutdown_temp
+
 # ccu cooldown_custom
 # cdc cooldown_current
 
@@ -273,7 +282,6 @@ loopCmd=()
 # mcv max_charging_voltage
 
 # l lang
-# pbim prioritize_batt_idle_mode
 # rcp run_cmd_on_pause
 
 # af amp_factor
@@ -312,6 +320,8 @@ loopCmd=()
 
 # acc -s cooldown_current=500
 
+# acc -s st=60
+
 
 # FINE, BUT WHAT DOES EACH OF THESE VARIABLES ACTUALLY MEAN?
 
@@ -319,8 +329,7 @@ loopCmd=()
 # This is checked during updates to determine whether config should be patched. Do NOT modify.
 
 # shutdown_capacity (sc) #
-# When the battery is discharging and its capacity <= sc and phone has been running for 15 minutes or more, acc daemon turns the phone off to reduce the discharge rate and protect the battery from potential damage induced by voltages below the operating range.
-# On capacity <= shutdown_capacity + 5, accd enables Android battery saver, triggers 5 vibrations once - and again on each subsequent capacity drop.
+# When the battery is discharging and its capacity <= sc and phone has been running for 15 minutes or more, acc daemon turns the phone off to reduce the discharge rate and protect the battery from potential damage induced by voltage below the operating range.
 
 # cooldown_capacity (cc) #
 # Capacity at which the cooldown cycle starts.
@@ -349,6 +358,9 @@ loopCmd=()
 # Unlike the cooldown cycle, which aims at reducing BOTH high temperature and high voltage induced stress - this is ONLY meant specifically for reducing high temperature induced stress.
 # Even though both are separate features, this complements the cooldown cycle when environmental temperatures are off the charts.
 
+# shutdown_temp (st) #
+# Shutdown the system if battery temperature >= this value.
+
 # cooldown_charge (cch) #
 # cooldown_pause (cp) #
 # These two dictate the cooldown cycle intervals (seconds).
@@ -363,8 +375,7 @@ loopCmd=()
 # Refer back the command examples.
 
 # cooldown_current (cdc) #
-# Instead of pausing charging periodically during the cooldown phase, lower the charging current.
-# This is the default behavior (smoother).
+# Instead of pausing charging periodically during the cooldown phase, limit the max charging current (e.g., to 500 mA)
 
 # reset_batt_stats_on_pause (rbsp) #
 # Reset battery stats after pausing charging.
@@ -397,10 +408,6 @@ loopCmd=()
 
 # lang (l) #
 # acc language, managed with "acc --set --lang" (acc -s l).
-
-# prioritize_batt_idle_mode (pbim) #
-# Several devices can draw power directly from the external power supply when charging is paused. Test yours with "acc -t".
-# This setting dictates whether charging switches that support such feature should take precedence.
 
 # run_cmd_on_pause (rcp) #
 # Run commands* after pausing charging.
@@ -435,7 +442,6 @@ It's a wizard you'll either love or hate.
 If you feel uncomfortable with the command line, skip this section and use the [ACC App](https://github.com/MatteCarra/AccA/releases/) to manage ACC.
 
 Alternatively, you can use a `text editor` to modify `/sdcard/Documents/vr25/acc/config.txt`.
-Restart the [daemon](https://en.wikipedia.org/wiki/Daemon_(computing)) afterwards, by running `accd`.
 The config file itself has configuration instructions.
 These instructions are the same found in the `DEFAULT CONFIG` section, above.
 
@@ -600,7 +606,7 @@ Options
       acc -t battery/charging_enabled 1 0
       acc -t /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0 ("::" is a placeholder for " ")
 
-  -t|--test [file]   Test charging switches from a file (default: /dev/.acc/ch-switches)
+  -t|--test [file]   Test charging switches from a file (default: /dev/.vr25/acc/ch-switches)
     This will also report whether "battery idle" mode is supported
     e.g.,
       acc -t (test known switches)
@@ -647,7 +653,7 @@ Exit Codes
   10. "--test" failed
   11. Current (mA) out of range
   12. Initialization failed
-  13. Failed to lock /dev/.acc/acc.lock
+  13. Failed to lock /dev/.vr25/acc/acc.lock
 
   Logs are exported automatically ("--log --export") on exit codes 1, 2, 7 and 10.
 
@@ -671,10 +677,10 @@ Tips
 ---
 ## NOTES/TIPS FOR FRONT-END DEVELOPERS
 
-Use `/dev/acca` over `acc` commands.
+Use `/dev/.vr25/acc/acca` over `acc` commands.
 These are optimized for front-ends - guaranteed to be readily available after installation/initialization and significantly faster than regular acc commands.
 
-It may be best to use long options over short equivalents - e.g., `/dev/acca --set charging_switch=` instead of `/dev/acca -s s=`.
+It may be best to use long options over short equivalents - e.g., `/dev/.vr25/acc/acca --set charging_switch=` instead of `/dev/.vr25/acc/acca -s s=`.
 This makes code more readable (less cryptic).
 
 Include provided descriptions for ACC features/settings in your app(s).
@@ -684,14 +690,12 @@ Explain settings/concepts as clearly and with as few words as possible.
 Take advantage of exit codes.
 Refer back to `SETUP/USAGE > Terminal Commands > Exit Codes`.
 
-Note: after updating charging_switch or shutdown_capacity, accd has to be restarted (`/dev/accd`) by the front-end itself for these changes to take effect immediately.
-
 
 ### Online Install
 
 ```
 1) Check whether ACC is installed (exit code 0)
-"/dev/acca --version"
+"/dev/.vr25/acc/acca --version"
 
 2) Download the installer (https://raw.githubusercontent.com/VR-25/acc/master/install-online.sh)
 - e.g.,
@@ -759,13 +763,15 @@ From recovery, one can flash `/sdcard/Documents/vr25/acc/acc-uninstaller.zip` or
 By default, ACC uses whichever [charging switch](https://github.com/VR-25/acc/blob/dev/acc/charging-switches.txt) works.
 However, things don't always go well.
 
-- Some switches are unreliable under certain conditions (e.g., screen off).
+- Some switches are unreliable under certain conditions (e.g., while display is off).
 
 - Others hold a [wakelock](https://duckduckgo.com/lite/?q=wakelock).
 This causes fast battery drain when charging is paused and the device remains plugged.
-Refer back to `DEFAULT CONFIGURATION (wake_unlock)`.
 
-- High CPU load and inability to re-enable charging were also reported.
+- Charging keeps being re-enabled by the system, seconds after acc daemon disables it.
+As a result, the battery eventually charges to 100% capacity, regardless of pause_capacity.
+
+- High CPU load (drains battery) was also reported.
 
 - In the worst case scenario, the battery status is reported as `discharging`, while it's actually `charging`.
 
@@ -776,7 +782,7 @@ Here's how to do it:
 2. Run `acc --set charging_switch` (or `acc -ss`) to enforce a working switch.
 3. Test the reliability of the set switch. If it doesn't work properly, try another.
 
-Since not everyone is tech savvy, ACC daemon automatically applies certain settings for specific devices (e.g., MTK, Asus, 1+7pro) to prevent charging switch issues.
+Since not everyone is tech savvy, ACC daemon automatically applies certain settings for specific devices (e.g., MediaTek, OnePlus, Razer) to prevent charging switch issues.
 These are are in `acc/oem-custom.sh`.
 
 
@@ -807,7 +813,7 @@ These are simply ignored.
 
 ### Diagnostics/Logs
 
-Volatile logs (gone on reboot) are stored in `/dev/.acc/`, persistent logs - `/sdcard/Documents/vr25/acc/logs/`.
+Volatile logs (gone on reboot) are stored in `/dev/.vr25/acc/`, persistent logs - `/sdcard/Documents/vr25/acc/logs/`.
 
 `acc -le` exports all acc logs, plus Magisk's and extras to `/sdcard/acc-$device_codename.tar.bz2`.
 The logs do not contain any personal information and are never automatically sent to the developer.
@@ -874,6 +880,16 @@ Alternatively, a _compressed_ archive of translated `strings.sh` and `README.md`
 ## TIPS
 
 
+### Current-based Charging Control (EXPERIMENTAL)
+
+Enabled by setting charging_switch=milliamps (e.g., 0, 250 mA).
+
+Essentially, this turns current control files into pseudo charging switches.
+Charging may not actually stop, but it'll at least slowdown to the point where it would take a _very long_ time to fill the battery.
+
+A common positive side effect of this is pseudo idle mode - i.e., the battery may work just as a power buffer.
+
+
 ### Generic
 
 Emulate _battery idle mode_ with a voltage limit: `acc 101 0; acc -s v 3920`.
@@ -882,7 +898,7 @@ The latter sets a voltage limit that will dictate how much the battery should ch
 The battery enters a _pseudo idle mode_ when its voltage peaks.
 Essentially, it works as a power buffer.
 
-Limiting the charging current to zero mA (`acc -sc 0`) may produce the same effect.
+Limiting the charging current to 0-250 mA or so (`acc -sc 250`) may produce the same effect.
 `acc -sc -` restores the default limit.
 
 Force fast charge: `appy_on_boot="/sys/kernel/fast_charge/force_fast_charge::1::0 usb/boost_current::1::0 charger/boost_current::1::0"`
@@ -903,8 +919,6 @@ This extends the battery's lifespan and may even _reduce_ its discharge rate.
 750-1000mA is a good range for regular use.
 
 500mA is a comfortable minimum - and also very compatible.
-
-0mA is for idle mode.
 
 If your device does not support custom current limits, use a dedicated ("slow") power adapter.
 
@@ -1039,17 +1053,6 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 ## LATEST CHANGES
 
 
-**v2020.10.8 (202010080)**
-
-- Changelog is sorted in reverse order (older first).
-- Enhanced dynamic switch delay.
-- Fixed capacity_freeze2 and capacity_sync.
-- General optimizations
-- Move persistent data to /sdcard/Documents/vr25/acc/ for compatibility with Android 11 storage isolation.
-- Updated documentation (FAQ, tips, voltage issues, Samsung's "70% problem", etc.).
-- Use `cmd` in place of most `dumpsys` calls.
-
-
 **v2020.10.14 (202010140)**
 
 - acc -i: show additional power supply info, if any.
@@ -1066,3 +1069,24 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 
 - Current control optimizations
 - Dynamically determine the right temperature reporter; use a dummy file (25°C) if none is found.
+
+
+**v2020.10.24 (202010240)**
+
+- [Experimental] Current-based charging control - enabled by setting charging_switch=milliamps (e.g., 250).
+- cooldown_current is no longer the default cooldown method due to issues observed on some devices.
+- Fixed `acc -ss`.
+- Major optimizations
+- New charging switch for OnePlus Devices
+- Shutdown if battery temp hits shutdown_temp, default: 65 degrees Celsius.
+- Updated default config, project framework and readme.
+
+Release Notes
+
+- AccA has been found to be behind several issues, e.g., unwanted config resets, changes to config not sticking.
+- If you still face issues after uninstalling AccA, see whether resetting acc config (`acc -sr`) helps.
+- Recall that if you feel uncomfortable with terminal, you don't have to use it at all!
+The config file can be edited manually (text editor).
+The process is very straightforward.
+Just do not edit in Windows Notepad, ever!
+It replaces LF (Linux/Unix) with CRLF (Windows) line endings.

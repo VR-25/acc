@@ -2,6 +2,9 @@ logf() {
 
   if [[ "${1:-x}" = -*e* ]]; then
 
+    data_dir=/sdcard/Documents/vr25/acc
+    mkdir -p $data_dir/logs
+
     exec 2>> ${log:-/dev/null}
     cd $TMPDIR
     set +e
@@ -21,9 +24,6 @@ logf() {
     for file in /cache/magisk.log /data/cache/magisk.log; do
       [ -f $file ] && cp $file ./ && break
     done
-
-    data_dir=/sdcard/Documents/vr25/acc
-    mkdir -p $data_dir
 
     cp $data_dir/logs/* ./ 2>/dev/null
     grep -Ev '^#|^$' $config_ > ./config.txt

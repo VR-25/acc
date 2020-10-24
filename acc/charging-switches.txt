@@ -4,7 +4,7 @@
 #
 # "::" = " "
 # PWD=/sys/class/power_supply
-# Last updated: Wed, Sep 23, 2020
+# Last updated: Fri, Oct 23, 2020
 
 battery/charger_control 1 0
 */charge_disable 0 1
@@ -36,6 +36,7 @@ battery/store_mode 0 1
 *-charger/charging_enabled 1 0
 dc/input_suspend 0 1
 battery/op_disable_charge 0 1 battery/input_suspend 0 0
+wireless/op_disable_charge 0 1
 battery/device/smartchg_stop_charging 0 1
 
 /proc/smb*_disable_chrg 0 1

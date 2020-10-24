@@ -20,7 +20,7 @@ daemon_ctrl() {
         return 8
       else
         print_started
-        exec /dev/accd $config
+        exec /dev/.vr25/acc/accd $config
       fi
     ;;
 
@@ -41,7 +41,7 @@ daemon_ctrl() {
       else
         print_started
       fi
-      exec /dev/accd $config
+      exec /dev/.vr25/acc/accd $config
     ;;
 
     *)
@@ -172,7 +172,8 @@ misc_stuff "${1-}"
 
 
 # reset broken/obsolete config
-(set +x; . $config) > /dev/null 2>&1 || cp -f $execDir/default-config.txt $config
+(set +x; . $config) > /dev/null 2>&1 \
+  || cp -f $execDir/default-config.txt $config
 
 . $config
 
@@ -199,6 +200,16 @@ grep -q .. $execDir/translations/$language/README.md 2>/dev/null \
   esac
   exit $?
 }
+
+
+case "${1:-.}" in
+  -d|--disable|-e|--enable)
+    ! test ${chargingSwitch[0]:--1} -ge 0 2>/dev/null || {
+      . $execDir/alt-functions.sh
+      . $execDir/set-ch-curr.sh
+    }
+  ;;
+esac
 
 
 case "${1-}" in
@@ -256,14 +267,14 @@ case "${1-}" in
 
     pause_capacity=${2:-100}
     resume_capacity=$(( pause_capacity - 5 ))
-    run_cmd_on_pause="exec /dev/accd"
+    run_cmd_on_pause="exec /dev/.vr25/acc/accd"
 
     cp -f $config $TMPDIR/.acc-f-config
     config=$TMPDIR/.acc-f-config
     . $execDir/write-config.sh
     print_charging_enabled_until ${2:-100}%
     echo
-    exec /dev/accd $config
+    exec /dev/.vr25/acc/accd $config
   ;;
 
 
@@ -392,7 +403,7 @@ case "${1-}" in
     config=$TMPDIR/.config
 
     set +e
-    trap '! $daemonWasUp || exec /dev/accd $config_' EXIT
+    trap '! $daemonWasUp || exec /dev/.vr25/acc/accd $config_' EXIT
 
     not_charging && enable_charging > /dev/null
 

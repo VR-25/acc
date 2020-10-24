@@ -8,7 +8,8 @@
 
 set -u
 id=acc
-export TMPDIR=/dev/.$id
+domain=vr25
+export TMPDIR=/dev/.$domain/$id
 
 # set up busybox
 #BB#
@@ -54,11 +55,11 @@ pgrep -f "/($id|${id}a) (-|--)[det]|/${id}d" > /dev/null && { #legacy
 }
 
 # uninstall $id ###
-rm -rf /data/adb/vr25/$id \
+rm -rf /data/adb/$domain/$id \
   /data/adb/modules/$id \
   /data/adb/service.d/${id}-*.sh \
   /data/data/mattecarra.accapp/files/$id \
-  $(test "${1:-}" = install || echo "/sdcard/Documents/vr25/$id")
+  $(test "${1:-}" = install || echo "/sdcard/Documents/$domain/$id")
 
 #legacy
 rm -rf $(readlink -f /data/adb/$id) \
@@ -69,8 +70,8 @@ rm -rf $(readlink -f /data/adb/$id) \
   /sdcard/${id}-uninstaller.zip \
   /sdcard/.${id}-config-backup.txt \
   /sdcard/Download/$id \
-  /sdcard/vr25 \
-  /sdcard/Documents/vr25/$id/.acc-config-backup.txt \
+  /sdcard/$domain \
+  /sdcard/Documents/$domain/$id/.acc-config-backup.txt \
   /data/data/com.termux/files/home/.termux/boot/${id}-init.sh 2>/dev/null
 
 exit 0

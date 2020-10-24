@@ -21,7 +21,8 @@ apply_on_boot() {
 
 apply_on_plug() {
   local entry="" file="" value="" default="" arg=${1:-value}
-  for entry in "${applyOnPlug[@]-}" "${maxChargingCurrent[@]-}" \
+  for entry in "${applyOnPlug[@]-}" \
+    "${maxChargingCurrent[@]:-$([ .$arg != .default ] || cat $TMPDIR/ch-curr-ctrl-files 2>/dev/null)}" \
     "${maxChargingVoltage[@]-}"
   do
     set -- ${entry//::/ }
@@ -77,12 +78,6 @@ cycle_switches() {
 }
 
 
-cycle_switches_off() {
-  ! $prioritizeBattIdleMode || cycle_switches off not
-  not_charging || cycle_switches off
-}
-
-
 disable_charging() {
 
   local autoMode=true
@@ -99,25 +94,25 @@ disable_charging() {
           chmod u+w ${chargingSwitch[3]} && run_xtimes "echo ${chargingSwitch[5]//::/ } > ${chargingSwitch[3]}" || {
             $isAccd || print_switch_fails
             unset_switch
-            cycle_switches_off
+            cycle_switches off
           }
         }
         if $autoMode && ! sleep_sd not_charging; then
           unset_switch
-          cycle_switches_off
+          cycle_switches off
         fi
       else
         $isAccd || print_switch_fails
         unset_switch
-        cycle_switches_off
+        cycle_switches off
       fi
     else
       $isAccd || print_invalid_switch
       unset_switch
-      cycle_switches_off
+      cycle_switches off
     fi
   else
-    cycle_switches_off
+    cycle_switches off
   fi
 
   not_charging || ! $autoMode || return 7 # total failure
@@ -290,13 +285,14 @@ wait_plug() {
 # environment
 
 id=acc
+domain=vr25
 umask 0077
 switchDelay=2
 loopDelay=(10 10)
-execDir=/data/adb/vr25/acc
+execDir=/data/adb/$domain/acc
 ctrlFileWrites=(3 0.3)
-export TMPDIR=/dev/.acc
-config=/sdcard/Documents/vr25/$id/config.txt
+export TMPDIR=/dev/.vr25/acc
+config=/sdcard/Documents/$domain/$id/config.txt
 config_=$config
 
 [ -f $TMPDIR/.ghost-charging ] \
