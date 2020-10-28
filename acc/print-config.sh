@@ -28,9 +28,9 @@ apply_on_boot=${applyOnBoot[@]}
 
 apply_on_plug=${applyOnPlug[@]}
 
-max_charging_current=${maxChargingCurrent[@]}
+max_charging_current=${maxChargingCurrent[0]}
 
-max_charging_voltage=${maxChargingVoltage[@]}
+max_charging_voltage=${maxChargingVoltage[0]}
 
 lang=$language
 
@@ -39,4 +39,6 @@ run_cmd_on_pause=${runCmdOnPause[@]}
 amp_factor=$ampFactor
 volt_factor=$voltFactor
 
-loop_cmd=${loopCmd[@]}"
+loop_cmd=${loopCmd[@]}
+
+prioritize_batt_idle_mode=$prioritizeBattIdleMode"

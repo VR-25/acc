@@ -42,13 +42,13 @@ mkdir -p $TMPDIR
 (flock -n 0 || {
   read pid
   kill $pid
-  timeout 15 flock 0 || kill -KILL $pid
+  timeout 20 flock 0 || kill -KILL $pid
 }) <>$TMPDIR/${id}.lock
 ###
 pgrep -f "/($id|${id}a) (-|--)[det]|/${id}d" > /dev/null && { #legacy
   pkill -f "/($id|${id}a) (-|--)[det]|/${id}d"
-  for count in $(seq 15); do
-    sleep 1
+  for count in $(seq 10); do
+    sleep 2
     [ -z "$(pgrep -f "/($id|${id}a) (-|--)[det]|/${id}d")" ] && break
   done
   pkill -KILL -f "/($id|${id}a) (-|--)[det]|/${id}d"

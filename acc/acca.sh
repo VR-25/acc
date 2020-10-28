@@ -20,6 +20,14 @@ daemon_ctrl() {
 }
 
 
+switch_mA() {
+  case "$1" in
+    */*) return 1;;
+    *) return 0;;
+  esac
+}
+
+
 set -eu
 
 execDir=/data/adb/vr25/acc
@@ -94,7 +102,18 @@ case "$@" in
       set_ch_volt ${mcv:-${max_charging_voltage:--}} || :
     }
 
+    # reset charging switches before replacing them
+    # if [ ".${s-${charging_switch-x}}" != .x ] \
+    #   && ! switch_mA "${s:-${charging_switch:-/}}${chargingSwitch[0]:-/}"
+    # then
+    #   restartDaemon=false
+    #   ! (daemon_ctrl) || {
+    #   daemon_ctrl stop
+    #   restartDaemon=true
+    # fi
+
     . $execDir/write-config.sh
+    # ! $restartDaemon || /dev/.vr25/acc/accd $config
     exit 0
   ;;
 

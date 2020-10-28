@@ -50,7 +50,7 @@ set_ch_curr() {
           && unset max_charging_current mcc \
           && apply_on_plug \
           && {
-            noEcho=true
+            #noEcho=true
             ! $verbose || print_curr_set $1
           } || return 1
       }

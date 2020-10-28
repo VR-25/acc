@@ -277,7 +277,6 @@ if ! $init; then
 
   # load generic functions
   . $execDir/misc-functions.sh
-  . $execDir/set-ch-curr.sh
 
 
   isAccd=true
@@ -302,9 +301,6 @@ if ! $init; then
   misc_stuff "${1-}"
   . $execDir/oem-custom.sh
   . $config
-
-
-  ! test ${chargingSwitch[0]:--1} -ge 0 2>/dev/null= || . $execDir/alt-functions.sh
 
 
   apply_on_boot

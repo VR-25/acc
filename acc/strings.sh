@@ -97,7 +97,10 @@ Usage
 
   accd,   Print acc/daemon status (running or not)
 
-  acc [pause_capacity resume_capacity]   e.g., acc 75 70
+  acc [pause_capacity [resume_capacity, default: pause_capacity - 5]]
+    e.g.,
+      acc 75 70
+      acc 80 (resume_capacity defaults to 80 - 5)
 
   acc [options] [args]   Refer to the list of options below
 
@@ -301,10 +304,10 @@ Tips
     e.g., charge for 30 minutes, pause charging for 6 hours, charge to 85% and restart the daemon
     acc -e 30m && acc -d 6h && acc -e 85 && accd
 
-  Bedtime settings...
-    acc -s /dev/.my-night-config.txt pc=45 rc=43 mcc=500 mcv=3920 && sleep \$((60*60*7)) && accd
-      - "For the next 7 hours, keep battery capacity between 43-45%, limit charging current to 500 mA and voltage to 3920 millivolts"
-      - For convenience, this can be written to a file and ran as "su -c sh /path/to/file".
+  Sample profile
+    acc -s pc=45 rc=43 mcc=500 mcv=3920
+      This keeps battery capacity between 43-45%, limits charging current to 500 mA and voltage to 3920 millivolts.
+      It's great for nighttime and "forever-plugged".
 
   Refer to acc -r (or --readme) for the full documentation (recommended)
 EOF
@@ -358,7 +361,7 @@ print_wip() {
 }
 
 print_press_key() {
-  echo -n "(i) Press any key to continue..."
+  printf "(i) Press any key to continue..."
 }
 
 print_lang() {
@@ -438,7 +441,7 @@ print_available() {
 }
 
 print_install_prompt() {
-  echo -n "- Should I download and install it ([enter]: yes, CTRL-C: no)? "
+  printf "- Should I download and install it ([enter]: yes, CTRL-C: no)? "
 }
 
 print_no_update() {

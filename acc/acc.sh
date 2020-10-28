@@ -8,9 +8,7 @@ daemon_ctrl() {
 
   local isRunning=false
 
-  flock -n 0 <>$TMPDIR/acc.lock \
-    && flock -u 0 <>$TMPDIR/acc.lock \
-    || isRunning=true
+  flock -n 0 <>$TMPDIR/acc.lock || isRunning=true
 
   case "${1-}" in
 
@@ -202,16 +200,6 @@ grep -q .. $execDir/translations/$language/README.md 2>/dev/null \
 }
 
 
-case "${1:-.}" in
-  -d|--disable|-e|--enable)
-    ! test ${chargingSwitch[0]:--1} -ge 0 2>/dev/null || {
-      . $execDir/alt-functions.sh
-      . $execDir/set-ch-curr.sh
-    }
-  ;;
-esac
-
-
 case "${1-}" in
 
   "")
@@ -220,7 +208,7 @@ case "${1-}" in
   ;;
 
   [0-9]*)
-    capacity[2]=$2
+    capacity[2]=${2:-$((${1}-5))}
     capacity[3]=$1
     . $execDir/write-config.sh
   ;;

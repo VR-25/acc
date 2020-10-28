@@ -34,7 +34,9 @@ apply_on_plug() {
 }
 
 
-cmd_batt() { /system/bin/cmd battery "$@" < /dev/null > /dev/null 2>&1 || :; }
+cmd_batt() {
+  /system/bin/cmd battery "$@" < /dev/null > /dev/null 2>&1 || :
+}
 
 
 cycle_switches() {
@@ -78,44 +80,61 @@ cycle_switches() {
 }
 
 
+cycle_switches_off() {
+  ! $prioritizeBattIdleMode || cycle_switches off not
+  not_charging || cycle_switches off
+}
+
+
 disable_charging() {
 
-  local autoMode=true
-  [[ "${chargingSwitch[*]-}" = *-- ]] || autoMode=false
+  if ! switch_mA "${chargingSwitch[0]:-/}"
+  then
 
-  ! $isAccd || ! not_charging || return 0
+    local autoMode=true
+    [[ "${chargingSwitch[*]-}" = *-- ]] || autoMode=false
 
-  if [[ "${chargingSwitch[0]-}" = */* ]]; then
-    if [ -f ${chargingSwitch[0]} ]; then
-      # toggle primary switch
-      if chmod u+w ${chargingSwitch[0]} && run_xtimes "echo ${chargingSwitch[2]//::/ } > ${chargingSwitch[0]}"; then
-        [ ! -f "${chargingSwitch[3]-}" ] || {
-          # toggle secondary switch
-          chmod u+w ${chargingSwitch[3]} && run_xtimes "echo ${chargingSwitch[5]//::/ } > ${chargingSwitch[3]}" || {
-            $isAccd || print_switch_fails
-            unset_switch
-            cycle_switches off
+    ! $isAccd || ! not_charging || return 0
+
+    if [[ "${chargingSwitch[0]-}" = */* ]]; then
+      if [ -f ${chargingSwitch[0]} ]; then
+        # toggle primary switch
+        if chmod u+w ${chargingSwitch[0]} && run_xtimes "echo ${chargingSwitch[2]//::/ } > ${chargingSwitch[0]}"; then
+          [ ! -f "${chargingSwitch[3]-}" ] || {
+            # toggle secondary switch
+            chmod u+w ${chargingSwitch[3]} && run_xtimes "echo ${chargingSwitch[5]//::/ } > ${chargingSwitch[3]}" || {
+              $isAccd || print_switch_fails
+              unset_switch
+              cycle_switches_off
+            }
           }
-        }
-        if $autoMode && ! sleep_sd not_charging; then
+          if $autoMode && ! sleep_sd not_charging; then
+            unset_switch
+            cycle_switches_off
+          fi
+        else
+          $isAccd || print_switch_fails
           unset_switch
-          cycle_switches off
+          cycle_switches_off
         fi
       else
-        $isAccd || print_switch_fails
+        $isAccd || print_invalid_switch
         unset_switch
-        cycle_switches off
+        cycle_switches_off
       fi
     else
-      $isAccd || print_invalid_switch
-      unset_switch
-      cycle_switches off
+      cycle_switches_off
     fi
-  else
-    cycle_switches off
-  fi
 
-  not_charging || ! $autoMode || return 7 # total failure
+    not_charging || ! $autoMode || return 7 # total failure
+
+  else
+    maxChargingCurrent0=${maxChargingCurrent[0]-}
+    set +e
+    set_ch_curr ${chargingSwitch[0]:-0}
+    set -e
+    chargingDisabled=true
+  fi
 
   eval "${runCmdOnPause[@]-}"
 
@@ -155,57 +174,68 @@ dumpsys() { /system/bin/dumpsys "$@" || :; }
 
 enable_charging() {
 
-  ! $isAccd || not_charging || return 0
+  if ! switch_mA "${chargingSwitch[0]:-/}"
+  then
 
-  if ! $ghostCharging || { $ghostCharging && [[ $(cat */online) = *1* ]]; }; then
+    ! $isAccd || not_charging || return 0
 
-    chmod u+w ${chargingSwitch[0]-} ${chargingSwitch[3]-} 2>/dev/null \
-      && run_xtimes "echo ${chargingSwitch[1]//::/ } > ${chargingSwitch[0]-}
-        echo ${chargingSwitch[4]//::/ } > ${chargingSwitch[3]:-/dev/null}" 2>/dev/null \
-      || cycle_switches on
+    if ! $ghostCharging || { $ghostCharging && [[ $(cat */online) = *1* ]]; }; then
 
-    # detect and block ghost charging
-    if ! $ghostCharging && ! not_charging && [[ $(cat */online) != *1* ]] \
-      && sleep ${loopDelay[0]} && ! not_charging && [[ $(cat */online) != *1* ]]
-    then
-      ghostCharging=true
-      disable_charging > /dev/null
-      touch $TMPDIR/.ghost-charging
+      chmod u+w ${chargingSwitch[0]-} ${chargingSwitch[3]-} 2>/dev/null \
+        && run_xtimes "echo ${chargingSwitch[1]//::/ } > ${chargingSwitch[0]-}
+          echo ${chargingSwitch[4]//::/ } > ${chargingSwitch[3]:-/dev/null}" 2>/dev/null \
+        || cycle_switches on
+
+      # detect and block ghost charging
+      if ! $ghostCharging && ! not_charging && [[ $(cat */online) != *1* ]] \
+        && sleep ${loopDelay[0]} && ! not_charging && [[ $(cat */online) != *1* ]]
+      then
+        ghostCharging=true
+        disable_charging > /dev/null
+        touch $TMPDIR/.ghost-charging
+        wait_plug
+        return 0
+      fi
+
+    else
       wait_plug
       return 0
     fi
 
-    if [ -n "${1-}" ]; then
-      case $1 in
-        *%)
-          print_charging_enabled_until $1
-          echo
-          (until [ $(cat $batt/capacity) -ge ${1%\%} ]; do
-            sleep ${loopDelay[1]}
-            set +x
-          done)
-          disable_charging
-        ;;
-        *[hms])
-          print_charging_enabled_for $1
-          echo
-          case $1 in
-            *h) sleep $(( ${1%h} * 3600 ));;
-            *m) sleep $(( ${1%m} * 60 ));;
-            *s) sleep ${1%s};;
-          esac
-          disable_charging
-        ;;
-        *)
-          print_charging_enabled
-        ;;
-      esac
-    else
-      $isAccd || print_charging_enabled
-    fi
-
   else
-    wait_plug
+    set +e
+    set_ch_curr ${maxChargingCurrent0:--}
+    set -e
+    chargingDisabled=false
+  fi
+
+  if [ -n "${1-}" ]; then
+    case $1 in
+      *%)
+        print_charging_enabled_until $1
+        echo
+        (until [ $(cat $batt/capacity) -ge ${1%\%} ]; do
+          sleep ${loopDelay[1]}
+          set +x
+        done)
+        disable_charging
+      ;;
+      *[hms])
+        print_charging_enabled_for $1
+        echo
+        case $1 in
+          *h) sleep $(( ${1%h} * 3600 ));;
+          *m) sleep $(( ${1%m} * 60 ));;
+          *s) sleep ${1%s};;
+        esac
+        disable_charging
+      ;;
+      *)
+        print_charging_enabled
+      ;;
+    esac
+  else
+    $isAccd || print_charging_enabled
   fi
 }
 
@@ -262,6 +292,14 @@ sleep_sd() {
 }
 
 
+switch_mA() {
+  case "$1" in
+    */*) return 1;;
+    *) return 0;;
+  esac
+}
+
+
 unset_switch() {
   charging_switch=
   . $execDir/write-config.sh
@@ -302,6 +340,7 @@ config_=$config
 trap exxit EXIT
 
 . $execDir/setup-busybox.sh
+. $execDir/set-ch-curr.sh
 
 device=$(getprop ro.product.device | grep .. || getprop ro.build.product)
 

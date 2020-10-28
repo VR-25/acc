@@ -174,7 +174,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202010240
+configVerCode=202010270
 capacity=(0 60 70 75 false)
 temperature=(40 60 90 65)
 cooldownRatio=()
@@ -191,6 +191,7 @@ runCmdOnPause=()
 ampFactor=
 voltFactor=
 loopCmd=()
+prioritizeBattIdleMode=false
 
 
 # WARNINGS
@@ -210,9 +211,9 @@ loopCmd=()
 
 # NOTES
 
-# The daemon does not have to be restarted after making changes to this file - unless one of the changes is charging_switch and the following logical condition is true: not_charging AND capacity >= resume_capacity.
+# The daemon does not have to be restarted after making changes to this file - unless one of the changes is charging_switch.
 
-# If charging_switch is changed with --set (e.g., -ss, -s s="...", --set charging_switch="..."), accd is restarted automatically, according to the aforementioned condition.
+# If charging_switch is changed with --set (e.g., -ss, -s s="...", --set charging_switch="..."), accd is restarted automatically.
 
 
 # BASICS
@@ -225,11 +226,13 @@ loopCmd=()
 
 # cooldownCustom=cooldown_custom=(file raw_value charge_seconds pause_seconds)
 
-# cooldownCurrent=cooldown_current=[Milliamps]
+# cooldownCurrent=cooldown_current=[milliamps]
 
 # resetBattStats=(reset_batt_stats_on_pause reset_batt_stats_on_unplug)
 
 # chargingSwitch=charging_switch=(ctrl_file1 on off ctrl_file2 on off --)
+
+# chargingSwitch=charging_switch=(milliamps)
 
 # applyOnBoot=apply_on_boot=(ctrl_file1::value1::default1 ctrl_file2::value2::default2 ... --exit)
 
@@ -248,6 +251,8 @@ loopCmd=()
 # voltFactor=volt_factor=[multiplier]
 
 # loopCmd=loop_cmd=(. script)
+
+# prioritizeBattIdleMode=prioritize_batt_idle_mode=boolean
 
 
 # VARIABLE ALIASES/SORTCUTS
@@ -288,6 +293,7 @@ loopCmd=()
 # vf volt_factor
 
 # lc loop_cmd
+# pbim prioritize_batt_idle_mode
 
 
 # COMMAND EXAMPLES
@@ -389,6 +395,10 @@ loopCmd=()
 # If all switches fail to disable charging, chargingSwitch is unset and acc/d exit with error code 7.
 # This automated process can be disabled by appending "--" to "charging_switch=...".
 # e.g., acc -s s="battery/charge_enabled 1 0 --"
+# charging_switch=milliamps (e.g., 0, 250 or 500) enables current-based charging control.
+# For details, refer to the readme's tips section.
+# Unlike the original variant, this kind of switch is never unset automatically.
+# Appending " --" to it leads to invalid syntax.
 
 # apply_on_boot (ab) #
 # Settings to apply on boot or daemon start/restart.
@@ -427,6 +437,10 @@ loopCmd=()
 # The boolean isCharging is available.
 # Refer back to COMMAND EXAMPLES.
 
+# prioritize_batt_idle_mode (pbim) #
+# If enabled charging switches that support battery idle mode take precedence.
+# This is disabled by default due to issues on Samsung (store_mode) and other devices.
+
 #/DC#
 ```
 
@@ -460,7 +474,10 @@ Usage
 
   accd,   Print acc/daemon status (running or not)
 
-  acc [pause_capacity resume_capacity]   e.g., acc 75 70
+  acc [pause_capacity [resume_capacity, default: pause_capacity - 5]]
+    e.g.,
+      acc 75 70
+      acc 80 (resume_capacity defaults to 80 - 5)
 
   acc [options] [args]   Refer to the list of options below
 
@@ -664,10 +681,10 @@ Tips
     e.g., charge for 30 minutes, pause charging for 6 hours, charge to 85% and restart the daemon
     acc -e 30m && acc -d 6h && acc -e 85 && accd
 
-  Bedtime settings...
-    acc -s /dev/.my-night-config.txt pc=45 rc=43 mcc=500 mcv=3920 && sleep $((60*60*7)) && accd
-      - "For the next 7 hours, keep battery capacity between 43-45%, limit charging current to 500 mA and voltage to 3920 millivolts"
-      - For convenience, this can be written to a file and ran as "su -c sh /path/to/file".
+  Sample profile
+    acc -s pc=45 rc=43 mcc=500 mcv=3920
+      This keeps battery capacity between 43-45%, limits charging current to 500 mA and voltage to 3920 millivolts.
+      It's great for nighttime and "forever-plugged".
 
   Refer to acc -r (or --readme) for the full documentation (recommended)
 
@@ -782,8 +799,12 @@ Here's how to do it:
 2. Run `acc --set charging_switch` (or `acc -ss`) to enforce a working switch.
 3. Test the reliability of the set switch. If it doesn't work properly, try another.
 
-Since not everyone is tech savvy, ACC daemon automatically applies certain settings for specific devices (e.g., MediaTek, OnePlus, Razer) to prevent charging switch issues.
+Since not everyone is tech savvy, ACC daemon automatically applies certain settings for specific devices (e.g., MediaTek, OnePlus, Razer) to minimize charging switch issues.
 These are are in `acc/oem-custom.sh`.
+
+Note: as part of the output of `acc -ss` and `acc -ss:`, you may see plain numbers alone or in addition to charging switches.
+These are presets the `current-based charging control` feature.
+For details, refer to `Tips` section below.
 
 
 ### Custom Max Charging Voltage And Current Limits
@@ -882,12 +903,14 @@ Alternatively, a _compressed_ archive of translated `strings.sh` and `README.md`
 
 ### Current-based Charging Control (EXPERIMENTAL)
 
-Enabled by setting charging_switch=milliamps (e.g., 0, 250 mA).
+Enabled by setting charging_switch=milliamps (e.g., `acc -s s=0`, `acc -s s=250` or `acc -ss` (wizard)).
 
-Essentially, this turns current control files into pseudo charging switches.
-Charging may not actually stop, but it'll at least slowdown to the point where it would take a _very long_ time to fill the battery.
+Essentially, this turns current control files into _[pseudo] charging switches_.
 
-A common positive side effect of this is pseudo idle mode - i.e., the battery may work just as a power buffer.
+A common positive side effect of this is _[pseudo] idle mode_ - i.e., the battery may work just as a power buffer.
+
+Note: depending on the kernel - at `pause_capacity`, the charging status may either change ("discharging" or "not charging") or remain still ("charging" - not an issue).
+If it changes intermittently, the current is too low; increment it until the issue goes away.
 
 
 ### Generic
@@ -895,10 +918,10 @@ A common positive side effect of this is pseudo idle mode - i.e., the battery ma
 Emulate _battery idle mode_ with a voltage limit: `acc 101 0; acc -s v 3920`.
 The first command disables the regular charging pause/resume functionality.
 The latter sets a voltage limit that will dictate how much the battery should charge.
-The battery enters a _pseudo idle mode_ when its voltage peaks.
+The battery enters a _[pseudo] idle mode_ when its voltage peaks.
 Essentially, it works as a power buffer.
 
-Limiting the charging current to 0-250 mA or so (`acc -sc 250`) may produce the same effect.
+Limiting the charging current to 0-250 mA or so (e.g., `acc -sc 0`) may produce the same effect.
 `acc -sc -` restores the default limit.
 
 Force fast charge: `appy_on_boot="/sys/kernel/fast_charge/force_fast_charge::1::0 usb/boost_current::1::0 charger/boost_current::1::0"`
@@ -1053,18 +1076,6 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 ## LATEST CHANGES
 
 
-**v2020.10.14 (202010140)**
-
-- acc -i: show additional power supply info, if any.
-- build.sh: copy uninstaller to build dir.
-- cooldown_current: instead of pausing charging periodically during the cooldown phase, lower the charging current (0mA or custom). This is the default behavior (smoother).
-- Fetch current and voltage control files only once per boot session to prevent loss of default values.
-- Fixed daemon restart/stop timeout issues.
-- Fixed Zygote-related issue that prevented accd initialization on boot.
-- Misc fixes & optimizations
-- MTK switch delay ranges from 5 to 20 seconds.
-
-
 **v2020.10.15 (202010150)**
 
 - Current control optimizations
@@ -1090,3 +1101,14 @@ The config file can be edited manually (text editor).
 The process is very straightforward.
 Just do not edit in Windows Notepad, ever!
 It replaces LF (Linux/Unix) with CRLF (Windows) line endings.
+
+
+**v2020.10.28 (202010280)**
+
+- 500 mA preset for charging_switch.
+- `acc [pause_capacity [resume_capacity, default: pause_capacity - 5]]`, e.g., acc 80 (resume_capacity defaults to 80 - 5)
+- Enhanced current-based charging control (still experimental, but should be more stable now).
+- General fixes and optimizations
+- Updated documentation.
+
+Release note: those using current-based charging control should reboot after the upgrade.
