@@ -1,4 +1,4 @@
-configVerCode=202010270
+configVerCode=202011120
 capacity=(0 60 70 75 false)
 temperature=(40 60 90 65)
 cooldownRatio=()
@@ -23,19 +23,19 @@ prioritizeBattIdleMode=false
 # Do not edit this in Windows Notepad, ever!
 # It replaces LF (Linux/Unix) with CRLF (Windows) line endings.
 
-# As seen above, whatever is null can be null.
-# Nullifying values that should not be null causes nasty errors.
+# As you may have guessed, what is null by default, can be null.
+# "language=" is interpreted as "language=en".
+# Nullifying values that should not be null causes unexpected behavior.
 # However, doing so with "--set var=" restores the default value of "var".
 # In other words, for regular users, "--set" is safer than modifying the config file directly.
 
 # Do not feel like you must configure everything!
 # Do not change what you don't understand.
-# Help is always available, from multiple sources - besides, I don't charge a penny for it.
 
 
 # NOTES
 
-# The daemon does not have to be restarted after making changes to this file - unless one of the changes is charging_switch.
+# The daemon does not have to be restarted after making changes to this file - unless one of the changes is capacity_freeze2 or charging_switch.
 
 # If charging_switch is changed with --set (e.g., -ss, -s s="...", --set charging_switch="..."), accd is restarted automatically, as needed.
 

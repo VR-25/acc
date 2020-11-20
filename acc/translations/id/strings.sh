@@ -84,9 +84,7 @@ print_not_found() {
   echo "(!) $1 tidak ditemukan"
 }
 
-print_help() {
- 
-  print_exit() {
+print_exit() {
   echo "Keluar"
 }
 
@@ -116,7 +114,6 @@ print_volt_restored() {
 }
 
 print_read_curr() {
-
   echo "(i) Perlu membaca pengisian daya bawaan"
 }
 
@@ -236,5 +233,3 @@ print_m_mode() {
 print_wait() {
   echo "(i) Baik, ini mungkin perlu waktu beberapa menit..."
 }
-
-  

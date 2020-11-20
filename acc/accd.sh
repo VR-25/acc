@@ -396,6 +396,7 @@ else
       */batt_tune_float_voltage */fg_full_voltage 2>/dev/null | \
         while read file; do
           chmod u+r $file 2>/dev/null && grep -Eq '^4[1-4][0-9]{2}' $file || continue
+          grep -q '.... ....' $file && continue
           echo ${file}::$(sed -n 's/^..../v/p' $file)::$(cat $file) \
             >> $TMPDIR/ch-volt-ctrl-files_
         done
@@ -431,17 +432,16 @@ else
           chmod u+r $file 2>/dev/null || continue
           defaultValue=$(cat $file)
           ampFactor=$(sed -n 's/^ampFactor=//p' $data_dir/config.txt 2>/dev/null)
-          [ -n "$ampFactor" -o $defaultValue -ne 0 ] && {
-            if [ "${ampFactor:-1}" -eq 1000 -o $defaultValue -lt 10000 ]; then
-              # milliamps
-              echo ${file}::v::$defaultValue \
-                >> $TMPDIR/ch-curr-ctrl-files_
-            else
-              # microamps
-              echo ${file}::v000::$defaultValue \
-                >> $TMPDIR/ch-curr-ctrl-files_
-            fi
-          }
+          [ -n "$ampFactor" -o $defaultValue -ne 0 ] || continue
+          if [ "${ampFactor:-1}" -eq 1000 -o $defaultValue -lt 10000 ]; then
+            # milliamps
+            echo ${file}::v::$defaultValue \
+              >> $TMPDIR/ch-curr-ctrl-files_
+          else
+            # microamps
+            echo ${file}::v000::$defaultValue \
+              >> $TMPDIR/ch-curr-ctrl-files_
+          fi
         done
   fi
 

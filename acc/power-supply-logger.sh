@@ -9,13 +9,15 @@ gather_ps_data() {
   for target in $(ls -1 $1 | grep -Ev '^[0-9]|^block$|^dev$|^fs$|^ram$'); do
     if [ -f $1/$target ]; then
       echo $1/$target | grep -Ev 'logg|(/|_|-)log|at_pmrst' | grep -Eq 'batt|charg|power_supply' && {
-        echo $1/$target
-        grep -q $1/$target $logsDir/psl-blacklist.txt 2>/dev/null && echo "  BLACKLISTED" || {
+        grep -q $1/$target $logsDir/psl-blacklist.txt 2>/dev/null || {
           echo $1/$target >> $logsDir/psl-blacklist.txt
-          cat -v $1/$target 2>/dev/null | sed 's#^#  #'
+          cat -v $1/$target 2>/dev/null | grep '\^\@' > /dev/null 2>&1 || {
+            echo $1/$target
+            sed 's#^#  #' $1/$target
+            echo
+          }
           sed -i "\|$1/$target|d" $logsDir/psl-blacklist.txt
         }
-        echo
       }
     elif [ -d $1/$target ]; then
       for target2 in $(find $1/$target \( \( -type f -o -type d \) \
@@ -23,13 +25,15 @@ gather_ps_data() {
         -print 2>/dev/null | grep -Ev 'logg|(/|_|-)log|at_pmrst')
       do
         [ -f $target2 ] && {
-          echo $target2
-          grep -q $target2 $logsDir/psl-blacklist.txt 2>/dev/null && echo "  BLACKLISTED" || {
+          grep -q $target2 $logsDir/psl-blacklist.txt 2>/dev/null || {
             echo $target2 >> $logsDir/psl-blacklist.txt
-            cat -v $target2 2>/dev/null | sed 's#^#  #'
+            cat -v $target2 2>/dev/null | grep '\^\@' > /dev/null 2>&1 || {
+              echo $target2
+              sed 's#^#  #' $target2
+              echo
+            }
             sed -i "\|$target2|d" $logsDir/psl-blacklist.txt
           }
-          echo
         }
       done
     fi

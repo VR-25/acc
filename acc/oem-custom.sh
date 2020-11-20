@@ -12,12 +12,20 @@ if (set +x; . $config) > /dev/null 2>&1; then
   [ $configVer -eq $defaultConfVer ] || {
     if [ $configVer -lt 202009230 ]; then
       cp -f $execDir/default-config.txt $config
-    elif [ $configVer -lt 202010220 ]; then
-      ! grep_ cooldownCurrent=0 || /dev/.vr25/acc/acca --set cooldown_current=
     else
-      /dev/.vr25/acc/acca --set dummy=
+      if [ $configVer -lt 202010220 ]; then
+        ! grep_ cooldownCurrent=0 || /dev/.vr25/acc/acca --set cooldown_current=
+      fi
+      if [ $configVer -lt 202011120 ]; then
+        if grep_ '^maxChargingCurrent=.*/'; then
+          /dev/.vr25/acc/acca --set max_charging_current=
+          rm $TMPDIR/.ch-curr-read $TMPDIR/ch-curr-ctrl-files 2>/dev/null || :
+          exec /dev/.vr25/acc/accd $config
+        fi
+      else
+        /dev/.vr25/acc/acca --set dummy=
+      fi
     fi
-    ! grep_ prioritize || /dev/.vr25/acc/acca --set dummy=
   }
 else
   cp -f $execDir/default-config.txt $config

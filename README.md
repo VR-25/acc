@@ -174,7 +174,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202010270
+configVerCode=202011120
 capacity=(0 60 70 75 false)
 temperature=(40 60 90 65)
 cooldownRatio=()
@@ -199,21 +199,21 @@ prioritizeBattIdleMode=false
 # Do not edit this in Windows Notepad, ever!
 # It replaces LF (Linux/Unix) with CRLF (Windows) line endings.
 
-# As seen above, whatever is null can be null.
-# Nullifying values that should not be null causes nasty errors.
+# As you may have guessed, what is null by default, can be null.
+# "language=" is interpreted as "language=en".
+# Nullifying values that should not be null causes unexpected behavior.
 # However, doing so with "--set var=" restores the default value of "var".
 # In other words, for regular users, "--set" is safer than modifying the config file directly.
 
 # Do not feel like you must configure everything!
 # Do not change what you don't understand.
-# Help is always available, from multiple sources - besides, I don't charge a penny for it.
 
 
 # NOTES
 
-# The daemon does not have to be restarted after making changes to this file - unless one of the changes is charging_switch.
+# The daemon does not have to be restarted after making changes to this file - unless one of the changes is capacity_freeze2 or charging_switch.
 
-# If charging_switch is changed with --set (e.g., -ss, -s s="...", --set charging_switch="..."), accd is restarted automatically.
+# If charging_switch is changed with --set (e.g., -ss, -s s="...", --set charging_switch="..."), accd is restarted automatically, as needed.
 
 
 # BASICS
@@ -915,9 +915,9 @@ If it changes intermittently, the current is too low; increment it until the iss
 
 ### Generic
 
-Emulate _battery idle mode_ with a voltage limit: `acc 101 0; acc -s v 3920`.
-The first command disables the regular charging pause/resume functionality.
-The latter sets a voltage limit that will dictate how much the battery should charge.
+Emulate _battery idle mode_ with a voltage limit: `acc -s pc=101 rc=0 mcv=3920`.
+The first two arguments disable the regular charging pause/resume functionality.
+The last sets a voltage limit that will dictate how much the battery should charge.
 The battery enters a _[pseudo] idle mode_ when its voltage peaks.
 Essentially, it works as a power buffer.
 
@@ -1076,12 +1076,6 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 ## LATEST CHANGES
 
 
-**v2020.10.15 (202010150)**
-
-- Current control optimizations
-- Dynamically determine the right temperature reporter; use a dummy file (25°C) if none is found.
-
-
 **v2020.10.24 (202010240)**
 
 - [Experimental] Current-based charging control - enabled by setting charging_switch=milliamps (e.g., 250).
@@ -1112,3 +1106,22 @@ It replaces LF (Linux/Unix) with CRLF (Windows) line endings.
 - Updated documentation.
 
 Release note: those using current-based charging control should reboot after the upgrade.
+
+
+**v2020.11.20 (202011200)**
+
+- Additional charging switches
+- Current control enhancements
+- Fixed `acc -sr` (reset config command).
+- General fixes & optimizations
+- Improved power supply logger.
+- Updated translations.
+
+Release Notes
+
+- If cooldown_current is set or current-based charging control is enabled (e.g., charging_switch=0), reboot after upgrading.
+
+- If custom charging current limit is set, reboot after upgrading then reapply the limit (e.g., acc -sc 1000).
+
+- Nexus 7 users, I'm yet to find charging and current control files for this family of devices.
+The power supply logs contain nothing relevant.

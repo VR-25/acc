@@ -23,9 +23,10 @@ set_prop() {
 
     # reset config
     r|--reset)
-      reset_switch
+      ! daemon_ctrl stop > /dev/null || restartDaemon=true
       cp -f $defaultConfig $config
       print_config_reset
+      ! $restartDaemon || /dev/.vr25/acc/accd $config
       return 0
     ;;
 
@@ -48,7 +49,7 @@ set_prop() {
       PS3="$(print_choice_prompt)"
       print_known_switches
       . $execDir/select.sh
-      select_ charging_switch $(print_auto; cat $TMPDIR/ch-switches; ! grep -q / $TMPDIR/ch-curr-ctrl-files || printf '0\n250\n500\n'; print_exit)
+      select_ charging_switch $(print_auto; cat $TMPDIR/ch-switches; ! grep -q / $TMPDIR/ch-curr-ctrl-files || printf '0\n250\n350\n500\n'; print_exit)
       [ ${charging_switch:-x} != $(print_exit) ] || exit 0
       [ ${charging_switch:-x} != $(print_auto) ] || charging_switch=
       unset IFS
@@ -57,7 +58,7 @@ set_prop() {
     # print switches
     s:|--charging*witch:)
       cat $TMPDIR/ch-switches
-      ! grep -q / $TMPDIR/ch-curr-ctrl-files || printf '0\n250\n500\n'
+      ! grep -q / $TMPDIR/ch-curr-ctrl-files || printf '0\n250\n350\n500\n'
       return 0
     ;;
 
@@ -99,13 +100,11 @@ set_prop() {
   esac
 
   # reset charging switches before replacing them
-  if [ ".${s-${charging_switch-x}}" != .x ] \
-    && ! switch_mA "${s:-${charging_switch:-/}}${chargingSwitch[0]:-/}"
+  if { [ ".${s-${charging_switch-x}}" != .x ] \
+    && ! switch_mA "${s:-${charging_switch:-/}}${chargingSwitch[0]:-/}"; } \
+    || [ ".${cft-${capacity_freeze2-x}}" != .x ]
   then
-    ! daemon_ctrl || {
-      daemon_ctrl stop
-      restartDaemon=true
-    }
+    ! daemon_ctrl stop || restartDaemon=true
   fi > /dev/null
 
   # update config.txt
