@@ -13,7 +13,7 @@ The installation is always "systemless", whether or not the system is rooted wit
 ---
 ## LICENSE
 
-Copyright 2017-2020, VR25
+Copyright 2017-present, VR25
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -174,7 +174,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202011120
+configVerCode=202012070
 capacity=(0 60 70 75 false)
 temperature=(40 60 90 65)
 cooldownRatio=()
@@ -192,6 +192,7 @@ ampFactor=
 voltFactor=
 loopCmd=()
 prioritizeBattIdleMode=false
+currentWorkaround=false
 
 
 # WARNINGS
@@ -254,6 +255,8 @@ prioritizeBattIdleMode=false
 
 # prioritizeBattIdleMode=prioritize_batt_idle_mode=boolean
 
+# currentWorkaround=current_workaround=boolean
+
 
 # VARIABLE ALIASES/SORTCUTS
 
@@ -294,6 +297,7 @@ prioritizeBattIdleMode=false
 
 # lc loop_cmd
 # pbim prioritize_batt_idle_mode
+# current_workaround currentWorkaround
 
 
 # COMMAND EXAMPLES
@@ -440,6 +444,11 @@ prioritizeBattIdleMode=false
 # prioritize_batt_idle_mode (pbim) #
 # If enabled charging switches that support battery idle mode take precedence.
 # This is disabled by default due to issues on Samsung (store_mode) and other devices.
+
+# currentWorkaround (current_workaround) #
+# Only use current control files whose paths match "batt" (default: false).
+# This is necessary only if the current limit affects both input and charging current values.
+# A reboot is required after changing this.
 
 #/DC#
 ```
@@ -759,7 +768,7 @@ Refer to the `default configuration` section above for details.
 Recent/custom kernels (e.g., Kirisakura) support battery idle mode.
 However, at the time of this writing, the feature is not production quality.
 ACC has custom code to cover the pitfalls, though.
-To setup idle mode, simply run `acc -ss` and pick `battery/op_disable_charge 0 1 battery/input_suspend 0 0`.
+To configure idle mode, simply run `acc -ss` and pick `battery/op_disable_charge 0 1` or `battery/op_disable_charge 0 1 battery/input_suspend 0 0`.
 
 
 ### Bootloop
@@ -1076,27 +1085,6 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 ## LATEST CHANGES
 
 
-**v2020.10.24 (202010240)**
-
-- [Experimental] Current-based charging control - enabled by setting charging_switch=milliamps (e.g., 250).
-- cooldown_current is no longer the default cooldown method due to issues observed on some devices.
-- Fixed `acc -ss`.
-- Major optimizations
-- New charging switch for OnePlus Devices
-- Shutdown if battery temp hits shutdown_temp, default: 65 degrees Celsius.
-- Updated default config, project framework and readme.
-
-Release Notes
-
-- AccA has been found to be behind several issues, e.g., unwanted config resets, changes to config not sticking.
-- If you still face issues after uninstalling AccA, see whether resetting acc config (`acc -sr`) helps.
-- Recall that if you feel uncomfortable with terminal, you don't have to use it at all!
-The config file can be edited manually (text editor).
-The process is very straightforward.
-Just do not edit in Windows Notepad, ever!
-It replaces LF (Linux/Unix) with CRLF (Windows) line endings.
-
-
 **v2020.10.28 (202010280)**
 
 - 500 mA preset for charging_switch.
@@ -1125,3 +1113,17 @@ Release Notes
 
 - Nexus 7 users, I'm yet to find charging and current control files for this family of devices.
 The power supply logs contain nothing relevant.
+
+
+**v2021.2.25 (202102250)**
+
+- Added back `battery/op_disable_charge 0 1` charging switch for OnePlus devices.
+
+- Enforce control files mode 0644, so that other processes cannot reset/override changes made by acc.
+
+- Fixed current control issues.
+For details, refer to `config.txt > current_workaround` or `readme > default config > current_workaround`.
+
+- General optimizations
+
+Release note: those who have current-related settings must reboot after upgrading, then reapply those settings manually (e.g., `acc -sc 1800`).

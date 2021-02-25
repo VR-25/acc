@@ -132,7 +132,7 @@ fi
 
 ###
 echo "$name $version ($versionCode)
-Copyright 2017-2020, $author
+Copyright 2017-present, $author
 GPLv3+
 
 (i) Installing in $installDir/$id/..."

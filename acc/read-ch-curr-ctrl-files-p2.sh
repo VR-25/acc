@@ -10,7 +10,7 @@ then
 
   ls -1 */current_max */input_current_max 2>/dev/null | \
     while read file; do
-      chmod u+r $file || continue
+      chmod 0644 $file || continue
       defaultValue=$(cat $file)
       [ $defaultValue -eq 0 ] && continue
       if [ $defaultValue -lt 10000 ]; then
@@ -25,7 +25,10 @@ then
     done
 
   sort -u $TMPDIR/ch-curr-ctrl-files > $TMPDIR/ch-curr-ctrl-files_
-  grep -i batt $TMPDIR/ch-curr-ctrl-files_ > $TMPDIR/ch-curr-ctrl-files \
+
+  # exclude non-batt control files
+  $currentWorkaround \
+    && grep -i batt $TMPDIR/ch-curr-ctrl-files_ > $TMPDIR/ch-curr-ctrl-files \
     || mv -f $TMPDIR/ch-curr-ctrl-files_ $TMPDIR/ch-curr-ctrl-files
 fi
 

@@ -62,11 +62,12 @@ case "$@" in
 
   # print battery uevent data
   -i*|--info*)
-    for batt in $(ls */uevent); do
-      chmod u+r $batt \
+    for batt in */uevent; do
+      chmod 0644 $batt \
          && grep -q '^POWER_SUPPLY_CAPACITY=' $batt \
          && grep -q '^POWER_SUPPLY_STATUS=' $batt \
-         && batt=${batt%/*} && break
+         && batt=${batt%/*} \
+         && break
     done 2>/dev/null || :
     . $execDir/batt-info.sh
     batt_info "${2-}"

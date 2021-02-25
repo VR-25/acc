@@ -16,7 +16,7 @@ if (set +x; . $config) > /dev/null 2>&1; then
       if [ $configVer -lt 202010220 ]; then
         ! grep_ cooldownCurrent=0 || /dev/.vr25/acc/acca --set cooldown_current=
       fi
-      if [ $configVer -lt 202011120 ]; then
+      if [ $configVer -lt 202012070 ]; then
         if grep_ '^maxChargingCurrent=.*/'; then
           /dev/.vr25/acc/acca --set max_charging_current=
           rm $TMPDIR/.ch-curr-read $TMPDIR/ch-curr-ctrl-files 2>/dev/null || :
@@ -62,7 +62,7 @@ fi
 # default value: 65
 set +e
 {
-  chmod u+w usb/razer_charge_limit_dropdown \
+  chmod 0644 usb/razer_charge_limit_dropdown \
     /sys/devices/platform/soc/*/*/*/razer_charge_limit_dropdown
   echo 1 > /sys/devices/platform/soc/*/*/*/razer_charge_limit_dropdown
   echo 1 > usb/razer_charge_limit_dropdown

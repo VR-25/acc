@@ -1,10 +1,10 @@
 # ACC Charging Switches Database
-# Copyright 2017-2020, VR25
+# Copyright 2017-present, VR25
 # License: GPLv3+
 #
 # "::" = " "
 # PWD=/sys/class/power_supply
-# Last updated: Mon, Nov 16, 2020
+# Last updated: Mon, Dec 7, 2020
 
 smb?/input_suspend
 battery/charger_control 1 0
@@ -38,6 +38,7 @@ battery/store_mode 0 1
 *wireless/charging_enabled 1 0
 *-charger/charging_enabled 1 0
 dc/input_suspend 0 1
+battery/op_disable_charge 0 1
 battery/op_disable_charge 0 1 battery/input_suspend 0 0
 wireless/op_disable_charge 0 1
 battery/device/smartchg_stop_charging 0 1

@@ -12,7 +12,7 @@ apply_on_boot() {
     file=${1-}
     value=${2-}
     { $exitCmd && ! $force; } && default=${2-} || default=${3:-${2-}}
-    [ -f "$file" ] && chmod u+w $file && run_xtimes "echo \$$arg > $file" || :
+    [ -f "$file" ] && chmod 0644 $file && run_xtimes "echo \$$arg > $file" || :
   done
 
   $exitCmd && [ $arg = value ] && exit 0 || :
@@ -29,7 +29,7 @@ apply_on_plug() {
     file=${1-}
     value=${2-}
     default=${3:-${2-}}
-    [ -f "$file" ] && chmod u+w $file && run_xtimes "echo \$$arg > $file" || :
+    [ -f "$file" ] && chmod 0644 $file && run_xtimes "echo \$$arg > $file" || :
   done
 }
 
@@ -50,7 +50,7 @@ cycle_switches() {
       # toggle primary switch
       on="${chargingSwitch[1]//::/ }"
       off="${chargingSwitch[2]//::/ }"
-      chmod u+w ${chargingSwitch[0]} \
+      chmod 0644 ${chargingSwitch[0]} \
         && run_xtimes "echo \$$1 > ${chargingSwitch[0]}" \
         || continue
 
@@ -58,7 +58,7 @@ cycle_switches() {
       [ ! -f "${chargingSwitch[3]-}" ] || {
         on="${chargingSwitch[4]//::/ }"
         off="${chargingSwitch[5]//::/ }"
-        chmod u+w ${chargingSwitch[3]} \
+        chmod 0644 ${chargingSwitch[3]} \
           && run_xtimes "echo \$$1 > ${chargingSwitch[3]}" || :
       }
 
@@ -99,10 +99,10 @@ disable_charging() {
     if [[ "${chargingSwitch[0]-}" = */* ]]; then
       if [ -f ${chargingSwitch[0]} ]; then
         # toggle primary switch
-        if chmod u+w ${chargingSwitch[0]} && run_xtimes "echo ${chargingSwitch[2]//::/ } > ${chargingSwitch[0]}"; then
+        if chmod 0644 ${chargingSwitch[0]} && run_xtimes "echo ${chargingSwitch[2]//::/ } > ${chargingSwitch[0]}"; then
           [ ! -f "${chargingSwitch[3]-}" ] || {
             # toggle secondary switch
-            chmod u+w ${chargingSwitch[3]} && run_xtimes "echo ${chargingSwitch[5]//::/ } > ${chargingSwitch[3]}" || {
+            chmod 0644 ${chargingSwitch[3]} && run_xtimes "echo ${chargingSwitch[5]//::/ } > ${chargingSwitch[3]}" || {
               $isAccd || print_switch_fails
               unset_switch
               cycle_switches_off
@@ -181,7 +181,7 @@ enable_charging() {
 
     if ! $ghostCharging || { $ghostCharging && [[ $(cat */online) = *1* ]]; }; then
 
-      chmod u+w ${chargingSwitch[0]-} ${chargingSwitch[3]-} 2>/dev/null \
+      chmod 0644 ${chargingSwitch[0]-} ${chargingSwitch[3]-} 2>/dev/null \
         && run_xtimes "echo ${chargingSwitch[1]//::/ } > ${chargingSwitch[0]-}
           echo ${chargingSwitch[4]//::/ } > ${chargingSwitch[3]:-/dev/null}" 2>/dev/null \
         || cycle_switches on
@@ -263,7 +263,7 @@ not_charging() {
 
 print_header() {
   echo "Advanced Charging Controller $accVer ($accVerCode)
-Copyright 2017-2020, VR25
+Copyright 2017-present, VR25
 GPLv3+"
 }
 
@@ -347,8 +347,8 @@ device=$(getprop ro.product.device | grep .. || getprop ro.build.product)
 cd /sys/class/power_supply/
 
 # find battery uevent
-for batt in $(ls */uevent); do
-  chmod u+r $batt \
+for batt in */uevent; do
+  chmod 0644 $batt \
    && grep -q '^POWER_SUPPLY_CAPACITY=' $batt \
    && grep -q '^POWER_SUPPLY_STATUS=' $batt \
    && batt=${batt%/*} \

@@ -41,4 +41,5 @@ volt_factor=$voltFactor
 
 loop_cmd=${loopCmd[@]}
 
-prioritize_batt_idle_mode=$prioritizeBattIdleMode"
+prioritize_batt_idle_mode=$prioritizeBattIdleMode
+current_workaround=$currentWorkaround"

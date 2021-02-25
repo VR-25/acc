@@ -1,6 +1,6 @@
 #!/system/bin/sh
 # Advanced Charging Controller
-# Copyright 2017-2020, VR25
+# Copyright 2017-present, VR25
 # License: GPLv3+
 
 
@@ -92,7 +92,7 @@ test_charging_switch() {
 
   local failed=false
 
-  chmod u+w $1 ${4-} \
+  chmod 0644 $1 ${4-} \
     && run_xtimes "echo ${3//::/ } > $1 && echo ${6//::/ } > ${4:-/dev/null}" \
     && sleep_sd not_charging || :
 
@@ -501,12 +501,6 @@ case "${1-}" in
     sleep 1.5
     while :; do
       clear
-      for batt in $(ls */uevent); do
-        chmod u+r $batt \
-           && grep -q '^POWER_SUPPLY_CAPACITY=' $batt \
-           && grep -q '^POWER_SUPPLY_STATUS=' $batt \
-           && batt=${batt%/*} && break
-      done 2>/dev/null || :
       batt_info "${2-}"
       sleep $sleepSeconds
       set +x

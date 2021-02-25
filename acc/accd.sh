@@ -1,6 +1,6 @@
 #!/system/bin/sh
 # Advanced Charging Controller Daemon (accd)
-# Copyright 2017-2020, VR25
+# Copyright 2017-present, VR25
 # License: GPLv3+
 #
 # devs: triple hashtags (###) mark non-generic code
@@ -17,7 +17,7 @@ esac
 
 
 # wait until data is decrypted and system is ready
-until [ -d /sdcard/Download ]
+until [ -d /sdcard/Android ]
 do
   sleep 30
 done
@@ -378,7 +378,7 @@ else
       ctrlFile2="$(echo $4 | cut -d ' ' -f 1)"
       [ -f "$ctrlFile1" ] && {
         [ -f "$ctrlFile2" -o -z "$ctrlFile2" ] && {
-          chmod u+r $ctrlFile1 || continue
+          chmod 0644 $ctrlFile1 || continue
           if ! cat $ctrlFile1 > /dev/null 2>&1 || [ -z "$(cat $ctrlFile1 2>/dev/null)" ] \
             || grep -Eq "^(${2//::/ }|${3//::/ })$" $ctrlFile1
           then
@@ -395,7 +395,7 @@ else
     ls -1 */constant_charge_voltage* */voltage_max \
       */batt_tune_float_voltage */fg_full_voltage 2>/dev/null | \
         while read file; do
-          chmod u+r $file 2>/dev/null && grep -Eq '^4[1-4][0-9]{2}' $file || continue
+          chmod 0644 $file 2>/dev/null && grep -Eq '^4[1-4][0-9]{2}' $file || continue
           grep -q '.... ....' $file && continue
           echo ${file}::$(sed -n 's/^..../v/p' $file)::$(cat $file) \
             >> $TMPDIR/ch-volt-ctrl-files_
@@ -413,7 +413,7 @@ else
     ls -1 */input_current_limited */restrict*_ch*g* \
       /sys/class/qcom-battery/restrict*_ch*g* 2>/dev/null | \
       while read file; do
-        chmod u+r $file 2>/dev/null || continue
+        chmod 0644 $file 2>/dev/null || continue
         grep -q '^[01]$' $file && echo ${file}::1::0 >> $TMPDIR/ch-curr-ctrl-files
       done
 
@@ -429,7 +429,7 @@ else
       *dcp_input */wc_input */car_charge \
       */dcp_charge */wc_charge 2>/dev/null | \
         while read file; do
-          chmod u+r $file 2>/dev/null || continue
+          chmod 0644 $file 2>/dev/null || continue
           defaultValue=$(cat $file)
           ampFactor=$(sed -n 's/^ampFactor=//p' $data_dir/config.txt 2>/dev/null)
           [ -n "$ampFactor" -o $defaultValue -ne 0 ] || continue

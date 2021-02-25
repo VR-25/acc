@@ -36,9 +36,11 @@ rcp="${run_cmd_on_pause-${rcp-${runCmdOnPause[@]}}}"
 af=${amp_factor-${af-$ampFactor}}
 vf=${volt_factor-${vf-$voltFactor}}
 
-lc="${loop_cmd-${lc-${loopCmd}}}"
+lc="${loop_cmd-${lc-${loopCmd[@]}}}"
 
 pbim=${prioritize_batt_idle_mode-${pbim-$prioritizeBattIdleMode}}
+
+cw=${current_workaround-${cw-$currentWorkaround}}
 
 
 {
@@ -60,6 +62,7 @@ ampFactor=$af
 voltFactor=$vf
 loopCmd=($lc)
 prioritizeBattIdleMode=${pbim:-false}
+currentWorkaround=${cw:-false}
 
 "
 cat $TMPDIR/.config-help

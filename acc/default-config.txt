@@ -1,4 +1,4 @@
-configVerCode=202011120
+configVerCode=202012070
 capacity=(0 60 70 75 false)
 temperature=(40 60 90 65)
 cooldownRatio=()
@@ -16,6 +16,7 @@ ampFactor=
 voltFactor=
 loopCmd=()
 prioritizeBattIdleMode=false
+currentWorkaround=false
 
 
 # WARNINGS
@@ -78,6 +79,8 @@ prioritizeBattIdleMode=false
 
 # prioritizeBattIdleMode=prioritize_batt_idle_mode=boolean
 
+# currentWorkaround=current_workaround=boolean
+
 
 # VARIABLE ALIASES/SORTCUTS
 
@@ -118,6 +121,7 @@ prioritizeBattIdleMode=false
 
 # lc loop_cmd
 # pbim prioritize_batt_idle_mode
+# current_workaround currentWorkaround
 
 
 # COMMAND EXAMPLES
@@ -264,3 +268,8 @@ prioritizeBattIdleMode=false
 # prioritize_batt_idle_mode (pbim) #
 # If enabled charging switches that support battery idle mode take precedence.
 # This is disabled by default due to issues on Samsung (store_mode) and other devices.
+
+# currentWorkaround (current_workaround) #
+# Only use current control files whose paths match "batt" (default: false).
+# This is necessary only if the current limit affects both input and charging current values.
+# A reboot is required after changing this.
