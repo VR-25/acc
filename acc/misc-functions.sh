@@ -290,6 +290,28 @@ run_xtimes() {
 }
 
 
+sync_capacity() {
+  isCharging=${isCharging:-false}
+  local isCharging_=$isCharging
+  ! $capacitySync || {
+    ! $cooldown || isCharging=true
+    if $isCharging; then
+      cmd_batt set ac 1
+      cmd_batt set status $chgStatusCode
+    else
+      cmd_batt unplug
+      cmd_batt set status $dischgStatusCode
+    fi
+    isCharging=$isCharging_
+    if ! ${capacity[4]} \
+      || { ${capacity[4]} && [ $(cat $batt/capacity) -ge 2 ]; }
+    then
+      cmd_batt set level $(cat $batt/capacity)
+    fi
+  }
+}
+
+
 sleep_sd() {
   local i
   for i in 1 2 3 4; do

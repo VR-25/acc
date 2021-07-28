@@ -1206,3 +1206,8 @@ Release Notes
 The results can be batch tested with `acc -t /path/to/list` or `acc -t file on off`.
 
 - Upgrading to this version will reset config.txt.
+
+
+**v2021.7.28.1 (202107281)**
+
+- Fixed "ghost charging" issue.
