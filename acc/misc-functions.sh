@@ -4,7 +4,7 @@ apply_on_boot() {
 
   [ ${2:-x} != force ] || force=true
 
-  [[ "${applyOnBoot[@]-}${maxChargingVoltage[@]-}" != *--exit* ]] || exitCmd=true
+  ! tt "${applyOnBoot[@]-}${maxChargingVoltage[@]-}" "*--exit*" || exitCmd=true
 
   for entry in "${applyOnBoot[@]-}" "${maxChargingVoltage[@]-}"; do
     [ "$entry" != --exit ] || continue
@@ -67,6 +67,7 @@ cycle_switches() {
       else
         if sleep_sd not_charging ${2-}; then
           # set working charging switch(es)
+          s="${chargingSwitch[*]}" # for some reason, without this, the array is null
           . $execDir/write-config.sh
           break
         else
@@ -92,41 +93,40 @@ disable_charging() {
   then
 
     local autoMode=true
-    [[ "${chargingSwitch[*]-}" = *-- ]] || autoMode=false
+    ! tt "${chargingSwitch[*]-}" "*--" || autoMode=false
 
     ! $isAccd || ! not_charging || return 0
 
-    if [[ "${chargingSwitch[0]-}" = */* ]]; then
+    if tt "${chargingSwitch[0]-}" "*/*"; then
       if [ -f ${chargingSwitch[0]} ]; then
         # toggle primary switch
-        if chmod 0644 ${chargingSwitch[0]} && run_xtimes "echo ${chargingSwitch[2]//::/ } > ${chargingSwitch[0]}"; then
-          [ ! -f "${chargingSwitch[3]-}" ] || {
-            # toggle secondary switch
-            chmod 0644 ${chargingSwitch[3]} && run_xtimes "echo ${chargingSwitch[5]//::/ } > ${chargingSwitch[3]}" || {
-              $isAccd || print_switch_fails
-              unset_switch
-              cycle_switches_off
-            }
-          }
-          if $autoMode && ! sleep_sd not_charging; then
-            unset_switch
-            cycle_switches_off
+        if chmod 0644 ${chargingSwitch[0]} \
+          && run_xtimes "echo ${chargingSwitch[2]//::/ } > ${chargingSwitch[0]}"
+        then
+          if tt "${chargingSwitch[3]-}" "*/*"; then
+            if t -f "${chargingSwitch[3]-}"; then
+              # toggle secondary switch
+              chmod 0644 ${chargingSwitch[3]} \
+                && run_xtimes "echo ${chargingSwitch[5]//::/ } > ${chargingSwitch[3]}" \
+                || switch_fails
+            else
+              invalid_switch
+            fi
           fi
         else
-          $isAccd || print_switch_fails
-          unset_switch
-          cycle_switches_off
+          switch_fails
         fi
+        sleep_sd not_charging || switch_fails
       else
-        $isAccd || print_invalid_switch
-        unset_switch
-        cycle_switches_off
+        invalid_switch
       fi
     else
       cycle_switches_off
     fi
 
-    not_charging || ! $autoMode || return 7 # total failure
+    if $autoMode && ! not_charging; then
+      return 7 # total failure
+    fi
 
   else
     maxChargingCurrent0=${maxChargingCurrent[0]-}
@@ -179,7 +179,7 @@ enable_charging() {
 
     ! $isAccd || not_charging || return 0
 
-    if ! $ghostCharging || { $ghostCharging && [[ $(cat */online) = *1* ]]; }; then
+    if ! $ghostCharging || { $ghostCharging && tt "$(cat */online)" "*1*"; }; then
 
       chmod 0644 ${chargingSwitch[0]-} ${chargingSwitch[3]-} 2>/dev/null \
         && run_xtimes "echo ${chargingSwitch[1]//::/ } > ${chargingSwitch[0]-}
@@ -187,8 +187,8 @@ enable_charging() {
         || cycle_switches on
 
       # detect and block ghost charging
-      if ! $ghostCharging && ! not_charging && [[ $(cat */online) != *1* ]] \
-        && sleep ${loopDelay[0]} && ! not_charging && [[ $(cat */online) != *1* ]]
+      if ! $ghostCharging && ! not_charging && ! tt "$(cat */online)" "*1*" \
+        && sleep ${loopDelay[0]} && ! not_charging && ! tt "$(cat */online)" "*1*"
       then
         ghostCharging=true
         disable_charging > /dev/null
@@ -240,6 +240,13 @@ enable_charging() {
 }
 
 
+invalid_switch() {
+  $isAccd || print_invalid_switch
+  unset_switch
+  cycle_switches_off
+}
+
+
 misc_stuff() {
   set -eu
   mkdir -p ${config%/*} 2>/dev/null || :
@@ -263,7 +270,7 @@ not_charging() {
 
 print_header() {
   echo "Advanced Charging Controller $accVer ($accVerCode)
-Copyright 2017-present, VR25
+Copyright 2017-2021, VR25
 GPLv3+"
 }
 
@@ -292,11 +299,33 @@ sleep_sd() {
 }
 
 
+switch_fails() {
+  $isAccd || print_switch_fails "${chargingSwitch[@]}"
+  if $autoMode; then
+    unset_switch
+    cycle_switches_off
+  fi
+}
+
+
 switch_mA() {
   case "$1" in
     */*) return 1;;
     *) return 0;;
   esac
+}
+
+
+# test
+t() { test "$@"; }
+
+
+# extended test
+tt() {
+  eval "case \"$1\" in
+    $2) return 0;;
+  esac"
+  return 1
 }
 
 
@@ -311,7 +340,7 @@ wait_plug() {
     echo "(i) ghostCharging=true"
     print_wait_plug
   }
-  (while [[ $(cat */online) != *1* ]]; do
+  (while ! tt "$(cat */online)" "*1*"; do
     sleep ${loopDelay[1]}
     ! $isAccd || sync_capacity
     set +x
@@ -330,7 +359,7 @@ loopDelay=(10 10)
 execDir=/data/adb/$domain/acc
 ctrlFileWrites=(3 0.3)
 export TMPDIR=/dev/.vr25/acc
-config=/sdcard/Documents/$domain/$id/config.txt
+config=/data/adb/$domain/${id}-data/config.txt
 config_=$config
 
 [ -f $TMPDIR/.ghost-charging ] \
@@ -369,7 +398,7 @@ temp=$batt/temp
 }
 
 # cmd and dumpsys wrappers for Termux and recovery
-[[ $(readlink -f $execDir) != *com.termux* ]] || {
+! tt "$(readlink -f $execDir)" "*com.termux*" || {
   cmd_batt() { su -c /system/bin/cmd battery "$@" < /dev/null > /dev/null 2>&1 || :; }
   dumpsys() { su -c /system/bin/dumpsys "$@" || :; }
 }

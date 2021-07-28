@@ -1,8 +1,8 @@
 logf() {
 
-  if [[ "${1:-x}" = -*e* ]]; then
+  if tt "${1:-x}" "-*e*"; then
 
-    data_dir=/sdcard/Documents/vr25/acc
+    data_dir=/data/adb/vr25/acc-data
     mkdir -p $data_dir/logs
 
     exec 2>> ${log:-/dev/null}
@@ -41,7 +41,7 @@ logf() {
     echo "(i) $data_dir/logs/acc-logs-$device.tar.bz2"
 
   else
-    if [[ "${1:-x}" = -*a* ]]; then
+    if tt "${1:-x}" "-*a*"; then
       shift
       edit $log "$@"
     else

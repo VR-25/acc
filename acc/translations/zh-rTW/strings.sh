@@ -32,10 +32,6 @@ print_known_switches() {
   echo "(i) 充電開關可用"
 }
 
-print_switch_fails() {
-  echo "(!) [${chargingSwitch[@]}] 不可用"
-}
-
 print_invalid_switch() {
   echo "(!) 無效的充電開關, [${chargingSwitch[@]}]"
 }

@@ -4,7 +4,7 @@
 ---
 ## DESCRIPTION
 
-ACC is an Android software mainly intended for [extending battery service life](https://batteryuniversity.com/learn/article/how_to_prolong_lithium_based_batteries).
+ACC is an Android software mainly intended for [extending battery service life](https://batteryuniversity.com/article/bu-808-how-to-prolong-lithium-based-batteries).
 In a nutshell, this is achieved through limiting charging current, temperature and voltage.
 Any root solution is supported.
 The installation is always "systemless", whether or not the system is rooted with Magisk.
@@ -13,7 +13,7 @@ The installation is always "systemless", whether or not the system is rooted wit
 ---
 ## LICENSE
 
-Copyright 2017-present, VR25
+Copyright 2017-2021, VR25
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -40,17 +40,33 @@ To prevent fraud, do NOT mirror any link associated with this project; do NOT sh
 
 
 ---
-## WARNING
+## WARNINGS
 
 ACC manipulates Android low level ([kernel](https://duckduckgo.com/lite/?q=kernel+android)) parameters which control the charging circuitry.
 The author assumes no responsibility under anything that might break due to the use/misuse of this software.
 By choosing to use/misuse it, you agree to do so at your own risk!
 
+Some devices, notably Xiaomi phones, have a buggy PMIC (Power Management Integrated Circuit) that can be triggered by acc.
+The issue blocks charging.
+Ensure your battery does not discharge too low.
+Using acc's auto shutdown feature is highly recommended.
+
+Refer to [this XDA post](https://forum.xda-developers.com/t/rom-official-arrowos-11-0-android-11-0-vayu-bhima.4267263/post-85119331) for additional details.
+
+[lybxlpsv](https://github.com/lybxlpsv) suggested booting into bootloader and then back into system to reset the PMIC.
+
+
+---
+## DONATIONS
+
+Please, support the project with donations (`## LINKS` at the bottom).
+As the project gets bigger and more popular, the need for coffee goes up as well.
+
 
 ---
 ## PREREQUISITES
 
-- [Must read - how to prolong lithium ion batteries lifespan](https://batteryuniversity.com/index.php/learn/article/how_to_prolong_lithium_based_batteries/)
+- [Must read - how to prolong lithium ion batteries lifespan](https://batteryuniversity.com/article/bu-808-how-to-prolong-lithium-based-batteries/)
 - Android or Android based OS
 - Any root solution (e.g., [Magisk](https://github.com/topjohnwu/Magisk/))
 - [Busybox\*](https://github.com/search?o=desc&q=busybox+android&s=updated&type=Repositories/) (only if not rooted with Magisk)
@@ -59,11 +75,11 @@ By choosing to use/misuse it, you agree to do so at your own risk!
 - Terminal emulator
 - Text editor (optional)
 
-\* A busybox binary can simply be placed in /data/adb/bin/.
+\* A busybox binary can simply be placed in /data/adb/vr25/bin/.
 Permissions (0700) are set automatically, as needed.
-Precedence: /data/adb/bin/busybox > Magisk's busybox > system's busybox
+Precedence: /data/adb/vr25/bin/busybox > Magisk's busybox > system's busybox
 
-Other executables or static binaries can also be placed in /data/adb/bin/ (with proper permissions) instead of being installed system-wide.
+Other executables or static binaries can also be placed in /data/adb/vr25/bin/ (with proper permissions) instead of being installed system-wide.
 
 
 ---
@@ -95,7 +111,7 @@ Settings can be overwhelming. Start with what you understand.
 The default configuration has you covered.
 Don't ever feel like you have to configure everything. You probably shouldn't anyway - unless you really know what you're doing.
 
-Uninstall: run `acc --uninstall` or flash\* `/sdcard/Documents/vr25/acc/acc-uninstaller.zip`.
+Uninstall: run `acc --uninstall` or flash\* `/data/adb/vr25/acc-data/acc-uninstaller.zip`.
 
 ACC runs in some recovery environments as well.
 Unless the zip is flashed again, manual initialization is required.
@@ -307,7 +323,8 @@ currentWorkaround=false
 # acc --set pause_capacity=85 resume_capacity=80
 
 # acc -s "s=battery/charging_enabled 1 0"
-# acc --set "charging_switch=/proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0" ("::" = " ")
+# acc --set "charging_switch=/proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0"
+# NOTE: "::" is used as a whitespace placeholder in "/proc/mtk_battery_cmd/current_cmd 0::0 0::1" charging switch only.
 
 # acc -s -v 3920 (millivolts)
 # acc -s -c 500 (milliamps)
@@ -339,18 +356,20 @@ currentWorkaround=false
 # This is checked during updates to determine whether config should be patched. Do NOT modify.
 
 # shutdown_capacity (sc) #
-# When the battery is discharging and its capacity <= sc and phone has been running for 15 minutes or more, acc daemon turns the phone off to reduce the discharge rate and protect the battery from potential damage induced by voltage below the operating range.
+# When the battery is discharging and its capacity/voltage_now_millivolts <= sc and phone has been running for 15 minutes or more, acc daemon turns the phone off to reduce the discharge rate and protect the battery from potential damage induced by voltage below the operating range.
+# sc=0 disables it.
+# The daemon posts Android shutdown warning notifications at sc+10%, sc+5%, sc+300mV and sc+100mV.
 
 # cooldown_capacity (cc) #
-# Capacity at which the cooldown cycle starts.
+# Capacity/voltage_now_millivolts at which the cooldown cycle starts.
 # Cooldown reduces battery stress induced by prolonged exposure to high temperature and high charging voltage.
 # It does so through periodically pausing charging for a few seconds (more details below).
 
 # resume_capacity (rc) #
-# Capacity at which charging should resume.
+# Capacity or voltage_now_millivolts at which charging should resume.
 
 # pause_capacity (pc) #
-# Capacity at which charging should pause.
+# Capacity or voltage_now_millivolts at which charging should pause.
 
 # capacity_freeze2 (cft) #
 # This prevents Android from getting capacity readings below 2%.
@@ -397,7 +416,7 @@ currentWorkaround=false
 # If unset, acc cycles through its database and sets the first working switch/group that disables charging.
 # If the set switch/group doesn't work, acc unsets chargingSwitch and repeats the above.
 # If all switches fail to disable charging, chargingSwitch is unset and acc/d exit with error code 7.
-# This automated process can be disabled by appending "--" to "charging_switch=...".
+# This automated process can be disabled by appending " --" to "charging_switch=...".
 # e.g., acc -s s="battery/charge_enabled 1 0 --"
 # charging_switch=milliamps (e.g., 0, 250 or 500) enables current-based charging control.
 # For details, refer to the readme's tips section.
@@ -464,7 +483,7 @@ It's a wizard you'll either love or hate.
 
 If you feel uncomfortable with the command line, skip this section and use the [ACC App](https://github.com/MatteCarra/AccA/releases/) to manage ACC.
 
-Alternatively, you can use a `text editor` to modify `/sdcard/Documents/vr25/acc/config.txt`.
+Alternatively, you can use a `text editor` to modify `/data/adb/vr25/acc-data/config.txt`.
 The config file itself has configuration instructions.
 These instructions are the same found in the `DEFAULT CONFIG` section, above.
 
@@ -537,7 +556,7 @@ Options
     e.g.,
       acc -F (lauches a zip flashing wizard)
       acc -F "file1" "file2" "fileN" ... (install multiple zips)
-      acc -F "/sdcard/Documents/vr25/Magisk-v20.0(20000).zip"
+      acc -F "/data/media/0/Download/Magisk-v20.0(20000).zip"
 
   -i|--info [case insentive egrep regex (default: ".")]   Show battery info
     e.g.,
@@ -554,10 +573,16 @@ Options
 
   -la   Same as -l -a
 
-  -l|--log -e|--export   Export all logs to /sdcard/Documents/vr25/acc/logs/acc-logs-$deviceName.tar.bz2
+  -l|--log -e|--export   Export all logs to /data/adb/vr25/acc-data/logs/acc-logs-$deviceName.tar.bz2
     e.g., acc -l -e
 
   -le   Same as -l -e
+
+  -p|--parse [[base file] [file to parse]]   Helps find potential charging switches quickly, for any device
+    e.g.,
+      acc -p   Parse /logs/power_supply-\*.log and print potential charging switches not present in /charging-switches.txt
+      acc -p /data/media/0/power_supply-harpia.log   Parse the given file and print potential charging switches not present in /charging-switches.txt
+      acc -p /data/media/0/charging-switches.txt /data/media/0/power_supply-harpia.log   Parse /data/media/0/power_supply-harpia.log and print potential charging switches not present in /data/media/0/charging-switches.txt
 
   -r|--readme [editor] [editor_opts]   Print/edit README.md
     e.g.,
@@ -604,7 +629,7 @@ Options
   -s|--set r|--reset   Restore default config
     e.g.,
       acc -s r
-      rm /sdcard/Documents/vr25/acc/config.txt (failsafe)
+      rm /data/adb/vr25/acc-data/config.txt (failsafe)
 
   -sr   Same as above
 
@@ -618,7 +643,7 @@ Options
 
   -ss:   Same as above
 
-  -s|--set v|--voltage [millivolts|-] [--exit]   Set/print/restore_default max charging voltage (range: 3700-4200 Millivolts)
+  -s|--set v|--voltage [millivolts|-] [--exit]   Set/print/restore_default max charging voltage (range: 3700-4300 Millivolts)
     e.g.,
       acc -s v (print)
       acc -s v 3920 (set)
@@ -636,7 +661,7 @@ Options
     This will also report whether "battery idle" mode is supported
     e.g.,
       acc -t (test known switches)
-      acc -t /sdcard/experimental_switches.txt (test custom/foreign switches)
+      acc -t /data/media/0/experimental_switches.txt (test custom/foreign switches)
 
   -T|--logtail   Monitor accd log (tail -F)
     e.g., acc -T
@@ -680,6 +705,7 @@ Exit Codes
   11. Current (mA) out of range
   12. Initialization failed
   13. Failed to lock /dev/.vr25/acc/acc.lock
+  14. ACC wont initialize because the Magisk module disable flag is set
 
   Logs are exported automatically ("--log --export") on exit codes 1, 2, 7 and 10.
 
@@ -709,7 +735,7 @@ These are optimized for front-ends - guaranteed to be readily available after in
 It may be best to use long options over short equivalents - e.g., `/dev/.vr25/acc/acca --set charging_switch=` instead of `/dev/.vr25/acc/acca -s s=`.
 This makes code more readable (less cryptic).
 
-Include provided descriptions for ACC features/settings in your app(s).
+Include provided descriptions of ACC features/settings in your app(s).
 Provide additional information (trusted) where appropriate.
 Explain settings/concepts as clearly and with as few words as possible.
 
@@ -745,14 +771,6 @@ Refer back to the `BUILDING AND/OR INSTALLING FROM SOURCE` section.
 ## TROUBLESHOOTING
 
 
-### [Samsung] Charging _Always_ Stops at 70% Capacity
-
-This is a device-specific issue (by design?).
-It's caused by the store_mode charging control file.
-Switch to batt_slate_mode to prevent it.
-Refer to `### Charging Switch` below for details on that.
-
-
 ### Battery Capacity (% Level) Doesn't Seem Right
 
 When Android's battery level differs from that of the kernel, ACC daemon automatically syncs it by stopping the battery service and feeding it the real value every few seconds.
@@ -781,7 +799,7 @@ Most of the time, though, it's just a matter of plugging the phone before turnin
 Battery level must be below pause_capacity.
 Once booted, one can run `acc --uninstall` (or `acc -U`) to remove ACC.
 
-From recovery, one can flash `/sdcard/Documents/vr25/acc/acc-uninstaller.zip` or run `mount /system; /data/adb/vr25/acc/uninstall.sh`.
+From recovery, one can flash `/data/adb/vr25/acc-data/acc-uninstaller.zip` or run `mount /system; /data/adb/vr25/acc/uninstall.sh`.
 
 
 ### Charging Switch
@@ -843,18 +861,31 @@ These are simply ignored.
 
 ### Diagnostics/Logs
 
-Volatile logs (gone on reboot) are stored in `/dev/.vr25/acc/`, persistent logs - `/sdcard/Documents/vr25/acc/logs/`.
+Volatile logs (gone on reboot) are stored in `/dev/.vr25/acc/`, persistent logs - `/data/adb/vr25/acc-data/logs/`.
 
-`acc -le` exports all acc logs, plus Magisk's and extras to `/sdcard/acc-$device_codename.tar.bz2`.
+`acc -le` exports all acc logs, plus Magisk's and extras to `/data/media/0/acc-$device_codename.tar.bz2`.
 The logs do not contain any personal information and are never automatically sent to the developer.
 Automatic exporting (local) happens under specific conditions (refer back to `SETUP/USAGE > Terminal Commands > Exit Codes`).
+
+
+### Finding Additional/Potential Charging Switches Quickly
+
+Refer to (search for) the `--parse` option.
 
 
 ### Restore Default Config
 
 This can save you a lot of time and grief.
 
-`acc --set --reset`, `acc -sr` or `rm /sdcard/Documents/vr25/acc/config.txt` (failsafe)
+`acc --set --reset`, `acc -sr` or `rm /data/adb/vr25/acc-data/config.txt` (failsafe)
+
+
+### Samsung, Charging _Always_ Stops at 70% Capacity
+
+This is a device-specific issue (by design?).
+It's caused by the _store_mode_ charging control file.
+Switch to _batt_slate_mode_ to prevent it.
+Refer back to `### Charging Switch` above for details on that.
 
 
 ### Slow Charging
@@ -867,17 +898,36 @@ At least one of the following may be the cause:
 - Weak adapter and/or power cord
 
 
----
-## POWER SUPPLY LOG (HELP NEEDED)
+### Unable to Charge
 
-Please run `acc -le` and upload `/sdcard/Documents/vr25/acc/logs/power_supply-*.log` to [my dropbox](https://www.dropbox.com/request/WYVDyCc0GkKQ8U5mLNlH/) (no account/sign-up required).
+Refer back to the `## WARNINGS` section above.
+
+
+### WARP, VOOC and Other Fast Charging Tech
+
+ACC may not work reliably with the original power adapter.
+If you face issues, either try a different charging switch or a regular power brick (a.k.a., slow charger).
+This has nothing to do with acc.
+It's bad design by the OEMs themselves.
+
+
+### Why Did accd Stop?
+
+Run `acc -l tail` to find out.
+This will print the last 10 lines of the daemon log file.
+
+
+---
+## POWER SUPPLY LOGS (HELP NEEDED)
+
+Please run `acc -le` and upload `/data/adb/vr25/acc-data/logs/power_supply-*.log` to [my dropbox](https://www.dropbox.com/request/WYVDyCc0GkKQ8U5mLNlH/) (no account/sign-up required).
 This file contains invaluable power supply information, such as battery details and available charging control files.
 A public database is being built for mutual benefit.
 Your cooperation is greatly appreciated.
 
 Privacy Notes
 
-- Name: phone brand and/or model (e.g., 1+7pro, Moto Z Play)
+- Name: random/fake
 - Email: random/fake
 
 See current submissions [here](https://www.dropbox.com/sh/rolzxvqxtdkfvfa/AABceZM3BBUHUykBqOW-0DYIa?dl=0).
@@ -930,8 +980,11 @@ The last sets a voltage limit that will dictate how much the battery should char
 The battery enters a _[pseudo] idle mode_ when its voltage peaks.
 Essentially, it works as a power buffer.
 
-Limiting the charging current to 0-250 mA or so (e.g., `acc -sc 0`) may produce the same effect.
+A similar effect can be achieved with settings such as `acc 60 59` (percentages) and `acc 3920 3800` (millivolts).
+
+Yet another way is limiting charging current to 0-250 mA or so (e.g., `acc -sc 0`).
 `acc -sc -` restores the default limit.
+Alternatively, one can experiment with `acc -s s=0`, which uses current control files as charging switches.
 
 Force fast charge: `appy_on_boot="/sys/kernel/fast_charge/force_fast_charge::1::0 usb/boost_current::1::0 charger/boost_current::1::0"`
 
@@ -963,7 +1016,7 @@ If your device does not support custom current limits, use a dedicated ("slow") 
 
 Open issues on GitHub or contact the developer on Facebook, Telegram (preferred) or XDA (links below).
 Always provide as much information as possible.
-Attach `/sdcard/Documents/vr25/acc/logs/acc-logs-*tar.bz2` - generated by `acc -le` _right after_ the problem occurs.
+Attach `/data/adb/vr25/acc-data/logs/acc-logs-*tar.bz2` - generated by `acc -le` _right after_ the problem occurs.
 Refer back to `TROUBLESHOOTING > Diagnostics/Logs` for additional details.
 
 
@@ -979,7 +1032,7 @@ Refer back to `POWER SUPPLY LOGS (HELP NEEDED)`.
 
 With modern battery management systems, that's generally unnecessary.
 
-However, if your battery is underperforming, you may want to try the procedure described at https://batteryuniversity.com/index.php/learn/article/battery_calibration .
+However, if your battery is underperforming, you may want to try the procedure described at https://batteryuniversity.com/article/bu-603-how-to-calibrate-a-smart-battery .
 
 
 > I set voltage to 4080 mV and that corresponds to just about 75% charge.
@@ -1008,7 +1061,7 @@ Day/regular profile: max capacity: 75-80% and/or voltage no higher than 4100 mV
 
 Travel profile: capacity up to 95% and/or voltage no higher than 4200 mV
 
-\* https://batteryuniversity.com/index.php/learn/article/how_to_prolong_lithium_based_batteries/
+\* https://batteryuniversity.com/article/bu-808-how-to-prolong-lithium-based-batteries/
 
 
 > I don't really understand what the "-f|--force|--full [capacity]" is meant for.
@@ -1067,7 +1120,7 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 ---
 ## LINKS
 
-- [Must read - how to prolong lithium ion batteries lifespan](http://batteryuniversity.com/learn/article/how_to_prolong_lithium_based_batteries/)
+- [Must read - how to prolong lithium ion batteries lifespan](https://batteryuniversity.com/article/bu-808-how-to-prolong-lithium-based-batteries/)
 - [ACC app](https://github.com/MatteCarra/AccA/releases/)
 - [Daily Job Scheduler](https://github.com/VR-25/djs/)
 - [Facebook page](https://fb.me/vr25xda/)
@@ -1083,17 +1136,6 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 
 ---
 ## LATEST CHANGES
-
-
-**v2020.10.28 (202010280)**
-
-- 500 mA preset for charging_switch.
-- `acc [pause_capacity [resume_capacity, default: pause_capacity - 5]]`, e.g., acc 80 (resume_capacity defaults to 80 - 5)
-- Enhanced current-based charging control (still experimental, but should be more stable now).
-- General fixes and optimizations
-- Updated documentation.
-
-Release note: those using current-based charging control should reboot after the upgrade.
 
 
 **v2020.11.20 (202011200)**
@@ -1127,3 +1169,40 @@ For details, refer to `config.txt > current_workaround` or `readme > default con
 - General optimizations
 
 Release note: those who have current-related settings must reboot after upgrading, then reapply those settings manually (e.g., `acc -sc 1800`).
+
+
+**v2021.7.28 (202107280)**
+
+- acc -p|--parse: helps find potential charging switches quickly, for any device; refer to --help for details.
+
+- Additional charging switches
+- Disable charging after a reboot, if min < capacity < max.
+- Extended test (`[[...]]`) alternative function for better shell compatibility
+
+- Fixed issue `#89`: "--"" not respected in charging switch options.
+- Fixed issue `#90`: acc is disabled in Magisk, but it keeps starting.
+- Fixed issue `#97`: accd dies after plugging USB cable (thanks, @530f6caa).
+
+- General fixes & optimizations
+- Max allowed custom charging voltage limit set to 4300 millivolts.
+
+- Cooldown, pause, shutdown and resume capacities can be in millivolts instead of percentages (beta feature).
+
+- Post Android shutdown warning notifications at sc+10%, sc+5%, sc+300mV and sc+100mV (beta feature).
+
+- Save data to /data/adb/vr25/acc-data/, for security reasons.
+- Strip negative sign from current if battery is charging.
+- Updated documentation.
+
+- Use /data/media/0 over /sdcard as base path for user data. FUSE/SDcardFS seem to have issues in deep sleep - making emulated storage unavailable.
+
+Release Notes
+
+- `acc pause_millivolts resume_millivolts`, e.g., `acc 3920 3800`, is yet another "cheap" alternative to direct charging voltage control.
+
+- If you've been facing the "accd stops randomly" issue, share the output of `acc -l tail` as soon as you notice the problem.
+
+- If you need more charging switches, try `acc -p` while charging; it'll print potential candidates.
+The results can be batch tested with `acc -t /path/to/list` or `acc -t file on off`.
+
+- Upgrading to this version will reset config.txt.

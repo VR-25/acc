@@ -131,7 +131,8 @@ currentWorkaround=false
 # acc --set pause_capacity=85 resume_capacity=80
 
 # acc -s "s=battery/charging_enabled 1 0"
-# acc --set "charging_switch=/proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0" ("::" = " ")
+# acc --set "charging_switch=/proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0"
+# NOTE: "::" is used as a whitespace placeholder in "/proc/mtk_battery_cmd/current_cmd 0::0 0::1" charging switch only.
 
 # acc -s -v 3920 (millivolts)
 # acc -s -c 500 (milliamps)
@@ -163,18 +164,20 @@ currentWorkaround=false
 # This is checked during updates to determine whether config should be patched. Do NOT modify.
 
 # shutdown_capacity (sc) #
-# When the battery is discharging and its capacity <= sc and phone has been running for 15 minutes or more, acc daemon turns the phone off to reduce the discharge rate and protect the battery from potential damage induced by voltage below the operating range.
+# When the battery is discharging and its capacity/voltage_now_millivolts <= sc and phone has been running for 15 minutes or more, acc daemon turns the phone off to reduce the discharge rate and protect the battery from potential damage induced by voltage below the operating range.
+# sc=0 disables it.
+# The daemon posts Android shutdown warning notifications at sc+10%, sc+5%, sc+300mV and sc+100mV.
 
 # cooldown_capacity (cc) #
-# Capacity at which the cooldown cycle starts.
+# Capacity/voltage_now_millivolts at which the cooldown cycle starts.
 # Cooldown reduces battery stress induced by prolonged exposure to high temperature and high charging voltage.
 # It does so through periodically pausing charging for a few seconds (more details below).
 
 # resume_capacity (rc) #
-# Capacity at which charging should resume.
+# Capacity or voltage_now_millivolts at which charging should resume.
 
 # pause_capacity (pc) #
-# Capacity at which charging should pause.
+# Capacity or voltage_now_millivolts at which charging should pause.
 
 # capacity_freeze2 (cft) #
 # This prevents Android from getting capacity readings below 2%.
@@ -221,7 +224,7 @@ currentWorkaround=false
 # If unset, acc cycles through its database and sets the first working switch/group that disables charging.
 # If the set switch/group doesn't work, acc unsets chargingSwitch and repeats the above.
 # If all switches fail to disable charging, chargingSwitch is unset and acc/d exit with error code 7.
-# This automated process can be disabled by appending "--" to "charging_switch=...".
+# This automated process can be disabled by appending " --" to "charging_switch=...".
 # e.g., acc -s s="battery/charge_enabled 1 0 --"
 # charging_switch=milliamps (e.g., 0, 250 or 500) enables current-based charging control.
 # For details, refer to the readme's tips section.

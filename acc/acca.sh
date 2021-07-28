@@ -31,7 +31,7 @@ switch_mA() {
 set -eu
 
 execDir=/data/adb/vr25/acc
-config=/sdcard/Documents/vr25/acc/config.txt
+config=/data/adb/vr25/acc-data/config.txt
 defaultConfig=$execDir/default-config.txt
 TMPDIR=/dev/.vr25/acc
 verbose=false

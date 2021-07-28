@@ -1,6 +1,6 @@
 #!/system/bin/sh
 # Advanced Charging Controller
-# Copyright 2017-present, VR25
+# Copyright 2017-2021, VR25
 # License: GPLv3+
 
 
@@ -121,12 +121,48 @@ exxit() {
   local exitCode=$?
   set +eux
   ! ${noEcho:-false} && ${verbose:-true} && echo
-  [[ $exitCode = [05689] ]] || {
-    [[ $exitCode = [127] || $exitCode = 10 ]] && logf --export
+  tt "$exitCode" "[05689]" || {
+    tt "$exitCode" "[127]|10" && logf --export
     echo
   }
   cd /
   exit $exitCode
+}
+
+
+parse_switches() {
+
+  local f=/dev/.parse_switches.tmp
+  local i
+  local n
+
+  [ -n "${2-}" ] || set -- $execDir/charging-switches.txt "${1-}"
+
+  if [ -z "${2-}" ]; then
+    set -- $1 ${config_%/*}/logs/power_supply-*.log
+    $execDir/power-supply-logger.sh
+    echo
+  fi
+
+  cat -v "$2" > $f
+
+  for i in $(grep -En '^  (1|0)$' $f | cut -d: -f1); do
+
+    n=$i
+    i="$(sed -n "$(($n - 1))p" "$f")"
+    n=$(sed -n ${n}p $f)
+    n="$([ $n -eq 1 ] && echo "1 0" || echo "0 1")"
+
+    i="$(echo "$i $n" | grep -Eiv 'brightness|curr|online|present|runtime|status|temp|volt|wakeup' \
+      | sed 's|^/.*/power_supply/||')"
+
+    if ! grep -q "^$i" $1; then
+      echo "$i"
+    fi
+
+  done
+
+  rm $f
 }
 
 
@@ -149,7 +185,7 @@ log=$TMPDIR/acc-${device}.log
 
 
 # verbose
-if ${verbose:-true} && [[ "${1-}" != *-w* ]]; then
+if ${verbose:-true} && ! tt "${1-}" "*-w*"; then
   [ -z "${LINENO-}" ] || export PS4='$LINENO: '
   touch $log
   [ $(du -m $log | cut -f 1) -ge 2 ] && : > $log
@@ -166,7 +202,7 @@ unset -f get_prop
 
 
 misc_stuff "${1-}"
-[[ "${1-}" != */* ]] || shift
+! tt "${1-}" "*/*" || shift
 
 
 # reset broken/obsolete config
@@ -191,7 +227,7 @@ grep -q .. $execDir/translations/$language/README.md 2>/dev/null \
 # aliases/shortcuts
 # daemon_ctrl status (acc -D|--daemon): "accd,"
 # daemon_ctrl stop (acc -D|--daemon stop): "accd."
-[[ $0 != *accd* ]] || {
+! tt "$0" "*accd*" || {
   case $0 in
     *accd.) daemon_ctrl stop;;
     *) daemon_ctrl;;
@@ -282,7 +318,7 @@ case "${1-}" in
     {
       {
 
-        if [[ "$dsys" = *reset* ]] > /dev/null; then
+        if tt "${dsys:-x}" "*reset*"; then
 
           status=$(echo "$dsys" | sed -n 's/^  status: //p')
           level=$(echo "$dsys" | sed -n 's/^  level: //p')
@@ -326,6 +362,11 @@ case "${1-}" in
   -l|--log)
     shift
     logf "$@"
+  ;;
+
+  -p|--parse)
+    shift
+    parse_switches "$@"
   ;;
 
   -r|--readme)
@@ -470,9 +511,9 @@ case "${1-}" in
         || reference=master
     }
 
-    ! test -f /data/adb/bin/curl || {
-      test -x /data/adb/bin/curl \
-        || chmod -R 0700 /data/adb/bin
+    ! test -f /data/adb/vr25/bin/curl || {
+      test -x /data/adb/vr25/bin/curl \
+        || chmod -R 0700 /data/adb/vr25/bin
     }
 
     curl $insecure -Lo $TMPDIR/install-online.sh https://raw.githubusercontent.com/VR-25/acc/$reference/install-online.sh

@@ -1,6 +1,6 @@
 #!/system/bin/sh
 # Advanced Charging Controller Power Supply Logger
-# Copyright 2019-2020, VR25
+# Copyright 2019-2021, VR25
 # License: GPLv3+
 
 
@@ -43,7 +43,7 @@ gather_ps_data() {
 
 export TMPDIR=/dev/.vr25/acc
 execDir=/data/adb/vr25/acc
-logsDir=/sdcard/Documents/vr25/acc/logs
+logsDir=/data/adb/vr25/acc-data/logs
 
 print_wait 2>/dev/null || echo "(i) Alright, this may take a minute or so..."
 

@@ -24,7 +24,7 @@ s_() {
 pick_zips() {
   clear
   echo
-  cd "${1-/sdcard/Download/}"
+  cd "${1-/data/media/0/Download/}"
   echo ": $PWD/"
   IFS=$'\n'
   select_ target $(ls -1Ap | grep -Ei '.*.zip$|/$') "<Custom path>" "<Back>" "<Exit>"

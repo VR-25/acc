@@ -24,7 +24,7 @@ set_prop() {
     # reset config
     r|--reset)
       ! daemon_ctrl stop > /dev/null || restartDaemon=true
-      cp -f $defaultConfig $config
+      cat $defaultConfig > $config
       print_config_reset
       ! $restartDaemon || /dev/.vr25/acc/accd $config
       return 0

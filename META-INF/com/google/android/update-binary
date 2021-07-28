@@ -1,6 +1,6 @@
 #!/system/bin/sh
-# ACC Installer/Upgrader
-# Copyright 2019-2020, VR25
+# $id Installer/Upgrader
+# Copyright 2019-2021, VR25
 # License: GPLv3+
 #
 # devs: triple hashtags (###) mark non-generic code
@@ -14,7 +14,7 @@ echo
 id=acc
 domain=vr25
 umask 0077
-data_dir=/sdcard/Documents/$domain/$id
+data_dir=/data/adb/$domain/${id}-data
 
 
 # log
@@ -38,25 +38,25 @@ trap exxit EXIT
 
 # set up busybox
 #BB#
-[ -x /dev/.busybox/ls ] || {
-  mkdir -p /dev/.busybox
-  chmod 0700 /dev/.busybox
-  if [ -f /data/adb/bin/busybox ]; then
-    [ -x /data/adb/bin/busybox ] || chmod -R 0700 /data/adb/bin
-    /data/adb/bin/busybox --install -s /dev/.busybox
+[ -x /dev/.vr25/busybox/ls ] || {
+  mkdir -p /dev/.vr25/busybox
+  chmod 0700 /dev/.vr25/busybox
+  if [ -f /data/adb/vr25/bin/busybox ]; then
+    [ -x /data/adb/vr25/bin/busybox ] || chmod -R 0700 /data/adb/vr25/bin
+    /data/adb/vr25/bin/busybox --install -s /dev/.vr25/busybox
   elif [ -f /data/adb/magisk/busybox ]; then
     [ -x /data/adb/magisk/busybox ] || chmod 0700 /data/adb/magisk/busybox
-    /data/adb/magisk/busybox --install -s /dev/.busybox
+    /data/adb/magisk/busybox --install -s /dev/.vr25/busybox
   elif which busybox > /dev/null; then
-    eval "$(which busybox) --install -s /dev/.busybox"
+    eval "$(which busybox) --install -s /dev/.vr25/busybox"
   else
-    echo "(!) Install busybox or simply place it in /data/adb/bin/"
+    echo "(!) Install busybox or simply place it in /data/adb/vr25/bin/"
     exit 3
   fi
 }
 case $PATH in
-  /data/adb/bin:*) :;;
-  *) export PATH=/data/adb/bin:/dev/.busybox:$PATH;;
+  /data/adb/vr25/bin:*) :;;
+  *) export PATH=/data/adb/vr25/bin:/dev/.vr25/busybox:$PATH;;
 esac
 #/BB#
 
@@ -105,19 +105,20 @@ author=$(get_prop author)
 version=$(get_prop version)
 magiskModDir=/data/adb/modules
 versionCode=$(get_prop versionCode)
-: ${installDir:=/data/data/mattecarra.${id}app/files} ###
+accaFiles=/data/data/mattecarra.accapp/files ###
+: ${installDir:=$accaFiles} ###
 config=$data_dir/config.txt
 
 
 [ -d $magiskModDir ] && magisk=true || magisk=false
-ls -d /data/app/mattecarra.${id}app* > /dev/null 2>&1 && acca=true || acca=false ###
+ls -d ${accaFiles%/*}* > /dev/null 2>&1 && acca=true || acca=false ###
 
 
-# ensure AccA's files/ exists - to prevent unwanted ACC downgrades ###
-if $acca && [ ! -d /data/data/mattecarra.${id}app/files ]; then
-  mkdir -p /data/data/mattecarra.${id}app/files
-  chmod 0777 /data/data/mattecarra.${id}app \
-    /data/data/mattecarra.${id}app/files
+# ensure AccA's files/ exists - to prevent unwanted downgrades ###
+if $acca && [ ! -d $accaFiles ]; then
+  mkdir -p $accaFiles
+  chmod 0777 ${accaFiles%/*} \
+    $accaFiles
 fi
 
 
@@ -132,28 +133,10 @@ fi
 
 ###
 echo "$name $version ($versionCode)
-Copyright 2017-present, $author
+Copyright 2017-2021, $author
 GPLv3+
 
 (i) Installing in $installDir/$id/..."
-
-
-# migrate #legacy data
-
-if [ -d /data/adb/${id}-data ]; then
-  mv -f /data/adb/${id}-data/* /data/adb/${id}-data/.* \
-    $data_dir/ 2>/dev/null || :
-elif [ -d /sdcard/Download/$id ]; then
-  mv -f /sdcard/Download/$id/* /sdcard/Download/$id/.* \
-    $data_dir/ 2>/dev/null || :
-else
-  mv -f /sdcard/$domain/$id/* /sdcard/$domain/$id/.* \
-    $data_dir/ 2>/dev/null || :
-fi
-rm -rf $data_dir/info 2>/dev/null || :
-
-mkdir -p /dev/.$domain
-mv /dev/.$id /dev/.$domain/$id 2>/dev/null || :
 
 
 /system/bin/sh $srcDir/$id/uninstall.sh install
@@ -180,7 +163,7 @@ if $acca; then
 
   ! $magisk || {
 
-    ln -fs $installDir /data/data/mattecarra.${id}app/files/
+    ln -fs $installDir $accaFiles/
 
     # AccA post-uninstall cleanup script
     mkdir -p /data/adb/service.d || {
@@ -190,7 +173,7 @@ if $acca; then
     echo "#!/system/bin/sh
       # AccA post-uninstall cleanup script
 
-      until test -d /sdcard/Download \\
+      until test -d /sdcard/Android \\
         && test .\$(getprop sys.boot_completed) = .1
       do
         sleep 60
@@ -198,7 +181,7 @@ if $acca; then
 
       sleep 60
 
-      [ -e /data/data/mattecarra.${id}app/files/$id ] || rm -rf \$0 /data/adb/$domain/$id /data/adb/modules/$id 2>/dev/null
+      [ -e $accaFiles/$id ] || rm -rf \$0 /data/adb/$domain/$id /data/adb/modules/$id 2>/dev/null
 
       exit 0" | sed 's/^      //' > /data/adb/service.d/${id}-cleanup.sh
     chmod 0700 /data/adb/service.d/${id}-cleanup.sh
@@ -257,7 +240,7 @@ echo "- Done
 
 "
 # print links and changelog
-sed -En "\|## LINKS|,\$p" $srcDir/README.md \
+sed -En "\|^## LINKS|,\$p" $srcDir/README.md \
   | grep -v '^---' | sed 's/^## //'
 
 
@@ -270,9 +253,11 @@ echo "
 - Daemon started."
 
 
-[ $installDir = /data/adb ] && echo "
+case $installDir in
+  /data/adb/*) echo "
 (i) Non-Magisk users can enable $id auto-start by running /data/adb/$domain/$id/service.sh, a copy of, or a link to it - with init.d or an app that emulates it."
-
+  ;;
+esac
 
 # initialize $id
 /data/adb/$domain/$id/service.sh --init

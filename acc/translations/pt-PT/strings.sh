@@ -32,10 +32,6 @@ print_known_switches() {
   echo "(i) Interruptores de carga suportados"
 }
 
-print_switch_fails() {
-  echo "(!) [${chargingSwitch[@]}] não funciona"
-}
-
 print_invalid_switch() {
   echo "(!) Interruptor de carga inválido, [${chargingSwitch[@]}]"
 }

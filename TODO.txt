@@ -1,5 +1,14 @@
-remove #legacy
+As whole idea is to enhance battery life and one of the most important is to prevent complete discharges, reasonable is to have some feedback when device is idle.
+In more specific it would have user set up value of battery left capacity making play sound (also chosen by user) when battery capacity drop below the value. Ideally would have few such thresholds (and sounds).
+  printf '\7'
+  echo 200 > /sys/class/timed_output/vibrator/enable
+  su -lp 2000 -c "cmd notification post -S bigtext -t 'Title' 'Tag' 'Multiline text'"
 
-alerts/notifications
+  preliminary work done
 
-pixel 4a switch issue
+
+add acc --info to the wizard
+
+add more charging switches
+
+accd.sh, 330: isCharging:=false failing - parameter not set?

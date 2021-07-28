@@ -1,4 +1,4 @@
-This file describes the framework ACC and other projects of mine are built upon.
+This file describes the framework ACC and similar projects of mine are built upon.
 It's assumed that you are already a flashable zip and/or Magisk module creator.
 
 
@@ -6,22 +6,23 @@ Generic Project Structure
 
 _builds/ (local only dir)
   $id-$versionCode/
-    $id-$versionCode/tar.gz (for front-end apps)
-    $id-$versionCode.zip (flashable)
-    install-tarball.sh (copy)
+    $id_$version_($versionCode).tar.gz (for front-end apps)
+    $id_$version_($versionCode).zip (flashable)
+    $id-uninstaller.zip (flashable, copy of bin/$id-uninstaller.zip)
+    install-tarball.sh (copied from $id/)
 
-_misc/ (local only dir)
+_misc/ (local only dir, for drafts and random stuff)
   random_dir/
   random_file
 
- $id/
+ $id/ (files to be installed)
   translations/
   aquire-lock.sh (for job control, uses flock)
   default-config.txt
   flash-zips.sh (universal shell-based-zip flasher)
   release-lock.sh
   select.sh ("select" for shells that lack it)
-  service.sh (initialization script)
+  service.sh (boot/initialization script)
   setup-busybox.sh
   strings.sh (core language strings)
   uninstall.sh
@@ -41,15 +42,15 @@ bundle.bat
 bundle.sh (copies tarball and install-tarball.sh to front-end-src-code/app/src/main/res/raw/)
 check-syntax.bat
 check-syntax.sh
-customize.sh (copy of install.sh, for Magisk)
+customize.sh (copy of install.sh, for compatibility with Magisk)
 framework-details.txt (this file)
 install.sh (main installer)
 install-online.sh (upgrader, online installer)
-install-tarball.sh
-License.md
+install-tarball.sh (mainly used by a front-end app)
+License.md (GPLv3)
 module.prop
-README.md
-TODO.txt
+README.md (documentation)
+TODO.txt (draft for features, issues, thoughts...)
 
 
 Tasks Carried Out By build.sh
@@ -66,4 +67,4 @@ Tasks Carried Out By build.sh
 
 6. Unify installers for flashable zip (customize.sh and update-binary are copies of install.sh).
 
-7. Generate flashable zips (main & uninstaller) and tarball.
+7. Generate flashable zips (main & uninstaller) - and tarball for front-ends.

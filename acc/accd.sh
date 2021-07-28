@@ -1,6 +1,6 @@
 #!/system/bin/sh
 # Advanced Charging Controller Daemon (accd)
-# Copyright 2017-present, VR25
+# Copyright 2017-2021, VR25
 # License: GPLv3+
 #
 # devs: triple hashtags (###) mark non-generic code
@@ -31,6 +31,61 @@ pgrep zygote > /dev/null && {
 
 if ! $init; then
 
+
+  _ge_cooldown_cap() {
+    if t ${capacity[1]} -gt 3000; then
+      t $(grep -o '^....' $voltage_now) -ge ${capacity[1]}
+    else
+      t $(cat $batt/capacity) -ge ${capacity[1]}
+    fi
+  }
+
+
+  _ge_pause_cap() {
+    if t ${capacity[3]} -gt 3000; then
+      t $(grep -o '^....' $voltage_now) -ge ${capacity[3]}
+    else
+      t $(cat $batt/capacity) -ge ${capacity[3]}
+    fi
+  }
+
+
+  _lt_pause_cap() {
+    if t ${capacity[3]} -gt 3000; then
+      t $(grep -o '^....' $voltage_now) -lt ${capacity[3]}
+    else
+      t $(cat $batt/capacity) -lt ${capacity[3]}
+    fi
+  }
+
+
+  _gt_resume_cap() {
+    if t ${capacity[2]} -gt 3000; then
+      t $(grep -o '^....' $voltage_now) -gt ${capacity[2]}
+    else
+      t $(cat $batt/capacity) -gt ${capacity[2]}
+    fi
+  }
+
+
+  _le_resume_cap() {
+    if t ${capacity[2]} -gt 3000; then
+      t $(grep -o '^....' $voltage_now) -le ${capacity[2]}
+    else
+      t $(cat $batt/capacity) -le ${capacity[2]}
+    fi
+  }
+
+
+  _le_shutdown_cap() {
+    if t ${capacity[0]} -gt 3000; then
+      t $(grep -o '^....' $voltage_now) -le ${capacity[0]}
+    else
+      t $(cat $batt/capacity) -le ${capacity[0]}
+    fi
+  }
+
+
   exxit() {
     exitCode=$?
     set +eux
@@ -49,7 +104,7 @@ if ! $init; then
     } > /dev/null 2>&1
     [ -n "$1" ] && exitCode=$1
     [ -n "$2" ] && print "$2"
-    [[ $exitCode = [127] ]] && {
+    tt "$exitCode" "[127]" && {
       . $execDir/logf.sh
       logf --export > /dev/null 2>&1 &
       pids+=($!)
@@ -150,9 +205,11 @@ if ! $init; then
     $isCharging && return 0 || return 1
   }
 
+
   ctrl_charging() {
 
     local count=0
+    local i
 
     while :; do
 
@@ -161,7 +218,7 @@ if ! $init; then
         # disable charging under <conditions>
         test $(cat $temp) -ge $(( ${temperature[1]} * 10 )) \
           && maxTempPause=true || maxTempPause=false
-        if $maxTempPause || test $(cat $batt/capacity) -ge ${capacity[3]}; then
+        if $maxTempPause || _ge_pause_cap; then
           disable_charging
           ! ${resetBattStats[0]} || {
             # reset battery stats on pause
@@ -173,11 +230,11 @@ if ! $init; then
 
         # cooldown cycle
         while [ -n "${cooldownRatio[0]-}${cooldownCustom[0]-}" ] \
-          && [ $(cat $batt/capacity) -lt ${capacity[3]} ] \
+          && _lt_pause_cap \
           && is_charging
         do
           if [ $(cat $temp) -ge $(( ${temperature[0]} * 10 )) ] \
-            || [ $(cat $batt/capacity) -ge ${capacity[1]} ] \
+            || _ge_cooldown_cap \
             || [ $(sed s/-// ${cooldownCustom[0]:-cooldownCustom} 2>/dev/null || echo 0) -ge ${cooldownCustom[1]:-1} ]
           then
             cooldown=true
@@ -196,7 +253,7 @@ if ! $init; then
               while [ $count -lt ${cooldownRatio[0]:-1} ]
               do
                 sleep ${loopDelay[0]}
-                [ $(cat $batt/capacity) -lt ${capacity[3]} ] \
+                _lt_pause_cap \
                   && count=$(( count + ${loopDelay[0]} )) \
                   || break
               done
@@ -214,7 +271,7 @@ if ! $init; then
               count=0
               while ! not_charging && [ $count -lt ${cooldownRatio[0]:-1} ]; do
                 sleep ${loopDelay[0]}
-                [ $(cat $batt/capacity) -lt ${capacity[3]} ] \
+                _lt_pause_cap \
                   && count=$(( count + ${loopDelay[0]} )) \
                   || break
               done
@@ -230,21 +287,36 @@ if ! $init; then
       else
 
         # enable charging under <conditions>
-        [ ! $(cat $batt/capacity) -le ${capacity[2]} ] || {
+        if _le_resume_cap; then
           [ ! $(cat $temp) -lt $(( ${temperature[1]} * 10 )) ] \
             || enable_charging
-        }
+        fi
 
         # auto-shutdown
-        if not_charging && ! $maxTempPause \
-          && [ $(cat $batt/capacity) -le ${capacity[0]} ] \
-          && [ $(cut -d '.' -f 1 /proc/uptime) -ge 900 ]
-        then
-          sleep ${loopDelay[1]}
-          ! not_charging \
-            || am start -n android/com.android.internal.app.ShutdownActivity < /dev/null > /dev/null 2>&1 \
-            || reboot -p 2>/dev/null \
-            || /system/bin/reboot -p || :
+        if ! $maxTempPause && [ $(cut -d '.' -f 1 /proc/uptime) -ge 900 ] && not_charging dis; then
+          if [ ${capacity[0]} -ge 1 ]; then
+            # warnings
+            if t ${capacity[0]} -gt 3000; then
+              i=2
+              ! t $(grep -o '^..' $voltage_now) -eq $(( ${capacity[0]%??} + i )) \
+                || su -lp 2000 -c "cmd notification post -S bigtext -t 'ACC' 'Tag' \"WARNING: $(grep -o '^....' $voltage_now | sed 's/^.//' | sed "s/^./$i/")mV to auto shutdown, plug the charger!\"" \
+                && sleep ${loopDelay[1]} || :
+            else
+              for i in 5 10; do
+                ! t $(cat $batt/capacity) -eq $(( ${capacity[0]} + i )) \
+                  || su -lp 2000 -c "cmd notification post -S bigtext -t 'ACC' 'Tag' \"WARNING: ${i}% to auto shutdown, plug the charger!\"" \
+                  && sleep ${loopDelay[1]} || :
+              done
+            fi
+            # action
+            if _le_shutdown_cap; then
+              sleep ${loopDelay[1]}
+              ! not_charging dis \
+                || am start -n android/com.android.internal.app.ShutdownActivity < /dev/null > /dev/null 2>&1 \
+                || reboot -p 2>/dev/null \
+                || /system/bin/reboot -p || :
+            fi
+          fi
         fi
 
         sleep ${loopDelay[1]}
@@ -255,6 +327,7 @@ if ! $init; then
 
 
   sync_capacity() {
+    : isCharging:=false
     local isCharging_=$isCharging
     ! $capacitySync || {
       ! $cooldown || isCharging=true
@@ -303,7 +376,21 @@ if ! $init; then
   . $config
 
 
+  voltage_now=$batt/voltage_now
+  t -f $voltage_now || voltage_now=$batt/batt_vol
+  if ! t -f $voltage_now; then
+    echo 3920 > $TMPDIR/.voltage_now
+    voltage_now=$TMPDIR/.voltage_now
+  fi
+
+
   apply_on_boot
+
+  # disable charging after a reboot, if min < capacity < max
+  if _lt_pause_cap && _gt_resume_cap; then
+    disable_charging
+  fi
+
   ctrl_charging
   exit $?
 
@@ -311,9 +398,11 @@ if ! $init; then
 else
 
 
-  # log
-  data_dir=/sdcard/Documents/vr25/$id
+  data_dir=/data/adb/vr25/${id}-data
   mkdir -p $TMPDIR $data_dir/logs
+
+
+  # log
   exec > $data_dir/logs/init.log 2>&1
   set -x
 
@@ -335,17 +424,18 @@ else
   ln -fs $execDir/${id}a.sh /dev/.$domain/$id/${id}a
   ln -fs $execDir/service.sh /dev/.$domain/$id/${id}d
 
-  test -d /sbin && {
-    ! grep -q "^tmpfs / " /proc/mounts \
-      || /system/bin/mount -o remount,rw / 2>/dev/null \
-      || mount -o remount,rw /
-    for h in  /dev/.$domain/$id/$id \
+  if [ -d /sbin ]; then
+    if grep -q '^tmpfs / ' /proc/mounts; then
+      /system/bin/mount -o remount,rw / \
+        || mount -o remount,rw /
+    fi
+    for h in /dev/.$domain/$id/$id \
         /dev/.$domain/$id/${id}d, /dev/.$domain/$id/${id}d. \
       /dev/.$domain/$id/${id}a /dev/.$domain/$id/${id}d
     do
       ln -fs $h /sbin/ 2>/dev/null || break
     done
-  }
+  fi
 
 
   # fix Termux's PATH (missing /sbin/)

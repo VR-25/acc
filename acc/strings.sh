@@ -32,10 +32,6 @@ print_known_switches() {
   echo "(i) Known charging switches"
 }
 
-print_switch_fails() {
-  echo "(!) [${chargingSwitch[@]}] won't work"
-}
-
 print_invalid_switch() {
   echo "(!) Invalid charging switch, [${chargingSwitch[@]}]"
 }
@@ -151,7 +147,7 @@ Options
     e.g.,
       acc -F (lauches a zip flashing wizard)
       acc -F "file1" "file2" "fileN" ... (install multiple zips)
-      acc -F "/sdcard/Documents/vr25/Magisk-v20.0(20000).zip"
+      acc -F "/data/media/0/Download/Magisk-v20.0(20000).zip"
 
   -i|--info [case insentive egrep regex (default: ".")]   Show battery info
     e.g.,
@@ -168,10 +164,16 @@ Options
 
   -la   Same as -l -a
 
-  -l|--log -e|--export   Export all logs to /sdcard/Documents/vr25/acc/logs/acc-logs-\$deviceName.tar.bz2
+  -l|--log -e|--export   Export all logs to /data/adb/vr25/acc-data/logs/acc-logs-\$deviceName.tar.bz2
     e.g., acc -l -e
 
   -le   Same as -l -e
+
+  -p|--parse [[base file] [file to parse]]   Helps find potential charging switches quickly, for any device
+    e.g.,
+      acc -p   Parse ${config_%/*}/logs/power_supply-\*.log and print potential charging switches not present in $execDir/charging-switches.txt
+      acc -p /data/media/0/power_supply-harpia.log   Parse the given file and print potential charging switches not present in $execDir/charging-switches.txt
+      acc -p /data/media/0/charging-switches.txt /data/media/0/power_supply-harpia.log   Parse /data/media/0/power_supply-harpia.log and print potential charging switches not present in /data/media/0/charging-switches.txt
 
   -r|--readme [editor] [editor_opts]   Print/edit README.md
     e.g.,
@@ -218,7 +220,7 @@ Options
   -s|--set r|--reset   Restore default config
     e.g.,
       acc -s r
-      rm /sdcard/Documents/vr25/acc/config.txt (failsafe)
+      rm /data/adb/vr25/acc-data/config.txt (failsafe)
 
   -sr   Same as above
 
@@ -232,7 +234,7 @@ Options
 
   -ss:   Same as above
 
-  -s|--set v|--voltage [millivolts|-] [--exit]   Set/print/restore_default max charging voltage (range: 3700-4200$(print_mV))
+  -s|--set v|--voltage [millivolts|-] [--exit]   Set/print/restore_default max charging voltage (range: 3700-4300$(print_mV))
     e.g.,
       acc -s v (print)
       acc -s v 3920 (set)
@@ -250,7 +252,7 @@ Options
     This will also report whether "battery idle" mode is supported
     e.g.,
       acc -t (test known switches)
-      acc -t /sdcard/experimental_switches.txt (test custom/foreign switches)
+      acc -t /data/media/0/experimental_switches.txt (test custom/foreign switches)
 
   -T|--logtail   Monitor accd log (tail -F)
     e.g., acc -T
@@ -294,6 +296,7 @@ Exit Codes
   11. Current (mA) out of range
   12. Initialization failed
   13. Failed to lock /dev/.vr25/acc/acc.lock
+  14. ACC wont initialize because the Magisk module disable flag is set
 
   Logs are exported automatically ("--log --export") on exit codes 1, 2, 7 and 10.
 
@@ -462,4 +465,8 @@ print_m_mode() {
 
 print_wait() {
   echo "(i) Alright, this may take a minute or so..."
+}
+
+print_as_warning() {
+  echo "WARNING: I'll shutdown the system at ${1}% battery if you don't plug the charger!"
 }

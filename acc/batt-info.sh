@@ -42,6 +42,11 @@ batt_info() {
   dtr_conv_factor ${currNow#-} ${ampFactor-}
   currNow=$(calc ${currNow:-0} / $factor)
 
+  # strip negative sign if charging
+  case $currNow in
+    -*) grep -Eiq 'dis|not' $batt/status || currNow=${currNow#-}
+    ;;
+  esac
 
   # parse VOLTAGE_NOW & convert to Volts
   voltNow=$(echo "$info" | sed -n "s/^VOLTAGE_NOW=//p")

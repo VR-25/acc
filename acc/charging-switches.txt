@@ -1,16 +1,14 @@
 # ACC Charging Switches Database
-# Copyright 2017-present, VR25
+# Copyright 2017-2021, VR25
 # License: GPLv3+
 #
 # "::" = " "
 # PWD=/sys/class/power_supply
-# Last updated: Mon, Dec 7, 2020
+# Last updated: Thu, Jul 22, 2021
 
 smb?/input_suspend
 battery/charger_control 1 0
 */charge_disable 0 1
-sm*_bms/charge_disable 0 1
-smb?/charge_disable 0 1
 idt/pin_enabled 1 0
 manta-battery/charge_enabled 1 0
 battery/charge_enabled 1 0
@@ -60,7 +58,7 @@ battery/device/smartchg_stop_charging 0 1
 /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0
 /proc/driver/charger_limit_enable 0 1 /proc/driver/charger_limit 100 1
 /sys/module/lge_battery/parameters/charge_stop_level 100 1 battery/input_suspend 0 0
-/sys/devices/platform/*.i2c/i2c-?/?-*/*-battery/power_supply/battery/charging_enabled 1 0
+#/sys/devices/platform/*.i2c/i2c-?/?-*/*-battery/power_supply/battery/charging_enabled 1 0
 
 battery/input_suspend 0 1
 
@@ -113,3 +111,13 @@ battery/mmi_charging_enable 1 0
 #/proc/mtk_battery_cmd/current_cmd 0::0 0::1
 battery/ChargerEnable 1 0
 /sys/devices/platform/battery/ChargerEnable 1 0
+
+# untested
+battery/batt_ce_full 0 1
+#usb/pd_active 1 0
+battery/pd_disable 0 1
+#/sys/devices/platform/soc/soc:google,charger/charge_start_level 0 1
+#/sys/devices/platform/tegra-i2c.*/i2c-*/*/battery_smbus 1 0
+pack_bat/charge_full 0 1
+/sys/class/qcom-battery/input_suspend 0 1
+bq*standalone/charging_enabled 1 0
