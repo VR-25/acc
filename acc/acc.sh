@@ -139,7 +139,7 @@ parse_switches() {
   [ -n "${2-}" ] || set -- $execDir/charging-switches.txt "${1-}"
 
   if [ -z "${2-}" ]; then
-    set -- $1 ${config_%/*}/logs/power_supply-*.log
+    set -- $1 $(echo ${config_%/*}/logs/power_supply-*.log)
     $execDir/power-supply-logger.sh
     echo
   fi
