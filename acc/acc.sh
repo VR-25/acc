@@ -132,7 +132,7 @@ exxit() {
 
 parse_switches() {
 
-  local f=/dev/.parse_switches.tmp
+  local f=$TMPDIR/.parse_switches.tmp
   local i
   local n
 
@@ -445,15 +445,10 @@ case "${1-}" in
     }
 
     print_wait
+    [ "${1-}" != -- ] || shift #legacy
 
-    case "${1-}" in
-      */*)
-        echo
-        test_charging_switch "$@"
-        echo
-      ;;
-      *)
-        [ "${1-}" != -- ] || shift #legacy
+    case "${2-}" in
+      "")
         exitCode=10
         while read chargingSwitch; do
           [ -f "$(echo "$chargingSwitch" | cut -d ' ' -f 1)" ] && {
@@ -462,6 +457,11 @@ case "${1-}" in
           }
           [ $? -eq 0 ] && exitCode=0
         done < ${1-$TMPDIR/ch-switches}
+        echo
+      ;;
+      *)
+        echo
+        test_charging_switch "$@"
         echo
       ;;
     esac
