@@ -117,8 +117,7 @@ ls -d ${accaFiles%/*}* > /dev/null 2>&1 && acca=true || acca=false ###
 # ensure AccA's files/ exists - to prevent unwanted downgrades ###
 if $acca && [ ! -d $accaFiles ]; then
   mkdir -p $accaFiles
-  chmod 0777 ${accaFiles%/*} \
-    $accaFiles
+  chmod 0777 ${accaFiles%/*} $accaFiles
 fi
 
 

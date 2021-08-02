@@ -75,12 +75,11 @@ tar -xf ${1:-$id}[-_]*.tar.gz
 # prevent AccA from downgrading/reinstalling modules ###
 case "$PWD" in
   *mattecarra.accapp*)
-    get_ver() { sed -n '/^versionCode=/s/.*=//p' $1/module.prop 2>/dev/null || echo 0; }
-    bundled_ver=$(get_ver ${1:-$id}[-_]*)
-    regular_ver=$(get_ver /data/adb/$domain/$id)
+    get_ver() { sed -n '/^versionCode=/s/.*=//p' ${1}module.prop 2>/dev/null || echo 0; }
+    bundled_ver=$(get_ver ${1:-$id}[-_]*/)
+    regular_ver=$(get_ver /data/adb/$domain/${1:-$id}/)
     if [ $bundled_ver -le $regular_ver ] && [ $regular_ver -ne 0 ]; then
-      ln -s $(readlink -f /data/adb/$domain/$id) .
-      (cd ./${1:-$id}/; ln -fs service.sh ${1:-$id}-init.sh)
+      ln -s $(readlink -f /data/adb/$domain/${1:-$id}) .
       exit 0
     fi 2>/dev/null || :
   ;;

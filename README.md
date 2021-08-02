@@ -655,10 +655,9 @@ Options
   -t|--test [ctrl_file1 on off [ctrl_file2 on off]]   Test custom charging switches
     e.g.,
       acc -t battery/charging_enabled 1 0
-      acc -t /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0 ("::" is a placeholder for " ")
+      acc -t /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0 ("::" is a placeholder for " " - MTK only)
 
   -t|--test [file]   Test charging switches from a file (default: /dev/.vr25/acc/ch-switches)
-    This will also report whether "battery idle" mode is supported
     e.g.,
       acc -t (test known switches)
       acc -t /data/media/0/experimental_switches.txt (test custom/foreign switches)
@@ -1138,39 +1137,6 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 ## LATEST CHANGES
 
 
-**v2020.11.20 (202011200)**
-
-- Additional charging switches
-- Current control enhancements
-- Fixed `acc -sr` (reset config command).
-- General fixes & optimizations
-- Improved power supply logger.
-- Updated translations.
-
-Release Notes
-
-- If cooldown_current is set or current-based charging control is enabled (e.g., charging_switch=0), reboot after upgrading.
-
-- If custom charging current limit is set, reboot after upgrading then reapply the limit (e.g., acc -sc 1000).
-
-- Nexus 7 users, I'm yet to find charging and current control files for this family of devices.
-The power supply logs contain nothing relevant.
-
-
-**v2021.2.25 (202102250)**
-
-- Added back `battery/op_disable_charge 0 1` charging switch for OnePlus devices.
-
-- Enforce control files mode 0644, so that other processes cannot reset/override changes made by acc.
-
-- Fixed current control issues.
-For details, refer to `config.txt > current_workaround` or `readme > default config > current_workaround`.
-
-- General optimizations
-
-Release note: those who have current-related settings must reboot after upgrading, then reapply those settings manually (e.g., `acc -sc 1800`).
-
-
 **v2021.7.28 (202107280)**
 
 - acc -p|--parse: helps find potential charging switches quickly, for any device; refer to --help for details.
@@ -1211,3 +1177,10 @@ The results can be batch tested with `acc -t /path/to/list` or `acc -t file on o
 **v2021.7.28.1 (202107281)**
 
 - Fixed "ghost charging" issue.
+
+
+**v2021.8.2 (202108020)**
+
+- Fixed AccA related issues.
+- Fixed charging switch list tester (-t /path/to/list).
+- Fixed charging switch parser (-p).
