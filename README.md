@@ -1184,3 +1184,9 @@ The results can be batch tested with `acc -t /path/to/list` or `acc -t file on o
 - Fixed AccA related issues.
 - Fixed charging switch list tester (-t /path/to/list).
 - Fixed charging switch parser (-p).
+
+
+**v2021.8.4 (202108040)**
+
+- Dynamically add/remove current_now negative sign.
+- Fixed "acca: id: parameter not set".

@@ -9,6 +9,5 @@ In more specific it would have user set up value of battery left capacity making
 
 add acc --info to the wizard
 
-add more charging switches
-
-accd.sh, 330: isCharging:=false failing - parameter not set?
+implement voltage control based charging switches
+  dynamically override set-ch-curr.sh

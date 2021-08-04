@@ -1,7 +1,7 @@
 id=acc
 domain=vr25
 name=Advanced Charging Controller (ACC)
-version=v2021.8.2
-versionCode=202108020
+version=v2021.8.4
+versionCode=202108040
 author=VR25
 description=Mainly intended for extending battery service life on Android devices. In a nutshell, this is achieved through limiting charging current, temperature and voltage. Any root solution is supported. The installation is always "system-less", whether or not the system is rooted with Magisk.
