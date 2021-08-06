@@ -75,7 +75,7 @@ set_perms() {
   if echo $target | grep -q '.*\.sh$' || [ -d $target ]; then perms=0700; fi
   chmod $perms $target
   chown $owner:$owner $target
-  chcon u:object_r:system_file:s0 $target
+  chcon u:object_r:system_file:s0 $target 2>/dev/null || :
 }
 
 set_perms_recursive() {
