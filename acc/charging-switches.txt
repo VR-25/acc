@@ -2,9 +2,9 @@
 # Copyright 2017-2021, VR25
 # License: GPLv3+
 #
-# "::" = " "
+# "::" = " ", applies to MTK only
 # PWD=/sys/class/power_supply
-# Last updated: Thu, Jul 22, 2021
+# Last updated: Fri, Aug 6, 2021
 
 smb?/input_suspend
 battery/charger_control 1 0
@@ -121,3 +121,6 @@ battery/pd_disable 0 1
 pack_bat/charge_full 0 1
 /sys/class/qcom-battery/input_suspend 0 1
 bq*standalone/charging_enabled 1 0
+/sys/devices/platform/battery_meter/FG_suspend_current_threshold 100 5
+#/proc/nvt_charger_switch charger_switch:::1 charger_switch:::0
+battery/load_model 1 0
