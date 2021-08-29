@@ -6,7 +6,6 @@
 # devs: triple hashtags (###) mark non-generic code
 
 
-umask 0077
 . $execDir/acquire-lock.sh
 
 
@@ -88,38 +87,21 @@ if ! $init; then
 
   exxit() {
     exitCode=$?
-    set +eux
+    $persistLog && set +eu || set +eux
     trap - EXIT
-    {
-      cmd_batt reset &
-      pids=($!)
-      grep -Ev '^$|^#' $config > $TMPDIR/.config
-      config=$TMPDIR/.config
-      apply_on_boot default &
-      pids+=($!)
-      apply_on_plug default &
-      pids+=($!)
-      enable_charging &
-      pids+=($!)
-    } > /dev/null 2>&1
     [ -n "$1" ] && exitCode=$1
     [ -n "$2" ] && print "$2"
-    tt "$exitCode" "[127]" && {
+    $persistLog || exec > /dev/null 2>&1
+    cmd_batt reset
+    grep -Ev '^$|^#' $config > $TMPDIR/.config
+    config=$TMPDIR/.config
+    apply_on_boot default
+    apply_on_plug default
+    enable_charging
+    if tt "$exitCode" "[127]"; then
       . $execDir/logf.sh
-      logf --export > /dev/null 2>&1 &
-      pids+=($!)
-    }
-    count=0
-    while [ -n "${pids[0]-}" ] && [ $count -lt 10 ]
-    do
-      count=$(( count + 1 ))
-      kill -0 ${pids[$((${#pids[@]}-1))]} > /dev/null 2>&1 || {
-        unset pids[$((${#pids[@]}-1))]
-        [ -n "${pids[0]-}" ] || break
-      }
-      sleep 1
-    done
-    rm $config 2>/dev/null
+      logf --export
+    fi
     cd /
     exit $exitCode
   }
@@ -127,7 +109,9 @@ if ! $init; then
 
   is_charging() {
 
-    local file="" value="" isCharging=false
+    local file
+    local value
+    local isCharging=false
 
     . $config
     not_charging || isCharging=true
@@ -200,7 +184,7 @@ if ! $init; then
     sync_capacity
 
     # log buffer reset
-    [ $(du -m $log | cut -f 1) -lt 2 ] || : > $log
+    [ $(du -k $log | cut -f 1) -lt 256 ] || : > $log
 
     $isCharging && return 0 || return 1
   }
@@ -223,7 +207,7 @@ if ! $init; then
           ! ${resetBattStats[0]} || {
             # reset battery stats on pause
             dumpsys batterystats --reset < /dev/null > /dev/null 2>&1 || :
-            rm /data/system/batterystats* || :
+            rm /data/system/batterystats* 2>/dev/null || :
           }
           ! $maxTempPause || ! not_charging || sleep ${temperature[2]}
         fi
@@ -296,17 +280,19 @@ if ! $init; then
         if ! $maxTempPause && [ $(cut -d '.' -f 1 /proc/uptime) -ge 900 ] && not_charging dis; then
           if [ ${capacity[0]} -ge 1 ]; then
             # warnings
-            if t ${capacity[0]} -gt 3000; then
-              i=2
-              ! t $(grep -o '^..' $voltage_now) -eq $(( ${capacity[0]%??} + i )) \
-                || su -lp 2000 -c "cmd notification post -S bigtext -t 'ACC' 'Tag' \"WARNING: $(grep -o '^....' $voltage_now | sed 's/^.//' | sed "s/^./$i/")mV to auto shutdown, plug the charger!\"" \
-                && sleep ${loopDelay[1]} || :
-            else
-              for i in 5 10; do
-                ! t $(cat $batt/capacity) -eq $(( ${capacity[0]} + i )) \
-                  || su -lp 2000 -c "cmd notification post -S bigtext -t 'ACC' 'Tag' \"WARNING: ${i}% to auto shutdown, plug the charger!\"" \
+            if ${shutdownWarnings:-false} || [ -f $data_dir/warn ]; then
+              if t ${capacity[0]} -gt 3000; then
+                i=2
+                ! t $(grep -o '^..' $voltage_now) -eq $(( ${capacity[0]%??} + i )) \
+                  || su -lp 2000 -c "cmd notification post -S bigtext -t 'ACC' 'Tag' \"WARNING: $(grep -o '^....' $voltage_now | sed 's/^.//' | sed "s/^./$i/")mV to auto shutdown, plug the charger!\"" \
                   && sleep ${loopDelay[1]} || :
-              done
+              else
+                for i in 5 10; do
+                  ! t $(cat $batt/capacity) -eq $(( ${capacity[0]} + i )) \
+                    || su -lp 2000 -c "cmd notification post -S bigtext -t 'ACC' 'Tag' \"WARNING: ${i}% to auto shutdown, plug the charger!\"" \
+                    && sleep ${loopDelay[1]} || :
+                done
+              fi
             fi
             # action
             if _le_shutdown_cap; then
@@ -338,7 +324,16 @@ if ! $init; then
   dischgStatusCode=""
   maxTempPause=false
   resetBattStatsOnUnplug=false
-  log=$TMPDIR/${id}d-${device}.log
+
+
+  if [ "${1:-y}" = -x ]; then
+    log=/sdcard/accd-${device}.log
+    persistLog=true
+    shift
+  else
+    log=$TMPDIR/accd-${device}.log
+    persistLog=false
+  fi
 
 
   # verbose
@@ -376,7 +371,6 @@ if ! $init; then
 else
 
 
-  data_dir=/data/adb/vr25/${id}-data
   mkdir -p $TMPDIR $data_dir/logs
 
 
@@ -401,6 +395,7 @@ else
   ln -fs $execDir/${id}.sh /dev/.$domain/$id/${id}d.
   ln -fs $execDir/${id}a.sh /dev/.$domain/$id/${id}a
   ln -fs $execDir/service.sh /dev/.$domain/$id/${id}d
+  ln -fs $execDir/uninstall.sh /dev/.$domain/$id/uninstall
 
   if [ -d /sbin ]; then
     if grep -q '^tmpfs / ' /proc/mounts; then

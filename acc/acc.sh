@@ -4,6 +4,45 @@
 # License: GPLv3+
 
 
+_batt_info() {
+  set +e
+  dsys="$(dumpsys battery)"
+
+  {
+    {
+
+      if tt "${dsys:-x}" "*reset*"; then
+
+        status=$(echo "$dsys" | sed -n 's/^  status: //p')
+        level=$(echo "$dsys" | sed -n 's/^  level: //p')
+        powered=$(echo "$dsys" | grep ' powered: true' > /dev/null && echo true || echo false)
+
+        cmd_batt reset
+        dumpsys battery
+        cmd_batt set status $status
+        cmd_batt set level $level
+
+        if $powered; then
+          cmd_batt set ac 1
+        else
+          cmd_batt unplug
+        fi
+
+      else
+        echo "$dsys"
+      fi
+
+    } | grep -Ei "${1-.*}" \
+        | sed -e '1s/.*/Battery Service/' && echo
+
+    . $execDir/batt-info.sh
+    echo Uevent
+    batt_info "${1-}" | sed 's/^/  /'
+
+  } | more
+}
+
+
 daemon_ctrl() {
 
   local isRunning=false
@@ -18,7 +57,7 @@ daemon_ctrl() {
         return 8
       else
         print_started
-        exec /dev/.vr25/acc/accd $config
+        exec $TMPDIR/accd $config
       fi
     ;;
 
@@ -39,7 +78,7 @@ daemon_ctrl() {
       else
         print_started
       fi
-      exec /dev/.vr25/acc/accd $config
+      exec $TMPDIR/accd $config
     ;;
 
     *)
@@ -181,14 +220,18 @@ defaultConfig=$execDir/default-config.txt
 . $execDir/logf.sh
 . $execDir/misc-functions.sh
 
-log=$TMPDIR/acc-${device}.log
-
+if [ "${1:-y}" = -x ]; then
+  log=/sdcard/acc-${device}.log
+  shift
+else
+  log=$TMPDIR/acc-${device}.log
+fi
 
 # verbose
 if ${verbose:-true} && ! tt "${1-}" "*-w*"; then
   [ -z "${LINENO-}" ] || export PS4='$LINENO: '
   touch $log
-  [ $(du -m $log | cut -f 1) -ge 2 ] && : > $log
+  [ $(du -k $log | cut -f 1) -ge 256 ] && : > $log
   echo "###$(date)###" >> $log
   echo "versionCode=$(sed -n s/versionCode=//p $execDir/module.prop 2>/dev/null)" >> $log
   set -x 2>>$log
@@ -207,7 +250,7 @@ misc_stuff "${1-}"
 
 # reset broken/obsolete config
 (set +x; . $config) > /dev/null 2>&1 \
-  || cp -f $execDir/default-config.txt $config
+  || cat -f $execDir/default-config.txt > $config
 
 . $config
 
@@ -244,7 +287,11 @@ case "${1-}" in
   ;;
 
   [0-9]*)
-    capacity[2]=${2:-$((${1}-5))}
+    if [ $1 -gt 3000 ]; then
+      capacity[2]=${2:-$((${1}-50))}
+    else
+      capacity[2]=${2:-$((${1}-5))}
+    fi
     capacity[3]=$1
     . $execDir/write-config.sh
   ;;
@@ -291,14 +338,14 @@ case "${1-}" in
 
     pause_capacity=${2:-100}
     resume_capacity=$(( pause_capacity - 5 ))
-    run_cmd_on_pause="exec /dev/.vr25/acc/accd"
+    run_cmd_on_pause="exec $TMPDIR/accd"
 
     cp -f $config $TMPDIR/.acc-f-config
     config=$TMPDIR/.acc-f-config
     . $execDir/write-config.sh
     print_charging_enabled_until ${2:-100}%
     echo
-    exec /dev/.vr25/acc/accd $config
+    exec $TMPDIR/accd $config
   ;;
 
 
@@ -309,46 +356,9 @@ case "${1-}" in
     $execDir/flash-zips.sh "$@"
   ;;
 
-
   -i|--info)
-
-    set +e
-    dsys="$(dumpsys battery)"
-
-    {
-      {
-
-        if tt "${dsys:-x}" "*reset*"; then
-
-          status=$(echo "$dsys" | sed -n 's/^  status: //p')
-          level=$(echo "$dsys" | sed -n 's/^  level: //p')
-          powered=$(echo "$dsys" | grep ' powered: true' > /dev/null && echo true || echo false)
-
-          cmd_batt reset
-          dumpsys battery
-          cmd_batt set status $status
-          cmd_batt set level $level
-
-          if $powered; then
-            cmd_batt set ac 1
-          else
-            cmd_batt unplug
-          fi
-
-        else
-          echo "$dsys"
-        fi
-
-      } | grep -Ei "${2-.*}" \
-          | sed -e '1s/.*/Battery Service/' && echo
-
-      . $execDir/batt-info.sh
-      echo Uevent
-      batt_info "${2-}" | sed 's/^/  /'
-
-    } | more
+    _batt_info "${2-.*}"
   ;;
-
 
   -la)
     shift
@@ -432,7 +442,7 @@ case "${1-}" in
     config=$TMPDIR/.config
 
     set +e
-    trap '! $daemonWasUp || exec /dev/.vr25/acc/accd $config_' EXIT
+    trap '! $daemonWasUp || exec $TMPDIR/accd $config_' EXIT
 
     not_charging && enable_charging > /dev/null
 
@@ -451,9 +461,12 @@ case "${1-}" in
       "")
         exitCode=10
         while read chargingSwitch; do
+          echo "x$chargingSwitch" | grep -Eq '^x$|^x#' && continue
           [ -f "$(echo "$chargingSwitch" | cut -d ' ' -f 1)" ] && {
             echo
+            [ -n "${1-}" ] && sed -i "\|^$chargingSwitch$|s|^|#|" "$1"
             test_charging_switch $chargingSwitch
+            [ -n "${1-}" ] && sed -i "\|^#$chargingSwitch$|s|^#||" "$1"
           }
           [ $? -eq 0 ] && exitCode=0
         done < ${1-$TMPDIR/ch-switches}
@@ -481,9 +494,9 @@ case "${1-}" in
 
   -u|--upgrade)
     shift
-    local array[0]=;
-    local insecure=;
-    local reference=;
+    local array[0]=
+    local insecure
+    local reference
 
     for i; do
       array+=("$i")
@@ -493,7 +506,7 @@ case "${1-}" in
         -f|--force)
         ;;
         -k|--insecure)
-          insecure=--insecure;
+          insecure=--insecure
         ;;
         -n|--non-interactive)
         ;;
@@ -549,7 +562,6 @@ case "${1-}" in
   ;;
 
   *)
-    shift
     . $execDir/print-help.sh
     print_help_
   ;;

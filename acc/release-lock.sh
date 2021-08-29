@@ -2,8 +2,9 @@
 id=acc
 (pid=
 set +euo sh 2>/dev/null || :
-flock -n 0 || {
+if ! flock -n 0; then
   read pid
-  kill $pid
-  timeout 20 flock 0 || kill -KILL $pid
-}) <>$TMPDIR/${id}.lock || :
+  kill $pid > /dev/null 2>&1
+  #timeout 10 flock 0 || kill -KILL $pid > /dev/null 2>&1
+  flock 0
+fi) <>$TMPDIR/${id}.lock || :

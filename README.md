@@ -1,6 +1,59 @@
 # Advanced Charging Controller (ACC)
 
 
+
+- [DESCRIPTION](#description)
+- [LICENSE](#license)
+- [DISCLAIMER](#disclaimer)
+- [WARNINGS](#warnings)
+- [DONATIONS](#donations)
+- [PREREQUISITES](#prerequisites)
+- [QUICK START GUIDE](#quick-start-guide)
+  - [Notes](#notes)
+- [BUILDING AND/OR INSTALLING FROM SOURCE](#building-andor-installing-from-source)
+  - [Dependencies (Build)](#dependencies-build)
+  - [Build Tarballs and Flashable Zips](#build-tarballs-and-flashable-zips)
+    - [Notes](#notes-1)
+  - [Install from Local Source or GitHub](#install-from-local-source-or-github)
+    - [Notes](#notes-2)
+- [DEFAULT CONFIGURATION](#default-configuration)
+- [SETUP/USAGE](#setupusage)
+  - [Terminal Commands](#terminal-commands)
+- [PLUGINS](#plugins)
+- [NOTES/TIPS FOR FRONT-END DEVELOPERS](#notestips-for-front-end-developers)
+  - [Basics](#basics)
+  - [Installing/Upgrading ACC](#installingupgrading-acc)
+  - [Uninstalling ACC](#uninstalling-acc)
+  - [Initializing ACC](#initializing-acc)
+  - [Managing ACC](#managing-acc)
+  - [The Output of --info](#the-output-of---info)
+  - [More](#more)
+- [TROUBLESHOOTING](#troubleshooting)
+  - [Battery Capacity (% Level) Doesn't Seem Right](#battery-capacity--level-doesnt-seem-right)
+  - [Bootloop](#bootloop)
+  - [Charging Switch](#charging-switch)
+  - [Custom Max Charging Voltage And Current Limits](#custom-max-charging-voltage-and-current-limits)
+  - [Diagnostics/Logs](#diagnosticslogs)
+  - [Finding Additional/Potential Charging Switches Quickly](#finding-additionalpotential-charging-switches-quickly)
+  - [Install, Upgrade, Stop and Restart Processes Seem to Take Too Long](#install-upgrade-stop-and-restart-processes-seem-to-take-too-long)
+  - [Restore Default Config](#restore-default-config)
+  - [Samsung, Charging _Always_ Stops at 70% Capacity](#samsung-charging-always-stops-at-70-capacity)
+  - [Slow Charging](#slow-charging)
+  - [Unable to Charge](#unable-to-charge)
+  - [WARP, VOOC and Other Fast Charging Tech](#warp-vooc-and-other-fast-charging-tech)
+  - [Why Did accd Stop?](#why-did-accd-stop)
+- [POWER SUPPLY LOGS (HELP NEEDED)](#power-supply-logs-help-needed)
+- [LOCALIZATION](#localization)
+- [TIPS](#tips)
+  - [Current and Voltage Based Charging Control](#current-and-voltage-based-charging-control)
+  - [Generic](#generic)
+  - [Google Pixel Devices](#google-pixel-devices)
+  - [_Always_ Limit the Charging Current If Your Battery is Old and/or Tends to Discharge Too Fast](#always-limit-the-charging-current-if-your-battery-is-old-andor-tends-to-discharge-too-fast)
+- [FREQUENTLY ASKED QUESTIONS (FAQ)](#frequently-asked-questions-faq)
+- [LINKS](#links)
+- [LATEST CHANGES](#latest-changes)
+
+
 ---
 ## DESCRIPTION
 
@@ -36,7 +89,8 @@ Always read/reread this reference prior to installing/upgrading this software.
 
 While no cats have been harmed, the author assumes no responsibility for anything that might break due to the use/misuse of it.
 
-To prevent fraud, do NOT mirror any link associated with this project; do NOT share builds (tarballs/zips)! Share official links instead.
+To prevent fraud, do NOT mirror any link associated with this project.
+Do NOT share builds (tarballs/zips)! Share official links instead.
 
 
 ---
@@ -59,7 +113,7 @@ Refer to [this XDA post](https://forum.xda-developers.com/t/rom-official-arrowos
 ---
 ## DONATIONS
 
-Please, support the project with donations (`## LINKS` at the bottom).
+Please, support the project with donations ([links](#links) at the bottom).
 As the project gets bigger and more popular, the need for coffee goes up as well.
 
 
@@ -96,7 +150,7 @@ Rebooting after installation/removal is generally unnecessary.
 
 3. [Optional] run `acc pause_capacity resume_capacity` (default `75 70`) to set the battery levels at which charging should pause and resume, respectively.
 
-4. If you come across any issues, refer to the `TROUBLESHOOTING`, `TIPS` and `FAQ` sections below.
+4. If you come across any issues, refer to the [troubleshooting](#troubleshooting), [tips](#tips) and [FAQ](#frequently-asked-questions-faq) sections below.
 Read as much as you can prior to reporting issues and/or asking questions.
 Oftentimes, solutions/answers will be right before your eyes.
 
@@ -104,7 +158,7 @@ Oftentimes, solutions/answers will be right before your eyes.
 ### Notes
 
 Steps `2` and `3` are optional because there are default settings.
-For details, refer to the `DEFAULT CONFIGURATION` section below.
+For details, refer to the [default configuration](#default-configuration) section below.
 Users are encouraged to try step `2` - to familiarize themselves with the available options.
 
 Settings can be overwhelming. Start with what you understand.
@@ -150,39 +204,33 @@ To skip generating archives, run the build script with a random argument (e.g. b
 - To update the local source code, run `git pull --force` or re-download it (with wget/curl) as described above.
 
 
-### Install from Local Sources or GitHub
+### Install from Local Source or GitHub
 
-- `sh install-tarball.sh acc` installs the tarball (acc*gz) from the script's location.
-The archive must be obtained from GitHub: https://github.com/VR-25/acc/archive/$reference.tar.gz ($reference examples: master, dev, v2020.5.20-rc).
+- `[export installDir=<parent install dir>] sh install.sh` installs acc from the extracted source.
 
-- `sh install.sh` installs acc from the extracted source.
+- `sh install-online.sh [-c|--changelog] [-f|--force] [-k|--insecure] [-n|--non-interactive] [%parent install dir%] [commit]` downloads and installs acc from GitHub - e.g., `sh install-online.sh dev`.
+The order of arguments doesn't matter.
+For upgrades, if `%parent install dir%` is not supplied, the original/current is used.
 
-- `sh install-online.sh [-c|--changelog] [-f|--force] [-k|--insecure] [-n|--non-interactive] [%install dir%] [reference]` downloads and installs acc from GitHub. e.g., `sh install-online.sh dev`
+- `sh install-tarball.sh [module id, default: acc] [parent install dir (e.g., /data/data/mattecarra.accapp/files)]` installs the tarball (acc*gz) from the script's location.
+The archive must be in the same directory as this script - and obtained from GitHub: https://github.com/VR-25/acc/archive/$commit.tar.gz ($commit examples: master, dev, v2020.5.20-rc).
 
 
 #### Notes
 
-- `install.sh` and `install-tarball.sh` accept a custom _parent installation directory_ (e.g., `export installDir=/data; sh install.sh /data` - this will install acc in /data/acc/).
-
-- In addition to the above, `install-online.sh` also recognizes a custom parent installation directory supplied as follows: `sh install-online.sh %path%` (e.g., `sh install-online.sh %/data%`).
-
 - `install-online.sh` is the `acc --upgrade` back-end.
 
-- The order of arguments doesn't matter.
-
-- The default parent installation directories, in order of priority, are: `/data/data/mattecarra.accapp/files/` (ACC App, `/data/adb/modules/` (Magisk) and `/data/adb/` (other root solutions).
+- The default parent installation directories, in order of priority, are: `/data/data/mattecarra.accapp/files/` (ACC App, but only if Magisk is not installed), `/data/adb/modules/` (Magisk) and `/data/adb/` (other root solutions).
 
 - No argument/option is strictly mandatory.
 The exception is `--non-interactive` for front-end apps.
-Unofficially supported front-ends must specify the parent installation directory.
-Otherwise, the installer will follow the order above.
 
 - The `--force` option to `install-online.sh` is meant for re-installation and downgrading.
 
 - `sh install-online.sh --changelog --non-interactive` prints the version code (integer) and changelog URL (string) when an update is available.
 In interactive mode, it also asks the user whether they want to download and install the update.
 
-- You may also want to read `SETUP/USAGE > Terminal Commands > Exit Codes` below.
+- You may also want to read [Terminal Commands](#terminal-commands) > `Exit Codes` below.
 
 
 ---
@@ -190,7 +238,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202012070
+configVerCode=202108120
 capacity=(0 60 70 75 false)
 temperature=(40 60 90 65)
 cooldownRatio=()
@@ -230,7 +278,9 @@ currentWorkaround=false
 
 # The daemon does not have to be restarted after making changes to this file - unless one of the changes is capacity_freeze2 or charging_switch.
 
-# If charging_switch is changed with --set (e.g., -ss, -s s="...", --set charging_switch="..."), accd is restarted automatically, as needed.
+# If those variables are updated with "acc --set", accd is restarted automatically, as needed.
+
+# Changes to current_workaround (cw) only take effect after a system reboot.
 
 
 # BASICS
@@ -250,6 +300,8 @@ currentWorkaround=false
 # chargingSwitch=charging_switch=(ctrl_file1 on off ctrl_file2 on off --)
 
 # chargingSwitch=charging_switch=(milliamps)
+
+# chargingSwitch=charging_switch=(3700)
 
 # applyOnBoot=apply_on_boot=(ctrl_file1::value1::default1 ctrl_file2::value2::default2 ... --exit)
 
@@ -274,7 +326,7 @@ currentWorkaround=false
 # currentWorkaround=current_workaround=boolean
 
 
-# VARIABLE ALIASES/SORTCUTS
+# VARIABLE ALIASES/SHORTCUTS
 
 # cc cooldown_capacity
 # rc resume_capacity
@@ -313,7 +365,7 @@ currentWorkaround=false
 
 # lc loop_cmd
 # pbim prioritize_batt_idle_mode
-# current_workaround currentWorkaround
+# cw current_workaround
 
 
 # COMMAND EXAMPLES
@@ -358,7 +410,7 @@ currentWorkaround=false
 # shutdown_capacity (sc) #
 # When the battery is discharging and its capacity/voltage_now_millivolts <= sc and phone has been running for 15 minutes or more, acc daemon turns the phone off to reduce the discharge rate and protect the battery from potential damage induced by voltage below the operating range.
 # sc=0 disables it.
-# The daemon posts Android shutdown warning notifications at sc+10%, sc+5%, sc+300mV and sc+100mV.
+# [Beta] if the file /data/adb/vr25/acc-data/warn exists, accd posts Android shutdown warning notifications at sc+10%, sc+5%, sc+300mV and sc+100mV.
 
 # cooldown_capacity (cc) #
 # Capacity/voltage_now_millivolts at which the cooldown cycle starts.
@@ -374,6 +426,7 @@ currentWorkaround=false
 # capacity_freeze2 (cft) #
 # This prevents Android from getting capacity readings below 2%.
 # It's useful on systems that shutdown before the battery is actually empty.
+# Changes to this variable require a daemon restart (automated by --set).
 
 # cooldown_temp (ct) #
 # Temperature (°C) at which the cooldown cycle starts.
@@ -418,10 +471,13 @@ currentWorkaround=false
 # If all switches fail to disable charging, chargingSwitch is unset and acc/d exit with error code 7.
 # This automated process can be disabled by appending " --" to "charging_switch=...".
 # e.g., acc -s s="battery/charge_enabled 1 0 --"
+# acc -ss always appends " --".
 # charging_switch=milliamps (e.g., 0, 250 or 500) enables current-based charging control.
+# If charging switch is set to 3700 (millivolts), acc stops charging by limiting voltage.
 # For details, refer to the readme's tips section.
 # Unlike the original variant, this kind of switch is never unset automatically.
-# Appending " --" to it leads to invalid syntax.
+# Thus, in this case, ppending " --" to it leads to invalid syntax.
+# Changes to this variable require a daemon restart (automated by --set).
 
 # apply_on_boot (ab) #
 # Settings to apply on boot or daemon start/restart.
@@ -464,9 +520,10 @@ currentWorkaround=false
 # If enabled charging switches that support battery idle mode take precedence.
 # This is disabled by default due to issues on Samsung (store_mode) and other devices.
 
-# currentWorkaround (current_workaround) #
+# current_workaround (cw) #
 # Only use current control files whose paths match "batt" (default: false).
 # This is necessary only if the current limit affects both input and charging current values.
+# Try this if low current values don't work.
 # A reboot is required after changing this.
 
 #/DC#
@@ -476,16 +533,17 @@ currentWorkaround=false
 ## SETUP/USAGE
 
 
-As the default configuration (above) suggests, ACC is designed to run out of the box, with little to no customization/intervention.
+As the [default configuration](#default-configuration) (above) suggests, ACC is designed to run out of the box, with little to no customization/intervention.
 
 The only command you have to remember is `acc`.
 It's a wizard you'll either love or hate.
 
-If you feel uncomfortable with the command line, skip this section and use the [ACC App](https://github.com/MatteCarra/AccA/releases/) to manage ACC.
+If you feel uncomfortable with the command line, skip this section and use a front-end app instead.
+[ACC App](https://github.com/MatteCarra/AccA/releases/) is a good choice.
 
 Alternatively, you can use a `text editor` to modify `/data/adb/vr25/acc-data/config.txt`.
 The config file itself has configuration instructions.
-These instructions are the same found in the `DEFAULT CONFIG` section, above.
+Those are the same found in the [default configuration](#default-configuration) section, above.
 
 
 ### Terminal Commands
@@ -502,16 +560,19 @@ Usage
 
   accd,   Print acc/daemon status (running or not)
 
-  acc [pause_capacity [resume_capacity, default: pause_capacity - 5]]
+  acc [pause_capacity/millivolts [resume_capacity/millivolts, default: pause_capacity/millivolts - 5%/50mV]]
     e.g.,
       acc 75 70
-      acc 80 (resume_capacity defaults to 80 - 5)
+      acc 80 (resume_capacity defaults to 80% - 5)
+      acc 3920 (same as acc 3920 3870, great idle mode alternative)
 
   acc [options] [args]   Refer to the list of options below
 
   acca [options] [args]   acc optimized for front-ends
 
-  A custom config path can be specified as first parameter.
+  acc[d] -x [options] [args]   Sets log=/sdcard/acc[d]-${device}.log; useful for debugging unwanted reboots
+
+  A custom config path can be specified as first parameter (second if -x is used).
   If the file doesn't exist, the current config is cloned.
     e.g.,
       acc /data/acc-night-config.txt --set pause_capacity=45 resume_capacity=43
@@ -558,7 +619,7 @@ Options
       acc -F "file1" "file2" "fileN" ... (install multiple zips)
       acc -F "/data/media/0/Download/Magisk-v20.0(20000).zip"
 
-  -i|--info [case insentive egrep regex (default: ".")]   Show battery info
+  -i|--info [case insensitive egrep regex (default: ".")]   Show battery info
     e.g.,
       acc -i
       acc -i volt
@@ -701,7 +762,7 @@ Exit Codes
   8. Daemon already running ("--daemon start")
   9. Daemon not running ("--daemon" and "--daemon stop")
   10. "--test" failed
-  11. Current (mA) out of range
+  11. Current (mA) out of 0-9999 range
   12. Initialization failed
   13. Failed to lock /dev/.vr25/acc/acc.lock
   14. ACC wont initialize because the Magisk module disable flag is set
@@ -726,12 +787,29 @@ Tips
 ```
 
 ---
+## PLUGINS
+
+Those are scripts that override functions and some variables.
+They should be placed in `/data/adb/vr25/acc-data/plugins/`.
+Files are sorted and sourced.
+Filenames shall not contain spaces.
+Hidden files and those without the `.sh` extension are ignored.
+
+
+---
 ## NOTES/TIPS FOR FRONT-END DEVELOPERS
 
-Use `/dev/.vr25/acc/acca` over `acc` commands.
-These are optimized for front-ends - guaranteed to be readily available after installation/initialization and significantly faster than regular acc commands.
 
-It may be best to use long options over short equivalents - e.g., `/dev/.vr25/acc/acca --set charging_switch=` instead of `/dev/.vr25/acc/acca -s s=`.
+### Basics
+
+ACC does not require Magisk.
+Any root solution is fine.
+
+Use `/dev/.vr25/acc/acca` instead of regular `acc`.
+It's optimized for front-ends, guaranteed to be readily available after installation/upgrades and significantly faster than its `acc` counterpart.
+`acca --set prop1=bla prop2="bla bla" ...` runs asynchronously (non-blocking mode) - meaning, multiple instances of it work in parallel.
+
+It may be best to use long options over short equivalents - e.g., `--set charging_switch=` instead of `-s s=`.
 This makes code more readable (less cryptic).
 
 Include provided descriptions of ACC features/settings in your app(s).
@@ -739,31 +817,100 @@ Provide additional information (trusted) where appropriate.
 Explain settings/concepts as clearly and with as few words as possible.
 
 Take advantage of exit codes.
-Refer back to `SETUP/USAGE > Terminal Commands > Exit Codes`.
+Refer back to `SETUP/USAGE > [Terminal Commands](#terminal-commands) > Exit Codes`.
 
 
-### Online Install
+### Installing/Upgrading ACC
 
+This should be trivial.
+The simplest way is flashing acc from Magisk manager.
+
+Alternatively, `install.sh`, `install-online.sh` or `install-tarball.sh` can be used.
+For details, refer back to [install from local source or GitHub](#install-from-local-source-or-github).
+
+
+### Uninstalling ACC
+
+Either run `/dev/.vr25/acc/uninstall` (no reboot required; **charger must be plugged**) or uninstall from Magisk manager and reboot.
+
+
+### Initializing ACC
+
+ACC is automatically initialized after installation/upgrades.
+It needs to be initialized on boot, too.
+If it's installed as a Magisk module, this is done by Magisk itself.
+Otherwise, the front-end should handle it as follows:
 ```
-1) Check whether ACC is installed (exit code 0)
-"/dev/.vr25/acc/acca --version"
-
-2) Download the installer (https://raw.githubusercontent.com/VR-25/acc/master/install-online.sh)
-- e.g.,
-  curl -#LO <URL>
-  wget -O install-online.sh <URL>
-
-3) Run "sh install-online.sh" (installation progress is shown)
+on boot_completed receiver and main activity
+  if file /dev/.acca/started does NOT exist
+    create it
+      mkdir -p /dev/.acca
+      touch /dev/.acca/started
+    if accd is NOT running
+      launch it
+        /data/adb/vr25/acc/service.sh
+    else
+      do nothing
+  else
+    do nothing
 ```
+`/dev/` is volatile - meaning, a reboot/shutdown clears `/dev/.acca/` and its contents.
+That's exactly what we want.
+Of course, `/dev/.acca/started` is just an example.
+One can use any random path (e.g., `.myapp/initialized`), as long as it's under `/dev/` and does not conflict with preexisting data.
+**WARNING**: do not play with preexisting /dev/ data!
+Doing so may result in data loss and/or other undesired outcome.
 
-### Offline Install
 
-Refer back to the `BUILDING AND/OR INSTALLING FROM SOURCE` section.
+### Managing ACC
+
+As already stated, front-ends should use the executable `/dev/.vr25/acc/acca`.
+Refer to the [default configuration](#default-configuration) and [terminal commands](#terminal-commands) sections above.
+
+The default config reference has a section entitled variable aliases/shortcuts.
+Use ONLY those with `/dev/.vr25/acc/acca --set`!
+
+To clarify, `/dev/.vr25/acc/acca --set chargingSwitch=...` is not supported!
+Use either `s` or `charging_switch`.
+`chargingSwitch` and all the other "camelcase" style variables are for internal use only (i.e., private API).
+
+Do not parse the config file directly.
+Use `--set --print` and `--set --print-default`.
+Refer back to [terminal commands](#terminal-commands) for details.
 
 
-### Officially Supported Front-ends
+### The Output of --info
 
-- ACC App, a.k.a., AccA (installDir=/data/data/mattecarra.accapp/files/acc/)
+It comes from the kernel, not acc itself.
+Some kernels provide more information than others.
+
+Most of the lines are either unnecessary (e.g., type: everyone knows that already) or unreliable (e.g., health, speed).
+
+Here's what one should focus on:
+
+STATUS=Charging # Charging, Not charging (idle mode) or Discharging
+CAPACITY=50 # Battery level, 0-100
+TEMP=281 # Always in (ºC * 10)
+CURRENT_NOW=0 # Charging current (Amps)
+VOLTAGE_NOW=3.861 # Charging voltage (Volts)
+POWER_NOW=0 # (CURRENT_NOW * VOLTAGE_NOW) (Watts)
+
+Note that the power information refers to what is actually supplied to the battery, not what's coming from the adapter.
+External power is always converted before it reaches the battery.
+
+
+### More
+
+ACC daemon does not have to be restarted after making changes to the config.
+It picks up new changes within seconds.
+
+There are a few exceptions:
+
+- `capacity_freeze2` (`cft`): requires a daemon restart.
+- `charging_switch` (`s`): requires a daemon restart.
+- `current_workaround` (`cw`): requires a system reboot.
+
+This information is in the [default configuration](#default-configuration) section as well.
 
 
 ---
@@ -777,15 +924,7 @@ When Android's battery level differs from that of the kernel, ACC daemon automat
 Pixel devices are known for having battery level discrepancies for the longest time.
 
 If your device shuts down before the battery is actually empty, capacity_freeze2 may help.
-Refer to the `default configuration` section above for details.
-
-
-### Battery Idle Mode On OnePlus 7/8 Variants (Possibly 5 and 6 Too)
-
-Recent/custom kernels (e.g., Kirisakura) support battery idle mode.
-However, at the time of this writing, the feature is not production quality.
-ACC has custom code to cover the pitfalls, though.
-To configure idle mode, simply run `acc -ss` and pick `battery/op_disable_charge 0 1` or `battery/op_disable_charge 0 1 battery/input_suspend 0 0`.
+Refer to the [default configuration](#default-configuration) section above for details.
 
 
 ### Bootloop
@@ -798,12 +937,12 @@ Most of the time, though, it's just a matter of plugging the phone before turnin
 Battery level must be below pause_capacity.
 Once booted, one can run `acc --uninstall` (or `acc -U`) to remove ACC.
 
-From recovery, one can flash `/data/adb/vr25/acc-data/acc-uninstaller.zip` or run `mount /system; /data/adb/vr25/acc/uninstall.sh`.
+From recovery, one can flash `/data/adb/vr25/acc-data/acc-uninstaller.zip` or run `mount -o ro /system; /data/adb/vr25/acc/uninstall.sh`.
 
 
 ### Charging Switch
 
-By default, ACC uses whichever [charging switch](https://github.com/VR-25/acc/blob/dev/acc/charging-switches.txt) works.
+By default, ACC uses whichever [charging switch](https://github.com/VR-25/acc/blob/dev/acc/charging-switches.txt) works ("automatic" charging switch).
 However, things don't always go well.
 
 - Some switches are unreliable under certain conditions (e.g., while display is off).
@@ -829,8 +968,8 @@ Since not everyone is tech savvy, ACC daemon automatically applies certain setti
 These are are in `acc/oem-custom.sh`.
 
 Note: as part of the output of `acc -ss` and `acc -ss:`, you may see plain numbers alone or in addition to charging switches.
-These are presets the `current-based charging control` feature.
-For details, refer to `Tips` section below.
+These are presets the current and voltage (3700) based charging control feature.
+For details, refer to [tips](#tips) section below.
 
 
 ### Custom Max Charging Voltage And Current Limits
@@ -848,7 +987,7 @@ A workaround is setting the default max current value or any arbitrary high numb
 Don't worry about frying things.
 The phone will only draw the max it can take.
 
-WARNING: limiting voltage causes battery state of charge (SoC) deviation on some devices.
+**WARNING**: limiting voltage causes battery state of charge (SoC) deviation on some devices.
 The  battery management system self-calibrates constantly, though.
 Thus, as soon as the default voltage limit is restored, it'll start "fixing" itself.
 
@@ -857,19 +996,32 @@ Some devices do not support just any current value, though.
 That's not to say out-of-range values cause issues.
 These are simply ignored.
 
+If low current values don't work, try setting `current_workaround=true` (takes effect after a reboot.
+Refer to the [default configuration](#default-configuration) section for details.
+
 
 ### Diagnostics/Logs
 
-Volatile logs (gone on reboot) are stored in `/dev/.vr25/acc/`, persistent logs - `/data/adb/vr25/acc-data/logs/`.
+Volatile logs (gone on reboot) are stored in `/dev/.vr25/acc/` (.log files only).
+Persistent logs reside in `/data/adb/vr25/acc-data/logs/`.
 
-`acc -le` exports all acc logs, plus Magisk's and extras to `/data/media/0/acc-$device_codename.tar.bz2`.
+`acc -le` exports all acc logs, plus Magisk's and extras to `/data/adb/acc-data/logs/acc-$device_codename.tar.bz2`.
 The logs do not contain any personal information and are never automatically sent to the developer.
 Automatic exporting (local) happens under specific conditions (refer back to `SETUP/USAGE > Terminal Commands > Exit Codes`).
 
 
 ### Finding Additional/Potential Charging Switches Quickly
 
-Refer to (search for) the `--parse` option.
+Refer to (search for) the `--parse` option in the [terminal commands](#terminal-commands) section.
+
+
+### Install, Upgrade, Stop and Restart Processes Seem to Take Too Long
+
+The daemon stop process implies complete reversal of changes made to the charging management system.
+Sometimes, **this requires the charger to be plugged**.
+That's because some devices have kernel bugs and/or bad charging driver implementations.
+That said, accd is always stopped _gracefully_ to ensure the restoration takes place.
+One who knows what they're doing, can force-stop accd by running `pkill -9 -f accd`.
 
 
 ### Restore Default Config
@@ -884,7 +1036,7 @@ This can save you a lot of time and grief.
 This is a device-specific issue (by design?).
 It's caused by the _store_mode_ charging control file.
 Switch to _batt_slate_mode_ to prevent it.
-Refer back to `### Charging Switch` above for details on that.
+Refer back to [charging switch](#charging-switch) above for details on that.
 
 
 ### Slow Charging
@@ -899,15 +1051,16 @@ At least one of the following may be the cause:
 
 ### Unable to Charge
 
-Refer back to the `## WARNINGS` section above.
+Refer back to the [warnings](#warnings) section above.
 
 
 ### WARP, VOOC and Other Fast Charging Tech
 
-ACC may not work reliably with the original power adapter.
-If you face issues, either try a different charging switch or a regular power brick (a.k.a., slow charger).
+Charging witches may not work reliably with the original power adapter.
 This has nothing to do with acc.
 It's bad design by the OEMs themselves.
+If you face issues, either try a different charging switch or a regular power brick (a.k.a., slow charger).
+You may also want to try stopping charging by limiting current/voltage.
 
 
 ### Why Did accd Stop?
@@ -936,36 +1089,39 @@ See current submissions [here](https://www.dropbox.com/sh/rolzxvqxtdkfvfa/AABceZ
 ## LOCALIZATION
 
 
-Currently Supported Languages and Translation Statuses
+Currently Supported Languages and Translation Levels (full, good, fair, minimal)
 
-- English (en): complete
-- Portuguese, Portugal (pt-PT): partial
-- Simplified Chinese (zh-rCN): partial
+- Chinese, simplified (zh-rCN): minimal
+- Chinese, traditional (zh-rTW): minimal
+- English (en): full
+- German (de_DE): fair
+- Indonesia (id): minimal
+- Portuguese, Portugal (pt-PT): minimal
 
 
 Translation Notes
 
-1. Start with copies of [acc/strings.sh](https://github.com/VR-25/acc/blob/dev/acc/strings.sh) and [README.md](https://github.com/VR-25/acc/blob/dev/README.md).
+1. Start with copies of [acc/strings.sh](https://github.com/VR-25/acc/blob/dev/acc/strings.sh) and, optionally, [README.md](https://github.com/VR-25/acc/blob/dev/README.md).
 
 2. Modify the header of strings.sh to reflect the translation (e.g., # Español (es)).
 
 3. Anyone is free and encouraged to open translation [pull requests](https://duckduckgo.com/lite/?q=pull+request).
 Alternatively, a _compressed_ archive of translated `strings.sh` and `README.md` files can be sent to the developer via Telegram (link below).
 
-4. Use `acc -sl` (--set --lang): language switching wizard
+4. Use `acc -sl` (--set --lang): language switching wizard or `acc -s l=<lang_string>` to set a language.
 
 
 ---
 ## TIPS
 
 
-### Current-based Charging Control (EXPERIMENTAL)
+### Current and Voltage Based Charging Control
 
-Enabled by setting charging_switch=milliamps (e.g., `acc -s s=0`, `acc -s s=250` or `acc -ss` (wizard)).
+Enabled by setting charging_switch=milliamps or charging_switch=3700 (millivolts) (e.g., `acc -s s=0`, `acc -s s=250`, `acc -s s=3700`, `acc -ss` (wizard)).
 
-Essentially, this turns current control files into _[pseudo] charging switches_.
+Essentially, this turns current/voltage control files into _[pseudo] charging switches_.
 
-A common positive side effect of this is _[pseudo] idle mode_ - i.e., the battery may work just as a power buffer.
+A common and positive side effect of this is _[pseudo] idle mode_ - i.e., the battery may work just as a power buffer.
 
 Note: depending on the kernel - at `pause_capacity`, the charging status may either change ("discharging" or "not charging") or remain still ("charging" - not an issue).
 If it changes intermittently, the current is too low; increment it until the issue goes away.
@@ -979,11 +1135,11 @@ The last sets a voltage limit that will dictate how much the battery should char
 The battery enters a _[pseudo] idle mode_ when its voltage peaks.
 Essentially, it works as a power buffer.
 
-A similar effect can be achieved with settings such as `acc 60 59` (percentages) and `acc 3920 3800` (millivolts).
+A similar effect can be achieved with settings such as `acc 60 59` (percentages) and `acc 3920` (millivolts).
 
 Yet another way is limiting charging current to 0-250 mA or so (e.g., `acc -sc 0`).
 `acc -sc -` restores the default limit.
-Alternatively, one can experiment with `acc -s s=0`, which uses current control files as charging switches.
+Alternatively, one can experiment with `acc -s s=0` and/or `acc -s s=3700`, which uses current/voltage control files as charging switches.
 
 Force fast charge: `appy_on_boot="/sys/kernel/fast_charge/force_fast_charge::1::0 usb/boost_current::1::0 charger/boost_current::1::0"`
 
@@ -1137,48 +1293,6 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 ## LATEST CHANGES
 
 
-**v2021.7.28 (202107280)**
-
-- acc -p|--parse: helps find potential charging switches quickly, for any device; refer to --help for details.
-
-- Additional charging switches
-- Disable charging after a reboot, if min < capacity < max.
-- Extended test (`[[...]]`) alternative function for better shell compatibility
-
-- Fixed issue `#89`: "--"" not respected in charging switch options.
-- Fixed issue `#90`: acc is disabled in Magisk, but it keeps starting.
-- Fixed issue `#97`: accd dies after plugging USB cable (thanks, @530f6caa).
-
-- General fixes & optimizations
-- Max allowed custom charging voltage limit set to 4300 millivolts.
-
-- Cooldown, pause, shutdown and resume capacities can be in millivolts instead of percentages (beta feature).
-
-- Post Android shutdown warning notifications at sc+10%, sc+5%, sc+300mV and sc+100mV (beta feature).
-
-- Save data to /data/adb/vr25/acc-data/, for security reasons.
-- Strip negative sign from current if battery is charging.
-- Updated documentation.
-
-- Use /data/media/0 over /sdcard as base path for user data. FUSE/SDcardFS seem to have issues in deep sleep - making emulated storage unavailable.
-
-Release Notes
-
-- `acc pause_millivolts resume_millivolts`, e.g., `acc 3920 3800`, is yet another "cheap" alternative to direct charging voltage control.
-
-- If you've been facing the "accd stops randomly" issue, share the output of `acc -l tail` as soon as you notice the problem.
-
-- If you need more charging switches, try `acc -p` while charging; it'll print potential candidates.
-The results can be batch tested with `acc -t /path/to/list` or `acc -t file on off`.
-
-- Upgrading to this version will reset config.txt.
-
-
-**v2021.7.28.1 (202107281)**
-
-- Fixed "ghost charging" issue.
-
-
 **v2021.8.2 (202108020)**
 
 - Fixed AccA related issues.
@@ -1190,3 +1304,37 @@ The results can be batch tested with `acc -t /path/to/list` or `acc -t file on o
 
 - Dynamically add/remove current_now negative sign.
 - Fixed "acca: id: parameter not set".
+
+
+**v2021.8.29 (202108290)**
+
+- acc -t <file> skips panicky switches in subsequent runs.
+
+- `acc[d] -x [options] [args]` sets `log=/sdcard/acc[d]-${device}.log`; it's useful for debugging unwanted reboots.
+
+- accd is always stopped gracefully - to ensure defaults are always restored.
+This has a potential unwanted side-effect.
+Refer to the release note bellow and documentation for details.
+
+- Additional charging switches
+
+- [Beta] if the file /data/adb/vr25/acc-data/warn exists, accd posts Android shutdown warning notifications at sc+10%, sc+5%, sc+300mV and sc+100mV.
+
+- Charging switches set with `acc -ss` are now persistent (i.e., the string " --" is automatically appended to them).
+
+- Enhanced current and voltage units conversion
+- Improved fronted support (installers and doc)
+- General optimizations
+
+- If charging switch is set to 3700 (millivolts), acc stops charging by limiting voltage.
+-
+- Implemented workarounds for unreadable battery/uevent and unreliable battery/status (kernel bugs) affecting mainly Pixel and LG devices.
+
+- Set batt_slate_mode as default charging control file for Exynos devices
+- Support for plugins, refer to [plugins](#plugins) for details.
+- Removed potentially troublesome switches.
+
+- The wizard includes battery info (--info).
+- Updated documentation (more information, now with a table of contents and in HTML format)
+
+Release note: plug the charger if the install, upgrade, stop or restart processes seem to take too long.

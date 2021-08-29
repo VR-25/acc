@@ -5,7 +5,8 @@
 
 
 gather_ps_data() {
-  local target="" target2=""
+  local target
+  local target2
   for target in $(ls -1 $1 | grep -Ev '^[0-9]|^block$|^dev$|^fs$|^ram$'); do
     if [ -f $1/$target ]; then
       echo $1/$target | grep -Ev 'logg|(/|_|-)log|at_pmrst' | grep -Eq 'batt|charg|power_supply' && {
@@ -49,7 +50,6 @@ print_wait 2>/dev/null || echo "(i) Alright, this may take a minute or so..."
 
 
 # log
-umask 0077
 exec 2> $logsDir/power-supply-logger.sh.log
 set -x
 

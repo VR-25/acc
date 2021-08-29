@@ -1,21 +1,18 @@
 #!/system/bin/sh
 #
 # $id Online Installer
-# https://raw.githubusercontent.com/VR-25/$id/$branch/install-online.sh
+# https://raw.githubusercontent.com/VR-25/$id/$commit/install-online.sh
 #
-# Copyright 2019-2020, VR25
+# Copyright 2019-2021, VR25
 # License: GPLv3+
 #
-# Usage: sh install-online.sh [-c|--changelog] [-f|--force] [-k|--insecure] [-n|--non-interactive] [%install dir%] [reference]
-#
-# Also refer to README.md > NOTES/TIPS FOR FRONT-END DEVELOPERS for > Exit Codes
+# Usage: sh install-online.sh [-c|--changelog] [-f|--force] [-k|--insecure] [-n|--non-interactive] [%parent install dir%] [commit]
 
 
 set +x
 echo
 id=acc
 domain=vr25
-umask 0077
 data_dir=/data/adb/$domain/${id}-data
 
 # log
@@ -75,48 +72,48 @@ case "$@" in
 esac
 
 
-reference=$(echo "$*" | sed -E 's/%.*%|-c|--changelog|-f|--force|-k|--insecure|-n|--non-interactive| //g')
-: ${reference:=master}
+commit=$(echo "$*" | sed -E 's/%.*%|-c|--changelog|-f|--force|-k|--insecure|-n|--non-interactive| //g')
+: ${commit:=master}
 
-tarball=https://github.com/VR-25/$id/archive/${reference}.tar.gz
+tarball=https://github.com/VR-25/$id/archive/${commit}.tar.gz
 
 installedVersion=$(get_ver /data/adb/$domain/$id/module.prop 2>/dev/null || :)
 
-onlineVersion=$(curl -L $insecure https://raw.githubusercontent.com/VR-25/$id/${reference}/module.prop | get_ver)
+onlineVersion=$(curl -L $insecure https://raw.githubusercontent.com/VR-25/$id/${commit}/module.prop | get_ver)
 
 
 [ -f $PWD/${0##*/} ] || cd ${0%/*}
-rm -rf "./${id}-${reference}/" 2>/dev/null || :
+rm -rf "./${id}-${commit}/" 2>/dev/null || :
 
 
 if [ ${installedVersion:-0} -lt ${onlineVersion:-0} ] \
-  || [[ "$*" = *-f* ]] || [[ "$*" = *--force* ]]
+  || case "$*" in *-f*|*--force*) true;; *) false;; esac
 then
 
   ! echo "$@" | grep -Eq '\-\-changelog|\-c' || {
     if echo "$@" | grep -Eq '\-\-non-interactive|\-n'; then
       echo $onlineVersion
-      echo "https://github.com/VR-25/$id/blob/${reference}/README.md#latest-changes"
+      echo "https://github.com/VR-25/$id/blob/${commit}/README.md#latest-changes"
       exit 5 # no update available
     else
       echo
       print_available $id $onlineVersion 2>/dev/null \
         || echo "(i) $id $onlineVersion is available"
-      echo "- https://github.com/VR-25/$id/blob/${reference}/README.md#latest-changes"
+      echo "- https://github.com/VR-25/$id/blob/${commit}/README.md#latest-changes"
       print_install_prompt 2>/dev/null \
         || echo -n "- Should I download and install it ([enter]: yes, CTRL-C: no)? "
-      read
+      read REPLY
     fi
   }
 
   # download and install tarball
-  : ${installDir:=$(echo "$@" | sed -E "s/-c|--changelog|-f|--force|-k|--insecure|-n|--non-interactive|%|$reference| //g")}
+  : ${installDir:=$(echo "$@" | sed -E "s/-c|--changelog|-f|--force|-k|--insecure|-n|--non-interactive|%|$commit| //g")}
   export installDir
   set +eu
   trap - EXIT
   echo
   curl -L $insecure $tarball | tar -xz \
-    && ash ${id}-${reference}/install.sh
+    && ash ${id}-${commit}/install.sh
 
 else
   echo
@@ -126,5 +123,5 @@ fi
 
 
 set -eu
-rm -rf "./${id}-${reference}/" 2>/dev/null
+rm -rf "./${id}-${commit}/" 2>/dev/null
 exit 0

@@ -11,9 +11,9 @@
 
 select_() {
 
-  local item=""
-  local list=""
-  local n=""
+  local item
+  local list
+  local n
   local _var_="$1"
 
   shift

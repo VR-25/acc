@@ -1,6 +1,12 @@
 apply_on_boot() {
 
-  local entry="" file="" value="" default="" arg=${1:-value} exitCmd=false force=false
+  local entry
+  local file
+  local value
+  local default
+  local arg=${1:-value}
+  local exitCmd=false
+  local force=false
 
   [ ${2:-x} != force ] || force=true
 
@@ -12,7 +18,9 @@ apply_on_boot() {
     file=${1-}
     value=${2-}
     { $exitCmd && ! $force; } && default=${2-} || default=${3:-${2-}}
-    [ -f "$file" ] && chmod 0644 $file && run_xtimes "echo \$$arg > $file" || :
+    if [ -f "$file" ] && chmod 0644 $file; then
+      run_xtimes "echo \$$arg > $file" &
+    fi || :
   done
 
   $exitCmd && [ $arg = value ] && exit 0 || :
@@ -20,7 +28,11 @@ apply_on_boot() {
 
 
 apply_on_plug() {
-  local entry="" file="" value="" default="" arg=${1:-value}
+  local entry
+  local file
+  local value
+  local default
+  local arg=${1:-value}
   for entry in "${applyOnPlug[@]-}" \
     "${maxChargingCurrent[@]:-$([ .$arg != .default ] || cat $TMPDIR/ch-curr-ctrl-files 2>/dev/null)}" \
     "${maxChargingVoltage[@]-}"
@@ -29,7 +41,9 @@ apply_on_plug() {
     file=${1-}
     value=${2-}
     default=${3:-${2-}}
-    [ -f "$file" ] && chmod 0644 $file && run_xtimes "echo \$$arg > $file" || :
+    if [ -f "$file" ] && chmod 0644 $file; then
+      run_xtimes "echo \$$arg > $file" &
+    fi || :
   done
 }
 
@@ -41,7 +55,8 @@ cmd_batt() {
 
 cycle_switches() {
 
-  local on="" off=""
+  local on
+  local off
 
   while read -A chargingSwitch; do
 
@@ -89,8 +104,7 @@ cycle_switches_off() {
 
 disable_charging() {
 
-  if ! switch_mA "${chargingSwitch[0]:-/}"
-  then
+  if ! switch_mA "${chargingSwitch[0]:-/}"; then
 
     local autoMode=true
     ! tt "${chargingSwitch[*]-}" "*--" || autoMode=false
@@ -129,9 +143,14 @@ disable_charging() {
     fi
 
   else
-    maxChargingCurrent0=${maxChargingCurrent[0]-}
     set +e
-    set_ch_curr ${chargingSwitch[0]:-0}
+    if [ ${chargingSwitch[0]:-0} -lt 3700 ]; then
+      maxChargingCurrent0=${maxChargingCurrent[0]-}
+      set_ch_curr ${chargingSwitch[0]:-0}
+    else
+      maxChargingVoltage0=${maxChargingVoltage[0]-}
+      set_ch_volt ${chargingSwitch[0]:-0}
+    fi
     set -e
     chargingDisabled=true
   fi
@@ -153,7 +172,7 @@ disable_charging() {
         print_charging_disabled_for $1
         echo
         case $1 in
-          *h) sleep $(( ${1%h} * 3600 ));;
+          *h) sleep $(( ${1%h} * 3700 ));;
           *m) sleep $(( ${1%m} * 60 ));;
           *s) sleep ${1%s};;
         esac
@@ -174,8 +193,7 @@ dumpsys() { /system/bin/dumpsys "$@" || :; }
 
 enable_charging() {
 
-  if ! switch_mA "${chargingSwitch[0]:-/}"
-  then
+  if ! switch_mA "${chargingSwitch[0]:-/}"; then
 
     ! $isAccd || not_charging || return 0
 
@@ -204,7 +222,11 @@ enable_charging() {
 
   else
     set +e
-    set_ch_curr ${maxChargingCurrent0:--}
+    if [ ${chargingSwitch[0]:-0} -lt 3700 ]; then
+      set_ch_curr ${maxChargingCurrent0:--}
+    else
+      set_ch_volt ${maxChargingVoltage0:--}
+    fi
     set -e
     chargingDisabled=false
   fi
@@ -224,7 +246,7 @@ enable_charging() {
         print_charging_enabled_for $1
         echo
         case $1 in
-          *h) sleep $(( ${1%h} * 3600 ));;
+          *h) sleep $(( ${1%h} * 3700 ));;
           *m) sleep $(( ${1%m} * 60 ));;
           *s) sleep ${1%s};;
         esac
@@ -250,7 +272,7 @@ invalid_switch() {
 misc_stuff() {
   set -eu
   mkdir -p ${config%/*} 2>/dev/null || :
-  [ -f $config ] || cp $execDir/default-config.txt $config
+  [ -f $config ] || cat $execDir/default-config.txt > $config
 
   # custom config path
   case "${1-}" in
@@ -260,11 +282,6 @@ misc_stuff() {
     ;;
   esac
   unset -f misc_stuff
-}
-
-
-not_charging() {
-  grep -Eiq "${1-dis|not}" $batt/status
 }
 
 
@@ -284,7 +301,7 @@ print_wait_plug() {
 run_xtimes() {
   local count=0
   for count in $(seq ${ctrlFileWrites[0]}); do
-    eval "$@"
+    eval "$@" || break
     sleep ${ctrlFileWrites[1]}
   done
 }
@@ -375,7 +392,6 @@ wait_plug() {
 
 id=acc
 domain=vr25
-umask 0077
 switchDelay=2
 loopDelay=(10 10)
 execDir=/data/adb/$domain/acc
@@ -392,32 +408,13 @@ trap exxit EXIT
 
 . $execDir/setup-busybox.sh
 . $execDir/set-ch-curr.sh
+. $execDir/set-ch-volt.sh
 
 device=$(getprop ro.product.device | grep .. || getprop ro.build.product)
 
 cd /sys/class/power_supply/
 
-# find battery uevent
-for batt in */uevent; do
-  chmod 0644 $batt \
-   && grep -q '^POWER_SUPPLY_CAPACITY=' $batt \
-   && grep -q '^POWER_SUPPLY_STATUS=' $batt \
-   && batt=${batt%/*} \
-   && break
-done 2>/dev/null || :
-
-# set temperature reporter
-temp=$batt/temp
-[ -f $temp ] || {
-  temp=$batt/batt_temp
-  [ -f $temp ] || {
-    temp=bms/temp
-    [ -f $temp ] || {
-      echo 250 > $TMPDIR/.dummy-temp
-      temp=$TMPDIR/.dummy-temp
-    }
-  }
-}
+. $execDir/batt-interface.sh
 
 # cmd and dumpsys wrappers for Termux and recovery
 ! tt "$(readlink -f $execDir)" "*com.termux*" || {
@@ -431,3 +428,9 @@ pgrep -f zygote > /dev/null || {
 
 # set switchDelay for mtk devices
 ! grep -q mtk_battery_cmd $TMPDIR/ch-switches || switchDelay=5
+
+# load plugins
+for f in /data/adb/vr25/acc-data/pluggins/*.sh; do
+  [ ! -f "$f" ] || . "$f"
+done
+unset f

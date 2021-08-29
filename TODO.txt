@@ -1,13 +1,23 @@
-As whole idea is to enhance battery life and one of the most important is to prevent complete discharges, reasonable is to have some feedback when device is idle.
-In more specific it would have user set up value of battery left capacity making play sound (also chosen by user) when battery capacity drop below the value. Ideally would have few such thresholds (and sounds).
+Shutdown warning notifications
+  disabled by default
+  multiple thresholds and sound chosen by user
   printf '\7'
   echo 200 > /sys/class/timed_output/vibrator/enable
   su -lp 2000 -c "cmd notification post -S bigtext -t 'Title' 'Tag' 'Multiline text'"
 
-  preliminary work done
+
+add flag to disable charging status check
+
+ability to mask the battery capacity, so that stop threshold becomes 100%.
 
 
-add acc --info to the wizard
+config.txt sometimes becomes empty and breaks ACC?
 
-implement voltage control based charging switches
-  dynamically override set-ch-curr.sh
+some devices are rebooting for an unknown reason
+
+acca --daemon option seems unreliable, even though -D works just fine
+
+
+open html doc on/from terminal
+
+make [most] code POSIX compliant

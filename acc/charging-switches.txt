@@ -4,7 +4,7 @@
 #
 # "::" = " ", applies to MTK only
 # PWD=/sys/class/power_supply
-# Last updated: Fri, Aug 6, 2021
+# Last updated: Tue, Aug 10, 2021
 
 smb?/input_suspend
 battery/charger_control 1 0
@@ -24,22 +24,21 @@ dc/charging_enabled 1 0
 *charger/charge_enabled 1 0
 chargalg/disable_charging 0 1
 mt-battery/disable_charger 0 1
-#parallel/charging_enabled 1 0
-#parallel/input_suspend 0 1
 dollar_cove_charger/enable_charging 1 0
 dollar_cove_charger/enable_charger 1 0
 battery*/charging_enabled 1 0
 battery/battery_charging_enabled 1 0
 battery/batt_slate_mode 0 1
 battery/store_mode 0 1
-#usb-parallel/charging_enabled 1 0
 *wireless/charging_enabled 1 0
 *-charger/charging_enabled 1 0
 dc/input_suspend 0 1
 battery/op_disable_charge 0 1
-battery/op_disable_charge 0 1 battery/input_suspend 0 0
 wireless/op_disable_charge 0 1
 battery/device/smartchg_stop_charging 0 1
+battery/input_suspend 0 1
+bq*standalone/charging_enabled 1 0
+battery/mmi_charging_enable 1 0
 
 /sys/devices/platform/soc/soc:google,charger/charge_disable 0 1
 /proc/smb*_disable_chrg 0 1
@@ -58,69 +57,18 @@ battery/device/smartchg_stop_charging 0 1
 /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0
 /proc/driver/charger_limit_enable 0 1 /proc/driver/charger_limit 100 1
 /sys/module/lge_battery/parameters/charge_stop_level 100 1 battery/input_suspend 0 0
-#/sys/devices/platform/*.i2c/i2c-?/?-*/*-battery/power_supply/battery/charging_enabled 1 0
-
-battery/input_suspend 0 1
-
-# Razer
-# acc/oem_custom.sh handles /sys/devices/platform/soc/*/*/*/razer_charge_limit_dropdown 65 30 and usb/razer_charge_limit_dropdown 65 30
-usb/razer_charge_limit_max 70 35 usb/razer_charge_limit_enable 0 1
-/sys/devices/platform/soc/*/*/*/razer_charge_limit_max 70 35 /sys/devices/platform/soc/*/*/*/razer_charge_limit_enable 0 1
+/sys/class/qcom-battery/input_suspend 0 1
+/sys/devices/platform/soc/soc:oplus,chg_intf/oplus_chg/battery/mmi_charging_enable 1 0
 
 # EXPERIMENTAL
-battery/charge_charger_state 0 1
-/sys/kernel/debug/google_charger/chg_mode 1 0
-main/adapter_cc_mode 0 1
-#usb/smb_en_mode 0 1
-#usb/qc_opti_disable 0 1
-#/sys/devices/platform/soc/c440000.qcom,spmi/spmi-0/spmi0-00/c440000.qcom,spmi:qcom,pm6150@0:qpnp,qg/power_supply/bms/debug_battery 0
-#/sys/devices/platform/soc/a84000.i2c/i2c-1/1-0049/charger_mode { 00000000 }
-#battery/charger_temp_max 803 0
-#battery/is_in_call 0 1
-#/sys/devices/platform/battery_meter/FG_suspend_current_threshold 100 1
-#/sys/devices/platform/battery_meter/FG_daemon_disable 0 1
-#bms/temp_cold 0 500
-#bms/temp_hot 500 0
-#battery/system_temp_level 0 9
-#battery/charge_done 0 1
-#dc/power/control auto disabled (or off)
-#bms/power/control auto disabled (or off)
-#battery/power/control auto disabled (or off)
-#usb/present 1 0
-#dc-wireless/charge_done 1 0
-#/sys/devices/soc/soc:lge,charging_controller/lge_power/lge_cc/charge_done 0 1
-#/sys/devices/soc/soc:lge,cable_detect/lge_power/lge_cable_detect/charge_done 0 1
-#battery/wc_enable 1 0
-#/sys/devices/platform/lge-unified-nodes/charger_incompatible 0 1
-#battery/TempBattVoltage 558 0
-battery/charge_control_limit 0 1 battery/charge_control_limit_max 100 1
-battery/charge_control_limit 0 1 /sys/devices/platform/soc/soc:google,charger/charge_stop_level 100 1
-#main/toggle_stat 0 1
-#usb/moisture_detected 0 1
-battery/mmi_charging_enable 1 0
-#battery/ship_mode 0 1
-#battery/input_current_settled 0 1
-#battery/TemperatureR 4906 0
+/sys/devices/platform/battery_meter/FG_suspend_current_threshold 100 5
 
 # troublesome
 #/sys/power/pnpmgr/battery/charging_enabled 1 0
-#/sys/class/qcom-battery/restrict*_cur* 1000000 0 /sys/class/qcom-battery/restrict*_ch*g* 0 1
-#/sys/devices/i2c*/*/battery_smbus 1 0
-#battery/connect_disable 0 1
-#usb/online 1 0
 #/proc/mtk_battery_cmd/current_cmd 0::0 0::1
+#/sys/devices/platform/battery_meter/FG_daemon_disable 0 1
 battery/ChargerEnable 1 0
 /sys/devices/platform/battery/ChargerEnable 1 0
 
-# untested
-battery/batt_ce_full 0 1
-#usb/pd_active 1 0
-battery/pd_disable 0 1
-#/sys/devices/platform/soc/soc:google,charger/charge_start_level 0 1
-#/sys/devices/platform/tegra-i2c.*/i2c-*/*/battery_smbus 1 0
-pack_bat/charge_full 0 1
-/sys/class/qcom-battery/input_suspend 0 1
-bq*standalone/charging_enabled 1 0
-/sys/devices/platform/battery_meter/FG_suspend_current_threshold 100 5
-#/proc/nvt_charger_switch charger_switch:::1 charger_switch:::0
-battery/load_model 1 0
+# deprecated
+battery/op_disable_charge 0 1 battery/input_suspend 0 0

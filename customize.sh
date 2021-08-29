@@ -13,7 +13,6 @@ SKIPUNZIP=1
 echo
 id=acc
 domain=vr25
-umask 0077
 data_dir=/data/adb/$domain/${id}-data
 
 
@@ -71,7 +70,10 @@ esac
 get_prop() { sed -n "s|^$1=||p" ${2:-$srcDir/module.prop}; }
 
 set_perms() {
-  local owner=${2:-0} perms=0600 target=$(readlink -f $1)
+  local owner=${2:-0}
+  local perms=0600
+  local target
+  target=$(readlink -f $1)
   if echo $target | grep -q '.*\.sh$' || [ -d $target ]; then perms=0700; fi
   chmod $perms $target
   chown $owner:$owner $target
@@ -79,7 +81,8 @@ set_perms() {
 }
 
 set_perms_recursive() {
-  local owner=${2-0} target=""
+  local owner=${2-0}
+  local target
   find $1 2>/dev/null | while read target; do set_perms $target $owner; done
 }
 
@@ -87,9 +90,7 @@ set -eu
 
 
 # set source code directory
-[ -f $PWD/${0##*/} ] && srcDir=$PWD || srcDir=${0%/*}
-srcDir=${srcDir/#"${0##*/}"/"."}
-
+srcDir="$(cd "${0%/*}" 2>/dev/null || :; echo "$PWD")"
 
 # extract flashable zip if source code is unavailable
 [ -f $srcDir/module.prop ] || {
@@ -110,14 +111,27 @@ accaFiles=/data/data/mattecarra.accapp/files ###
 config=$data_dir/config.txt
 
 
+# install in front-end's internal path by default
+if [ "$installDir" != "$accaFiles" ]; then
+  case "$installDir" in
+    /data/data/*|/data/user/*)
+      accaFiles="$installDir"
+    ;;
+  esac
+fi
+
+
 [ -d $magiskModDir ] && magisk=true || magisk=false
 ls -d ${accaFiles%/*}* > /dev/null 2>&1 && acca=true || acca=false ###
 
 
 # ensure AccA's files/ exists - to prevent unwanted downgrades ###
 if $acca && [ ! -d $accaFiles ]; then
-  mkdir -p $accaFiles
-  chmod 0777 ${accaFiles%/*} $accaFiles
+  if mkdir $accaFiles 2>/dev/null; then
+    chown $(stat -c %u:%g ${accaFiles%/*}) $accaFiles
+    chmod $(stat -c %a ${accaFiles%/*}) $accaFiles
+    /system/bin/restorecon $accaFiles
+  fi
 fi
 
 
@@ -199,30 +213,29 @@ cp -f $srcDir/bin/${id}-uninstaller.zip $data_dir/
 
 
 # Termux, fix shebang
-[[ $installDir != *com.termux* ]] && termux=false || {
-  termux=true
-  for f in $installDir/*.sh; do
-    ! grep -q '^#\!/.*/sh' $f \
-      || sed -i 's|^#!/.*/sh|#!/data/data/com.termux/files/usr/bin/bash|' $f
-  done
-}
+termux=false
+case "$installDir" in
+  */com.termux*)
+    termux=true
+    for f in $installDir/*.sh; do
+      ! grep -q '^#\!/.*/sh' $f \
+        || sed -i 's|^#!/.*/sh|#!/data/data/com.termux/files/usr/bin/bash|' $f
+    done
+  ;;
+esac
 
 
 # set perms
 case $installDir in
-  /data/*/files/*$id)
-    pkg=${installDir%/files/*$id}
-    pkg=${pkg##/data*/}
-    owner=$(grep $pkg /data/system/packages.list | cut -d ' ' -f 2)
-    set_perms_recursive $installDir $owner
+  /data/data/*|/data/user/*)
+    set_perms_recursive $installDir $(stat -c %u ${installDir%/$id})
 
     # Termux:Boot
     ! $termux || {
       mkdir -p ${installDir%/*}/.termux/boot
       ln -sf $installDir/service.sh ${installDir%/*}/.termux/boot/${id}-init.sh
       chown -R $(stat -c %u:%g /data/data/com.termux) ${installDir%/*}/.termux
-      chmod -R 0755 ${installDir%/*}/.termux
-      /system/bin/restorecon -R ${installDir%/*}/.termux > /dev/null 2>&1
+      /system/bin/restorecon -R ${installDir%/*}/.termux > /dev/null 2>&1 || :
     }
   ;;
   *)
@@ -253,7 +266,9 @@ echo "
 
 
 case $installDir in
-  /data/adb/*) echo "
+  /data/adb/modules*)
+  ;;
+  *) echo "
 (i) Non-Magisk users can enable $id auto-start by running /data/adb/$domain/$id/service.sh, a copy of, or a link to it - with init.d or an app that emulates it."
   ;;
 esac

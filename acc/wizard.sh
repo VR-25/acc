@@ -21,7 +21,8 @@ a) $(print_reset_bs)
 b) $(print_test_cs)
 c) $(print_update)
 d) $(print_flash_zips)
-e) $(print_exit)
+e) $(print_i)
+f) $(print_exit)
 
 #? "
   read -n 1 choice
@@ -32,7 +33,7 @@ e) $(print_exit)
 
     1)
       . $execDir/set-prop.sh; set_prop --lang
-      exec /dev/.vr25/acc/acc
+      exec $TMPDIR/acc
     ;;
 
     2)
@@ -47,7 +48,7 @@ e) $(print_exit)
     ;;
 
     4)
-      /dev/.vr25/acc/accd
+      $TMPDIR/accd
       sleep 1
       exec wizard
     ;;
@@ -76,7 +77,7 @@ e) $(print_exit)
       echo -n "%? "
       read level
       clear
-      /dev/.vr25/acc/acc --full ${level-}
+      $TMPDIR/acc --full ${level-}
       exit $?
     ;;
 
@@ -100,17 +101,17 @@ e) $(print_exit)
     ;;
 
     b)
-      /dev/.vr25/acc/acc --test || :
+      $TMPDIR/acc --test || :
       print_press_key
       read -n 1
       exec wizard
     ;;
 
     c)
-      /dev/.vr25/acc/acc --upgrade --changelog || :
+      $TMPDIR/acc --upgrade --changelog || :
       print_press_key
       read -n 1
-      exec /dev/.vr25/acc/acc
+      exec $TMPDIR/acc
     ;;
 
     d)
@@ -122,10 +123,14 @@ e) $(print_exit)
       echo
       print_press_key
       read -n 1
-      exec /dev/.vr25/acc/acc
+      exec $TMPDIR/acc
     ;;
 
     e)
+      _batt_info
+    ;;
+
+    f)
       exit 0
     ;;
 

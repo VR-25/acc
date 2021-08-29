@@ -42,7 +42,9 @@ mkdir -p $TMPDIR
 (flock -n 0 || {
   read pid
   kill $pid
-  timeout 20 flock 0 || kill -KILL $pid
+  #timeout 20 flock 0 || kill -KILL $pid
+  echo "(i) If this seems to take too long, plug the charger"
+  flock 0
 }) <>$TMPDIR/${id}.lock
 ###
 pgrep -f "/($id|${id}a) (-|--)[det]|/${id}d" > /dev/null && { #legacy

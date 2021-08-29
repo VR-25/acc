@@ -93,16 +93,19 @@ Usage
 
   accd,   Print acc/daemon status (running or not)
 
-  acc [pause_capacity [resume_capacity, default: pause_capacity - 5]]
+  acc [pause_capacity/millivolts [resume_capacity/millivolts, default: pause_capacity/millivolts - 5%/50mV]]
     e.g.,
       acc 75 70
-      acc 80 (resume_capacity defaults to 80 - 5)
+      acc 80 (resume_capacity defaults to 80% - 5)
+      acc 3920 (same as acc 3920 3870, great idle mode alternative)
 
   acc [options] [args]   Refer to the list of options below
 
   acca [options] [args]   acc optimized for front-ends
 
-  A custom config path can be specified as first parameter.
+  acc[d] -x [options] [args]   Sets log=/sdcard/acc[d]-\${device}.log; useful for debugging unwanted reboots
+
+  A custom config path can be specified as first parameter (second if -x is used).
   If the file doesn't exist, the current config is cloned.
     e.g.,
       acc /data/acc-night-config.txt --set pause_capacity=45 resume_capacity=43
@@ -149,7 +152,7 @@ Options
       acc -F "file1" "file2" "fileN" ... (install multiple zips)
       acc -F "/data/media/0/Download/Magisk-v20.0(20000).zip"
 
-  -i|--info [case insentive egrep regex (default: ".")]   Show battery info
+  -i|--info [case insensitive egrep regex (default: ".")]   Show battery info
     e.g.,
       acc -i
       acc -i volt
@@ -292,7 +295,7 @@ Exit Codes
   8. Daemon already running ("--daemon start")
   9. Daemon not running ("--daemon" and "--daemon stop")
   10. "--test" failed
-  11. Current (mA) out of range
+  11. Current (mA) out of 0-9999 range
   12. Initialization failed
   13. Failed to lock /dev/.vr25/acc/acc.lock
   14. ACC wont initialize because the Magisk module disable flag is set
@@ -468,4 +471,8 @@ print_wait() {
 
 print_as_warning() {
   echo "WARNING: I'll shutdown the system at ${1}% battery if you don't plug the charger!"
+}
+
+print_i() {
+  echo "Battery info"
 }

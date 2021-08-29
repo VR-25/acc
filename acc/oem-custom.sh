@@ -8,28 +8,15 @@ set_prop_() { sed -i "\|^${1}=|s|=.*|=$2|" ${3:-$config}; }
 # patch/reset [broken/obsolete] config
 configVer=0$(get_prop configVerCode)
 defaultConfVer=0$(cat $TMPDIR/.config-ver)
-if (set +x; . $config) > /dev/null 2>&1; then
-  [ $configVer -eq $defaultConfVer ] || {
-    if [ $configVer -lt 202009230 ]; then
-      cp -f $execDir/default-config.txt $config
-    else
-      if [ $configVer -lt 202010220 ]; then
-        ! grep_ cooldownCurrent=0 || /dev/.vr25/acc/acca --set cooldown_current=
-      fi
-      if [ $configVer -lt 202012070 ]; then
-        if grep_ '^maxChargingCurrent=.*/'; then
-          /dev/.vr25/acc/acca --set max_charging_current=
-          rm $TMPDIR/.ch-curr-read $TMPDIR/ch-curr-ctrl-files 2>/dev/null || :
-          exec /dev/.vr25/acc/accd $config
-        fi
-      else
-        /dev/.vr25/acc/acca --set dummy=
-      fi
-    fi
-  }
-else
-  cp -f $execDir/default-config.txt $config
-fi 2>/dev/null
+broken=false
+(set +x; . $config) > /dev/null 2>&1 || broken=true
+if $broken || [ $configVer -ne $defaultConfVer ]; then
+  if ! $broken && [ $configVer -eq 202012070 ]; then
+    $TMPDIR/acca --set dummy=
+  else
+    cat $execDir/default-config.txt > $config
+  fi
+fi
 
 
 # battery idle mode for OnePlus devices
@@ -58,35 +45,20 @@ else
 fi
 
 
-# Razer Phones
-# default value: 65
-set +e
-{
-  chmod 0644 usb/razer_charge_limit_dropdown \
-    /sys/devices/platform/soc/*/*/*/razer_charge_limit_dropdown
-  echo 1 > /sys/devices/platform/soc/*/*/*/razer_charge_limit_dropdown
-  echo 1 > usb/razer_charge_limit_dropdown
-} 2>/dev/null
-set -e
-
-
 # block "ghost charging on steroids" (Xiaomi Redmi 3 - ido)
 [ ! -f $TMPDIR/accd-ido.log ] || touch $TMPDIR/.ghost-charging
 
 
-# MediaTek mt6795, exclude ChargerEnable switch (troublesome)
+# mt6795, exclude ChargerEnable switches (troublesome)
 ! getprop | grep -E mt6795 > /dev/null || {
   ! grep_ ChargerEnable $execDir/charging-switches.txt || {
     sed -i /ChargerEnable/d $TMPDIR/ch-switches
     sed -i /ChargerEnable/d $execDir/charging-switches.txt
   }
-}
-
-
-# Pixel [1-3]*, exclude charge_control_limit switches (troublesome)
-! getprop |  grep -E '\[Pixel(\]| [1-3])' > /dev/null || {
-  ! grep_ charge_control_limit $execDir/charging-switches.txt || {
-    sed -i /charge_control_limit/d $TMPDIR/ch-switches
-    sed -i /charge_control_limit/d $execDir/charging-switches.txt
-  }
 })
+
+# set batt_slate_mode as default charging control file for Exynos devices
+# this prevents the "battery level stuck at 70%" issue
+if grep_ '^battery/batt_slate_mode 0 1' $TMPDIR/ch-switches; then
+  [ -n "$(get_prop chargingSwitch)" ] || set_prop_ chargingSwitch "(battery/batt_slate_mode 0 1)"
+fi

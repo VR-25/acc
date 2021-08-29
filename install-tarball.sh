@@ -1,11 +1,15 @@
 #!/system/bin/sh
-# ${1:-$id}[-_]*.tar.gz Installer
-# Copyright 2019-2020, VR25 (xda-developers.com)
+# ${1:-$id} Tarball Installer
+# Copyright 2019-2021, VR25
 # License: GPLv3+
+#
+# this file must be in the same directory as the tarball
+# $1: module id
+# $2: parent install dir, optional
+# example: sh install-tarball.sh acc /data/data/github.vr25.acc/files
 
 id=acc
 domain=vr25
-umask 0077
 data_dir=/data/adb/$domain/${1:-$id}-data
 
 # log
@@ -44,7 +48,6 @@ esac
   exit 4
 }
 
-umask 0000
 set -e
 
 # get into the target directory
@@ -53,28 +56,26 @@ set -e
 # this runs on exit if the installer is launched by a front-end app
 copy_log() {
   rm -rf ${1-$id}[-_]*/ 2>/dev/null
-  [[ $PWD != /data/data/* ]] || {
-    umask 077
-    mkdir -p logs
-
-    cp -af $data_dir/logs/install.log logs/${1:-$id}-install.log 2>/dev/null || return 0
-
-    pkg=$(cd ..; pwd)
-    pkg=${pkg##/data*/}
-
-    owner=$(grep $pkg /data/system/packages.list | cut -d ' ' -f 2)
-    chown -R $owner:$owner logs
-  }
+  case "$PWD" in
+    /data/data/*|/data/user/*)
+      mkdir -p logs
+      cp -af $data_dir/logs/install.log logs/${1:-$id}-install.log 2>/dev/null || return 0
+      chown -R $(stat -c %u:%g .) logs
+      /system/bin/restorecon -R logs
+    ;;
+  esac
 }
 trap copy_log EXIT
 
 # extract tarball
 rm -rf ${1:-$id}[-_]*/ 2>/dev/null
-tar -xf ${1:-$id}[-_]*.tar.gz
+test -f ${1:-$id}[-_]*.tar.gz && ext=tar.gz || ext=tgz
+tar -xf ${1:-$id}[-_]*.$ext
+unset ext
 
-# prevent AccA from downgrading/reinstalling modules ###
+# prevent frontends from downgrading/reinstalling modules
 case "$PWD" in
-  *mattecarra.accapp*)
+  /data/data/*|/data/user/*)
     get_ver() { sed -n '/^versionCode=/s/.*=//p' ${1}module.prop 2>/dev/null || echo 0; }
     bundled_ver=$(get_ver ${1:-$id}[-_]*/)
     regular_ver=$(get_ver /data/adb/$domain/${1:-$id}/)
@@ -86,8 +87,7 @@ case "$PWD" in
 esac
 
 # install ${1:-$id}
-test -f ${1:-$id}[-_]*/install.sh || i=-current #legacy
 export installDir="$2"
-/system/bin/sh ${1:-$id}[-_]*/install${i}.sh
+/system/bin/sh ${1:-$id}[-_]*/install.sh
 
 exit 0

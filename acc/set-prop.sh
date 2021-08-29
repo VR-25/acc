@@ -6,7 +6,6 @@ set_prop() {
 
     # set multiple properties
     *=*)
-
       . $defaultConfig
       . $config
 
@@ -16,7 +15,6 @@ set_prop() {
         || set_ch_curr ${mcc:-${max_charging_current:--}} || :
 
       [ .${mcv-${max_charging_voltage-x}} = .x ] || {
-        . $execDir/set-ch-volt.sh
         set_ch_volt ${mcv:-${max_charging_voltage:--}} || :
       }
     ;;
@@ -49,9 +47,14 @@ set_prop() {
       PS3="$(print_choice_prompt)"
       print_known_switches
       . $execDir/select.sh
-      select_ charging_switch $(print_auto; cat $TMPDIR/ch-switches; ! grep -q / $TMPDIR/ch-curr-ctrl-files || printf '0\n250\n350\n500\n'; print_exit)
+      select_ charging_switch $(print_auto; cat $TMPDIR/ch-switches; ! grep -q / $TMPDIR/ch-curr-ctrl-files 2>/dev/null || printf '0\n250\n350\n500\n'; ! grep -q / $TMPDIR/ch-volt-ctrl-files 2>/dev/null || printf '3700\n'; print_exit)
       [ ${charging_switch:-x} != $(print_exit) ] || exit 0
       [ ${charging_switch:-x} != $(print_auto) ] || charging_switch=
+      case "${charging_switch:-x}" in
+        "$(print_exit)") exit 0;;
+        "$(print_auto)") charging_switch=;;
+        */*) charging_switch="$charging_switch --";;
+      esac
       unset IFS
     ;;
 
@@ -70,7 +73,6 @@ set_prop() {
     # set charging voltage
     v|--voltage)
       shift
-      . $execDir/set-ch-volt.sh
       set_ch_volt "$@"
     ;;
 
@@ -99,9 +101,8 @@ set_prop() {
 
   esac
 
-  # reset charging switches before replacing them
-  if { [ ".${s-${charging_switch-x}}" != .x ] \
-    && ! switch_mA "${s:-${charging_switch:-/}}${chargingSwitch[0]:-/}"; } \
+  # check whether a daemon restart is required (to restore defaults)
+  if { [ ".${chargingSwitch[0]-x}" != .x ] && [ ".${s-${charging_switch-x}}" != .x ]; } \
     || [ ".${cft-${capacity_freeze2-x}}" != .x ]
   then
     ! daemon_ctrl stop || restartDaemon=true

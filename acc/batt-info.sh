@@ -1,6 +1,10 @@
 batt_info() {
 
-  local info="" voltNow="" currNow="" powerNow="" factor=""
+  local info
+  local voltNow
+  local currNow
+  local powerNow
+  local factor
   set +eu
 
 
@@ -10,24 +14,38 @@ batt_info() {
 
   # (determine conversion factor)
   dtr_conv_factor() {
-    factor=${2-0}
-    [ -n "${2-}" ] || {
-      [ $1 -lt 10000 -a $1 -ne 0 ] \
-        && factor=1000 \
-        || factor=1000000
-    }
+    factor=${2-}
+    if [ -z "$factor" ]; then
+      case $1 in
+        0) factor=1;;
+        *) [ $1 -lt 10000 ] && factor=1000 || factor=1000000;;
+      esac
+    fi
   }
 
 
-  # raw battery info from $batt/uevent
+  # raw battery info from the kernel's battery interface
   info="$(
     set +e
-    sort -u $batt/uevent bms/uevent 2>/dev/null | \
-    sed -e '/^POWER_SUPPLY_NAME=/d' \
-      -e 's/^POWER_SUPPLY_//' \
-      -e 's/^BATT_VOL=/VOLTAGE_NOW=/' \
-      -e 's/^BATT_TEMP=/TEMP=/' $batt/uevent
+    cat $batt/uevent *bms*/uevent 2>/dev/null \
+      | sort -u \
+      | sed -e '/^POWER_SUPPLY_NAME=/d' \
+        -e 's/^POWER_SUPPLY_//' \
+        -e 's/^BATT_VOL=/VOLTAGE_NOW=/' \
+        -e 's/^BATT_TEMP=/TEMP=/'
   )"
+
+
+  # determine the correct charging status
+  case "$info" in
+    *STATUS=[Cc]harging*)
+      if not_charging dis; then
+        info="${info/STATUS=?harging/STATUS=Discharging}"
+      elif not_charging not; then
+        info="${info/STATUS=?harging/STATUS=Not charging}"
+      fi
+    ;;
+  esac
 
 
   # because MediaTek is weird
@@ -42,12 +60,20 @@ batt_info() {
   dtr_conv_factor ${currNow#-} ${ampFactor-}
   currNow=$(calc ${currNow:-0} / $factor)
 
+
   # add/remove negative sign
-  if grep -Eiq 'dis|not' $batt/status; then
-    currNow=-${currNow#-}
-  else
-    currNow=${currNow#-}
-  fi
+  case $currNow in
+    *.*)
+      if not_charging dis; then
+        currNow=-${currNow#-}
+      elif ! not_charging; then
+        currNow=${currNow#-}
+      fi
+    ;;
+    *)
+      currNow=0
+    ;;
+  esac
 
   # parse VOLTAGE_NOW & convert to Volts
   voltNow=$(echo "$info" | sed -n "s/^VOLTAGE_NOW=//p")

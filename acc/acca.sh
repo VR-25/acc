@@ -7,7 +7,7 @@
 daemon_ctrl() {
   case "${1-}" in
     start|restart)
-      exec /dev/.vr25/acc/accd $config
+      exec $TMPDIR/accd $config
     ;;
     stop)
       . $execDir/release-lock.sh
@@ -16,14 +16,6 @@ daemon_ctrl() {
     *)
       flock -n 0 <>$TMPDIR/acc.lock && exit 9 || exit 0
     ;;
-  esac
-}
-
-
-switch_mA() {
-  case "$1" in
-    */*) return 1;;
-    *) return 0;;
   esac
 }
 
@@ -41,7 +33,7 @@ cd /sys/class/power_supply/
 . $execDir/setup-busybox.sh
 
 mkdir -p ${config%/*} 2>/dev/null || :
-[ -f $config ] || cp $defaultConfig $config
+[ -f $config ] || cat $defaultConfig > $config
 
 # custom config path
 case "${1-}" in
@@ -62,13 +54,7 @@ case "$@" in
 
   # print battery uevent data
   -i*|--info*)
-    for batt in */uevent; do
-      chmod 0644 $batt \
-         && grep -q '^POWER_SUPPLY_CAPACITY=' $batt \
-         && grep -q '^POWER_SUPPLY_STATUS=' $batt \
-         && batt=${batt%/*} \
-         && break
-    done 2>/dev/null || :
+    . $execDir/batt-interface.sh
     . $execDir/batt-info.sh
     batt_info "${2-}"
     exit 0
@@ -103,18 +89,7 @@ case "$@" in
       set_ch_volt ${mcv:-${max_charging_voltage:--}} || :
     }
 
-    # reset charging switches before replacing them
-    # if [ ".${s-${charging_switch-x}}" != .x ] \
-    #   && ! switch_mA "${s:-${charging_switch:-/}}${chargingSwitch[0]:-/}"
-    # then
-    #   restartDaemon=false
-    #   ! (daemon_ctrl) || {
-    #   daemon_ctrl stop
-    #   restartDaemon=true
-    # fi
-
     . $execDir/write-config.sh
-    # ! $restartDaemon || /dev/.vr25/acc/accd $config
     exit 0
   ;;
 
@@ -140,4 +115,4 @@ esac
 
 # other acc commands
 set +eu
-exec /dev/.vr25/acc/acc $config "$@"
+exec $TMPDIR/acc $config "$@"

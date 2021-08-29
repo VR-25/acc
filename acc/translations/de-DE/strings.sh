@@ -135,7 +135,7 @@ Optionen:
             acc -F (startet einen Assistenten zum Flashen von Zip-Dateien)
             acc -F "Datei1" "Datei2" "DateiN" ... (mehrere Zips installieren)
             acc -F "/sdcard/Documents/vr25/Magisk-v20.0(20000).zip"
-    -i|--info [case insentive egrep regex (Standard: ".")] Batterie-Info anzeigen
+    -i|--info [schreibungsunabhängig egrep regex (Standard: ".")] Batterie-Info anzeigen
 z.B.,
             acc -i
             acc -i volt
