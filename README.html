@@ -848,29 +848,22 @@ For details, refer back to <a href="#install-from-local-source-or-github">instal
 <h3 id="uninstalling-acc">Uninstalling ACC</h3>
 <p>Either run <code>/dev/.vr25/acc/uninstall</code> (no reboot required; <strong>charger must be plugged</strong>) or uninstall from Magisk manager and reboot.</p>
 <h3 id="initializing-acc">Initializing ACC</h3>
-<p>ACC is automatically initialized after installation/upgrades.
-It needs to be initialized on boot, too.
-If it's installed as a Magisk module, this is done by Magisk itself.
-Otherwise, the front-end should handle it as follows:</p>
-<pre><code><code><div>on boot_completed receiver and main activity
-  if file /dev/.acca/started does NOT exist
-    create it
-      mkdir -p /dev/.acca
-      touch /dev/.acca/started
-    if accd is NOT running
-      launch it
-        /data/adb/vr25/acc/service.sh
-    else
-      do nothing
-  else
-    do nothing
-</div></code></code></pre>
-<p><code>/dev/</code> is volatile - meaning, a reboot/shutdown clears <code>/dev/.acca/</code> and its contents.
-That's exactly what we want.
-Of course, <code>/dev/.acca/started</code> is just an example.
-One can use any random path (e.g., <code>.myapp/initialized</code>), as long as it's under <code>/dev/</code> and does not conflict with preexisting data.
-<strong>WARNING</strong>: do not play with preexisting /dev/ data!
-Doing so may result in data loss and/or other undesired outcome.</p>
+<p>On boot_completed receiver and main activity, run:</p>
+<p><code>[ -f /dev/.vr25/acc/acca ] || /data/adb/vr25/acc/service.sh</code></p>
+<p>Explanation:</p>
+<p>ACC's working environment must be initialized - i.e., by updating the stock charging config (for restoring without a reboot) and pre-processing data for greater efficiency.
+This is done exactly once after boot.
+If it were done only after installation/upgrade, one would have to reinstall/upgrade acc after every kernel update.
+That's because kernel updates often change the default power supply drivers settings.</p>
+<p>Since acc's core executables are dynamic ([expected to] change regularly), those are linked to <code>/dev/.vr25/acc/</code> to preserve the API.
+The links must be recreated once after boot (/dev/ is volatile).</p>
+<p><code>accd</code> is a symbolic link to <code>service.sh</code>.
+If <a href="http://service.sh">service.sh</a> is executed every time the <code>main activity</code> is launched, accd will be repeatedly restarted for no reason.</p>
+<p>Notes</p>
+<ul>
+<li>This &quot;manual&quot; initialization is only <em>strictly</em> required if Magisk is not installed - and only once per boot session. In other words, Magisk already runs <a href="http://service.sh">service.sh</a> shortly after boot.</li>
+<li>ACC's installer always initializes it.</li>
+</ul>
 <h3 id="managing-acc">Managing ACC</h3>
 <p>As already stated, front-ends should use the executable <code>/dev/.vr25/acc/acca</code>.
 Refer to the <a href="#default-configuration">default configuration</a> and <a href="#terminal-commands">terminal commands</a> sections above.</p>
@@ -1181,12 +1174,6 @@ A common workaround is having <code>resume_capacity = pause_capacity - 1</code>.
 </ul>
 <hr>
 <h2 id="latest-changes">LATEST CHANGES</h2>
-<p><strong>v2021.8.2 (202108020)</strong></p>
-<ul>
-<li>Fixed AccA related issues.</li>
-<li>Fixed charging switch list tester (-t /path/to/list).</li>
-<li>Fixed charging switch parser (-p).</li>
-</ul>
 <p><strong>v2021.8.4 (202108040)</strong></p>
 <ul>
 <li>Dynamically add/remove current_now negative sign.</li>
@@ -1247,6 +1234,13 @@ Refer to the release note bellow and documentation for details.</p>
 </li>
 </ul>
 <p>Release note: plug the charger if the install, upgrade, stop or restart processes seem to take too long.</p>
+<p><strong>v2021.8.31 (202108310)</strong></p>
+<ul>
+<li>Additional charging switches</li>
+<li>Fixed &quot;current_now is always 0 mA.&quot;</li>
+<li>Logs are exported as a tarball archive.</li>
+<li>Updated readme &gt; notes/tips for front-end developers &gt; initializing acc</li>
+</ul>
 
     </body>
     </html>

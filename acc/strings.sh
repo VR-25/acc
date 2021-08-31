@@ -167,7 +167,7 @@ Options
 
   -la   Same as -l -a
 
-  -l|--log -e|--export   Export all logs to /data/adb/vr25/acc-data/logs/acc-logs-\$deviceName.tar.bz2
+  -l|--log -e|--export   Export all logs to /data/adb/vr25/acc-data/logs/acc-logs-\$deviceName.tar.gz
     e.g., acc -l -e
 
   -le   Same as -l -e

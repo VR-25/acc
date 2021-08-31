@@ -147,7 +147,7 @@ z.B.,
             acc -l -a cat
             acc -l grep ': ' (zeigt nur explizite Fehler an)
     -la Dasselbe wie -l -a
-    -l|--log -e|--export Alle Protokolle nach /sdcard/Documents/vr25/acc/logs/acc-logs-\$deviceName.tar.bz2 exportieren
+    -l|--log -e|--export Alle Protokolle nach /sdcard/Documents/vr25/acc/logs/acc-logs-\$deviceName.tar.gz exportieren
         z.B., acc -l -e
     -le Dasselbe wie -l -e
     -r|--readme [editor] [editor_opts] README.md anzeigen/bearbeiten

@@ -4,7 +4,7 @@
 #
 # "::" = " ", applies to MTK only
 # PWD=/sys/class/power_supply
-# Last updated: Tue, Aug 10, 2021
+# Last updated: Tue, Aug 31, 2021
 
 smb?/input_suspend
 battery/charger_control 1 0
@@ -39,6 +39,7 @@ battery/device/smartchg_stop_charging 0 1
 battery/input_suspend 0 1
 bq*standalone/charging_enabled 1 0
 battery/mmi_charging_enable 1 0
+bbc/charging_enabled 1 0
 
 /sys/devices/platform/soc/soc:google,charger/charge_disable 0 1
 /proc/smb*_disable_chrg 0 1
@@ -62,6 +63,7 @@ battery/mmi_charging_enable 1 0
 
 # EXPERIMENTAL
 /sys/devices/platform/battery_meter/FG_suspend_current_threshold 100 5
+bbc/hiz_mode 0 1
 
 # troublesome
 #/sys/power/pnpmgr/battery/charging_enabled 1 0

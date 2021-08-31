@@ -34,11 +34,9 @@ logf() {
     batt_info > $TMPDIR/acc-i.txt)
     dumpsys battery > dumpsys-battery.txt
 
-    tar -c *.log *.txt \
-      | bzip2 -9 > $data_dir/logs/acc-logs-$device.tar.bz2
-
+    tar -c *.log *.txt | gzip -9 > $data_dir/logs/acc-logs-$device.tar.gz
     rm *.txt magisk.log in*.log power*.log m*accapp.log 2>/dev/null
-    echo "(i) $data_dir/logs/acc-logs-$device.tar.bz2"
+    echo "(i) $data_dir/logs/acc-logs-$device.tar.gz"
 
   else
     if tt "${1:-x}" "-*a*"; then

@@ -836,30 +836,27 @@ Either run `/dev/.vr25/acc/uninstall` (no reboot required; **charger must be plu
 
 ### Initializing ACC
 
-ACC is automatically initialized after installation/upgrades.
-It needs to be initialized on boot, too.
-If it's installed as a Magisk module, this is done by Magisk itself.
-Otherwise, the front-end should handle it as follows:
-```
-on boot_completed receiver and main activity
-  if file /dev/.acca/started does NOT exist
-    create it
-      mkdir -p /dev/.acca
-      touch /dev/.acca/started
-    if accd is NOT running
-      launch it
-        /data/adb/vr25/acc/service.sh
-    else
-      do nothing
-  else
-    do nothing
-```
-`/dev/` is volatile - meaning, a reboot/shutdown clears `/dev/.acca/` and its contents.
-That's exactly what we want.
-Of course, `/dev/.acca/started` is just an example.
-One can use any random path (e.g., `.myapp/initialized`), as long as it's under `/dev/` and does not conflict with preexisting data.
-**WARNING**: do not play with preexisting /dev/ data!
-Doing so may result in data loss and/or other undesired outcome.
+On boot_completed receiver and main activity, run:
+
+`[ -f /dev/.vr25/acc/acca ] || /data/adb/vr25/acc/service.sh`
+
+Explanation:
+
+ACC's working environment must be initialized - i.e., by updating the stock charging config (for restoring without a reboot) and pre-processing data for greater efficiency.
+This is done exactly once after boot.
+If it were done only after installation/upgrade, one would have to reinstall/upgrade acc after every kernel update.
+That's because kernel updates often change the default power supply drivers settings.
+
+Since acc's core executables are dynamic ([expected to] change regularly), those are linked to `/dev/.vr25/acc/` to preserve the API.
+The links must be recreated once after boot (/dev/ is volatile).
+
+`accd` is a symbolic link to `service.sh`.
+If service.sh is executed every time the `main activity` is launched, accd will be repeatedly restarted for no reason.
+
+Notes
+
+- This "manual" initialization is only _strictly_ required if Magisk is not installed - and only once per boot session. In other words, Magisk already runs service.sh shortly after boot.
+- ACC's installer always initializes it.
 
 
 ### Managing ACC
@@ -1293,13 +1290,6 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 ## LATEST CHANGES
 
 
-**v2021.8.2 (202108020)**
-
-- Fixed AccA related issues.
-- Fixed charging switch list tester (-t /path/to/list).
-- Fixed charging switch parser (-p).
-
-
 **v2021.8.4 (202108040)**
 
 - Dynamically add/remove current_now negative sign.
@@ -1338,3 +1328,11 @@ Refer to the release note bellow and documentation for details.
 - Updated documentation (more information, now with a table of contents and in HTML format)
 
 Release note: plug the charger if the install, upgrade, stop or restart processes seem to take too long.
+
+
+**v2021.8.31 (202108310)**
+
+- Additional charging switches
+- Fixed "current_now is always 0 mA."
+- Logs are exported as a tarball archive.
+- Updated readme > notes/tips for front-end developers > initializing acc

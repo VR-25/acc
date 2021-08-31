@@ -21,3 +21,5 @@ acca --daemon option seems unreliable, even though -D works just fine
 open html doc on/from terminal
 
 make [most] code POSIX compliant
+
+two instances of accd running
