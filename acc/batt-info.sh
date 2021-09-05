@@ -1,10 +1,10 @@
 batt_info() {
 
-  local info
-  local voltNow
-  local currNow
-  local powerNow
-  local factor
+  local info=
+  local voltNow=
+  local currNow=
+  local powerNow=
+  local factor=
   set +eu
 
 

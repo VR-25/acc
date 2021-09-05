@@ -5,8 +5,8 @@
 
 
 gather_ps_data() {
-  local target
-  local target2
+  local target=
+  local target2=
   for target in $(ls -1 $1 | grep -Ev '^[0-9]|^block$|^dev$|^fs$|^ram$'); do
     if [ -f $1/$target ]; then
       echo $1/$target | grep -Ev 'logg|(/|_|-)log|at_pmrst' | grep -Eq 'batt|charg|power_supply' && {

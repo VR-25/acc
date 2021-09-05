@@ -33,7 +33,7 @@ print_known_switches() {
 }
 
 print_invalid_switch() {
-  echo "(!) Interruptor de carga inválido, [${chargingSwitch[@]}]"
+  echo "(!) Interruptor de carga inválido, [${chargingSwitch[@]-}]"
 }
 
 print_charging_disabled_until() {

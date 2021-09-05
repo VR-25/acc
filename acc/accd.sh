@@ -109,8 +109,8 @@ if ! $init; then
 
   is_charging() {
 
-    local file
-    local value
+    local file=
+    local value=
     local isCharging=false
 
     . $config
@@ -193,7 +193,7 @@ if ! $init; then
   ctrl_charging() {
 
     local count=0
-    local i
+    local i=
 
     while :; do
 

@@ -33,11 +33,11 @@ print_known_switches() {
 }
 
 print_switch_fails() {
-  echo "(!) [${chargingSwitch[@]}] funktioniert nicht"
+  echo "(!) [${chargingSwitch[@]-}] funktioniert nicht"
 }
 
 print_invalid_switch() {
-  echo "(!) Ungültiger Ladeschalter, [${chargingSwitch[@]}]"
+  echo "(!) Ungültiger Ladeschalter, [${chargingSwitch[@]-}]"
 }
 
 print_charging_disabled_until() {

@@ -20,9 +20,9 @@ fi
 
 
 # battery idle mode for OnePlus devices
-if grep_ '^chargingSwitch=.*battery/op_disable_charge'; then
+if grep_ '^chargingSwitch=.battery/op_disable_charge 0 1 battery/input_suspend 0 0.$'; then
   [ -f $TMPDIR/oem-custom ] \
-    || echo "run_xtimes 'echo 1 > battery/op_disable_charge; echo 0 > battery/input_suspend'" > $TMPDIR/oem-custom
+    || echo "echo 1 > battery/op_disable_charge; echo 0 > battery/input_suspend" > $TMPDIR/oem-custom
   grep_ "^loopCmd=.*$TMPDIR/oem-custom" \
     || set_prop_ loopCmd "(. $TMPDIR/oem-custom)"
 else
@@ -35,7 +35,7 @@ fi
 # battery idle mode for Google Pixel 2/XL and devices with similar hardware
 if grep_ '^chargingSwitch=./sys/module/lge_battery/parameters/charge_stop_level'; then
   [ -f $TMPDIR/oem-custom ] \
-    || echo "[ \$(cat battery/input_suspend) != 1 ] || run_xtimes 'echo 0 > battery/input_suspend'" > $TMPDIR/oem-custom
+    || echo "[ \$(cat battery/input_suspend) != 1 ] || echo 0 > battery/input_suspend" > $TMPDIR/oem-custom
   grep_ "^loopCmd=.*$TMPDIR/oem-custom" \
     || set_prop_ loopCmd "(. $TMPDIR/oem-custom)"
 else
@@ -57,7 +57,8 @@ fi
   }
 })
 
-# set batt_slate_mode as default charging control file for Exynos devices
+
+# set batt_slate_mode as default charging control file for Exynos/Samsung devices
 # this prevents the "battery level stuck at 70%" issue
 if grep_ '^battery/batt_slate_mode 0 1' $TMPDIR/ch-switches; then
   [ -n "$(get_prop chargingSwitch)" ] || set_prop_ chargingSwitch "(battery/batt_slate_mode 0 1)"

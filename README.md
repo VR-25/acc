@@ -634,7 +634,7 @@ Options
 
   -la   Same as -l -a
 
-  -l|--log -e|--export   Export all logs to /data/adb/vr25/acc-data/logs/acc-logs-$deviceName.tar.bz2
+  -l|--log -e|--export   Export all logs to /data/adb/vr25/acc-data/logs/acc-logs-$deviceName.tar.gz
     e.g., acc -l -e
 
   -le   Same as -l -e
@@ -1290,12 +1290,6 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 ## LATEST CHANGES
 
 
-**v2021.8.4 (202108040)**
-
-- Dynamically add/remove current_now negative sign.
-- Fixed "acca: id: parameter not set".
-
-
 **v2021.8.29 (202108290)**
 
 - acc -t <file> skips panicky switches in subsequent runs.
@@ -1336,3 +1330,13 @@ Release note: plug the charger if the install, upgrade, stop or restart processe
 - Fixed "current_now is always 0 mA."
 - Logs are exported as a tarball archive.
 - Updated readme > notes/tips for front-end developers > initializing acc
+
+
+**v2021.9.5 (202109050)**
+
+- Additional charging switches (including a group of 3 for OnePlus that allegedly enable idle mode)
+- Fixed plugins path typo
+- General fixes
+- Major optimizations
+- Support for charging switch groups with unlimited number of elements (e.g., s="file1 on off file2 on off file3 on off...")
+- Use charge_type in addition to status to determine the real battery status.

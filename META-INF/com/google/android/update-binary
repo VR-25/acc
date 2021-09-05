@@ -72,7 +72,7 @@ get_prop() { sed -n "s|^$1=||p" ${2:-$srcDir/module.prop}; }
 set_perms() {
   local owner=${2:-0}
   local perms=0600
-  local target
+  local target=
   target=$(readlink -f $1)
   if echo $target | grep -q '.*\.sh$' || [ -d $target ]; then perms=0700; fi
   chmod $perms $target
@@ -82,7 +82,7 @@ set_perms() {
 
 set_perms_recursive() {
   local owner=${2-0}
-  local target
+  local target=
   find $1 2>/dev/null | while read target; do set_perms $target $owner; done
 }
 

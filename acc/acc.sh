@@ -130,10 +130,9 @@ get_prop() { sed -n "s|^$1=||p" ${2:-$config}; }
 test_charging_switch() {
 
   local failed=false
+  chargingSwitch=($@)
 
-  chmod 0644 $1 ${4-} \
-    && run_xtimes "echo ${3//::/ } > $1 && echo ${6//::/ } > ${4:-/dev/null}" \
-    && sleep_sd not_charging || :
+  flip_sw off && sleep_sd not_charging || :
 
   ! not_charging && failed=true || {
     not_charging not \
@@ -141,16 +140,14 @@ test_charging_switch() {
       || battIdleMode=false
   }
 
-  if ! $failed \
-    && run_xtimes "echo ${2//::/ } > $1 && echo ${5//::/ } > ${4:-/dev/null}" \
-    && sleep_sd "! not_charging"
-  then
+  flip_sw on 2>/dev/null
+
+  if ! $failed && sleep_sd "! not_charging"; then
     print_switch_works "$@"
     echo "- battIdleMode=$battIdleMode"
     return 0
   else
     print_switch_fails "$@"
-    run_xtimes "echo ${2//::/ } > $1; echo ${5//::/ } > ${4:-/dev/null}" 2>/dev/null
     return 1
   fi
 }
@@ -172,8 +169,8 @@ exxit() {
 parse_switches() {
 
   local f=$TMPDIR/.parse_switches.tmp
-  local i
-  local n
+  local i=
+  local n=
 
   [ -n "${2-}" ] || set -- $execDir/charging-switches.txt "${1-}"
 
@@ -302,6 +299,7 @@ case "${1-}" in
 
   -d|--disable)
     shift
+    ${verbose:-true} || exec > /dev/null
     print_m_mode
     ! daemon_ctrl stop > /dev/null || print_stopped
    . $execDir/acquire-lock.sh
@@ -314,6 +312,7 @@ case "${1-}" in
 
   -e|--enable)
     shift
+    ${verbose:-true} || exec > /dev/null
     print_m_mode
     ! daemon_ctrl stop > /dev/null || print_stopped
     . $execDir/acquire-lock.sh
@@ -495,8 +494,8 @@ case "${1-}" in
   -u|--upgrade)
     shift
     local array[0]=
-    local insecure
-    local reference
+    local insecure=
+    local reference=
 
     for i; do
       array+=("$i")

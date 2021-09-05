@@ -667,7 +667,7 @@ Options
 
   -la   Same as -l -a
 
-  -l|--log -e|--export   Export all logs to /data/adb/vr25/acc-data/logs/acc-logs-$deviceName.tar.bz2
+  -l|--log -e|--export   Export all logs to /data/adb/vr25/acc-data/logs/acc-logs-$deviceName.tar.gz
     e.g., acc -l -e
 
   -le   Same as -l -e
@@ -1174,11 +1174,6 @@ A common workaround is having <code>resume_capacity = pause_capacity - 1</code>.
 </ul>
 <hr>
 <h2 id="latest-changes">LATEST CHANGES</h2>
-<p><strong>v2021.8.4 (202108040)</strong></p>
-<ul>
-<li>Dynamically add/remove current_now negative sign.</li>
-<li>Fixed &quot;acca: id: parameter not set&quot;.</li>
-</ul>
 <p><strong>v2021.8.29 (202108290)</strong></p>
 <ul>
 <li>
@@ -1240,6 +1235,15 @@ Refer to the release note bellow and documentation for details.</p>
 <li>Fixed &quot;current_now is always 0 mA.&quot;</li>
 <li>Logs are exported as a tarball archive.</li>
 <li>Updated readme &gt; notes/tips for front-end developers &gt; initializing acc</li>
+</ul>
+<p><strong>v2021.9.5 (202109050)</strong></p>
+<ul>
+<li>Additional charging switches (including a group of 3 for OnePlus that allegedly enable idle mode)</li>
+<li>Fixed plugins path typo</li>
+<li>General fixes</li>
+<li>Major optimizations</li>
+<li>Support for charging switch groups with unlimited number of elements (e.g., s=&quot;file1 on off file2 on off file3 on off...&quot;)</li>
+<li>Use charge_type in addition to status to determine the real battery status.</li>
 </ul>
 
     </body>

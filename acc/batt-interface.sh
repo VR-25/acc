@@ -28,5 +28,11 @@ not_charging() {
     grep -Eiq "${1-dis|not}" sm????_bms/status
   else
     grep -Eiq "${1-dis|not}" $batt/status
-  fi
+  fi && {
+    if [ -f $batt/charge_type ]; then
+      [ ".$(cat $batt/charge_type)" = .N/A ]
+    else
+      return 0
+    fi
+  }
 }

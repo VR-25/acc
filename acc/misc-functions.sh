@@ -1,9 +1,9 @@
 apply_on_boot() {
 
-  local entry
-  local file
-  local value
-  local default
+  local entry=
+  local file=
+  local value=
+  local default=
   local arg=${1:-value}
   local exitCmd=false
   local force=false
@@ -19,7 +19,7 @@ apply_on_boot() {
     value=${2-}
     { $exitCmd && ! $force; } && default=${2-} || default=${3:-${2-}}
     if [ -f "$file" ] && chmod 0644 $file; then
-      run_xtimes "echo \$$arg > $file" &
+      eval echo "\$$arg" > $file
     fi || :
   done
 
@@ -28,11 +28,13 @@ apply_on_boot() {
 
 
 apply_on_plug() {
-  local entry
-  local file
-  local value
-  local default
+
+  local entry=
+  local file=
+  local value=
+  local default=
   local arg=${1:-value}
+
   for entry in "${applyOnPlug[@]-}" \
     "${maxChargingCurrent[@]:-$([ .$arg != .default ] || cat $TMPDIR/ch-curr-ctrl-files 2>/dev/null)}" \
     "${maxChargingVoltage[@]-}"
@@ -42,7 +44,7 @@ apply_on_plug() {
     value=${2-}
     default=${3:-${2-}}
     if [ -f "$file" ] && chmod 0644 $file; then
-      run_xtimes "echo \$$arg > $file" &
+      eval echo "\$$arg" > $file
     fi || :
   done
 }
@@ -55,27 +57,14 @@ cmd_batt() {
 
 cycle_switches() {
 
-  local on
-  local off
+  local on=
+  local off=
 
   while read -A chargingSwitch; do
 
     [ ! -f ${chargingSwitch[0]} ] || {
 
-      # toggle primary switch
-      on="${chargingSwitch[1]//::/ }"
-      off="${chargingSwitch[2]//::/ }"
-      chmod 0644 ${chargingSwitch[0]} \
-        && run_xtimes "echo \$$1 > ${chargingSwitch[0]}" \
-        || continue
-
-      # toggle secondary switch
-      [ ! -f "${chargingSwitch[3]-}" ] || {
-        on="${chargingSwitch[4]//::/ }"
-        off="${chargingSwitch[5]//::/ }"
-        chmod 0644 ${chargingSwitch[3]} \
-          && run_xtimes "echo \$$1 > ${chargingSwitch[3]}" || :
-      }
+      flip_sw $1
 
       if [ "$1" = on ]; then
         not_charging || break
@@ -87,8 +76,7 @@ cycle_switches() {
           break
         else
           # reset switch/group that fails to disable charging
-          run_xtimes "echo ${chargingSwitch[1]//::/ } > ${chargingSwitch[0]} || :;
-            echo ${chargingSwitch[4]//::/ } > ${chargingSwitch[3]:-/dev/null} || :" 2>/dev/null
+          flip_sw on 2>/dev/null || :
         fi
       fi
     }
@@ -104,33 +92,23 @@ cycle_switches_off() {
 
 disable_charging() {
 
+  local autoMode=true
+
   if ! switch_mA "${chargingSwitch[0]:-/}"; then
 
-    local autoMode=true
     ! tt "${chargingSwitch[*]-}" "*--" || autoMode=false
-
     ! $isAccd || ! not_charging || return 0
 
     if tt "${chargingSwitch[0]-}" "*/*"; then
       if [ -f ${chargingSwitch[0]} ]; then
-        # toggle primary switch
-        if chmod 0644 ${chargingSwitch[0]} \
-          && run_xtimes "echo ${chargingSwitch[2]//::/ } > ${chargingSwitch[0]}"
-        then
-          if tt "${chargingSwitch[3]-}" "*/*"; then
-            if t -f "${chargingSwitch[3]-}"; then
-              # toggle secondary switch
-              chmod 0644 ${chargingSwitch[3]} \
-                && run_xtimes "echo ${chargingSwitch[5]//::/ } > ${chargingSwitch[3]}" \
-                || switch_fails
-            else
-              invalid_switch
-            fi
+        if ! { flip_sw off && sleep_sd not_charging; }; then
+          $isAccd || print_switch_fails "${chargingSwitch[@]-}"
+          flip_sw on 2>/dev/null || :
+          if $autoMode; then
+            unset_switch
+            cycle_switches_off
           fi
-        else
-          switch_fails
         fi
-        sleep_sd not_charging || switch_fails
       else
         invalid_switch
       fi
@@ -199,10 +177,7 @@ enable_charging() {
 
     if ! $ghostCharging || { $ghostCharging && tt "$(cat */online)" "*1*"; }; then
 
-      chmod 0644 ${chargingSwitch[0]-} ${chargingSwitch[3]-} 2>/dev/null \
-        && run_xtimes "echo ${chargingSwitch[1]//::/ } > ${chargingSwitch[0]-}
-          echo ${chargingSwitch[4]//::/ } > ${chargingSwitch[3]:-/dev/null}" 2>/dev/null \
-        || cycle_switches on
+      flip_sw on || cycle_switches on
 
       # detect and block ghost charging
       if ! $ghostCharging && ! not_charging && ! tt "$(cat */online)" "*1*" \
@@ -262,6 +237,24 @@ enable_charging() {
 }
 
 
+flip_sw() {
+
+  local on=
+  local off=
+  local flip=$1
+
+  set -- ${chargingSwitch[@]-}
+  [ -f ${1:-//} ] || return 1
+
+  while [ -f ${1:-//} ]; do
+    on="$(echo $2 | sed 's/::/ /')"
+    off="$(echo $3 | sed 's/::/ /')"
+    chmod 0644 $1 && eval echo "\$$flip" > $1 || return 1
+    shift 3 2>/dev/null || return 0
+  done
+}
+
+
 invalid_switch() {
   $isAccd || print_invalid_switch
   unset_switch
@@ -298,15 +291,6 @@ print_wait_plug() {
 }
 
 
-run_xtimes() {
-  local count=0
-  for count in $(seq ${ctrlFileWrites[0]}); do
-    eval "$@" || break
-    sleep ${ctrlFileWrites[1]}
-  done
-}
-
-
 sync_capacity() {
   isCharging=${isCharging:-false}
   local isCharging_=$isCharging
@@ -330,20 +314,11 @@ sync_capacity() {
 
 
 sleep_sd() {
-  local i
+  local i=
   for i in 1 2 3 4; do
     eval "$@" && return 0 || sleep $switchDelay
   done
   return 1
-}
-
-
-switch_fails() {
-  $isAccd || print_switch_fails "${chargingSwitch[@]}"
-  if $autoMode; then
-    unset_switch
-    cycle_switches_off
-  fi
 }
 
 
@@ -395,7 +370,6 @@ domain=vr25
 switchDelay=2
 loopDelay=(10 10)
 execDir=/data/adb/$domain/acc
-ctrlFileWrites=(3 0.3)
 export TMPDIR=/dev/.vr25/acc
 config=/data/adb/$domain/${id}-data/config.txt
 config_=$config
@@ -430,7 +404,7 @@ pgrep -f zygote > /dev/null || {
 ! grep -q mtk_battery_cmd $TMPDIR/ch-switches || switchDelay=5
 
 # load plugins
-for f in /data/adb/vr25/acc-data/pluggins/*.sh; do
+for f in /data/adb/vr25/acc-data/plugins/*.sh; do
   [ ! -f "$f" ] || . "$f"
 done
 unset f

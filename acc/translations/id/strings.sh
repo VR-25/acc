@@ -33,7 +33,7 @@ print_known_switches() {
 }
 
 print_invalid_switch() {
-  echo "(!) Saklar pengisi daya salah, [${chargingSwitch[@]}]"
+  echo "(!) Saklar pengisi daya salah, [${chargingSwitch[@]-}]"
 }
 
 print_charging_disabled_until() {

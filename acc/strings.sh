@@ -33,7 +33,7 @@ print_known_switches() {
 }
 
 print_invalid_switch() {
-  echo "(!) Invalid charging switch, [${chargingSwitch[@]}]"
+  echo "(!) Invalid charging switch, [${chargingSwitch[@]-}]"
 }
 
 print_charging_disabled_until() {

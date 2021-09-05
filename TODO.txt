@@ -13,7 +13,7 @@ ability to mask the battery capacity, so that stop threshold becomes 100%.
 
 config.txt sometimes becomes empty and breaks ACC?
 
-some devices are rebooting for an unknown reason
+some mtk devices are rebooting for an unknown reason
 
 acca --daemon option seems unreliable, even though -D works just fine
 
@@ -22,4 +22,7 @@ open html doc on/from terminal
 
 make [most] code POSIX compliant
 
-two instances of accd running
+two instances of accd running?
+
+cooldown not working
+  repeatedly toggling charging on/off?

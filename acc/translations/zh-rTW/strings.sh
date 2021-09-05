@@ -33,7 +33,7 @@ print_known_switches() {
 }
 
 print_invalid_switch() {
-  echo "(!) 無效的充電開關, [${chargingSwitch[@]}]"
+  echo "(!) 無效的充電開關, [${chargingSwitch[@]-}]"
 }
 
 print_charging_disabled_until() {
