@@ -172,11 +172,11 @@ parse_switches() {
   local i=
   local n=
 
-  [ -n "${2-}" ] || set -- $execDir/charging-switches.txt "${1-}"
+  [ -n "${2-}" ] || set -- $TMPDIR/ch-switches "${1-}"
 
   if [ -z "${2-}" ]; then
-    set -- $1 $(echo ${config_%/*}/logs/power_supply-*.log)
-    $execDir/power-supply-logger.sh
+    set -- $1 $(echo ${config_%/*}/logs/power_supply-${device}.log)
+    [ -f $2 ] || $execDir/power-supply-logger.sh
     echo
   fi
 
@@ -199,6 +199,14 @@ parse_switches() {
   done
 
   rm $f
+}
+
+
+rollback() {
+  rm -rf $execDir/*
+  cp -a ${config%/*}/backup/* $execDir/
+  mv -f $execDir/config.txt $config
+  $TMPDIR/accd --init
 }
 
 
@@ -293,6 +301,10 @@ case "${1-}" in
     . $execDir/write-config.sh
   ;;
 
+  -b|--rollback)
+    rollback
+  ;;
+
   -c|--config)
     shift; edit $config "$@"
   ;;
@@ -336,7 +348,7 @@ case "${1-}" in
     max_charging_voltage=
 
     pause_capacity=${2:-100}
-    resume_capacity=$(( pause_capacity - 5 ))
+    resume_capacity=$(( pause_capacity - 1 ))
     run_cmd_on_pause="exec $TMPDIR/accd"
 
     cp -f $config $TMPDIR/.acc-f-config
@@ -384,7 +396,7 @@ case "${1-}" in
 
   -R|--resetbs)
     dumpsys batterystats --reset
-    rm /data/system/batterystats* 2>/dev/null || :
+    rm -rf /data/system/battery*stats* 2>/dev/null || :
   ;;
 
   -sc)

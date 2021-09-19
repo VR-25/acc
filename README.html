@@ -103,10 +103,11 @@
 <li><a href="#localization">LOCALIZATION</a></li>
 <li><a href="#tips">TIPS</a>
 <ul>
+<li><a href="#always-limit-the-charging-current-if-your-battery-is-old-andor-tends-to-discharge-too-fast"><em>Always</em> Limit the Charging Current If Your Battery is Old and/or Tends to Discharge Too Fast</a></li>
 <li><a href="#current-and-voltage-based-charging-control">Current and Voltage Based Charging Control</a></li>
 <li><a href="#generic">Generic</a></li>
 <li><a href="#google-pixel-devices">Google Pixel Devices</a></li>
-<li><a href="#always-limit-the-charging-current-if-your-battery-is-old-andor-tends-to-discharge-too-fast"><em>Always</em> Limit the Charging Current If Your Battery is Old and/or Tends to Discharge Too Fast</a></li>
+<li><a href="#idle-mode-and-alternatives">Idle Mode and Alternatives</a></li>
 </ul>
 </li>
 <li><a href="#frequently-asked-questions-faq">FREQUENTLY ASKED QUESTIONS (FAQ)</a></li>
@@ -280,8 +281,8 @@ In interactive mode, it also asks the user whether they want to download and ins
 <h2 id="default-configuration">DEFAULT CONFIGURATION</h2>
 <pre><code><code><div>#DC#
 
-configVerCode=202108120
-capacity=(0 60 70 75 false)
+configVerCode=202109190
+capacity=(-1 60 70 75 false)
 temperature=(40 60 90 65)
 cooldownRatio=()
 cooldownCurrent=
@@ -318,16 +319,16 @@ currentWorkaround=false
 
 # NOTES
 
-# The daemon does not have to be restarted after making changes to this file - unless one of the changes is capacity_freeze2 or charging_switch.
+# The daemon does not have to be restarted after making changes to this file - unless one of the changes is capacity_mask or charging_switch.
 
-# If those variables are updated with &quot;acc --set&quot;, accd is restarted automatically, as needed.
+# Changes to current_workaround (cw) only take effect after an acc [re]initialization (install, upgrade or accd --init) or system reboot.
 
-# Changes to current_workaround (cw) only take effect after a system reboot.
+# If those 3 variables are updated with &quot;acc --set&quot;, accd is restarted automatically (--init is implied as needed).
 
 
 # BASICS
 
-# capacity=(shutdown_capacity cooldown_capacity resume_capacity pause_capacity capacity_freeze2)
+# capacity=(shutdown_capacity cooldown_capacity resume_capacity pause_capacity capacity_mask)
 
 # temperature=(cooldown_temp max_temp max_temp_pause shutdown_temp)
 
@@ -373,7 +374,7 @@ currentWorkaround=false
 # cc cooldown_capacity
 # rc resume_capacity
 # pc pause_capacity
-# cft capacity_freeze2
+# cm capacity_mask
 
 # sc shutdown_capacity
 # ct cooldown_temp
@@ -465,10 +466,10 @@ currentWorkaround=false
 # pause_capacity (pc) #
 # Capacity or voltage_now_millivolts at which charging should pause.
 
-# capacity_freeze2 (cft) #
-# This prevents Android from getting capacity readings below 2%.
-# It's useful on systems that shutdown before the battery is actually empty.
-# Changes to this variable require a daemon restart (automated by --set).
+# capacity_mask (cm) #
+# This forces Android to report &quot;capacity = capacity * (100 / pause_capacity)&quot;, effectively masking capacity limits.
+# It also prevents Android from getting capacity readings below 2% (because some systems shutdown before battery level actually drops to 0%).
+# A daemon restart is required after changing this (automated by &quot;acc --set&quot;).
 
 # cooldown_temp (ct) #
 # Temperature (°C) at which the cooldown cycle starts.
@@ -519,7 +520,7 @@ currentWorkaround=false
 # For details, refer to the readme's tips section.
 # Unlike the original variant, this kind of switch is never unset automatically.
 # Thus, in this case, ppending &quot; --&quot; to it leads to invalid syntax.
-# Changes to this variable require a daemon restart (automated by --set).
+# A daemon restart is required after changing this (automated by &quot;acc --set&quot;).
 
 # apply_on_boot (ab) #
 # Settings to apply on boot or daemon start/restart.
@@ -560,13 +561,14 @@ currentWorkaround=false
 
 # prioritize_batt_idle_mode (pbim) #
 # If enabled charging switches that support battery idle mode take precedence.
+# It is only used when charging_switch is not set.
 # This is disabled by default due to issues on Samsung (store_mode) and other devices.
 
 # current_workaround (cw) #
 # Only use current control files whose paths match &quot;batt&quot; (default: false).
 # This is necessary only if the current limit affects both input and charging current values.
 # Try this if low current values don't work.
-# A reboot is required after changing this.
+# &quot;accd --init&quot; is required after changing this (automated by &quot;acc --set&quot;).
 
 #/DC#
 </div></code></code></pre>
@@ -615,6 +617,8 @@ Usage
 
 Options
 
+  -b|--rollback   Undo upgrade
+
   -c|--config [editor] [editor_opts]   Edit config (default editor: nano/vim/vi)
     e.g.,
       acc -c (edit w/ nano/vim/vi)
@@ -650,7 +654,7 @@ Options
     e.g.,
       acc -F (lauches a zip flashing wizard)
       acc -F &quot;file1&quot; &quot;file2&quot; &quot;fileN&quot; ... (install multiple zips)
-      acc -F &quot;/data/media/0/Download/Magisk-v20.0(20000).zip&quot;
+      acc -F &quot;/sdcard/Download/Magisk-v20.0(20000).zip&quot;
 
   -i|--info [case insensitive egrep regex (default: &quot;.&quot;)]   Show battery info
     e.g.,
@@ -672,11 +676,11 @@ Options
 
   -le   Same as -l -e
 
-  -p|--parse [[base file] [file to parse]]   Helps find potential charging switches quickly, for any device
+  -p|--parse [&lt;base file&gt; &lt;file to parse&gt;]|[file to parse]   Helps find potential charging switches quickly, for any device
     e.g.,
-      acc -p   Parse /logs/power_supply-\*.log and print potential charging switches not present in /charging-switches.txt
-      acc -p /data/media/0/power_supply-harpia.log   Parse the given file and print potential charging switches not present in /charging-switches.txt
-      acc -p /data/media/0/charging-switches.txt /data/media/0/power_supply-harpia.log   Parse /data/media/0/power_supply-harpia.log and print potential charging switches not present in /data/media/0/charging-switches.txt
+      acc -p   Parse /logs/power_supply-\*.log and print potential charging switches not present in /ch-switches
+      acc -p /sdcard/power_supply-harpia.log   Parse the given file and print potential charging switches that are not already in /ch-switches
+      acc -p /sdcard/charging-switches.txt /sdcard/power_supply-harpia.log   Parse /sdcard/power_supply-harpia.log and print potential charging switches absent from /sdcard/charging-switches.txt
 
   -r|--readme [editor] [editor_opts]   Print/edit README.md
     e.g.,
@@ -754,7 +758,7 @@ Options
   -t|--test [file]   Test charging switches from a file (default: /dev/.vr25/acc/ch-switches)
     e.g.,
       acc -t (test known switches)
-      acc -t /data/media/0/experimental_switches.txt (test custom/foreign switches)
+      acc -t /sdcard/experimental_switches.txt (test custom/foreign switches)
 
   -T|--logtail   Monitor accd log (tail -F)
     e.g., acc -T
@@ -769,7 +773,7 @@ Options
       acc -u -c -n (if update is available, prints version code (integer) and changelog link)
       acc -u -c (same as above, but with install prompt)
 
-  -U|--uninstall   Completelly remove acc and AccA
+  -U|--uninstall   Completely remove acc and AccA
     e.g., acc -U
 
   -v|--version   Print acc version and version code
@@ -820,11 +824,13 @@ Tips
 </div></code></code></pre>
 <hr>
 <h2 id="plugins">PLUGINS</h2>
-<p>Those are scripts that override functions and some variables.
+<p>Those are scripts that override functions and some global variables.
 They should be placed in <code>/data/adb/vr25/acc-data/plugins/</code>.
 Files are sorted and sourced.
 Filenames shall not contain spaces.
 Hidden files and those without the <code>.sh</code> extension are ignored.</p>
+<p>There are also <em>volatile</em> plugins (gone on reboot, useful for debugging): <code>/dev/.vr25/acc/plugins/</code>.
+Those override the permanent.</p>
 <hr>
 <h2 id="notestips-for-front-end-developers">NOTES/TIPS FOR FRONT-END DEVELOPERS</h2>
 <h3 id="basics">Basics</h3>
@@ -893,9 +899,8 @@ External power is always converted before it reaches the battery.</p>
 It picks up new changes within seconds.</p>
 <p>There are a few exceptions:</p>
 <ul>
-<li><code>capacity_freeze2</code> (<code>cft</code>): requires a daemon restart.</li>
-<li><code>charging_switch</code> (<code>s</code>): requires a daemon restart.</li>
-<li><code>current_workaround</code> (<code>cw</code>): requires a system reboot.</li>
+<li><code>capacity_mask</code> (<code>cm</code>) and <code>charging_switch</code> (<code>s</code>) requires a daemon restart.</li>
+<li><code>current_workaround</code> (<code>cw</code>) requires <code>accd --init</code>.</li>
 </ul>
 <p>This information is in the <a href="#default-configuration">default configuration</a> section as well.</p>
 <hr>
@@ -903,7 +908,7 @@ It picks up new changes within seconds.</p>
 <h3 id="battery-capacity--level-doesnt-seem-right">Battery Capacity (% Level) Doesn't Seem Right</h3>
 <p>When Android's battery level differs from that of the kernel, ACC daemon automatically syncs it by stopping the battery service and feeding it the real value every few seconds.</p>
 <p>Pixel devices are known for having battery level discrepancies for the longest time.</p>
-<p>If your device shuts down before the battery is actually empty, capacity_freeze2 may help.
+<p>If your device shuts down before the battery is actually empty, capacity_mask may help.
 Refer to the <a href="#default-configuration">default configuration</a> section above for details.</p>
 <h3 id="bootloop">Bootloop</h3>
 <p>While uncommon, it may happen.</p>
@@ -963,12 +968,12 @@ Thus, as soon as the default voltage limit is restored, it'll start &quot;fixing
 Some devices do not support just any current value, though.
 That's not to say out-of-range values cause issues.
 These are simply ignored.</p>
-<p>If low current values don't work, try setting <code>current_workaround=true</code> (takes effect after a reboot.
+<p>If low current values don't work, try setting <code>current_workaround=true</code> (takes effect after <code>accd --init</code>.
 Refer to the <a href="#default-configuration">default configuration</a> section for details.</p>
 <h3 id="diagnosticslogs">Diagnostics/Logs</h3>
 <p>Volatile logs (gone on reboot) are stored in <code>/dev/.vr25/acc/</code> (.log files only).
 Persistent logs reside in <code>/data/adb/vr25/acc-data/logs/</code>.</p>
-<p><code>acc -le</code> exports all acc logs, plus Magisk's and extras to <code>/data/adb/acc-data/logs/acc-$device_codename.tar.bz2</code>.
+<p><code>acc -le</code> exports all acc logs, plus Magisk's and extras to <code>/data/adb/acc-data/logs/acc-$device_codename.tar.gz</code>.
 The logs do not contain any personal information and are never automatically sent to the developer.
 Automatic exporting (local) happens under specific conditions (refer back to <code>SETUP/USAGE &gt; Terminal Commands &gt; Exit Codes</code>).</p>
 <h3 id="finding-additionalpotential-charging-switches-quickly">Finding Additional/Potential Charging Switches Quickly</h3>
@@ -1006,6 +1011,10 @@ You may also want to try stopping charging by limiting current/voltage.</p>
 <h3 id="why-did-accd-stop">Why Did accd Stop?</h3>
 <p>Run <code>acc -l tail</code> to find out.
 This will print the last 10 lines of the daemon log file.</p>
+<p>A relatively common exit code is <code>7</code> - meaning all charging switches failed to disable charging.
+It happens due to kernel issues (refer to the previous subsection - <a href="#charging-switch">charging switch</a>).
+The daemon only stops due to this if acc is set to automatically determine the switches to use (default behavior).
+Manually setting a working switch with <code>acc -ss</code> or <code>acc -s s=&quot;SWITCHES GO HERE --&quot;</code> prevents this issue.</p>
 <hr>
 <h2 id="power-supply-logs-help-needed">POWER SUPPLY LOGS (HELP NEEDED)</h2>
 <p>Please run <code>acc -le</code> and upload <code>/data/adb/vr25/acc-data/logs/power_supply-*.log</code> to <a href="https://www.dropbox.com/request/WYVDyCc0GkKQ8U5mLNlH/">my dropbox</a> (no account/sign-up required).
@@ -1047,6 +1056,11 @@ Alternatively, a <em>compressed</em> archive of translated <code>strings.sh</cod
 </ol>
 <hr>
 <h2 id="tips">TIPS</h2>
+<h3 id="always-limit-the-charging-current-if-your-battery-is-old-andor-tends-to-discharge-too-fast"><em>Always</em> Limit the Charging Current If Your Battery is Old and/or Tends to Discharge Too Fast</h3>
+<p>This extends the battery's lifespan and may even <em>reduce</em> its discharge rate.</p>
+<p>750-1000mA is a good range for regular use.</p>
+<p>500mA is a comfortable minimum - and also very compatible.</p>
+<p>If your device does not support custom current limits, use a dedicated (&quot;slow&quot;) power adapter.</p>
 <h3 id="current-and-voltage-based-charging-control">Current and Voltage Based Charging Control</h3>
 <p>Enabled by setting charging_switch=milliamps or charging_switch=3700 (millivolts) (e.g., <code>acc -s s=0</code>, <code>acc -s s=250</code>, <code>acc -s s=3700</code>, <code>acc -ss</code> (wizard)).</p>
 <p>Essentially, this turns current/voltage control files into <em>[pseudo] charging switches</em>.</p>
@@ -1068,11 +1082,25 @@ Alternatively, one can experiment with <code>acc -s s=0</code> and/or <code>acc 
 <p>Force fast wireless charging with third party wireless chargers that are supposed to charge the battery faster: <code>apply_on_plug=wireless/voltage_max::9000000</code>.</p>
 <p>This may not work on all Pixel devices.
 There are no negative consequences when it doesn't.</p>
-<h3 id="always-limit-the-charging-current-if-your-battery-is-old-andor-tends-to-discharge-too-fast"><em>Always</em> Limit the Charging Current If Your Battery is Old and/or Tends to Discharge Too Fast</h3>
-<p>This extends the battery's lifespan and may even <em>reduce</em> its discharge rate.</p>
-<p>750-1000mA is a good range for regular use.</p>
-<p>500mA is a comfortable minimum - and also very compatible.</p>
-<p>If your device does not support custom current limits, use a dedicated (&quot;slow&quot;) power adapter.</p>
+<h3 id="idle-mode-and-alternatives">Idle Mode and Alternatives</h3>
+<p>1 - Charging switch that supports idle mode (the obvious winner).
+Note that self discharge is a thing.
+This is as if the battery were physically disconnected.
+Extremely slow discharge rate is expected.</p>
+<p>2 - <code>charging_switch=0</code>: if current fluctuates, also set <code>current_workaround=true</code> (only takes affect after a reboot).
+If this method works, the behavior is exactly the same as <code>#1</code>.</p>
+<p>3 - <code>charging_switch=3920</code>: only works on devices that actually support voltage control.
+Unlike regular idle mode, this maintains 3920 mV (<em>the sweet spot</em>) indefinitely.
+This is not good with higher voltages.
+We're trying to minimize battery stress as much as possible.
+Maintaining a voltage higher than 3920 for a long time is <em>not</em> recommended.</p>
+<p>4 - <code>acc 3920</code>: this is short for <em>acc 3920 3870</em> (a 50 mV difference).
+It tries to maintain 3920 mV without voltage control support.
+Yes, it's definitely not a joke.
+This works with regular charging switches and voltage readings.</p>
+<p>5 - <code>acc 45 44</code>: this closely translates to 3920 mV under most circumstances.
+Voltage and capacity (%) do not have a linear relationship.
+Voltage varies with temperature, battery chemistry and age.</p>
 <hr>
 <h2 id="frequently-asked-questions-faq">FREQUENTLY ASKED QUESTIONS (FAQ)</h2>
 <blockquote>
@@ -1080,7 +1108,7 @@ There are no negative consequences when it doesn't.</p>
 </blockquote>
 <p>Open issues on GitHub or contact the developer on Facebook, Telegram (preferred) or XDA (links below).
 Always provide as much information as possible.
-Attach <code>/data/adb/vr25/acc-data/logs/acc-logs-*tar.bz2</code> - generated by <code>acc -le</code> <em>right after</em> the problem occurs.
+Attach <code>/data/adb/vr25/acc-data/logs/acc-logs-*tar.gz</code> - generated by <code>acc -le</code> <em>right after</em> the problem occurs.
 Refer back to <code>TROUBLESHOOTING &gt; Diagnostics/Logs</code> for additional details.</p>
 <blockquote>
 <p>Why won't you support my device? I've been waiting for ages!</p>
@@ -1174,61 +1202,6 @@ A common workaround is having <code>resume_capacity = pause_capacity - 1</code>.
 </ul>
 <hr>
 <h2 id="latest-changes">LATEST CHANGES</h2>
-<p><strong>v2021.8.29 (202108290)</strong></p>
-<ul>
-<li>
-<p>acc -t <file> skips panicky switches in subsequent runs.</p>
-</li>
-<li>
-<p><code>acc[d] -x [options] [args]</code> sets <code>log=/sdcard/acc[d]-${device}.log</code>; it's useful for debugging unwanted reboots.</p>
-</li>
-<li>
-<p>accd is always stopped gracefully - to ensure defaults are always restored.
-This has a potential unwanted side-effect.
-Refer to the release note bellow and documentation for details.</p>
-</li>
-<li>
-<p>Additional charging switches</p>
-</li>
-<li>
-<p>[Beta] if the file /data/adb/vr25/acc-data/warn exists, accd posts Android shutdown warning notifications at sc+10%, sc+5%, sc+300mV and sc+100mV.</p>
-</li>
-<li>
-<p>Charging switches set with <code>acc -ss</code> are now persistent (i.e., the string &quot; --&quot; is automatically appended to them).</p>
-</li>
-<li>
-<p>Enhanced current and voltage units conversion</p>
-</li>
-<li>
-<p>Improved fronted support (installers and doc)</p>
-</li>
-<li>
-<p>General optimizations</p>
-</li>
-<li>
-<p>If charging switch is set to 3700 (millivolts), acc stops charging by limiting voltage.</p>
-</li>
-<li></li>
-<li>
-<p>Implemented workarounds for unreadable battery/uevent and unreliable battery/status (kernel bugs) affecting mainly Pixel and LG devices.</p>
-</li>
-<li>
-<p>Set batt_slate_mode as default charging control file for Exynos devices</p>
-</li>
-<li>
-<p>Support for plugins, refer to <a href="#plugins">plugins</a> for details.</p>
-</li>
-<li>
-<p>Removed potentially troublesome switches.</p>
-</li>
-<li>
-<p>The wizard includes battery info (--info).</p>
-</li>
-<li>
-<p>Updated documentation (more information, now with a table of contents and in HTML format)</p>
-</li>
-</ul>
-<p>Release note: plug the charger if the install, upgrade, stop or restart processes seem to take too long.</p>
 <p><strong>v2021.8.31 (202108310)</strong></p>
 <ul>
 <li>Additional charging switches</li>
@@ -1244,6 +1217,19 @@ Refer to the release note bellow and documentation for details.</p>
 <li>Major optimizations</li>
 <li>Support for charging switch groups with unlimited number of elements (e.g., s=&quot;file1 on off file2 on off file3 on off...&quot;)</li>
 <li>Use charge_type in addition to status to determine the real battery status.</li>
+</ul>
+<p><strong>v2021.9.19 (202109190)</strong></p>
+<ul>
+<li>Additional charging switches - the database is more concise with the extensive use of wildcards.</li>
+<li>Battery status detection enhancements</li>
+<li><code>capacity_mask=true</code>: forces Android to report <code>capacity = capacity * (100 / pause_capacity)</code>, effectively masking capacity limits. This replaces <code>capacity_freeze2</code>.</li>
+<li><code>current_workaround</code> no longer requires a reboot (just <code>accd --init</code>).</li>
+<li>Fixed cooldown and <code>acc -f</code> issues.</li>
+<li>General fixes &amp; optimizations</li>
+<li>Optimized <code>--parse</code> (<code>acc -p</code>).</li>
+<li>Support for &quot;volatile&quot; plugins (gone on reboot, useful for debugging): <code>/dev/.vr25/acc/plugins/</code></li>
+<li>Updated documentation (mainly tips &gt; idle mode and alternatives)</li>
+<li>Upgrade rollback feature (<code>-b|--rollback</code> or wizard option <code>f</code>)</li>
 </ul>
 
     </body>

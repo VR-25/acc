@@ -1,5 +1,5 @@
-configVerCode=202108120
-capacity=(0 60 70 75 false)
+configVerCode=202109190
+capacity=(-1 60 70 75 false)
 temperature=(40 60 90 65)
 cooldownRatio=()
 cooldownCurrent=
@@ -36,16 +36,16 @@ currentWorkaround=false
 
 # NOTES
 
-# The daemon does not have to be restarted after making changes to this file - unless one of the changes is capacity_freeze2 or charging_switch.
+# The daemon does not have to be restarted after making changes to this file - unless one of the changes is capacity_mask or charging_switch.
 
-# If those variables are updated with "acc --set", accd is restarted automatically, as needed.
+# Changes to current_workaround (cw) only take effect after an acc [re]initialization (install, upgrade or accd --init) or system reboot.
 
-# Changes to current_workaround (cw) only take effect after a system reboot.
+# If those 3 variables are updated with "acc --set", accd is restarted automatically (--init is implied as needed).
 
 
 # BASICS
 
-# capacity=(shutdown_capacity cooldown_capacity resume_capacity pause_capacity capacity_freeze2)
+# capacity=(shutdown_capacity cooldown_capacity resume_capacity pause_capacity capacity_mask)
 
 # temperature=(cooldown_temp max_temp max_temp_pause shutdown_temp)
 
@@ -91,7 +91,7 @@ currentWorkaround=false
 # cc cooldown_capacity
 # rc resume_capacity
 # pc pause_capacity
-# cft capacity_freeze2
+# cm capacity_mask
 
 # sc shutdown_capacity
 # ct cooldown_temp
@@ -183,10 +183,10 @@ currentWorkaround=false
 # pause_capacity (pc) #
 # Capacity or voltage_now_millivolts at which charging should pause.
 
-# capacity_freeze2 (cft) #
-# This prevents Android from getting capacity readings below 2%.
-# It's useful on systems that shutdown before the battery is actually empty.
-# Changes to this variable require a daemon restart (automated by --set).
+# capacity_mask (cm) #
+# This forces Android to report "capacity = capacity * (100 / pause_capacity)", effectively masking capacity limits.
+# It also prevents Android from getting capacity readings below 2% (because some systems shutdown before battery level actually drops to 0%).
+# A daemon restart is required after changing this (automated by "acc --set").
 
 # cooldown_temp (ct) #
 # Temperature (°C) at which the cooldown cycle starts.
@@ -237,7 +237,7 @@ currentWorkaround=false
 # For details, refer to the readme's tips section.
 # Unlike the original variant, this kind of switch is never unset automatically.
 # Thus, in this case, ppending " --" to it leads to invalid syntax.
-# Changes to this variable require a daemon restart (automated by --set).
+# A daemon restart is required after changing this (automated by "acc --set").
 
 # apply_on_boot (ab) #
 # Settings to apply on boot or daemon start/restart.
@@ -278,10 +278,11 @@ currentWorkaround=false
 
 # prioritize_batt_idle_mode (pbim) #
 # If enabled charging switches that support battery idle mode take precedence.
+# It is only used when charging_switch is not set.
 # This is disabled by default due to issues on Samsung (store_mode) and other devices.
 
 # current_workaround (cw) #
 # Only use current control files whose paths match "batt" (default: false).
 # This is necessary only if the current limit affects both input and charging current values.
 # Try this if low current values don't work.
-# A reboot is required after changing this.
+# "accd --init" is required after changing this (automated by "acc --set").

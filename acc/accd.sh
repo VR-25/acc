@@ -132,6 +132,7 @@ if ! $init; then
       [ -n "$chgStatusCode" ] || {
         cmd_batt reset
         chgStatusCode=$(dumpsys battery 2>/dev/null | sed -n 's/^  status: //p') || :
+        ! ${capacity[4]} || capacitySync=true
       }
 
       # read charging current ctrl files (part 2) once
@@ -430,26 +431,51 @@ else
 
 
   # filter out missing and problematic charging switches (those with unrecognized values) ###
+
+  filter_sw() {
+    local over3=false
+    [ $# -gt 3 ] && over3=true
+    for f in $(echo $1); do
+      if [ -f "$f" ] && chmod 0644 $f 2>/dev/null \
+        && {
+          ! cat $f > /dev/null 2>&1 \
+          || [ -z "$(cat $f 2>/dev/null)" ] \
+          || grep -Eiq '^(1|0|0 0|0 1|(en|dis)abled?)$' $f
+        }
+      then
+        $over3 && printf "$f $2 $3 " || printf "$f $2 $3\n"
+      else
+        return 1
+      fi
+    done
+  }
+
   cd /sys/class/power_supply/
   : > $TMPDIR/ch-switches_
+  : > $TMPDIR/ch-switches__
   grep -Ev '^#|^$' $execDir/charging-switches.txt | \
     while IFS= read -r chargingSwitch; do
       set -f
       set -- $chargingSwitch
       set +f
-      ctrlFile1="$(echo $1 | cut -d ' ' -f 1)"
-      ctrlFile2="$(echo $4 | cut -d ' ' -f 1)"
-      [ -f "$ctrlFile1" ] && {
-        [ -f "$ctrlFile2" -o -z "$ctrlFile2" ] && {
-          chmod 0644 $ctrlFile1 || continue
-          if ! cat $ctrlFile1 > /dev/null 2>&1 || [ -z "$(cat $ctrlFile1 2>/dev/null)" ] \
-            || grep -Eq "^(${2//::/ }|${3//::/ })$" $ctrlFile1
-          then
-            echo $ctrlFile1 $2 $3 $ctrlFile2 $5 $6 >> $TMPDIR/ch-switches_
+      [ $# -lt 3 ] && continue
+      if [ $# -gt 3 ]; then
+        while [ $# -ge 3 ]; do
+          if ! filter_sw "$@" >> $TMPDIR/ch-switches__; then
+            rm $TMPDIR/ch-switches__
+            break
           fi
-        }
-      }
+          shift 3 2>/dev/null
+        done
+        [ -f $TMPDIR/ch-switches__ ] \
+          && cat $TMPDIR/ch-switches__ >> $TMPDIR/ch-switches_ \
+          && rm $TMPDIR/ch-switches__
+      else
+        filter_sw "$@" >> $TMPDIR/ch-switches_
+      fi
+      echo >> $TMPDIR/ch-switches_
     done
+  sed -i -e 's/ $//' -e '/^$/d' $TMPDIR/ch-switches_
 
 
   # read charging voltage control files ###

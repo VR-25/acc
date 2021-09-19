@@ -40,22 +40,22 @@ trap exxit EXIT
 [ -x /dev/.vr25/busybox/ls ] || {
   mkdir -p /dev/.vr25/busybox
   chmod 0700 /dev/.vr25/busybox
-  if [ -f /data/adb/vr25/bin/busybox ]; then
-    [ -x /data/adb/vr25/bin/busybox ] || chmod -R 0700 /data/adb/vr25/bin
-    /data/adb/vr25/bin/busybox --install -s /dev/.vr25/busybox
+  if [ -f /data/adb/$domain/bin/busybox ]; then
+    [ -x /data/adb/$domain/bin/busybox ] || chmod -R 0700 /data/adb/$domain/bin
+    /data/adb/$domain/bin/busybox --install -s /dev/.vr25/busybox
   elif [ -f /data/adb/magisk/busybox ]; then
     [ -x /data/adb/magisk/busybox ] || chmod 0700 /data/adb/magisk/busybox
     /data/adb/magisk/busybox --install -s /dev/.vr25/busybox
   elif which busybox > /dev/null; then
     eval "$(which busybox) --install -s /dev/.vr25/busybox"
   else
-    echo "(!) Install busybox or simply place it in /data/adb/vr25/bin/"
+    echo "(!) Install busybox or simply place it in /data/adb/$domain/bin/"
     exit 3
   fi
 }
 case $PATH in
-  /data/adb/vr25/bin:*) :;;
-  *) export PATH=/data/adb/vr25/bin:/dev/.vr25/busybox:$PATH;;
+  /data/adb/$domain/bin:*) :;;
+  *) export PATH=/data/adb/$domain/bin:/dev/.vr25/busybox:$PATH;;
 esac
 #/BB#
 
@@ -137,9 +137,9 @@ fi
 
 # check/change parent installation directory
 ! $magisk || installDir=$magiskModDir
-[ $installDir != /data/adb/vr25 ] || mkdir -p $installDir
+[ $installDir != /data/adb/$domain ] || mkdir -p $installDir
 [ -d $installDir ] || {
-  installDir=/data/adb/vr25
+  installDir=/data/adb/$domain
   mkdir -p $installDir
 }
 
@@ -150,6 +150,12 @@ Copyright 2017-2021, $author
 GPLv3+
 
 (i) Installing in $installDir/$id/..."
+
+
+# backup
+rm -rf $data_dir/backup 2>/dev/null || :
+mkdir -p $data_dir/backup
+cp -aH /data/adb/$domain/$id/* $config $data_dir/backup/ 2>/dev/null || :
 
 
 /system/bin/sh $srcDir/$id/uninstall.sh install
@@ -203,7 +209,7 @@ fi
 
 
 [ $installDir = /data/adb/$domain/$id ] || {
-  mkdir -p /data/adb/vr25
+  mkdir -p /data/adb/$domain
   ln -s $installDir /data/adb/$domain/
 }
 
@@ -245,8 +251,6 @@ esac
 
 
 set +eu
-
-
 echo "- Done
 
 

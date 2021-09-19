@@ -24,7 +24,7 @@ set_prop() {
       ! daemon_ctrl stop > /dev/null || restartDaemon=true
       cat $defaultConfig > $config
       print_config_reset
-      ! $restartDaemon || /dev/.vr25/acc/accd $config
+      ! $restartDaemon || $TMPDIR/accd --init $config
       return 0
     ;;
 
@@ -103,12 +103,19 @@ set_prop() {
 
   # check whether a daemon restart is required (to restore defaults)
   if { [ ".${chargingSwitch[0]-x}" != .x ] && [ ".${s-${charging_switch-x}}" != .x ]; } \
-    || [ ".${cft-${capacity_freeze2-x}}" != .x ]
+    || [ ".${cm-${capacity_mask-x}}" != .x ] || [ ".${cw-${current_workaround-x}}" != .x ]
   then
     ! daemon_ctrl stop || restartDaemon=true
   fi > /dev/null
 
   # update config.txt
   . $execDir/write-config.sh
-  ! $restartDaemon || /dev/.vr25/acc/accd $config
+
+  if $restartDaemon; then
+    if [ ".${cw-${current_workaround-x}}" != .x ]; then
+      $TMPDIR/accd --init $config
+    else
+      $TMPDIR/accd $config
+    fi
+  fi
 }

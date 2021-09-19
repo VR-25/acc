@@ -115,6 +115,8 @@ Usage
 
 Options
 
+  -b|--rollback   Undo upgrade
+
   -c|--config [editor] [editor_opts]   Edit config (default editor: nano/vim/vi)
     e.g.,
       acc -c (edit w/ nano/vim/vi)
@@ -150,7 +152,7 @@ Options
     e.g.,
       acc -F (lauches a zip flashing wizard)
       acc -F "file1" "file2" "fileN" ... (install multiple zips)
-      acc -F "/data/media/0/Download/Magisk-v20.0(20000).zip"
+      acc -F "/sdcard/Download/Magisk-v20.0(20000).zip"
 
   -i|--info [case insensitive egrep regex (default: ".")]   Show battery info
     e.g.,
@@ -172,11 +174,11 @@ Options
 
   -le   Same as -l -e
 
-  -p|--parse [[base file] [file to parse]]   Helps find potential charging switches quickly, for any device
+  -p|--parse [<base file> <file to parse>]|[file to parse]   Helps find potential charging switches quickly, for any device
     e.g.,
-      acc -p   Parse ${config_%/*}/logs/power_supply-\*.log and print potential charging switches not present in $execDir/charging-switches.txt
-      acc -p /data/media/0/power_supply-harpia.log   Parse the given file and print potential charging switches not present in $execDir/charging-switches.txt
-      acc -p /data/media/0/charging-switches.txt /data/media/0/power_supply-harpia.log   Parse /data/media/0/power_supply-harpia.log and print potential charging switches not present in /data/media/0/charging-switches.txt
+      acc -p   Parse ${config_%/*}/logs/power_supply-\*.log and print potential charging switches not present in $TMPDIR/ch-switches
+      acc -p /sdcard/power_supply-harpia.log   Parse the given file and print potential charging switches that are not already in $TMPDIR/ch-switches
+      acc -p /sdcard/charging-switches.txt /sdcard/power_supply-harpia.log   Parse /sdcard/power_supply-harpia.log and print potential charging switches absent from /sdcard/charging-switches.txt
 
   -r|--readme [editor] [editor_opts]   Print/edit README.md
     e.g.,
@@ -254,7 +256,7 @@ Options
   -t|--test [file]   Test charging switches from a file (default: /dev/.vr25/acc/ch-switches)
     e.g.,
       acc -t (test known switches)
-      acc -t /data/media/0/experimental_switches.txt (test custom/foreign switches)
+      acc -t /sdcard/experimental_switches.txt (test custom/foreign switches)
 
   -T|--logtail   Monitor accd log (tail -F)
     e.g., acc -T
@@ -269,7 +271,7 @@ Options
       acc -u -c -n (if update is available, prints version code (integer) and changelog link)
       acc -u -c (same as above, but with install prompt)
 
-  -U|--uninstall   Completelly remove acc and AccA
+  -U|--uninstall   Completely remove acc and AccA
     e.g., acc -U
 
   -v|--version   Print acc version and version code
@@ -475,4 +477,8 @@ print_as_warning() {
 
 print_i() {
   echo "Battery info"
+}
+
+print_undo() {
+  echo "Undo upgrade"
 }

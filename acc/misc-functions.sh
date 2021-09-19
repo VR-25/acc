@@ -19,10 +19,11 @@ apply_on_boot() {
     value=${2-}
     { $exitCmd && ! $force; } && default=${2-} || default=${3:-${2-}}
     if [ -f "$file" ] && chmod 0644 $file; then
-      eval echo "\$$arg" > $file
+      write \$$arg $file &
     fi || :
   done
 
+  wait
   $exitCmd && [ $arg = value ] && exit 0 || :
 }
 
@@ -44,11 +45,15 @@ apply_on_plug() {
     value=${2-}
     default=${3:-${2-}}
     if [ -f "$file" ] && chmod 0644 $file; then
-      eval echo "\$$arg" > $file
+      write \$$arg $file &
     fi || :
   done
+
+  wait
 }
 
+
+calc() { awk "BEGIN { print $* }"; }
 
 cmd_batt() {
   /system/bin/cmd battery "$@" < /dev/null > /dev/null 2>&1 || :
@@ -62,9 +67,9 @@ cycle_switches() {
 
   while read -A chargingSwitch; do
 
-    [ ! -f ${chargingSwitch[0]} ] || {
+    [ ! -f ${chargingSwitch[0]:-//} ] || {
 
-      flip_sw $1
+      flip_sw $1 || :
 
       if [ "$1" = on ]; then
         not_charging || break
@@ -102,7 +107,7 @@ disable_charging() {
     if tt "${chargingSwitch[0]-}" "*/*"; then
       if [ -f ${chargingSwitch[0]} ]; then
         if ! { flip_sw off && sleep_sd not_charging; }; then
-          $isAccd || print_switch_fails "${chargingSwitch[@]-}"
+          $isAccd || print_switch_fails "${chargingSwitch[@]}"
           flip_sw on 2>/dev/null || :
           if $autoMode; then
             unset_switch
@@ -246,10 +251,12 @@ flip_sw() {
   set -- ${chargingSwitch[@]-}
   [ -f ${1:-//} ] || return 1
 
+  [ $flip != off ] || currNow_=$(cat $currFile)
+
   while [ -f ${1:-//} ]; do
-    on="$(echo $2 | sed 's/::/ /')"
-    off="$(echo $3 | sed 's/::/ /')"
-    chmod 0644 $1 && eval echo "\$$flip" > $1 || return 1
+    on="$(echo $2 | sed 's/::/ /g')"
+    off="$(echo $3 | sed 's/::/ /g')"
+    chmod 0644 $1 && write \$$flip $1 || return 1
     shift 3 2>/dev/null || return 0
   done
 }
@@ -292,8 +299,13 @@ print_wait_plug() {
 
 
 sync_capacity() {
+
   isCharging=${isCharging:-false}
   local isCharging_=$isCharging
+  local battCap=$(cat $batt/capacity)
+  local capFactor=$(calc 100 / ${capacity[3]})
+  local maskedCap=$(printf "%.*f" 0 $(calc $battCap \* $capFactor))
+
   ! $capacitySync || {
     ! $cooldown || isCharging=true
     if $isCharging; then
@@ -304,10 +316,10 @@ sync_capacity() {
       cmd_batt set status $dischgStatusCode
     fi
     isCharging=$isCharging_
-    if ! ${capacity[4]} \
-      || { ${capacity[4]} && [ $(cat $batt/capacity) -ge 2 ]; }
-    then
-      cmd_batt set level $(cat $batt/capacity)
+    if ${capacity[4]}; then
+      [ $battCap -lt 2 ] || cmd_batt set level $maskedCap
+    else
+      cmd_batt set level $battCap
     fi
   }
 }
@@ -363,6 +375,15 @@ wait_plug() {
 }
 
 
+write() {
+  local i=
+  for i in 1 2; do
+    eval echo "$1" > "$2" || return 1
+    sleep 0.5
+  done
+}
+
+
 # environment
 
 id=acc
@@ -404,7 +425,8 @@ pgrep -f zygote > /dev/null || {
 ! grep -q mtk_battery_cmd $TMPDIR/ch-switches || switchDelay=5
 
 # load plugins
-for f in /data/adb/vr25/acc-data/plugins/*.sh; do
+mkdir -p ${execDir}-data/plugins $TMPDIR/plugins
+for f in ${execDir}-data/plugins/*.sh $TMPDIR/plugins/*.sh; do
   [ ! -f "$f" ] || . "$f"
 done
 unset f

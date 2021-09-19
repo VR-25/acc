@@ -4,25 +4,3 @@ Shutdown warning notifications
   printf '\7'
   echo 200 > /sys/class/timed_output/vibrator/enable
   su -lp 2000 -c "cmd notification post -S bigtext -t 'Title' 'Tag' 'Multiline text'"
-
-
-add flag to disable charging status check
-
-ability to mask the battery capacity, so that stop threshold becomes 100%.
-
-
-config.txt sometimes becomes empty and breaks ACC?
-
-some mtk devices are rebooting for an unknown reason
-
-acca --daemon option seems unreliable, even though -D works just fine
-
-
-open html doc on/from terminal
-
-make [most] code POSIX compliant
-
-two instances of accd running?
-
-cooldown not working
-  repeatedly toggling charging on/off?

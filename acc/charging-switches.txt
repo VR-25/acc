@@ -4,78 +4,55 @@
 #
 # "::" = " ", applies to MTK only
 # PWD=/sys/class/power_supply
-# Last updated: Fri, Sep 3, 2021
+# Last updated: Thu, Sep 9, 2021
 
-smb?/input_suspend
-battery/charger_control 1 0
+*/*charging_enabled 1 0
+*/*disable_charg* 0 1
 */charge_disable 0 1
-idt/pin_enabled 1 0
-manta-battery/charge_enabled 1 0
-battery/charge_enabled 1 0
-battery/device/Charging_Enable 1 0
-battery/disable_charger 0 1
-charge_data/enable_charger 1 0
-huawei_charger/enable_charger 1 0
-?-00??/enable_charger 1 0
-?-00??/charging_state enabled disabled
-bq*_charger/enable_charging 1 2
-ac/charging_enabled 1 0
-dc/charging_enabled 1 0
-*charger/charge_enabled 1 0
-chargalg/disable_charging 0 1
-mt-battery/disable_charger 0 1
-dollar_cove_charger/enable_charging 1 0
-dollar_cove_charger/enable_charger 1 0
-battery*/charging_enabled 1 0
-battery/battery_charging_enabled 1 0
+*/charge_enabled 1 0
+*/charger_control 1 0
+*/charging_state enabled disabled
+*/enable_charg* 1 0
+*/input_suspend 0 1
 battery/batt_slate_mode 0 1
+battery/device/Charging_Enable 1 0
+battery/device/*stop_charging 0 1
 battery/store_mode 0 1
-*wireless/charging_enabled 1 0
-*-charger/charging_enabled 1 0
-dc/input_suspend 0 1
-battery/op_disable_charge 0 1
-wireless/op_disable_charge 0 1
-battery/device/smartchg_stop_charging 0 1
-battery/input_suspend 0 1
-bq*standalone/charging_enabled 1 0
-battery/mmi_charging_enable 1 0
-bbc/charging_enabled 1 0
+idt/pin_enabled 1 0
+
 battery/charging_enabled 0 0 battery/op_disable_charge 0 1 battery/charging_enabled 1 1
 
-/sys/devices/platform/soc/soc:google,charger/charge_disable 0 1
-/proc/smb*_disable_chrg 0 1
-/sys/module/pm*_charger/parameters/disabled 0 1
-/sys/devices/platform/mt-battery/disable_charger 0 1
-/sys/devices/platform/huawei_charger/enable_charger 1 0
-/sys/devices/platform/*/*/*/charging_state enabled disabled
+/proc/*disable_chrg 0 1
+/sys/class/battchg_ext/*charge_disable 0 1
+/sys/class/battchg_ext/*input_suspend 0 1
 /sys/class/hw_power/charger/charge_data/enable_charger 1 0
-/sys/devices/platform/omap/omap_i2c.?/i2c-?/?-00??/charge_enable 1 0
-/sys/devices/soc/soc:lge,cable_detect/lge_power/lge_cable_detect/charging_enabled 1 0
-/sys/devices/soc/soc:lge,charging_controller/lge_power/lge_cc/charging_enabled 1 0
+/sys/class/qcom-battery/input_suspend 0 1
+/sys/devices/platform/*/*/*/charging_state enabled disabled
+/sys/devices/platform/huawei_charger/enable_charger 1 0
 /sys/devices/platform/lge-unified-nodes/charging_completed 0 1
 /sys/devices/platform/lge-unified-nodes/charging_enable 1 0
+/sys/devices/platform/mt-battery/disable_charger 0 1
+/sys/devices/platform/omap/omap_i2c.?/i2c-?/?-00??/charge_enable 1 0
+/sys/devices/platform/soc/soc:google,charger/charge_disable 0 1
+/sys/devices/platform/soc/soc:oplus,chg_intf/oplus_chg/battery/*charging_enable 1 0
+/sys/devices/soc/soc:lge,*/lge_power/lge_*/charging_enabled 1 0
 /sys/kernel/debug/google_charger/chg_suspend 0 1
 /sys/kernel/debug/google_charger/input_suspend 0 1
-/proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0
+/sys/module/pm*_charger/parameters/disabled 0 1
+
 /proc/driver/charger_limit_enable 0 1 /proc/driver/charger_limit 100 1
+/proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0
 /sys/module/lge_battery/parameters/charge_stop_level 100 1 battery/input_suspend 0 0
-/sys/class/qcom-battery/input_suspend 0 1
-/sys/devices/platform/soc/soc:oplus,chg_intf/oplus_chg/battery/mmi_charging_enable 1 0
-/sys/class/battchg_ext/lrc_charge_disable 0 1
-/sys/class/battchg_ext/lrc_input_suspend 0 1
-/sys/class/battchg_ext/usb_input_suspend 0 1
 
-
-# EXPERIMENTAL
+# experimental
 /sys/devices/platform/battery_meter/FG_suspend_current_threshold 100 5
 bbc/hiz_mode 0 1
 
 # troublesome
-#/sys/power/pnpmgr/battery/charging_enabled 1 0
-#/proc/mtk_battery_cmd/current_cmd 0::0 0::1
-#/sys/devices/platform/battery_meter/FG_daemon_disable 0 1
-battery/ChargerEnable 1 0
 /sys/devices/platform/battery/ChargerEnable 1 0
+#/sys/devices/platform/battery_meter/FG_daemon_disable 0 1
+#/sys/power/pnpmgr/battery/charging_enabled 1 0
+battery/ChargerEnable 1 0
 
 # deprecated
 battery/op_disable_charge 0 1 battery/input_suspend 0 0

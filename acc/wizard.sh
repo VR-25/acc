@@ -22,7 +22,8 @@ b) $(print_test_cs)
 c) $(print_update)
 d) $(print_flash_zips)
 e) $(print_i)
-f) $(print_exit)
+f) $(print_undo)
+g) $(print_exit)
 
 #? "
   read -n 1 choice
@@ -131,6 +132,10 @@ f) $(print_exit)
     ;;
 
     f)
+      rollback
+    ;;
+
+    g)
       exit 0
     ;;
 

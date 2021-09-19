@@ -3,7 +3,7 @@ set +u
 echo "shutdown_capacity=${capacity[0]}
 resume_capacity=${capacity[2]}
 pause_capacity=${capacity[3]}
-capacity_freeze2=${capacity[4]}
+capacity_mask=${capacity[4]}
 
 cooldown_capacity=${capacity[1]}
 cooldown_temp=${temperature[0]}
