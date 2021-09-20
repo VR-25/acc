@@ -298,33 +298,6 @@ print_wait_plug() {
 }
 
 
-sync_capacity() {
-
-  isCharging=${isCharging:-false}
-  local isCharging_=$isCharging
-  local battCap=$(cat $batt/capacity)
-  local capFactor=$(calc 100 / ${capacity[3]})
-  local maskedCap=$(printf "%.*f" 0 $(calc $battCap \* $capFactor))
-
-  ! $capacitySync || {
-    ! $cooldown || isCharging=true
-    if $isCharging; then
-      cmd_batt set ac 1
-      cmd_batt set status $chgStatusCode
-    else
-      cmd_batt unplug
-      cmd_batt set status $dischgStatusCode
-    fi
-    isCharging=$isCharging_
-    if ${capacity[4]}; then
-      [ $battCap -lt 2 ] || cmd_batt set level $maskedCap
-    else
-      cmd_batt set level $battCap
-    fi
-  }
-}
-
-
 sleep_sd() {
   local i=
   for i in 1 2 3 4; do

@@ -102,8 +102,9 @@ set_prop() {
   esac
 
   # check whether a daemon restart is required (to restore defaults)
-  if { [ ".${chargingSwitch[0]-x}" != .x ] && [ ".${s-${charging_switch-x}}" != .x ]; } \
-    || [ ".${cm-${capacity_mask-x}}" != .x ] || [ ".${cw-${current_workaround-x}}" != .x ]
+  if { [ ".${chargingSwitch[0]-x}" != .x ] \
+    && [ ".${s-${charging_switch-x}}" != .x ]; } \
+    || [ ".${cw-${current_workaround-x}}" != .x ]
   then
     ! daemon_ctrl stop || restartDaemon=true
   fi > /dev/null

@@ -116,6 +116,14 @@ if ! $init; then
     . $config
     not_charging || isCharging=true
 
+    # dynamically toggle capacitySync
+    if ${capacity[4]} || ${capacity[5]}; then
+      capacitySync=true
+    else
+      cmd_batt reset
+      capacitySync=false
+    fi
+
     # run custom code
     eval "${loopCmd[@]-}"
 
@@ -128,12 +136,12 @@ if ! $init; then
 
     if $isCharging; then
 
-      # read chgStatusCode once
-      [ -n "$chgStatusCode" ] || {
-        cmd_batt reset
-        chgStatusCode=$(dumpsys battery 2>/dev/null | sed -n 's/^  status: //p') || :
-        ! ${capacity[4]} || capacitySync=true
-      }
+      # set chgStatusCode and capacitySync
+      if [ -z "$chgStatusCode" ] && cmd_batt reset \
+        && chgStatusCode=$(dumpsys battery 2>/dev/null | sed -n 's/^  status: //p')
+      then
+        setup_capacity_sync
+      fi
 
       # read charging current ctrl files (part 2) once
       $chCurrRead || {
@@ -153,20 +161,12 @@ if ! $init; then
 
       [ -z "${chargingDisabled-}" ] || chargingDisabled=false
 
-      # read dischgStatusCode once
-      #   and dynamically enable/disable capacitySync
-      [ -n "$dischgStatusCode" ] || {
-        ! cmd_batt reset || {
-          ! dischgStatusCode=$(dumpsys battery 2>/dev/null | sed -n 's/^  status: //p') || {
-            if ${capacity[4]} || { [ $(dumpsys battery 2>/dev/null | sed -n 's/^  level: //p') -ne $(cat $batt/capacity) ] \
-              && sleep 2 \
-              &&  [ $(dumpsys battery 2>/dev/null | sed -n 's/^  level: //p') -ne $(cat $batt/capacity) ]; }
-            then
-              capacitySync=true
-            fi
-          }
-        }
-      }
+      # set dischgStatusCode and capacitySync
+      if [ -z "$dischgStatusCode" ] && cmd_batt reset \
+        && dischgStatusCode=$(dumpsys battery 2>/dev/null | sed -n 's/^  status: //p')
+      then
+        setup_capacity_sync
+      fi
 
       if ! $cooldown; then
 
@@ -310,6 +310,59 @@ if ! $init; then
 
       fi
     done
+  }
+
+
+  setup_capacity_sync(){
+    if ! $capacitySync; then
+      if ${capacity[4]} || ${capacity[5]} || \
+        { [ $(dumpsys battery 2>/dev/null | sed -n 's/^  level: //p') -ne $(cat $batt/capacity) ] \
+        && sleep 2 \
+        &&  [ $(dumpsys battery 2>/dev/null | sed -n 's/^  level: //p') -ne $(cat $batt/capacity) ]; }
+      then
+        capacitySync=true
+      fi
+    fi
+  }
+
+
+  sync_capacity() {
+
+    ! $capacitySync || {
+
+      isCharging=${isCharging:-false}
+      local isCharging_=$isCharging
+      local battCap=$(cat $batt/capacity)
+
+      ! ${capacity[5]} || {
+        if [ ${capacity[3]} -gt 3000 ]; then
+          local maskedCap=$battCap
+        else
+          local capFactor=$(calc 100 / ${capacity[3]})
+          local maskedCap=$(printf "%.*f" 0 $(calc $battCap \* $capFactor))
+        fi
+      }
+
+      ! $cooldown || isCharging=true
+
+      if $isCharging; then
+        cmd_batt set ac 1
+        cmd_batt set status $chgStatusCode
+      else
+        cmd_batt unplug
+        cmd_batt set status $dischgStatusCode
+      fi
+
+      isCharging=$isCharging_
+
+      [ $battCap -lt 2 ] || {
+        if ${capacity[5]}; then
+          cmd_batt set level $maskedCap
+        else
+          cmd_batt set level $battCap
+        fi
+      }
+    }
   }
 
 

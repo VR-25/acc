@@ -79,6 +79,7 @@
 <li><a href="#initializing-acc">Initializing ACC</a></li>
 <li><a href="#managing-acc">Managing ACC</a></li>
 <li><a href="#the-output-of---info">The Output of --info</a></li>
+<li><a href="#profiles">Profiles</a></li>
 <li><a href="#more">More</a></li>
 </ul>
 </li>
@@ -281,8 +282,8 @@ In interactive mode, it also asks the user whether they want to download and ins
 <h2 id="default-configuration">DEFAULT CONFIGURATION</h2>
 <pre><code><code><div>#DC#
 
-configVerCode=202109190
-capacity=(-1 60 70 75 false)
+configVerCode=202109200
+capacity=(-1 60 70 75 false false)
 temperature=(40 60 90 65)
 cooldownRatio=()
 cooldownCurrent=
@@ -319,16 +320,16 @@ currentWorkaround=false
 
 # NOTES
 
-# The daemon does not have to be restarted after making changes to this file - unless one of the changes is capacity_mask or charging_switch.
+# The daemon does not have to be restarted after making changes to this file - unless one of the changes is charging_switch.
 
-# Changes to current_workaround (cw) only take effect after an acc [re]initialization (install, upgrade or accd --init) or system reboot.
+# A change to current_workaround (cw) only takes effect after an acc [re]initialization (install, upgrade or &quot;accd --init&quot;) or system reboot.
 
-# If those 3 variables are updated with &quot;acc --set&quot;, accd is restarted automatically (--init is implied as needed).
+# If those 2 variables are updated with &quot;acc --set&quot; (not acca --set), accd is restarted automatically (--init is implied as needed).
 
 
 # BASICS
 
-# capacity=(shutdown_capacity cooldown_capacity resume_capacity pause_capacity capacity_mask)
+# capacity=(shutdown_capacity cooldown_capacity resume_capacity pause_capacity capacity_sync capacity_mask)
 
 # temperature=(cooldown_temp max_temp max_temp_pause shutdown_temp)
 
@@ -374,6 +375,7 @@ currentWorkaround=false
 # cc cooldown_capacity
 # rc resume_capacity
 # pc pause_capacity
+# cs capacity_sync
 # cm capacity_mask
 
 # sc shutdown_capacity
@@ -466,10 +468,16 @@ currentWorkaround=false
 # pause_capacity (pc) #
 # Capacity or voltage_now_millivolts at which charging should pause.
 
+# capacity_sync (cs) #
+# Some devices, notably from the Pixel lineup, have a capacity discrepancy issue between Android and the kernel.
+# This forces Android to report the actual battery capacity supplied by the kernel.
+# The discrepancy is usually detected and corrected automatically by accd.
+# This setting overrides the automatic behavior.
+# Besides, it also prevents Android from getting capacity readings below 2%, since some systems shutdown before battery level actually drops to 0%.
+
 # capacity_mask (cm) #
-# This forces Android to report &quot;capacity = capacity * (100 / pause_capacity)&quot;, effectively masking capacity limits.
-# It also prevents Android from getting capacity readings below 2% (because some systems shutdown before battery level actually drops to 0%).
-# A daemon restart is required after changing this (automated by &quot;acc --set&quot;).
+# This forces Android to report &quot;capacity = capacity * (100 / pause_capacity)&quot;, effectively masking capacity limits (more like capacity_sync on steroids).
+# It also prevents Android from getting capacity readings below 2%, since some systems shutdown before battery level actually drops to 0%.
 
 # cooldown_temp (ct) #
 # Temperature (°C) at which the cooldown cycle starts.
@@ -894,13 +902,26 @@ VOLTAGE_NOW=3.861 # Charging voltage (Volts)
 POWER_NOW=0 # (CURRENT_NOW * VOLTAGE_NOW) (Watts)</p>
 <p>Note that the power information refers to what is actually supplied to the battery, not what's coming from the adapter.
 External power is always converted before it reaches the battery.</p>
+<h3 id="profiles">Profiles</h3>
+<p>Those are simply different config files.
+A config path can be supplied as first argument to <code>acca</code> and second to <code>accd</code> executables.</p>
+<p>Examples:</p>
+<p><em>Copy the config:</em></p>
+<p>Current config: <code>/dev/.vr25/acc/acca --config cat &gt; /path/to/new/file</code></p>
+<p>Default config: <code>/dev/.vr25/acc/acca /path/to/new/file --version</code> (<code>--version</code> can be replaced with any option + arguments, as seen below.)</p>
+<p><em>Edit the copy:</em></p>
+<p><code>/dev/.vr25/acc/acca /path/to/new/file --set pause_capacity=75 resume_capacity=70</code> (if the file does not exist, it is created as a copy of the default config.)</p>
+<p><em>Use the copy:</em></p>
+<p><code>/dev/.vr25/acc/accd --init /path/to/new/file</code> (the daemon is restarted with the new config.)</p>
+<p><em>Back to the main config:</em></p>
+<p><code>/dev/.vr25/acc/accd --init</code></p>
 <h3 id="more">More</h3>
 <p>ACC daemon does not have to be restarted after making changes to the config.
 It picks up new changes within seconds.</p>
 <p>There are a few exceptions:</p>
 <ul>
-<li><code>capacity_mask</code> (<code>cm</code>) and <code>charging_switch</code> (<code>s</code>) requires a daemon restart.</li>
-<li><code>current_workaround</code> (<code>cw</code>) requires <code>accd --init</code>.</li>
+<li><code>charging_switch</code> (<code>s</code>) requires a daemon restart (<code>/dev/.vr25/acc/accd</code>).</li>
+<li><code>current_workaround</code> (<code>cw</code>) requires a full re-initialization (<code>/dev/.vr25/acc/accd --init</code>).</li>
 </ul>
 <p>This information is in the <a href="#default-configuration">default configuration</a> section as well.</p>
 <hr>
@@ -908,7 +929,7 @@ It picks up new changes within seconds.</p>
 <h3 id="battery-capacity--level-doesnt-seem-right">Battery Capacity (% Level) Doesn't Seem Right</h3>
 <p>When Android's battery level differs from that of the kernel, ACC daemon automatically syncs it by stopping the battery service and feeding it the real value every few seconds.</p>
 <p>Pixel devices are known for having battery level discrepancies for the longest time.</p>
-<p>If your device shuts down before the battery is actually empty, capacity_mask may help.
+<p>If your device shuts down before the battery is actually empty, capacity_sync or capacity_mask may help.
 Refer to the <a href="#default-configuration">default configuration</a> section above for details.</p>
 <h3 id="bootloop">Bootloop</h3>
 <p>While uncommon, it may happen.</p>
@@ -1202,13 +1223,6 @@ A common workaround is having <code>resume_capacity = pause_capacity - 1</code>.
 </ul>
 <hr>
 <h2 id="latest-changes">LATEST CHANGES</h2>
-<p><strong>v2021.8.31 (202108310)</strong></p>
-<ul>
-<li>Additional charging switches</li>
-<li>Fixed &quot;current_now is always 0 mA.&quot;</li>
-<li>Logs are exported as a tarball archive.</li>
-<li>Updated readme &gt; notes/tips for front-end developers &gt; initializing acc</li>
-</ul>
 <p><strong>v2021.9.5 (202109050)</strong></p>
 <ul>
 <li>Additional charging switches (including a group of 3 for OnePlus that allegedly enable idle mode)</li>
@@ -1230,6 +1244,13 @@ A common workaround is having <code>resume_capacity = pause_capacity - 1</code>.
 <li>Support for &quot;volatile&quot; plugins (gone on reboot, useful for debugging): <code>/dev/.vr25/acc/plugins/</code></li>
 <li>Updated documentation (mainly tips &gt; idle mode and alternatives)</li>
 <li>Upgrade rollback feature (<code>-b|--rollback</code> or wizard option <code>f</code>)</li>
+</ul>
+<p><strong>v2021.9.20 (202109200)</strong></p>
+<ul>
+<li>General enhancements</li>
+<li>Manual capacitySync toggle (<code>[capacity_sync|cs] = [true|false]</code>) - it overrides the automatic. Both include the <code>freeze at 2%</code> feature. This is the actual <code>capacity_freeze2</code> replacement now. <code>capacity_mask</code> implies <code>capacity_sync</code>.</li>
+<li>Unlike in previous versions, changes to <code>capacity_mask</code> and <code>capacity_sync</code> take effect (within a few seconds) without a daemon restart.</li>
+<li>Updated documentation</li>
 </ul>
 
     </body>

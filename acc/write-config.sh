@@ -4,7 +4,8 @@ sc=${shutdown_capacity-${sc-${capacity[0]}}}
 cc=${cooldown_capacity-${cc-${capacity[1]}}}
 rc=${resume_capacity-${rc-${capacity[2]}}}
 pc=${pause_capacity-${pc-${capacity[3]}}}
-cm=${capacity_mask-${cm-${capacity[4]}}}
+cs=${capacity_sync-${cs-${capacity[4]}}}
+cm=${capacity_mask-${cm-${capacity[5]}}}
 
 ct=${cooldown_temp-${ct-${temperature[0]}}}
 mt=${max_temp-${mt-${temperature[1]}}}
@@ -45,7 +46,7 @@ cw=${current_workaround-${cw-$currentWorkaround}}
 
 {
 echo "configVerCode=$(cat $TMPDIR/.config-ver)
-capacity=(${sc:-0} ${cc:-60} ${rc:-70} ${pc:-75} ${cm:-false})
+capacity=(${sc:-0} ${cc:-60} ${rc:-70} ${pc:-75} ${cs:-false} ${cm:-false})
 temperature=(${ct:-40} ${mt:-60} ${mtp:-90} ${st:-65})
 cooldownRatio=($cch $cp)
 cooldownCurrent=$cdc

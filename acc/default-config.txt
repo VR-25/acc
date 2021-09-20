@@ -1,5 +1,5 @@
-configVerCode=202109190
-capacity=(-1 60 70 75 false)
+configVerCode=202109200
+capacity=(-1 60 70 75 false false)
 temperature=(40 60 90 65)
 cooldownRatio=()
 cooldownCurrent=
@@ -36,16 +36,16 @@ currentWorkaround=false
 
 # NOTES
 
-# The daemon does not have to be restarted after making changes to this file - unless one of the changes is capacity_mask or charging_switch.
+# The daemon does not have to be restarted after making changes to this file - unless one of the changes is charging_switch.
 
-# Changes to current_workaround (cw) only take effect after an acc [re]initialization (install, upgrade or accd --init) or system reboot.
+# A change to current_workaround (cw) only takes effect after an acc [re]initialization (install, upgrade or "accd --init") or system reboot.
 
-# If those 3 variables are updated with "acc --set", accd is restarted automatically (--init is implied as needed).
+# If those 2 variables are updated with "acc --set" (not acca --set), accd is restarted automatically (--init is implied as needed).
 
 
 # BASICS
 
-# capacity=(shutdown_capacity cooldown_capacity resume_capacity pause_capacity capacity_mask)
+# capacity=(shutdown_capacity cooldown_capacity resume_capacity pause_capacity capacity_sync capacity_mask)
 
 # temperature=(cooldown_temp max_temp max_temp_pause shutdown_temp)
 
@@ -91,6 +91,7 @@ currentWorkaround=false
 # cc cooldown_capacity
 # rc resume_capacity
 # pc pause_capacity
+# cs capacity_sync
 # cm capacity_mask
 
 # sc shutdown_capacity
@@ -183,10 +184,17 @@ currentWorkaround=false
 # pause_capacity (pc) #
 # Capacity or voltage_now_millivolts at which charging should pause.
 
+# capacity_sync (cs) #
+# Some devices, notably from the Pixel lineup, have a capacity discrepancy issue between Android and the kernel.
+# capacity_sync forces Android to report the actual battery capacity supplied by the kernel.
+# The discrepancy is usually detected and corrected automatically by accd.
+# This setting overrides the automatic behavior.
+# Besides, it also prevents Android from getting capacity readings below 2%, since some systems shutdown before battery level actually drops to 0%.
+
 # capacity_mask (cm) #
-# This forces Android to report "capacity = capacity * (100 / pause_capacity)", effectively masking capacity limits.
-# It also prevents Android from getting capacity readings below 2% (because some systems shutdown before battery level actually drops to 0%).
-# A daemon restart is required after changing this (automated by "acc --set").
+# Implies capacity_sync.
+# This forces Android to report "capacity = capacity * (100 / pause_capacity)", effectively masking capacity limits (more like capacity_sync on steroids).
+# It also prevents Android from getting capacity readings below 2%, since some systems shutdown before battery level actually drops to 0%.
 
 # cooldown_temp (ct) #
 # Temperature (°C) at which the cooldown cycle starts.
