@@ -126,6 +126,7 @@ if ! $init; then
 
     # run custom code
     eval "${loopCmd[@]-}"
+    eval "${loopCmd_-}"
 
     # shutdown if battery temp >= shutdown_temp
     [ $(cat $temp) -lt $(( ${temperature[3]} * 10 )) ] || {
@@ -156,6 +157,8 @@ if ! $init; then
       $cooldown || resetBattStatsOnUnplug=true
       ${chargingDisabled:-false} || apply_on_plug
       [ -z "${chargingDisabled-}" ] || enable_charging
+
+      shutdownWarnings=true
 
     else
 
@@ -281,19 +284,17 @@ if ! $init; then
         if ! $maxTempPause && [ $(cut -d '.' -f 1 /proc/uptime) -ge 900 ] && not_charging dis; then
           if [ ${capacity[0]} -ge 1 ]; then
             # warnings
-            if ${shutdownWarnings:-false} || [ -f $data_dir/warn ]; then
+            if $shutdownWarnings && [ -f $data_dir/warn ]; then
               if t ${capacity[0]} -gt 3000; then
-                i=2
-                ! t $(grep -o '^..' $voltage_now) -eq $(( ${capacity[0]%??} + i )) \
-                  || su -lp 2000 -c "cmd notification post -S bigtext -t 'ACC' 'Tag' \"WARNING: $(grep -o '^....' $voltage_now | sed 's/^.//' | sed "s/^./$i/")mV to auto shutdown, plug the charger!\"" \
-                  && sleep ${loopDelay[1]} || :
+                ! t $(grep -o '^..' $voltage_now) -eq $(( ${capacity[0]%??} + 2 )) \
+                  || ! su -lp 2000 -c "cmd notification post -S bigtext -t 'ACC' 'Tag' \"WARNING: $(grep -o '^....' $voltage_now | sed 's/^.//' | sed "s/^./$i/")mV to auto shutdown, plug the charger!\"" \
+                    || sleep ${loopDelay[1]}
               else
-                for i in 5 10; do
-                  ! t $(cat $batt/capacity) -eq $(( ${capacity[0]} + i )) \
-                    || su -lp 2000 -c "cmd notification post -S bigtext -t 'ACC' 'Tag' \"WARNING: ${i}% to auto shutdown, plug the charger!\"" \
-                    && sleep ${loopDelay[1]} || :
-                done
+                ! t $(cat $batt/capacity) -eq $(( ${capacity[0]} + 5 )) \
+                  || ! su -lp 2000 -c "cmd notification post -S bigtext -t 'ACC' 'Tag' \"WARNING: ${i}% to auto shutdown, plug the charger!\"" \
+                    || sleep ${loopDelay[1]}
               fi
+              shutdownWarnings=false
             fi
             # action
             if _le_shutdown_cap; then
@@ -377,6 +378,7 @@ if ! $init; then
   capacitySync=false
   dischgStatusCode=""
   maxTempPause=false
+  shutdownWarnings=true
   resetBattStatsOnUnplug=false
 
 
@@ -477,9 +479,9 @@ else
   # whitelist MTK-specific switch, if necessary
   if test -f /proc/mtk_battery_cmd/current_cmd \
     && ! test -f /proc/mtk_battery_cmd/en_power_path \
-    && grep -q "^#/proc/mtk" $execDir/charging-switches.txt
+    && grep -q "^#/proc/mtk" $execDir/ctrl-files.sh
   then
-    sed -i '/^#\/proc\/mtk/s/#//' $execDir/charging-switches.txt
+    sed -i '/^#\/proc\/mtk/s/#//' $execDir/ctrl-files.sh
   fi
 
 
@@ -506,7 +508,10 @@ else
   cd /sys/class/power_supply/
   : > $TMPDIR/ch-switches_
   : > $TMPDIR/ch-switches__
-  grep -Ev '^#|^$' $execDir/charging-switches.txt | \
+  . $execDir/ctrl-files.sh
+  plugins=/data/adb/vr25/acc-data/plugins
+  [ -f $plugins/ctrl-files.sh ] && . $plugins/ctrl-files.sh
+  list_ch_switches | grep -Ev '^#|^$' | \
     while IFS= read -r chargingSwitch; do
       set -f
       set -- $chargingSwitch
@@ -532,60 +537,43 @@ else
 
 
   # read charging voltage control files ###
-  grep -q / $TMPDIR/ch-volt-ctrl-files 2>/dev/null || {
-    : > $TMPDIR/ch-volt-ctrl-files_
-    ls -1 */constant_charge_voltage* */voltage_max \
-      */batt_tune_float_voltage */fg_full_voltage 2>/dev/null | \
-        while read file; do
-          chmod 0644 $file 2>/dev/null && grep -Eq '^4[1-4][0-9]{2}' $file || continue
-          grep -q '.... ....' $file && continue
-          echo ${file}::$(sed -n 's/^..../v/p' $file)::$(cat $file) \
-            >> $TMPDIR/ch-volt-ctrl-files_
-        done
-  }
+  : > $TMPDIR/ch-volt-ctrl-files_
+  ls -1 $(list_volt_ctrl_files) 2>/dev/null | \
+      while read file; do
+        chmod 0644 $file 2>/dev/null && grep -Eq '^4[1-4][0-9]{2}' $file || continue
+        grep -q '.... ....' $file && continue
+        echo ${file}::$(sed -n 's/^..../v/p' $file)::$(cat $file) \
+          >> $TMPDIR/ch-volt-ctrl-files_
+      done
 
 
   # read charging current control files (part 1) ###
   # part 2 runs while charging only
 
-  if [ ! -f $TMPDIR/.ch-curr-read ] \
-    || ! grep -q / $TMPDIR/ch-curr-ctrl-files 2>/dev/null
-  then
-    : > $TMPDIR/ch-curr-ctrl-files_
-    ls -1 */input_current_limited */restrict*_ch*g* \
-      /sys/class/qcom-battery/restrict*_ch*g* 2>/dev/null | \
+  rm $TMPDIR/.ch-curr-read 2>/dev/null
+  : > $TMPDIR/ch-curr-ctrl-files_
+  ls -1 $(list_curr_ctrl_files_boolean) 2>/dev/null | \
+    while read file; do
+      chmod 0644 $file 2>/dev/null || continue
+      grep -q '^[01]$' $file && echo ${file}::1::0 >> $TMPDIR/ch-curr-ctrl-files
+    done
+
+  ls -1 $(list_curr_ctrl_files_static) 2>/dev/null | \
       while read file; do
         chmod 0644 $file 2>/dev/null || continue
-        grep -q '^[01]$' $file && echo ${file}::1::0 >> $TMPDIR/ch-curr-ctrl-files
+        defaultValue=$(cat $file)
+        ampFactor=$(sed -n 's/^ampFactor=//p' $data_dir/config.txt 2>/dev/null)
+        [ -n "$ampFactor" -o $defaultValue -ne 0 ] || continue
+        if [ "${ampFactor:-1}" -eq 1000 -o ${defaultValue#-} -lt 10000 ]; then
+          # milliamps
+          echo ${file}::v::$defaultValue \
+            >> $TMPDIR/ch-curr-ctrl-files_
+        else
+          # microamps
+          echo ${file}::v000::$defaultValue \
+            >> $TMPDIR/ch-curr-ctrl-files_
+        fi
       done
-
-    ls -1 */constant_charge_current_max \
-      */restrict*_cur* \
-      /sys/class/qcom-battery/restrict*_cur* \
-      */batt_tune_*_charge_current */ac_input \
-      */mhl_2000_charge */mhl_2000_input \
-      */hv_charge */ac_charge \
-      */batt_tune_chg_limit_cur */so_limit_input \
-      */so_limit_charge */car_input */sdp_input \
-      */aca_charge */sdp_charge */aca_input \
-      *dcp_input */wc_input */car_charge \
-      */dcp_charge */wc_charge 2>/dev/null | \
-        while read file; do
-          chmod 0644 $file 2>/dev/null || continue
-          defaultValue=$(cat $file)
-          ampFactor=$(sed -n 's/^ampFactor=//p' $data_dir/config.txt 2>/dev/null)
-          [ -n "$ampFactor" -o $defaultValue -ne 0 ] || continue
-          if [ "${ampFactor:-1}" -eq 1000 -o $defaultValue -lt 10000 ]; then
-            # milliamps
-            echo ${file}::v::$defaultValue \
-              >> $TMPDIR/ch-curr-ctrl-files_
-          else
-            # microamps
-            echo ${file}::v000::$defaultValue \
-              >> $TMPDIR/ch-curr-ctrl-files_
-          fi
-        done
-  fi
 
 
   # remove duplicates and parallel/ ctrl files

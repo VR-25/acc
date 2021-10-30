@@ -139,6 +139,7 @@ disable_charging() {
   fi
 
   eval "${runCmdOnPause[@]-}"
+  eval "${runCmdOnPause_-}"
 
   if [ -n "${1-}" ]; then
     case $1 in
@@ -400,6 +401,8 @@ pgrep -f zygote > /dev/null || {
 # load plugins
 mkdir -p ${execDir}-data/plugins $TMPDIR/plugins
 for f in ${execDir}-data/plugins/*.sh $TMPDIR/plugins/*.sh; do
-  [ ! -f "$f" ] || . "$f"
+  if [ -f "$f" ] && [ ${f##*/} != ctrl-files.sh ]; then
+    . "$f"
+  fi
 done
 unset f

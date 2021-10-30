@@ -1,59 +1,46 @@
-(grep_() { grep -Eq "$1" ${2:-$config}; }
-
-get_prop() { sed -n "\|^$1=|s|.*=||p" ${2:-$config} 2>/dev/null || :; }
-
-set_prop_() { sed -i "\|^${1}=|s|=.*|=$2|" ${3:-$config}; }
-
+_grep() { grep -Eq "$1" ${2:-$config}; }
+_set_prop() { sed -i "\|^${1}=|s|=.*|=$2|" ${3:-$config}; }
+_get_prop() { sed -n "\|^$1=|s|.*=||p" ${2:-$config} 2>/dev/null || :; }
 
 # patch/reset [broken/obsolete] config
-
-configVer=0$(get_prop configVerCode)
-defaultConfVer=0$(cat $TMPDIR/.config-ver)
-[ $configVer -eq $defaultConfVer ] || $TMPDIR/acca --set dummy=
-(set +x; . $config) > /dev/null 2>&1 || cat $execDir/default-config.txt > $config
-
+if (set +x; . $config) > /dev/null 2>&1; then
+  configVer=0$(_get_prop configVerCode)
+  defaultConfVer=0$(cat $TMPDIR/.config-ver)
+  [ $configVer -eq $defaultConfVer ] || {
+    if [ $configVer -lt 202109230 ]; then
+      $TMPDIR/acca --set loop_cmd=
+    else
+      $TMPDIR/acca --set dummy=
+    fi
+  }
+else
+  cat $execDir/default-config.txt > $config
+fi
 
 # battery idle mode for OnePlus devices
-if grep_ '^chargingSwitch=.battery/op_disable_charge 0 1 battery/input_suspend 0 0.$'; then
-  [ -f $TMPDIR/.oem-custom ] \
-    || echo "echo 1 > battery/op_disable_charge; echo 0 > battery/input_suspend" > $TMPDIR/.oem-custom
-  grep_ "^loopCmd=.*$TMPDIR/.oem-custom" \
-    || set_prop_ loopCmd "(. $TMPDIR/.oem-custom)"
-else
-  ! grep_ "^loopCmd=.*$TMPDIR/.oem-custom" 2>/dev/null || {
-    set_prop_ loopCmd "()"
-  }
-fi
-
+! _grep '^chargingSwitch=.battery/op_disable_charge 0 1 battery/input_suspend 0 0.$' \
+  || loopCmd_='[ $(cat battery/input_suspend) != 1 ] || echo 0 > battery/input_suspend'
 
 # battery idle mode for Google Pixel 2/XL and devices with similar hardware
-if grep_ '^chargingSwitch=./sys/module/lge_battery/parameters/charge_stop_level'; then
-  [ -f $TMPDIR/.oem-custom ] \
-    || echo "[ \$(cat battery/input_suspend) != 1 ] || echo 0 > battery/input_suspend" > $TMPDIR/.oem-custom
-  grep_ "^loopCmd=.*$TMPDIR/.oem-custom" \
-    || set_prop_ loopCmd "(. $TMPDIR/.oem-custom)"
-else
-  ! grep_ "^loopCmd=.*$TMPDIR/.oem-custom" 2>/dev/null || {
-    set_prop_ loopCmd "()"
-  }
-fi
-
+! _grep '^chargingSwitch=./sys/module/lge_battery/parameters/charge_stop_level' \
+  || loopCmd_='[ $(cat battery/input_suspend) != 1 ] || echo 0 > battery/input_suspend'
 
 # block "ghost charging on steroids" (Xiaomi Redmi 3 - ido)
 [ ! -f $TMPDIR/accd-ido.log ] || touch $TMPDIR/.ghost-charging
 
-
 # mt6795, exclude ChargerEnable switches (troublesome)
 ! getprop | grep -E mt6795 > /dev/null || {
-  ! grep_ ChargerEnable $execDir/charging-switches.txt || {
+  ! _grep ChargerEnable $execDir/ctrl-files.sh || {
     sed -i /ChargerEnable/d $TMPDIR/ch-switches
-    sed -i /ChargerEnable/d $execDir/charging-switches.txt
+    sed -i /ChargerEnable/d $execDir/ctrl-files.sh
   }
 }
 
-
 # set batt_slate_mode as default charging control file for Exynos/Samsung devices
 # this prevents the "battery level stuck at 70%" issue
-if grep_ '^battery/batt_slate_mode 0 1' $TMPDIR/ch-switches; then
-  [ -n "$(get_prop chargingSwitch)" ] || set_prop_ chargingSwitch "(battery/batt_slate_mode 0 1)"
-fi)
+! _grep '^battery/batt_slate_mode 0 1' $TMPDIR/ch-switches \
+  || [ -n "$(_get_prop chargingSwitch)" ] \
+  || _set_prop chargingSwitch "(battery/batt_slate_mode 0 1)"
+
+unset -f _grep _get_prop _set_prop
+unset configVer defaultConfVer

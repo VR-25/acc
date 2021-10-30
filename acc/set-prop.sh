@@ -47,13 +47,17 @@ set_prop() {
       PS3="$(print_choice_prompt)"
       print_known_switches
       . $execDir/select.sh
-      select_ charging_switch $(print_auto; cat $TMPDIR/ch-switches; ! grep -q / $TMPDIR/ch-curr-ctrl-files 2>/dev/null || printf '0\n250\n350\n500\n'; ! grep -q / $TMPDIR/ch-volt-ctrl-files 2>/dev/null || printf '3700\n'; print_exit)
+      select_ charging_switch $(print_auto; cat $TMPDIR/ch-switches; ! grep -q / $TMPDIR/ch-curr-ctrl-files 2>/dev/null || printf '0 mA\n250 mA\n350 mA\n500 mA\n'; ! grep -q / $TMPDIR/ch-volt-ctrl-files 2>/dev/null || printf '3700 mV\n'; print_exit)
       [ ${charging_switch:-x} != $(print_exit) ] || exit 0
       [ ${charging_switch:-x} != $(print_auto) ] || charging_switch=
       case "${charging_switch:-x}" in
         "$(print_exit)") exit 0;;
         "$(print_auto)") charging_switch=;;
-        */*) charging_switch="$charging_switch --";;
+        */*)
+          case "$charging_switch" in
+            */*) charging_switch="$charging_switch --";;
+          esac
+        ;;
       esac
       unset IFS
     ;;
@@ -61,7 +65,8 @@ set_prop() {
     # print switches
     s:|--charging*witch:)
       cat $TMPDIR/ch-switches
-      ! grep -q / $TMPDIR/ch-curr-ctrl-files || printf '0\n250\n350\n500\n'
+      ! grep -q / $TMPDIR/ch-curr-ctrl-files 2>/dev/null || printf '0 mA\n250 mA\n350 mA\n500 mA\n'
+      ! grep -q / $TMPDIR/ch-volt-ctrl-files 2>/dev/null || printf '3700 mV\n'
       return 0
     ;;
 

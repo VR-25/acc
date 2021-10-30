@@ -1,11 +1,5 @@
-# ACC Charging Switches Database
-# Copyright 2017-2021, VR25
-# License: GPLv3+
-#
-# "::" = " ", applies to MTK only
-# PWD=/sys/class/power_supply
-# Last updated: Thu, Sep 9, 2021
-
+list_ch_switches() {
+  echo "
 */*charging_enabled 1 0
 */*disable_charg* 0 1
 */charge_disable 0 1
@@ -36,6 +30,7 @@ battery/charging_enabled 0 0 battery/op_disable_charge 0 1 battery/charging_enab
 /sys/devices/platform/soc/soc:google,charger/charge_disable 0 1
 /sys/devices/platform/soc/soc:oplus,chg_intf/oplus_chg/battery/*charging_enable 1 0
 /sys/devices/soc/soc:lge,*/lge_power/lge_*/charging_enabled 1 0
+/sys/devices/virtual/oplus_chg/battery/*charging_enable 1 0
 /sys/kernel/debug/google_charger/chg_suspend 0 1
 /sys/kernel/debug/google_charger/input_suspend 0 1
 /sys/module/pm*_charger/parameters/disabled 0 1
@@ -46,6 +41,7 @@ battery/charging_enabled 0 0 battery/op_disable_charge 0 1 battery/charging_enab
 
 # experimental
 /sys/devices/platform/battery_meter/FG_suspend_current_threshold 100 5
+/sys/devices/platform/google,charger/charge_start_level 0 95 /sys/devices/platform/google,charger/charge_stop_level 100 5
 bbc/hiz_mode 0 1
 
 # troublesome
@@ -56,3 +52,56 @@ battery/ChargerEnable 1 0
 
 # deprecated
 battery/op_disable_charge 0 1 battery/input_suspend 0 0
+"
+}
+
+list_curr_ctrl_files_boolean() {
+  echo "
+*/input_current_limited
+*/restrict*_ch*g*
+/sys/class/qcom-battery/restrict*_ch*g*
+"
+}
+
+list_curr_ctrl_files_dynamic() {
+  echo "
+*/current_max
+*/input_current_max
+"
+}
+
+list_curr_ctrl_files_static() {
+  echo "
+*/ac_charge
+*/ac_input
+*/aca_charge
+*/aca_input
+*/batt_tune_*_charge_current
+*/batt_tune_chg_limit_cur
+*/car_charge
+*/car_input
+*/constant_charge_current_max
+*/dcp_charge
+*/hv_charge
+*/mhl_2000_charge
+*/mhl_2000_input
+*/restrict*_cur*
+*/sdp_charge
+*/sdp_input
+*/so_limit_charge
+*/so_limit_input
+*/wc_charge
+*/wc_input
+*dcp_input
+/sys/class/qcom-battery/restrict*_cur*
+"
+}
+
+list_volt_ctrl_files() {
+  echo "
+*/batt_tune_float_voltage
+*/constant_charge_voltage*
+*/fg_full_voltage
+*/voltage_max
+"
+}

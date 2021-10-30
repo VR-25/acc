@@ -98,7 +98,7 @@ edit() {
   local file="$1"
   shift
   if [ -n "${1-}" ]; then
-    eval "$@ $file"
+    IFS="$(printf ' \t\n')" eval "$* $file"
   else
     ! ${verbose:-true} || {
       case $file in
@@ -192,7 +192,7 @@ parse_switches() {
     i="$(echo "$i $n" | grep -Eiv 'brightness|curr|online|present|runtime|status|temp|volt|wakeup' \
       | sed 's|^/.*/power_supply/||')"
 
-    if ! grep -q "^$i" $1; then
+    if [ -n "$i" ] && ! grep -q "^$i" $1; then
       echo "$i"
     fi
 
@@ -293,7 +293,7 @@ case "${1-}" in
 
   [0-9]*)
     if [ $1 -gt 3000 ]; then
-      capacity[2]=${2:-$((${1}-50))}
+      capacity[2]=${2:-$((${1}-100))}
     else
       capacity[2]=${2:-$((${1}-5))}
     fi
@@ -349,7 +349,7 @@ case "${1-}" in
 
     pause_capacity=${2:-100}
     resume_capacity=$(( pause_capacity - 1 ))
-    run_cmd_on_pause="exec $TMPDIR/accd"
+    runCmdOnPause_="exec $TMPDIR/accd"
 
     cp -f $config $TMPDIR/.acc-f-config
     config=$TMPDIR/.acc-f-config

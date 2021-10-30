@@ -1,4 +1,4 @@
-configVerCode=202109200
+configVerCode=202110020
 capacity=(-1 60 70 75 false false)
 temperature=(40 60 90 65)
 cooldownRatio=()
@@ -63,9 +63,13 @@ currentWorkaround=false
 
 # chargingSwitch=charging_switch=(3700)
 
-# applyOnBoot=apply_on_boot=(ctrl_file1::value1::default1 ctrl_file2::value2::default2 ... --exit)
+# applyOnBoot=apply_on_boot=(ctrl_file1::value[::default] ctrl_file2::value[::default] ... --exit)
 
-# applyOnPlug=apply_on_plug=(ctrl_file1::value1::default1 ctrl_file2::value2::default2 ...)
+# applyOnPlug=apply_on_plug=(ctrl_file1::value[::default] ctrl_file2::value[::default] ...)
+
+# maxChargingCurrent=max_charging_current=([value] ctrl_file1::value::default ctrl_file2::value::default ...)
+
+# maxChargingVoltage=max_charging_voltage=([value] ctrl_file1::value::default ctrl_file2::value::default ...) --exit)
 
 # maxChargingCurrent=max_charging_current=([value] ctrl_file1::value::default1 ctrl_file2::value::default2 ...)
 
@@ -170,8 +174,8 @@ currentWorkaround=false
 
 # shutdown_capacity (sc) #
 # When the battery is discharging and its capacity/voltage_now_millivolts <= sc and phone has been running for 15 minutes or more, acc daemon turns the phone off to reduce the discharge rate and protect the battery from potential damage induced by voltage below the operating range.
-# sc=0 disables it.
-# [Beta] if the file /data/adb/vr25/acc-data/warn exists, accd posts Android shutdown warning notifications at sc+10%, sc+5%, sc+300mV and sc+100mV.
+# sc=-1 disables it.
+# [Beta] if the file /data/adb/vr25/acc-data/warn exists, accd posts Android shutdown warning notifications at sc + 5% or sc + 200 mV.
 
 # cooldown_capacity (cc) #
 # Capacity/voltage_now_millivolts at which the cooldown cycle starts.
@@ -244,7 +248,7 @@ currentWorkaround=false
 # If charging switch is set to 3700 (millivolts), acc stops charging by limiting voltage.
 # For details, refer to the readme's tips section.
 # Unlike the original variant, this kind of switch is never unset automatically.
-# Thus, in this case, ppending " --" to it leads to invalid syntax.
+# Thus, in this case, appending " --" to it leads to invalid syntax.
 # A daemon restart is required after changing this (automated by "acc --set").
 
 # apply_on_boot (ab) #

@@ -240,7 +240,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202109200
+configVerCode=202110020
 capacity=(-1 60 70 75 false false)
 temperature=(40 60 90 65)
 cooldownRatio=()
@@ -305,9 +305,13 @@ currentWorkaround=false
 
 # chargingSwitch=charging_switch=(3700)
 
-# applyOnBoot=apply_on_boot=(ctrl_file1::value1::default1 ctrl_file2::value2::default2 ... --exit)
+# applyOnBoot=apply_on_boot=(ctrl_file1::value[::default] ctrl_file2::value[::default] ... --exit)
 
-# applyOnPlug=apply_on_plug=(ctrl_file1::value1::default1 ctrl_file2::value2::default2 ...)
+# applyOnPlug=apply_on_plug=(ctrl_file1::value[::default] ctrl_file2::value[::default] ...)
+
+# maxChargingCurrent=max_charging_current=([value] ctrl_file1::value::default ctrl_file2::value::default ...)
+
+# maxChargingVoltage=max_charging_voltage=([value] ctrl_file1::value::default ctrl_file2::value::default ...) --exit)
 
 # maxChargingCurrent=max_charging_current=([value] ctrl_file1::value::default1 ctrl_file2::value::default2 ...)
 
@@ -412,8 +416,8 @@ currentWorkaround=false
 
 # shutdown_capacity (sc) #
 # When the battery is discharging and its capacity/voltage_now_millivolts <= sc and phone has been running for 15 minutes or more, acc daemon turns the phone off to reduce the discharge rate and protect the battery from potential damage induced by voltage below the operating range.
-# sc=0 disables it.
-# [Beta] if the file /data/adb/vr25/acc-data/warn exists, accd posts Android shutdown warning notifications at sc+10%, sc+5%, sc+300mV and sc+100mV.
+# sc=-1 disables it.
+# [Beta] if the file /data/adb/vr25/acc-data/warn exists, accd posts Android shutdown warning notifications at sc + 5% or sc + 200 mV.
 
 # cooldown_capacity (cc) #
 # Capacity/voltage_now_millivolts at which the cooldown cycle starts.
@@ -486,7 +490,7 @@ currentWorkaround=false
 # If charging switch is set to 3700 (millivolts), acc stops charging by limiting voltage.
 # For details, refer to the readme's tips section.
 # Unlike the original variant, this kind of switch is never unset automatically.
-# Thus, in this case, ppending " --" to it leads to invalid syntax.
+# Thus, in this case, appending " --" to it leads to invalid syntax.
 # A daemon restart is required after changing this (automated by "acc --set").
 
 # apply_on_boot (ab) #
@@ -811,6 +815,8 @@ Hidden files and those without the `.sh` extension are ignored.
 There are also _volatile_ plugins (gone on reboot, useful for debugging): `/dev/.vr25/acc/plugins/`.
 Those override the permanent.
 
+A daemon restart is required to load new/modified plugins.
+
 
 ---
 ## NOTES/TIPS FOR FRONT-END DEVELOPERS
@@ -1002,12 +1008,8 @@ Here's how to do it:
 2. Run `acc --set charging_switch` (or `acc -ss`) to enforce a working switch.
 3. Test the reliability of the set switch. If it doesn't work properly, try another.
 
-Since not everyone is tech savvy, ACC daemon automatically applies certain settings for specific devices (e.g., MediaTek, OnePlus, Razer) to minimize charging switch issues.
+Since not everyone is tech savvy, ACC daemon automatically applies settings for certain devices to minimize charging switch issues.
 These are are in `acc/oem-custom.sh`.
-
-Note: as part of the output of `acc -ss` and `acc -ss:`, you may see plain numbers alone or in addition to charging switches.
-These are presets the current and voltage (3700) based charging control feature.
-For details, refer to [tips](#tips) section below.
 
 
 ### Custom Max Charging Voltage And Current Limits
@@ -1036,6 +1038,10 @@ These are simply ignored.
 
 If low current values don't work, try setting `current_workaround=true` (takes effect after `accd --init`.
 Refer to the [default configuration](#default-configuration) section for details.
+
+One can override the default lists of max charging current/voltage control files by copying `acc/ctrl-files.sh` to `/data/adb/vr25/acc-data/plugins/` and modifying it accordingly.
+Note that default limits must be restored prior to that to avoid the need for a system reboot.
+Reminder: a daemon restart is required to load new/modified plugins.
 
 
 ### Diagnostics/Logs
@@ -1346,6 +1352,7 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 
 - [Must read - how to prolong lithium ion batteries lifespan](https://batteryuniversity.com/article/bu-808-how-to-prolong-lithium-based-batteries/)
 - [ACC app](https://github.com/MatteCarra/AccA/releases/)
+- [Airtm, username: ivandro863auzqg](https://app.airtm.com/send-or-request/send)
 - [Daily Job Scheduler](https://github.com/VR-25/djs/)
 - [Facebook page](https://fb.me/vr25xda/)
 - [Git repository](https://github.com/VR-25/acc/)
@@ -1361,19 +1368,7 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 ---
 ## LATEST CHANGES
 
-
-**v2021.9.5 (202109050)**
-
-- Additional charging switches (including a group of 3 for OnePlus that allegedly enable idle mode)
-- Fixed plugins path typo
-- General fixes
-- Major optimizations
-- Support for charging switch groups with unlimited number of elements (e.g., s="file1 on off file2 on off file3 on off...")
-- Use charge_type in addition to status to determine the real battery status.
-
-
 **v2021.9.19 (202109190)**
-
 - Additional charging switches - the database is more concise with the extensive use of wildcards.
 - Battery status detection enhancements
 - `capacity_mask=true`: forces Android to report `capacity = capacity * (100 / pause_capacity)`, effectively masking capacity limits. This replaces `capacity_freeze2`.
@@ -1385,10 +1380,18 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 - Updated documentation (mainly tips > idle mode and alternatives)
 - Upgrade rollback feature (`-b|--rollback` or wizard option `f`)
 
-
 **v2021.9.20 (202109200)**
-
 - General enhancements
 - Manual capacitySync toggle (`[capacity_sync|cs] = [true|false]`) - it overrides the automatic. Both include the `freeze at 2%` feature. This is the actual `capacity_freeze2` replacement now. `capacity_mask` implies `capacity_sync`.
 - Unlike in previous versions, changes to `capacity_mask` and `capacity_sync` take effect (within a few seconds) without a daemon restart.
 - Updated documentation
+
+**v2021.10.30 (202110300)**
+- Additional charging switches
+- All control files (switches, current and voltage) are now contained in a single file (ctrl-files.sh) and it can be overridden by a plugin with the same name.
+- Fixed issue #117 (@onokatio).
+- General optimizations
+- Shutdown warning notifications are less annoying (non-repetitive), but are still disabled by default. To enable, create the file `/data/adb/vr25/acc-data/warn`.
+- Strip newlines from the output of acc -p.
+- The logs tarball now also includes the outputs of `getprop` and `acc -p` (potential/new charging switches).
+- Updated Documentation

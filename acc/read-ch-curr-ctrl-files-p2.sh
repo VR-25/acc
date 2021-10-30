@@ -8,12 +8,16 @@ if [ ! -f $TMPDIR/.ch-curr-read ] \
   || ! grep -q / $TMPDIR/ch-curr-ctrl-files 2>/dev/null
 then
 
-  ls -1 */current_max */input_current_max 2>/dev/null | \
+  . $execDir/ctrl-files.sh
+  plugins=/data/adb/vr25/acc-data/plugins
+  [ -f $plugins/ctrl-files.sh ] && . $plugins/ctrl-files.sh
+
+  ls -1 $(list_curr_ctrl_files_dynamic) 2>/dev/null | \
     while read file; do
       chmod 0644 $file || continue
       defaultValue=$(cat $file)
       [ $defaultValue -eq 0 ] && continue
-      if [ $defaultValue -lt 10000 ]; then
+      if [ ${defaultValue#-} -lt 10000 ]; then
         # milliamps
         echo ${file}::v::$defaultValue \
           >> $TMPDIR/ch-curr-ctrl-files

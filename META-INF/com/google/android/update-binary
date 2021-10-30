@@ -93,7 +93,7 @@ set -eu
 srcDir="$(cd "${0%/*}" 2>/dev/null || :; echo "$PWD")"
 
 # extract flashable zip if source code is unavailable
-[ -f $srcDir/module.prop ] || {
+[ -f $srcDir/$id ] || {
   srcDir=/dev/.$domain.${id}-install
   rm -rf $srcDir 2>/dev/null || :
   mkdir $srcDir
