@@ -197,7 +197,6 @@ if ! $init; then
   ctrl_charging() {
 
     local count=0
-    local i=
 
     while :; do
 
@@ -286,12 +285,12 @@ if ! $init; then
             # warnings
             if $shutdownWarnings && [ -f $data_dir/warn ]; then
               if t ${capacity[0]} -gt 3000; then
-                ! t $(grep -o '^..' $voltage_now) -eq $(( ${capacity[0]%??} + 2 )) \
-                  || ! su -lp 2000 -c "cmd notification post -S bigtext -t 'ACC' 'Tag' \"WARNING: $(grep -o '^....' $voltage_now | sed 's/^.//' | sed "s/^./$i/")mV to auto shutdown, plug the charger!\"" \
+                ! t $(grep -o '^..' $voltage_now) -eq $(( ${capacity[0]%??} + 1 )) \
+                  || ! su -lp 2000 -c "cmd notification post -S bigtext -t 'ACC' 'Tag' \"WARNING: ~100mV to auto shutdown, plug the charger!\"" \
                     || sleep ${loopDelay[1]}
               else
                 ! t $(cat $batt/capacity) -eq $(( ${capacity[0]} + 5 )) \
-                  || ! su -lp 2000 -c "cmd notification post -S bigtext -t 'ACC' 'Tag' \"WARNING: ${i}% to auto shutdown, plug the charger!\"" \
+                  || ! su -lp 2000 -c "cmd notification post -S bigtext -t 'ACC' 'Tag' \"WARNING: 5% to auto shutdown, plug the charger!\"" \
                     || sleep ${loopDelay[1]}
               fi
               shutdownWarnings=false
@@ -340,7 +339,7 @@ if ! $init; then
           local maskedCap=$battCap
         else
           local capFactor=$(calc 100 / ${capacity[3]})
-          local maskedCap=$(printf "%.*f" 0 $(calc $battCap \* $capFactor))
+          local maskedCap=$(printf %.f $(calc $battCap \* $capFactor))
         fi
       }
 

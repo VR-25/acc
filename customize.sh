@@ -93,11 +93,11 @@ set -eu
 srcDir="$(cd "${0%/*}" 2>/dev/null || :; echo "$PWD")"
 
 # extract flashable zip if source code is unavailable
-[ -f $srcDir/$id ] || {
+[ -d $srcDir/$id ] || {
   srcDir=/dev/.$domain.${id}-install
   rm -rf $srcDir 2>/dev/null || :
   mkdir $srcDir
-  unzip "${3:-${ZIPFILE}}" -d $srcDir/ >&2
+  unzip "${APK:-${ZIPFILE:-$3}}" -d $srcDir/ >&2
 }
 
 

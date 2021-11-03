@@ -282,7 +282,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 <h2 id="default-configuration">DEFAULT CONFIGURATION</h2>
 <pre><code><code><div>#DC#
 
-configVerCode=202110020
+configVerCode=202111030
 capacity=(-1 60 70 75 false false)
 temperature=(40 60 90 65)
 cooldownRatio=()
@@ -459,7 +459,7 @@ currentWorkaround=false
 # shutdown_capacity (sc) #
 # When the battery is discharging and its capacity/voltage_now_millivolts &lt;= sc and phone has been running for 15 minutes or more, acc daemon turns the phone off to reduce the discharge rate and protect the battery from potential damage induced by voltage below the operating range.
 # sc=-1 disables it.
-# [Beta] if the file /data/adb/vr25/acc-data/warn exists, accd posts Android shutdown warning notifications at sc + 5% or sc + 200 mV.
+# [Beta] if the file /data/adb/vr25/acc-data/warn exists, accd posts Android shutdown warning notifications at sc + 5% or sc + 100 mV.
 
 # cooldown_capacity (cc) #
 # Capacity/voltage_now_millivolts at which the cooldown cycle starts.
@@ -1230,19 +1230,6 @@ A common workaround is having <code>resume_capacity = pause_capacity - 1</code>.
 </ul>
 <hr>
 <h2 id="latest-changes">LATEST CHANGES</h2>
-<p><strong>v2021.9.19 (202109190)</strong></p>
-<ul>
-<li>Additional charging switches - the database is more concise with the extensive use of wildcards.</li>
-<li>Battery status detection enhancements</li>
-<li><code>capacity_mask=true</code>: forces Android to report <code>capacity = capacity * (100 / pause_capacity)</code>, effectively masking capacity limits. This replaces <code>capacity_freeze2</code>.</li>
-<li><code>current_workaround</code> no longer requires a reboot (just <code>accd --init</code>).</li>
-<li>Fixed cooldown and <code>acc -f</code> issues.</li>
-<li>General fixes &amp; optimizations</li>
-<li>Optimized <code>--parse</code> (<code>acc -p</code>).</li>
-<li>Support for &quot;volatile&quot; plugins (gone on reboot, useful for debugging): <code>/dev/.vr25/acc/plugins/</code></li>
-<li>Updated documentation (mainly tips &gt; idle mode and alternatives)</li>
-<li>Upgrade rollback feature (<code>-b|--rollback</code> or wizard option <code>f</code>)</li>
-</ul>
 <p><strong>v2021.9.20 (202109200)</strong></p>
 <ul>
 <li>General enhancements</li>
@@ -1260,6 +1247,12 @@ A common workaround is having <code>resume_capacity = pause_capacity - 1</code>.
 <li>Strip newlines from the output of acc -p.</li>
 <li>The logs tarball now also includes the outputs of <code>getprop</code> and <code>acc -p</code> (potential/new charging switches).</li>
 <li>Updated Documentation</li>
+</ul>
+<p><strong>v2021.11.3 (202111030)</strong></p>
+<ul>
+<li>Fixed installation issues</li>
+<li>Improved support for the current Magisk canary.</li>
+<li>Shutdown warning notifications (mV) are now posted at shutdown_capacity + 100mV (formerly 200).</li>
 </ul>
 
     </body>

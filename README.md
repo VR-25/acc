@@ -240,7 +240,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202110020
+configVerCode=202111030
 capacity=(-1 60 70 75 false false)
 temperature=(40 60 90 65)
 cooldownRatio=()
@@ -417,7 +417,7 @@ currentWorkaround=false
 # shutdown_capacity (sc) #
 # When the battery is discharging and its capacity/voltage_now_millivolts <= sc and phone has been running for 15 minutes or more, acc daemon turns the phone off to reduce the discharge rate and protect the battery from potential damage induced by voltage below the operating range.
 # sc=-1 disables it.
-# [Beta] if the file /data/adb/vr25/acc-data/warn exists, accd posts Android shutdown warning notifications at sc + 5% or sc + 200 mV.
+# [Beta] if the file /data/adb/vr25/acc-data/warn exists, accd posts Android shutdown warning notifications at sc + 5% or sc + 100 mV.
 
 # cooldown_capacity (cc) #
 # Capacity/voltage_now_millivolts at which the cooldown cycle starts.
@@ -1368,18 +1368,6 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 ---
 ## LATEST CHANGES
 
-**v2021.9.19 (202109190)**
-- Additional charging switches - the database is more concise with the extensive use of wildcards.
-- Battery status detection enhancements
-- `capacity_mask=true`: forces Android to report `capacity = capacity * (100 / pause_capacity)`, effectively masking capacity limits. This replaces `capacity_freeze2`.
-- `current_workaround` no longer requires a reboot (just `accd --init`).
-- Fixed cooldown and `acc -f` issues.
-- General fixes & optimizations
-- Optimized `--parse` (`acc -p`).
-- Support for "volatile" plugins (gone on reboot, useful for debugging): `/dev/.vr25/acc/plugins/`
-- Updated documentation (mainly tips > idle mode and alternatives)
-- Upgrade rollback feature (`-b|--rollback` or wizard option `f`)
-
 **v2021.9.20 (202109200)**
 - General enhancements
 - Manual capacitySync toggle (`[capacity_sync|cs] = [true|false]`) - it overrides the automatic. Both include the `freeze at 2%` feature. This is the actual `capacity_freeze2` replacement now. `capacity_mask` implies `capacity_sync`.
@@ -1395,3 +1383,8 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 - Strip newlines from the output of acc -p.
 - The logs tarball now also includes the outputs of `getprop` and `acc -p` (potential/new charging switches).
 - Updated Documentation
+
+**v2021.11.3 (202111030)**
+- Fixed installation issues
+- Improved support for the current Magisk canary.
+- Shutdown warning notifications (mV) are now posted at shutdown_capacity + 100mV (formerly 200).

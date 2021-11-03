@@ -177,7 +177,6 @@ parse_switches() {
   if [ -z "${2-}" ]; then
     set -- $1 $(echo ${config_%/*}/logs/power_supply-${device}.log)
     [ -f $2 ] || $execDir/power-supply-logger.sh
-    echo
   fi
 
   cat -v "$2" > $f
