@@ -1100,7 +1100,7 @@ Refer back to the [warnings](#warnings) section above.
 
 ### WARP, VOOC and Other Fast Charging Tech
 
-Charging witches may not work reliably with the original power adapter.
+Charging switches may not work reliably with the original power adapter.
 This has nothing to do with acc.
 It's bad design by the OEMs themselves.
 If you face issues, either try a different charging switch or a regular power brick (a.k.a., slow charger).
