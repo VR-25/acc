@@ -252,8 +252,6 @@ flip_sw() {
   set -- ${chargingSwitch[@]-}
   [ -f ${1:-//} ] || return 1
 
-  [ $flip != off ] || currNow_=$(cat $currFile)
-
   while [ -f ${1:-//} ]; do
     on="$(echo $2 | sed 's/::/ /g')"
     off="$(echo $3 | sed 's/::/ /g')"
@@ -301,7 +299,7 @@ print_wait_plug() {
 
 sleep_sd() {
   local i=
-  for i in 1 2 3 4; do
+  for i in $(seq 4); do
     eval "$@" && return 0 || sleep $switchDelay
   done
   return 1

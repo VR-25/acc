@@ -1,7 +1,7 @@
 # Advanced Charging Controller (ACC)
 
 
-
+---
 - [DESCRIPTION](#description)
 - [LICENSE](#license)
 - [DISCLAIMER](#disclaimer)
@@ -30,6 +30,7 @@
   - [Profiles](#profiles)
   - [More](#more)
 - [TROUBLESHOOTING](#troubleshooting)
+  - [`acc -t` Is Stuck Waiting for Charger and/or `acc -i status` Never Reads "Charging"](#acc--t-is-stuck-waiting-for-charger-andor-acc--i-status-never-reads-charging)
   - [Battery Capacity (% Level) Doesn't Seem Right](#battery-capacity--level-doesnt-seem-right)
   - [Bootloop](#bootloop)
   - [Charging Switch](#charging-switch)
@@ -122,11 +123,11 @@ As the project gets bigger and more popular, the need for coffee goes up as well
 ---
 ## PREREQUISITES
 
-- [Must read - how to prolong lithium ion batteries lifespan](https://batteryuniversity.com/article/bu-808-how-to-prolong-lithium-based-batteries/)
+- [Must read - how to prolong lithium ion batteries lifespan](https://batteryuniversity.com/article/bu-808-how-to-prolong-lithium-based-batteries)
 - Android or Android based OS
-- Any root solution (e.g., [Magisk](https://github.com/topjohnwu/Magisk/))
-- [Busybox\*](https://github.com/search?o=desc&q=busybox+android&s=updated&type=Repositories/) (only if not rooted with Magisk)
-- [curl](https://github.com/search?o=desc&q=curl+android&s=updated&type=Repositories/) (for acc --upgrade, optional)
+- Any root solution (e.g., [Magisk](https://github.com/topjohnwu/Magisk))
+- [Busybox\*](https://github.com/search?o=desc&q=busybox+android&s=updated&type=Repositories) (only if not rooted with Magisk)
+- [curl](https://github.com/search?o=desc&q=curl+android&s=updated&type=Repositories) (for acc --upgrade, optional)
 - Non-Magisk users can enable acc auto-start by running /data/adb/vr25/acc/service.sh, a copy of, or a link to it - with init.d or an app that emulates it.
 - Terminal emulator
 - Text editor (optional)
@@ -144,7 +145,7 @@ Other executables or static binaries can also be placed in /data/adb/vr25/bin/ (
 
 0. All commands/actions require root.
 
-1. Install/upgrade: flash\* the zip or use a front-end app (e.g. AccA).
+1. Install/upgrade: flash\* the zip or use a front-end app.
 There are two additional ways of upgrading: `acc --upgrade` (online) and `acc --flash` (zip flasher).
 Rebooting after installation/removal is generally unnecessary.
 
@@ -554,7 +555,6 @@ The only command you have to remember is `acc`.
 It's a wizard you'll either love or hate.
 
 If you feel uncomfortable with the command line, skip this section and use a front-end app instead.
-[ACC App](https://github.com/MatteCarra/AccA/releases/) is a good choice.
 
 Alternatively, you can use a `text editor` to modify `/data/adb/vr25/acc-data/config.txt`.
 The config file itself has configuration instructions.
@@ -961,6 +961,13 @@ This information is in the [default configuration](#default-configuration) secti
 ## TROUBLESHOOTING
 
 
+### `acc -t` Is Stuck Waiting for Charger and/or `acc -i status` Never Reads "Charging"
+
+Create `/data/adb/vr25/acc-data/curr` (persistent) or `/dev/.vr25/acc/curr` (volatile) to disable enhanced battery status check.
+In the enhanced mode, if battery status is "charging" and the absolute value of current is <= 50 mA, the status is considered "not charging".
+If the device reports abnormal current values (e.g., due to a hardware issue) and acc fails to notice the issue, charging control will not work.
+
+
 ### Battery Capacity (% Level) Doesn't Seem Right
 
 When Android's battery level differs from that of the kernel, ACC daemon automatically syncs it by stopping the battery service and feeding it the real value every few seconds.
@@ -1121,7 +1128,7 @@ Manually setting a working switch with `acc -ss` or `acc -s s="SWITCHES GO HERE 
 ---
 ## POWER SUPPLY LOGS (HELP NEEDED)
 
-Please run `acc -le` and upload `/data/adb/vr25/acc-data/logs/power_supply-*.log` to [my dropbox](https://www.dropbox.com/request/WYVDyCc0GkKQ8U5mLNlH/) (no account/sign-up required).
+Please run `acc -le` and upload `/data/adb/vr25/acc-data/logs/power_supply-*.log` to [my dropbox](https://www.dropbox.com/request/WYVDyCc0GkKQ8U5mLNlH) (no account/sign-up required).
 This file contains invaluable power supply information, such as battery details and available charging control files.
 A public database is being built for mutual benefit.
 Your cooperation is greatly appreciated.
@@ -1350,29 +1357,24 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 ---
 ## LINKS
 
-- [Must read - how to prolong lithium ion batteries lifespan](https://batteryuniversity.com/article/bu-808-how-to-prolong-lithium-based-batteries/)
-- [ACC app](https://github.com/MatteCarra/AccA/releases/)
-- [Airtm, username: ivandro863auzqg](https://app.airtm.com/send-or-request/send)
-- [Daily Job Scheduler](https://github.com/VR-25/djs/)
-- [Facebook page](https://fb.me/vr25xda/)
-- [Git repository](https://github.com/VR-25/acc/)
-- [Liberapay](https://liberapay.com/VR25/)
-- [Patreon](https://patreon.com/vr25/)
-- [PayPal](https://paypal.me/vr25xda/)
-- [Telegram channel](https://t.me/vr25_xda/)
-- [Telegram group](https://t.me/acc_group/)
-- [Telegram profile](https://t.me/vr25xda/)
-- [XDA thread](https://forum.xda-developers.com/apps/magisk/module-magic-charging-switch-cs-v2017-9-t3668427/)
+- [Daily Job Scheduler](https://github.com/VR-25/djs)
+- [Donate - Airtm, username: ivandro863auzqg](https://app.airtm.com/send-or-request/send)
+- [Donate - Liberapay](https://liberapay.com/vr25)
+- [Donate - Patreon](https://patreon.com/vr25)
+- [Donate - PayPal or Credit/Debit Card](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=iprj25@gmail.com&lc=US&item_name=VR25+is+creating+free+and+open+source+software.+Donate+to+suppport+their+work.&no_note=0&cn=&currency_code=USD&bn=PP-DonationsBF:btn_donateCC_LG.gif:NonHosted)
+- [Facebook Page](https://fb.me/vr25xda)
+- [Frontend - ACC App](https://github.com/MatteCarra/AccA/releases)
+- [Frontend - ACC Settings](https://github.com/CrazyBoyFeng/AccSettings)
+- [Must Read - How to Prolong Lithium Ion Batteries Lifespan](https://batteryuniversity.com/article/bu-808-how-to-prolong-lithium-based-batteries)
+- [Telegram Channel](https://t.me/vr25_xda)
+- [Telegram Group](https://t.me/acc_group)
+- [Telegram Profile](https://t.me/vr25xda)
+- [Upstream Repository](https://github.com/VR-25/acc)
+- [XDA Thread](https://forum.xda-developers.com/apps/magisk/module-magic-charging-switch-cs-v2017-9-t3668427)
 
 
 ---
 ## LATEST CHANGES
-
-**v2021.9.20 (202109200)**
-- General enhancements
-- Manual capacitySync toggle (`[capacity_sync|cs] = [true|false]`) - it overrides the automatic. Both include the `freeze at 2%` feature. This is the actual `capacity_freeze2` replacement now. `capacity_mask` implies `capacity_sync`.
-- Unlike in previous versions, changes to `capacity_mask` and `capacity_sync` take effect (within a few seconds) without a daemon restart.
-- Updated documentation
 
 **v2021.10.30 (202110300)**
 - Additional charging switches
@@ -1388,3 +1390,13 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 - Fixed installation issues
 - Improved support for the current Magisk canary.
 - Shutdown warning notifications (mV) are now posted at shutdown_capacity + 100mV (formerly 200).
+
+**v2021.12.14 (202112140)**
+- Additional charging switches;
+- Auto-add current and voltage ctrl files to charging switches list for extended idle mode support;
+- Do not include potentially sensitive data in log archives;
+- Enhanced charging status and idle mode detection (current is checked in addition to battery status);
+- General fixes & optimizations;
+- Reverted `acc mA` resume difference to 50;
+- Updated build script;
+- Updated links in the README.

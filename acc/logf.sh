@@ -11,15 +11,11 @@ logf() {
 
     $execDir/power-supply-logger.sh
     { parse_switches 2>/dev/null || ./acca --parse; } > acc-p.txt
-    dmesg > dmesg.txt
 
     cp ch-switches charging-switches.txt
     cp oem-custom oem-custom.txt 2>/dev/null
     cp ch-curr-ctrl-files charging-current-ctrl-files.txt
     cp ch-volt-ctrl-files charging-voltage-ctrl-files.txt
-
-    [ -d /data/app/mattecarra.accapp* ] \
-      && logcat -de mattecarra.accapp > mattecarra.accapp.log
 
     for file in /cache/magisk.log /data/cache/magisk.log; do
       [ -f $file ] && cp $file ./ && break
@@ -34,10 +30,8 @@ logf() {
     batt_info > $TMPDIR/acc-i.txt)
     dumpsys battery > dumpsys-battery.txt
 
-    getprop > props.txt
-
     tar -c *.log *.txt | gzip -9 > $data_dir/logs/acc-logs-$device.tar.gz
-    rm *.txt magisk.log in*.log power*.log m*accapp.log 2>/dev/null
+    rm *.txt magisk.log in*.log power*.log 2>/dev/null
     echo "(i) $data_dir/logs/acc-logs-$device.tar.gz"
 
   else

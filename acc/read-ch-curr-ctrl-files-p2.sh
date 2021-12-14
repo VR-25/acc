@@ -30,6 +30,15 @@ then
 
   sort -u $TMPDIR/ch-curr-ctrl-files > $TMPDIR/ch-curr-ctrl-files_
 
+  # add curr and volt ctrl files to charging switches list
+  sed -e 's/::.*::/ /g' -e 's/$/ 0/' $TMPDIR/ch-curr-ctrl-files_ > $TMPDIR/.ctrl
+  sed -Ee 's/::.*::/ /g' -e 's/( [0-9]+)/\1RRRR\1/' -e 's/RRRR...../ 3920/' $TMPDIR/ch-volt-ctrl-files_ >> $TMPDIR/.ctrl
+  grep / $TMPDIR/.ctrl >> $TMPDIR/ch-switches
+  rm $TMPDIR/.ctrl
+
+  # exclude troublesome ctrl files
+  sed -i '\|bq[0-9].*/current_max|d' $TMPDIR/ch-switches
+
   # exclude non-batt control files
   $currentWorkaround \
     && grep -i batt $TMPDIR/ch-curr-ctrl-files_ > $TMPDIR/ch-curr-ctrl-files \

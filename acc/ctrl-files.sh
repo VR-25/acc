@@ -21,6 +21,7 @@ battery/charging_enabled 0 0 battery/op_disable_charge 0 1 battery/charging_enab
 /sys/class/battchg_ext/*input_suspend 0 1
 /sys/class/hw_power/charger/charge_data/enable_charger 1 0
 /sys/class/qcom-battery/input_suspend 0 1
+/sys/devices/*/*/*/charging_state enabled disabled
 /sys/devices/platform/*/*/*/charging_state enabled disabled
 /sys/devices/platform/huawei_charger/enable_charger 1 0
 /sys/devices/platform/lge-unified-nodes/charging_completed 0 1
@@ -37,12 +38,16 @@ battery/charging_enabled 0 0 battery/op_disable_charge 0 1 battery/charging_enab
 
 /proc/driver/charger_limit_enable 0 1 /proc/driver/charger_limit 100 1
 /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0
-/sys/module/lge_battery/parameters/charge_stop_level 100 1 battery/input_suspend 0 0
+/sys/module/lge_battery/parameters/charge_stop_level 100 5 battery/input_suspend 0 0
 
 # experimental
 /sys/devices/platform/battery_meter/FG_suspend_current_threshold 100 5
-/sys/devices/platform/google,charger/charge_start_level 0 95 /sys/devices/platform/google,charger/charge_stop_level 100 5
+/sys/devices/platform/google,charger/charge_stop_level 100 5
+battery/hmt_ta_charge 1 0
 bbc/hiz_mode 0 1
+CROS_USB_PD_CHARGER0/charge_control_limit_max 0 1
+usb/cc_toggle_enable 1 0
+usb/otg_fastroleswap 0 1
 
 # troublesome
 /sys/devices/platform/battery/ChargerEnable 1 0

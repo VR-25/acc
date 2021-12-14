@@ -64,9 +64,7 @@ set -x
   cat /proc/version 2>/dev/null || uname -a
   echo
   echo
-  getprop | grep product
-  echo
-  getprop | grep version
+  getprop | grep -E 'batt|charg|power_supply|product|version'
   echo
   echo
   gather_ps_data /sys

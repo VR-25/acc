@@ -57,7 +57,7 @@ batt_info() {
 
   # parse CURRENT_NOW & convert to Amps
   currNow=$(echo "$info" | sed -n "s/^CURRENT_NOW=//p" | head -n1)
-  dtr_conv_factor ${currNow#-} ${ampFactor-}
+  dtr_conv_factor ${currNow#-} ${ampFactor:-$ampFactor_}
   currNow=$(calc ${currNow:-0} / $factor)
 
 

@@ -46,7 +46,7 @@ cw=${current_workaround-${cw-$currentWorkaround}}
 
 {
 echo "configVerCode=$(cat $TMPDIR/.config-ver)
-capacity=(${sc:-0} ${cc:-60} ${rc:-70} ${pc:-75} ${cs:-false} ${cm:-false})
+capacity=(${sc:--1} ${cc:-60} ${rc:-70} ${pc:-75} ${cs:-false} ${cm:-false})
 temperature=(${ct:-40} ${mt:-60} ${mtp:-90} ${st:-65})
 cooldownRatio=($cch $cp)
 cooldownCurrent=$cdc

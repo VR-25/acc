@@ -2,30 +2,28 @@
 # Advanced Charging Controller Daemon (accd)
 # Copyright 2017-2021, VR25
 # License: GPLv3+
-#
-# devs: triple hashtags (###) mark non-generic code
 
 
 . $execDir/acquire-lock.sh
 
 
+init=false
+
 case "$1" in
   -i|--init) init=true; shift;;
-  *) [ -f $TMPDIR/.config-ver ] && init=false || init=true;; ###
+  *) [ -f $TMPDIR/.config-ver ] || init=true;;
 esac
 
 
 # wait until data is decrypted and system is ready
-until [ -d /sdcard/Android ]
-do
+
+until [ -d /sdcard/Android ]; do
   sleep 30
 done
-pgrep zygote > /dev/null && {
-  until [ .$(getprop sys.boot_completed) = .1 ]
-  do
-    sleep 30
-  done
-}
+
+until [ .$(getprop sys.boot_completed) = .1 ]; do
+  sleep 30
+done
 
 
 if ! $init; then
@@ -129,11 +127,7 @@ if ! $init; then
     eval "${loopCmd_-}"
 
     # shutdown if battery temp >= shutdown_temp
-    [ $(cat $temp) -lt $(( ${temperature[3]} * 10 )) ] || {
-      am start -n android/com.android.internal.app.ShutdownActivity < /dev/null > /dev/null 2>&1 \
-        || reboot -p 2>/dev/null \
-          || /system/bin/reboot -p || :
-    }
+    [ $(cat $temp) -lt $(( ${temperature[3]} * 10 )) ] || shutdown
 
     if $isCharging; then
 
@@ -298,10 +292,7 @@ if ! $init; then
             # action
             if _le_shutdown_cap; then
               sleep ${loopDelay[1]}
-              ! not_charging dis \
-                || am start -n android/com.android.internal.app.ShutdownActivity < /dev/null > /dev/null 2>&1 \
-                || reboot -p 2>/dev/null \
-                || /system/bin/reboot -p || :
+              ! not_charging dis || shutdown
             fi
           fi
         fi
@@ -323,6 +314,13 @@ if ! $init; then
         capacitySync=true
       fi
     fi
+  }
+
+
+  shutdown() {
+    am start -n android/com.android.internal.app.ShutdownActivity < /dev/null > /dev/null 2>&1 \
+      || reboot -p 2>/dev/null \
+      || /system/bin/reboot -p || :
   }
 
 
@@ -434,7 +432,7 @@ else
   set -x
 
 
-  # prepare executables ###
+  # prepare executables
 
   #legacy
   ln -fs $execDir/${id}.sh /dev/$id
@@ -443,23 +441,23 @@ else
   ln -fs $execDir/${id}a.sh /dev/${id}a
   ln -fs $execDir/service.sh /dev/${id}d
 
-  mkdir -p /dev/.$domain/$id
+  mkdir -p $TMPDIR
 
-  ln -fs $execDir/${id}.sh /dev/.$domain/$id/$id
-  ln -fs $execDir/${id}.sh /dev/.$domain/$id/${id}d,
-  ln -fs $execDir/${id}.sh /dev/.$domain/$id/${id}d.
-  ln -fs $execDir/${id}a.sh /dev/.$domain/$id/${id}a
-  ln -fs $execDir/service.sh /dev/.$domain/$id/${id}d
-  ln -fs $execDir/uninstall.sh /dev/.$domain/$id/uninstall
+  ln -fs $execDir/${id}.sh $TMPDIR/$id
+  ln -fs $execDir/${id}.sh $TMPDIR/${id}d,
+  ln -fs $execDir/${id}.sh $TMPDIR/${id}d.
+  ln -fs $execDir/${id}a.sh $TMPDIR/${id}a
+  ln -fs $execDir/service.sh $TMPDIR/${id}d
+  ln -fs $execDir/uninstall.sh $TMPDIR/uninstall
 
   if [ -d /sbin ]; then
     if grep -q '^tmpfs / ' /proc/mounts; then
       /system/bin/mount -o remount,rw / \
         || mount -o remount,rw /
     fi
-    for h in /dev/.$domain/$id/$id \
-        /dev/.$domain/$id/${id}d, /dev/.$domain/$id/${id}d. \
-      /dev/.$domain/$id/${id}a /dev/.$domain/$id/${id}d
+    for h in $TMPDIR/$id \
+      $TMPDIR/${id}d, $TMPDIR/${id}d. \
+      $TMPDIR/${id}a $TMPDIR/${id}d
     do
       ln -fs $h /sbin/ 2>/dev/null || break
     done
@@ -484,7 +482,7 @@ else
   fi
 
 
-  # filter out missing and problematic charging switches (those with unrecognized values) ###
+  # filter out missing and problematic charging switches (those with unrecognized values)
 
   filter_sw() {
     local over3=false
@@ -535,18 +533,18 @@ else
   sed -i -e 's/ $//' -e '/^$/d' $TMPDIR/ch-switches_
 
 
-  # read charging voltage control files ###
+  # read charging voltage control files
   : > $TMPDIR/ch-volt-ctrl-files_
   ls -1 $(list_volt_ctrl_files) 2>/dev/null | \
-      while read file; do
-        chmod 0644 $file 2>/dev/null && grep -Eq '^4[1-4][0-9]{2}' $file || continue
-        grep -q '.... ....' $file && continue
-        echo ${file}::$(sed -n 's/^..../v/p' $file)::$(cat $file) \
-          >> $TMPDIR/ch-volt-ctrl-files_
-      done
+    while read file; do
+      chmod 0644 $file 2>/dev/null && grep -Eq '^4[1-4][0-9]{2}' $file || continue
+      grep -q '.... ....' $file && continue
+      echo ${file}::$(sed -n 's/^..../v/p' $file)::$(cat $file) \
+        >> $TMPDIR/ch-volt-ctrl-files_
+    done
 
 
-  # read charging current control files (part 1) ###
+  # read charging current control files (part 1)
   # part 2 runs while charging only
 
   rm $TMPDIR/.ch-curr-read 2>/dev/null
@@ -558,21 +556,21 @@ else
     done
 
   ls -1 $(list_curr_ctrl_files_static) 2>/dev/null | \
-      while read file; do
-        chmod 0644 $file 2>/dev/null || continue
-        defaultValue=$(cat $file)
-        ampFactor=$(sed -n 's/^ampFactor=//p' $data_dir/config.txt 2>/dev/null)
-        [ -n "$ampFactor" -o $defaultValue -ne 0 ] || continue
-        if [ "${ampFactor:-1}" -eq 1000 -o ${defaultValue#-} -lt 10000 ]; then
-          # milliamps
-          echo ${file}::v::$defaultValue \
-            >> $TMPDIR/ch-curr-ctrl-files_
-        else
-          # microamps
-          echo ${file}::v000::$defaultValue \
-            >> $TMPDIR/ch-curr-ctrl-files_
-        fi
-      done
+    while read file; do
+      chmod 0644 $file 2>/dev/null || continue
+      defaultValue=$(cat $file)
+      ampFactor=$(sed -n 's/^ampFactor=//p' $data_dir/config.txt 2>/dev/null)
+      [ -n "$ampFactor" -o $defaultValue -ne 0 ] || continue
+      if [ "${ampFactor:-1}" -eq 1000 -o ${defaultValue#-} -lt 10000 ]; then
+        # milliamps
+        echo ${file}::v::$defaultValue \
+          >> $TMPDIR/ch-curr-ctrl-files_
+      else
+        # microamps
+        echo ${file}::v000::$defaultValue \
+          >> $TMPDIR/ch-curr-ctrl-files_
+      fi
+    done
 
 
   # remove duplicates and parallel/ ctrl files
@@ -587,8 +585,12 @@ else
   sed -n '/^configVerCode=/s/.*=//p' $execDir/default-config.txt > $TMPDIR/.config-ver
 
 
+  # preprocess battery interface
+  . $execDir/batt-interface.sh
+
+
   # start $id daemon
-  rm /dev/.$domain/$id/.ghost-charging 2>/dev/null ###
+  rm $TMPDIR/.ghost-charging 2>/dev/null
   exec $0 "$@"
 fi
 

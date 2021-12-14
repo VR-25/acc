@@ -1,82 +1,73 @@
-for batt in */capacity; do
-  if [ -f ${batt%/*}/status ]; then
-    batt=${batt%/*}
-    break
-  fi
-done
+not_charging() {
 
-case $batt in
-  */capacity) exit 1;;
-esac
+  local file=
 
-currNow_=0
-echo 0 > $TMPDIR/.dummy-curr
-for currFile in $batt/current_now bms/current_now \
-  $batt/batteryaveragecurrent $TMPDIR/.dummy-curr
-do
-  [ ! -f $currFile ] || break
-done
+  for file in sm????_bms/status $batt/status; do
+    [ ! -f $file ] || break
+  done
 
-temp=$batt/temp
-[ -f $temp ] || {
-  temp=$batt/batt_temp
-  [ -f $temp ] || {
-    temp=bms/temp
-    [ -f $temp ] || {
-      echo 250 > $TMPDIR/.dummy-temp
-      temp=$TMPDIR/.dummy-temp
-    }
+  grep -Eiq "${1-dis|not}" $file || {
+    if [ -n "$currThreshold" ] && [ ! -f ${config_%/*}/curr ] \
+      && [ ! -f $TMPDIR/curr ] && [ $(sed s/-// $currFile) -le $currThreshold ]
+    then
+      return 0
+    else
+      return 1
+    fi
   }
 }
 
-curr_dropped() {
-  local currNowNew=$(cat $currFile)
-  local currNow__=${currNow_#-}
-  local currNow25p=$(( (currNow_ * 25) / 100 ))
-  currNow_=0
-  if [ $currNow__ -ne 0 ] && [ ${currNowNew#-} -ge 1000 ]; then
-    [ $(( $currNow__ - ${currNowNew#-} )) -ge $currNow25p ] && echo true || echo false
+
+if ${init:-false}; then
+
+  for batt in */capacity; do
+    if [ -f ${batt%/*}/status ]; then
+      batt=${batt%/*}
+      break
+    fi
+  done
+
+  case $batt in
+    */capacity) exit 1;;
+  esac
+
+
+  echo 250 > $TMPDIR/.dummy-temp
+
+  for temp in $batt/temp $batt/batt_temp bms/temp $TMPDIR/.dummy-temp; do
+    [ ! -f $temp ] || break
+  done
+
+
+  echo 0 > $TMPDIR/.dummy-curr
+
+  for currFile in $batt/current_now bms/current_now \
+    $batt/batteryaveragecurrent $TMPDIR/.dummy-curr
+  do
+    [ ! -f $currFile ] || break
+  done
+
+  currThreshold=50 # mA
+  ampFactor_=1000
+
+  if [ $(sed s/-// $currFile) -le $currThreshold ]; then
+    ampFactor_=
+    currThreshold=
   else
-    echo neutral
+    ! [ $curr -ge 10000 ] || {
+      ampFactor_=1000000
+      currThreshold=${currThreshold}000
+    }
   fi
-}
 
-dis_not() {
-  if test -f sm????_bms/status; then
-    grep -Eiq "$1" sm????_bms/status
-  else
-    grep -Eiq "$1" $batt/status
-  fi
-}
+  echo "ampFactor_=$ampFactor_
+  batt=$batt
+  currFile=$currFile
+  currThreshold=$currThreshold
+  temp=$temp" > $TMPDIR/.batt-interface.sh
 
-type_na() {
-  if [ -f $batt/charge_type ]; then
-    [ ".$(cat $batt/charge_type)" = .N/A ]
-  else
-    return 0
-  fi
-}
+  init=false
 
-not_charging() {
-
-  # if dis_not "${1-dis|not}"; then
-  #   type_na
-  # else
-  #   ! type_na
-  # fi
-
-  # local curr_dropped=$(curr_dropped)
-  # if dis_not "${1-dis|not}"; then
-  #   case $curr_dropped in
-  #     neutral|true) return 0;;
-  #   esac
-  #   return 1
-  # else
-  #   case $curr_dropped in
-  #     neutral|false) return 1;;
-  #   esac
-  #   return 0
-  # fi
-
-  dis_not "${1-dis|not}"
-}
+else
+  . $TMPDIR/.batt-interface.sh
+fi
