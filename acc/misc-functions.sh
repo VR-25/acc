@@ -138,8 +138,9 @@ disable_charging() {
     chargingDisabled=true
   fi
 
+  (set +eu
   eval "${runCmdOnPause[@]-}"
-  eval "${runCmdOnPause_-}"
+  eval "${runCmdOnPause_-}") || :
 
   if [ -n "${1-}" ]; then
     case $1 in
@@ -300,7 +301,7 @@ print_wait_plug() {
 sleep_sd() {
   local i=
   for i in $(seq 4); do
-    eval "$@" && return 0 || sleep $switchDelay
+    (set +eu; eval "$@") && return 0 || sleep $switchDelay
   done
   return 1
 }
@@ -361,7 +362,7 @@ write() {
 id=acc
 domain=vr25
 switchDelay=2
-loopDelay=(10 10)
+loopDelay=(10 15)
 execDir=/data/adb/$domain/acc
 export TMPDIR=/dev/.vr25/acc
 config=/data/adb/$domain/${id}-data/config.txt

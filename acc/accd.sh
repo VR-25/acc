@@ -123,8 +123,9 @@ if ! $init; then
     fi
 
     # run custom code
+    (set +eu
     eval "${loopCmd[@]-}"
-    eval "${loopCmd_-}"
+    eval "${loopCmd_-}") || :
 
     # shutdown if battery temp >= shutdown_temp
     [ $(cat $temp) -lt $(( ${temperature[3]} * 10 )) ] || shutdown

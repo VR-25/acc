@@ -47,10 +47,11 @@ if ${init:-false}; then
     [ ! -f $currFile ] || break
   done
 
+  curr=$(sed s/-// $currFile)
   currThreshold=50 # mA
   ampFactor_=1000
 
-  if [ $(sed s/-// $currFile) -le $currThreshold ]; then
+  if [ $curr -le $currThreshold ]; then
     ampFactor_=
     currThreshold=
   else
@@ -59,6 +60,8 @@ if ${init:-false}; then
       currThreshold=${currThreshold}000
     }
   fi
+
+  unset curr
 
   echo "ampFactor_=$ampFactor_
   batt=$batt

@@ -86,9 +86,9 @@
 </li>
 <li><a href="#troubleshooting">TROUBLESHOOTING</a>
 <ul>
-<li><a href="#acc--t-is-stuck-waiting-for-charger-andor-acc--i-status-never-reads-charging"><code>acc -t</code> Is Stuck Waiting for Charger and/or <code>acc -i status</code> Never Reads &quot;Charging&quot;</a></li>
+<li><a href="#acc--t-hangs-anor-all-charging-switches-fail"><code>acc -t</code> hangs an/or All Charging Switches Fail</a></li>
 <li><a href="#battery-capacity--level-doesnt-seem-right">Battery Capacity (% Level) Doesn't Seem Right</a></li>
-<li><a href="#bootloop">Bootloop</a></li>
+<li><a href="#bootloop-or-unexpected-reboots">Bootloop or Unexpected Reboots</a></li>
 <li><a href="#charging-switch">Charging Switch</a></li>
 <li><a href="#custom-max-charging-voltage-and-current-limits">Custom Max Charging Voltage And Current Limits</a></li>
 <li><a href="#diagnosticslogs">Diagnostics/Logs</a></li>
@@ -933,22 +933,29 @@ It picks up new changes within seconds.</p>
 <p>This information is in the <a href="#default-configuration">default configuration</a> section as well.</p>
 <hr>
 <h2 id="troubleshooting">TROUBLESHOOTING</h2>
-<h3 id="acc--t-is-stuck-waiting-for-charger-andor-acc--i-status-never-reads-charging"><code>acc -t</code> Is Stuck Waiting for Charger and/or <code>acc -i status</code> Never Reads &quot;Charging&quot;</h3>
-<p>Create <code>/data/adb/vr25/acc-data/curr</code> (persistent) or <code>/dev/.vr25/acc/curr</code> (volatile) to disable enhanced battery status check.
-In the enhanced mode, if battery status is &quot;charging&quot; and the absolute value of current is &lt;= 50 mA, the status is considered &quot;not charging&quot;.
-If the device reports abnormal current values (e.g., due to a hardware issue) and acc fails to notice the issue, charging control will not work.</p>
+<h3 id="acc--t-hangs-anor-all-charging-switches-fail"><code>acc -t</code> hangs an/or All Charging Switches Fail</h3>
+<p>Create a file <code>/data/adb/vr25/acc-data/curr</code> (persistent) or <code>/dev/.vr25/acc/curr</code> (volatile) to disable enhanced battery status check.
+In enhanced mode, if battery status is &quot;charging&quot; and the absolute value of current is &lt;= 50 mA, the status is considered &quot;not charging&quot;.
+Although rare, this can cause charging control issues on some devices.
+Hence, one may want to see if disabling it makes a difference.
+However, before trying this, it's recommend to test a different power source.
+Fast charging, in particular, is known for overriding/blocking custom charging control settings.</p>
 <h3 id="battery-capacity--level-doesnt-seem-right">Battery Capacity (% Level) Doesn't Seem Right</h3>
 <p>When Android's battery level differs from that of the kernel, ACC daemon automatically syncs it by stopping the battery service and feeding it the real value every few seconds.</p>
 <p>Pixel devices are known for having battery level discrepancies for the longest time.</p>
 <p>If your device shuts down before the battery is actually empty, capacity_sync or capacity_mask may help.
 Refer to the <a href="#default-configuration">default configuration</a> section above for details.</p>
-<h3 id="bootloop">Bootloop</h3>
+<h3 id="bootloop-or-unexpected-reboots">Bootloop or Unexpected Reboots</h3>
 <p>While uncommon, it may happen.</p>
 <p>It's assumed that you already know at least one of the following: temporary disable root (e.g., Magisk), disable Magisk modules or enable Magisk core-only mode.</p>
 <p>Most of the time, though, it's just a matter of plugging the phone before turning it on.
 Battery level must be below pause_capacity.
 Once booted, one can run <code>acc --uninstall</code> (or <code>acc -U</code>) to remove ACC.</p>
 <p>From recovery, one can flash <code>/data/adb/vr25/acc-data/acc-uninstaller.zip</code> or run <code>mount -o ro /system; /data/adb/vr25/acc/uninstall.sh</code>.</p>
+<p>Troublesome charging switches trigger unexpected reboots on some systems.
+Those can be quickly identified after running <code>acc -x -t</code>.
+After the reboot, <code>/sdcard/acc-*.log</code> reveals the problematic switch.
+It can then be removed from <code>ctrl-files.sh</code> or blacklisted.</p>
 <h3 id="charging-switch">Charging Switch</h3>
 <p>By default, ACC uses whichever <a href="https://github.com/VR-25/acc/blob/dev/acc/charging-switches.txt">charging switch</a> works (&quot;automatic&quot; charging switch).
 However, things don't always go well.</p>
@@ -1236,17 +1243,6 @@ A common workaround is having <code>resume_capacity = pause_capacity - 1</code>.
 </ul>
 <hr>
 <h2 id="latest-changes">LATEST CHANGES</h2>
-<p><strong>v2021.10.30 (202110300)</strong></p>
-<ul>
-<li>Additional charging switches</li>
-<li>All control files (switches, current and voltage) are now contained in a single file (<a href="http://ctrl-files.sh">ctrl-files.sh</a>) and it can be overridden by a plugin with the same name.</li>
-<li>Fixed issue #117 (@onokatio).</li>
-<li>General optimizations</li>
-<li>Shutdown warning notifications are less annoying (non-repetitive), but are still disabled by default. To enable, create the file <code>/data/adb/vr25/acc-data/warn</code>.</li>
-<li>Strip newlines from the output of acc -p.</li>
-<li>The logs tarball now also includes the outputs of <code>getprop</code> and <code>acc -p</code> (potential/new charging switches).</li>
-<li>Updated Documentation</li>
-</ul>
 <p><strong>v2021.11.3 (202111030)</strong></p>
 <ul>
 <li>Fixed installation issues</li>
@@ -1263,6 +1259,16 @@ A common workaround is having <code>resume_capacity = pause_capacity - 1</code>.
 <li>Reverted <code>acc mA</code> resume difference to 50;</li>
 <li>Updated build script;</li>
 <li>Updated links in the README.</li>
+</ul>
+<p><strong>v2021.12.20 (202112200)</strong></p>
+<ul>
+<li>[accd, misc-functions]: prevent unwanted crashes related to <code>eval</code> and <code>set -eu</code>;</li>
+<li>[batt-info]: filter out the unreliable <code>POWER_SUPPLY_CHARGE_TYPE</code> property (note: this change makes AccA always display &quot;unknown&quot; charge type);</li>
+<li>[batt-info]: fixed current reading issue;</li>
+<li>[batt-info]: round current and voltage values to two decimal places;</li>
+<li>[ctrl-files]: added <code>battery/op_disable_charge 0 1</code> switch;</li>
+<li>[README]: updated troubleshooting section;</li>
+<li>General optimizations.</li>
 </ul>
 
     </body>

@@ -30,9 +30,9 @@
   - [Profiles](#profiles)
   - [More](#more)
 - [TROUBLESHOOTING](#troubleshooting)
-  - [`acc -t` Is Stuck Waiting for Charger and/or `acc -i status` Never Reads "Charging"](#acc--t-is-stuck-waiting-for-charger-andor-acc--i-status-never-reads-charging)
+  - [`acc -t` hangs an/or All Charging Switches Fail](#acc--t-hangs-anor-all-charging-switches-fail)
   - [Battery Capacity (% Level) Doesn't Seem Right](#battery-capacity--level-doesnt-seem-right)
-  - [Bootloop](#bootloop)
+  - [Bootloop or Unexpected Reboots](#bootloop-or-unexpected-reboots)
   - [Charging Switch](#charging-switch)
   - [Custom Max Charging Voltage And Current Limits](#custom-max-charging-voltage-and-current-limits)
   - [Diagnostics/Logs](#diagnosticslogs)
@@ -961,11 +961,14 @@ This information is in the [default configuration](#default-configuration) secti
 ## TROUBLESHOOTING
 
 
-### `acc -t` Is Stuck Waiting for Charger and/or `acc -i status` Never Reads "Charging"
+### `acc -t` hangs an/or All Charging Switches Fail
 
-Create `/data/adb/vr25/acc-data/curr` (persistent) or `/dev/.vr25/acc/curr` (volatile) to disable enhanced battery status check.
-In the enhanced mode, if battery status is "charging" and the absolute value of current is <= 50 mA, the status is considered "not charging".
-If the device reports abnormal current values (e.g., due to a hardware issue) and acc fails to notice the issue, charging control will not work.
+Create a file `/data/adb/vr25/acc-data/curr` (persistent) or `/dev/.vr25/acc/curr` (volatile) to disable enhanced battery status check.
+In enhanced mode, if battery status is "charging" and the absolute value of current is <= 50 mA, the status is considered "not charging".
+Although rare, this can cause charging control issues on some devices.
+Hence, one may want to see if disabling it makes a difference.
+However, before trying this, it's recommend to test a different power source.
+Fast charging, in particular, is known for overriding/blocking custom charging control settings.
 
 
 ### Battery Capacity (% Level) Doesn't Seem Right
@@ -978,7 +981,7 @@ If your device shuts down before the battery is actually empty, capacity_sync or
 Refer to the [default configuration](#default-configuration) section above for details.
 
 
-### Bootloop
+### Bootloop or Unexpected Reboots
 
 While uncommon, it may happen.
 
@@ -989,6 +992,11 @@ Battery level must be below pause_capacity.
 Once booted, one can run `acc --uninstall` (or `acc -U`) to remove ACC.
 
 From recovery, one can flash `/data/adb/vr25/acc-data/acc-uninstaller.zip` or run `mount -o ro /system; /data/adb/vr25/acc/uninstall.sh`.
+
+Troublesome charging switches trigger unexpected reboots on some systems.
+Those can be quickly identified after running `acc -x -t`.
+After the reboot, `/sdcard/acc-*.log` reveals the problematic switch.
+It can then be removed from `ctrl-files.sh` or blacklisted.
 
 
 ### Charging Switch
@@ -1376,16 +1384,6 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 ---
 ## LATEST CHANGES
 
-**v2021.10.30 (202110300)**
-- Additional charging switches
-- All control files (switches, current and voltage) are now contained in a single file (ctrl-files.sh) and it can be overridden by a plugin with the same name.
-- Fixed issue #117 (@onokatio).
-- General optimizations
-- Shutdown warning notifications are less annoying (non-repetitive), but are still disabled by default. To enable, create the file `/data/adb/vr25/acc-data/warn`.
-- Strip newlines from the output of acc -p.
-- The logs tarball now also includes the outputs of `getprop` and `acc -p` (potential/new charging switches).
-- Updated Documentation
-
 **v2021.11.3 (202111030)**
 - Fixed installation issues
 - Improved support for the current Magisk canary.
@@ -1400,3 +1398,12 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 - Reverted `acc mA` resume difference to 50;
 - Updated build script;
 - Updated links in the README.
+
+**v2021.12.20 (202112200)**
+- [accd, misc-functions]: prevent unwanted crashes related to `eval` and `set -eu`;
+- [batt-info]: filter out the unreliable `POWER_SUPPLY_CHARGE_TYPE` property (note: this change makes AccA always display "unknown" charge type);
+- [batt-info]: fixed current reading issue;
+- [batt-info]: round current and voltage values to two decimal places;
+- [ctrl-files]: added `battery/op_disable_charge 0 1` switch;
+- [README]: updated troubleshooting section;
+- General optimizations.

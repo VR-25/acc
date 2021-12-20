@@ -9,10 +9,11 @@ batt_info() {
 
 
   # calculator
-  calc() { awk "BEGIN { print $* }"; }
+  calc() {
+    awk "BEGIN {print $*}" | xargs printf %.2f
+  }
 
 
-  # (determine conversion factor)
   dtr_conv_factor() {
     factor=${2-}
     if [ -z "$factor" ]; then
@@ -25,14 +26,15 @@ batt_info() {
 
 
   # raw battery info from the kernel's battery interface
+
   info="$(
-    set +e
     cat $batt/uevent *bms*/uevent 2>/dev/null \
       | sort -u \
       | sed -e '/^POWER_SUPPLY_NAME=/d' \
         -e 's/^POWER_SUPPLY_//' \
         -e 's/^BATT_VOL=/VOLTAGE_NOW=/' \
-        -e 's/^BATT_TEMP=/TEMP=/'
+        -e 's/^BATT_TEMP=/TEMP=/' \
+        -e '/^CHARGE_TYPE=/d'
   )"
 
 
