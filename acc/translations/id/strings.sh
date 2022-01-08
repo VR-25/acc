@@ -222,10 +222,6 @@ print_only() {
   echo "hanya"
 }
 
-print_m_mode() {
-  echo "(i) Manual mode"
-}
-
 print_wait() {
   echo "(i) Baik, ini mungkin perlu waktu beberapa menit..."
 }

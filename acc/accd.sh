@@ -1,6 +1,6 @@
 #!/system/bin/sh
 # Advanced Charging Controller Daemon (accd)
-# Copyright 2017-2021, VR25
+# Copyright 2017-2022, VR25
 # License: GPLv3+
 
 
@@ -137,6 +137,9 @@ if ! $init; then
         && chgStatusCode=$(dumpsys battery 2>/dev/null | sed -n 's/^  status: //p')
       then
         setup_capacity_sync
+        set +e
+        cmd package bg-dexopt-job < /dev/null > /dev/null 2>&1 &
+        set -e
       fi
 
       # read charging current ctrl files (part 2) once
@@ -278,18 +281,18 @@ if ! $init; then
         if ! $maxTempPause && [ $(cut -d '.' -f 1 /proc/uptime) -ge 900 ] && not_charging dis; then
           if [ ${capacity[0]} -ge 1 ]; then
             # warnings
-            if $shutdownWarnings && [ -f $data_dir/warn ]; then
+            ! $shutdownWarnings || {
               if t ${capacity[0]} -gt 3000; then
                 ! t $(grep -o '^..' $voltage_now) -eq $(( ${capacity[0]%??} + 1 )) \
-                  || ! su -lp 2000 -c "cmd notification post -S bigtext -t 'ACC' 'Tag' \"WARNING: ~100mV to auto shutdown, plug the charger!\"" \
+                  || ! notif "WARNING: ~100mV to auto shutdown, plug the charger!" \
                     || sleep ${loopDelay[1]}
               else
                 ! t $(cat $batt/capacity) -eq $(( ${capacity[0]} + 5 )) \
-                  || ! su -lp 2000 -c "cmd notification post -S bigtext -t 'ACC' 'Tag' \"WARNING: 5% to auto shutdown, plug the charger!\"" \
+                  || ! notif "WARNING: 5% to auto shutdown, plug the charger!" \
                     || sleep ${loopDelay[1]}
               fi
               shutdownWarnings=false
-            fi
+            }
             # action
             if _le_shutdown_cap; then
               sleep ${loopDelay[1]}

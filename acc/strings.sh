@@ -254,6 +254,7 @@ Options
       acc -t /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0 ("::" is a placeholder for " " - MTK only)
 
   -t|--test [file]   Test charging switches from a file (default: /dev/.vr25/acc/ch-switches)
+    Control files that trigger reboots or kernel panics are automatically backlisted
     e.g.,
       acc -t (test known switches)
       acc -t /sdcard/experimental_switches.txt (test custom/foreign switches)
@@ -461,10 +462,6 @@ print_A() {
 
 print_only() {
   echo "only"
-}
-
-print_m_mode() {
-  echo "(i) Manual mode"
 }
 
 print_wait() {

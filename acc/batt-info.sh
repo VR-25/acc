@@ -26,7 +26,6 @@ batt_info() {
 
 
   # raw battery info from the kernel's battery interface
-
   info="$(
     cat $batt/uevent *bms*/uevent 2>/dev/null \
       | sort -u \
@@ -39,15 +38,8 @@ batt_info() {
 
 
   # determine the correct charging status
-  case "$info" in
-    *STATUS=[Cc]harging*)
-      if not_charging dis; then
-        info="${info/STATUS=?harging/STATUS=Discharging}"
-      elif not_charging not; then
-        info="${info/STATUS=?harging/STATUS=Not charging}"
-      fi
-    ;;
-  esac
+  not_charging || :
+  info="$(echo "$info" | sed "/^STATUS=/s/=.*/=$_status/")"
 
 
   # because MediaTek is weird
@@ -65,17 +57,18 @@ batt_info() {
 
   # add/remove negative sign
   case $currNow in
-    *.*)
-      if not_charging dis; then
+    0.00)
+      :
+    ;;
+    *)
+      if [ $_status = Discharging ]; then
         currNow=-${currNow#-}
-      elif ! not_charging; then
+      elif [ $_status = Charging ]; then
         currNow=${currNow#-}
       fi
     ;;
-    *)
-      currNow=0
-    ;;
   esac
+
 
   # parse VOLTAGE_NOW & convert to Volts
   voltNow=$(echo "$info" | sed -n "s/^VOLTAGE_NOW=//p")

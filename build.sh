@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 # Installation Archives Builder
-# Copyright 2018-2021, VR25
+# Copyright 2018-2022, VR25
 # License: GPLv3+
 #
 # usage: $0 [any_random_arg]
@@ -109,6 +109,7 @@ fi
 
 [ -z "$1" ] && {
 
+  archive=${id}_$(date +%Y-%m-%d_%H:%M:%S)
   basename=${id}_${version}_$versionCode
 
   # cleanup
@@ -118,8 +119,8 @@ fi
   cp bin/${id}-uninstaller.zip _builds/${basename}/
 
   # generate $id flashable zip
-  echo "=> _builds/${basename}/${basename}.zip"
-  zip -r9 _builds/${basename}/${basename}.zip \
+  echo "=> _builds/${basename}/${archive}.zip"
+  zip -r9 _builds/${basename}/${archive}.zip \
     * .gitattributes .gitignore \
     -x _\*/\* | sed 's|.*adding: ||' | grep -iv 'zip warning:'
   echo
@@ -132,8 +133,8 @@ fi
 
   # generate $id installable tarball
   cd _builds/${basename}
-  echo "=> _builds/${basename}/${basename}.tar.gz"
-  tar -cvf - ${basename} | gzip -9 > ${basename}.tar.gz
+  echo "=> _builds/${basename}/${archive}.tar.gz"
+  tar -cvf - ${basename} | gzip -9 > ${archive}.tar.gz
   rm -rf ${basename}/
   echo
 

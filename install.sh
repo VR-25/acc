@@ -1,6 +1,6 @@
 #!/system/bin/sh
 # $id Installer/Upgrader
-# Copyright 2019-2021, VR25
+# Copyright 2019-2022, VR25
 # License: GPLv3+
 #
 # devs: triple hashtags (###) mark non-generic code
@@ -146,7 +146,7 @@ fi
 
 ###
 echo "$name $version ($versionCode)
-Copyright 2017-2021, $author
+Copyright 2017-2022, $author
 GPLv3+
 
 (i) Installing in $installDir/$id/..."
@@ -279,5 +279,9 @@ esac
 
 # initialize $id
 /data/adb/$domain/$id/service.sh --init
+
+[ $(date +%m%d) -gt 110 ] || su -lp 2000 -c "/system/bin/cmd notification post -S bigtext -t 'ACC' 'Tag' \"Happy New Year!\"" < /dev/null > /dev/null 2>&1
+
+rm $data_dir/curr $data_dir/warn 2>/dev/null ###
 
 exit 0

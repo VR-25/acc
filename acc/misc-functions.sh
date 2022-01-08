@@ -248,6 +248,7 @@ flip_sw() {
 
   local on=
   local off=
+  local off_=
   local flip=$1
 
   set -- ${chargingSwitch[@]-}
@@ -255,7 +256,20 @@ flip_sw() {
 
   while [ -f ${1:-//} ]; do
     on="$(echo $2 | sed 's/::/ /g')"
-    off="$(echo $3 | sed 's/::/ /g')"
+    if [ $flip = off ]; then
+      ! tt "${chargingSwitch[*]:-.}" "battery/input_suspend?0?1?/proc/mtk_battery_cmd/en_power_path?1?1*" ] || sleep 6 # mtk idle mode workaround
+      if [ ${chargingSwitch[2]:-.} = voltage_now ]; then
+        off_="$off"
+        ! off=$(cat $batt/voltage_now 2>/dev/null) \
+          && off="$off_" \
+          || { [ $off -lt 10000 ] && off=$((off - 50)) || off=$((off - 50000)); }
+      else
+        off="$(echo $3 | sed 's/::/ /g')"
+      fi
+      curr=$(sed s/-// $currFile)
+    else
+      curr=-1
+    fi
     chmod 0644 $1 && write \$$flip $1 || return 1
     shift 3 2>/dev/null || return 0
   done
@@ -285,9 +299,14 @@ misc_stuff() {
 }
 
 
+notif() {
+  su -lp 2000 -c "/system/bin/cmd notification post -S bigtext -t 'ACC' 'Tag' \"$*\"" < /dev/null > /dev/null 2>&1
+}
+
+
 print_header() {
   echo "Advanced Charging Controller $accVer ($accVerCode)
-Copyright 2017-2021, VR25
+Copyright 2017-2022, VR25
 GPLv3+"
 }
 
@@ -300,8 +319,8 @@ print_wait_plug() {
 
 sleep_sd() {
   local i=
-  for i in $(seq 4); do
-    (set +eu; eval "$@") && return 0 || sleep $switchDelay
+  for i in $(seq $switchSeq); do
+    (set +eu; eval "$@") && return 0 || sleep 2
   done
   return 1
 }
@@ -350,9 +369,9 @@ wait_plug() {
 
 write() {
   local i=
-  for i in 1 2; do
+  for i in 1 2 3; do
     eval echo "$1" > "$2" || return 1
-    sleep 0.5
+    sleep 0.33
   done
 }
 
@@ -361,8 +380,8 @@ write() {
 
 id=acc
 domain=vr25
-switchDelay=2
-loopDelay=(10 15)
+switchSeq=4
+loopDelay=(5 10)
 execDir=/data/adb/$domain/acc
 export TMPDIR=/dev/.vr25/acc
 config=/data/adb/$domain/${id}-data/config.txt
@@ -394,8 +413,7 @@ pgrep -f zygote > /dev/null || {
   dumpsys() { :; }
 }
 
-# set switchDelay for mtk devices
-! grep -q mtk_battery_cmd $TMPDIR/ch-switches || switchDelay=5
+! grep -q mtk_battery_cmd $TMPDIR/ch-switches || switchSeq=11
 
 # load plugins
 mkdir -p ${execDir}-data/plugins $TMPDIR/plugins

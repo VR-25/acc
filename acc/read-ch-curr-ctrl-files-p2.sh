@@ -32,7 +32,7 @@ then
 
   # add curr and volt ctrl files to charging switches list
   sed -e 's/::.*::/ /g' -e 's/$/ 0/' $TMPDIR/ch-curr-ctrl-files_ > $TMPDIR/.ctrl
-  sed -Ee 's/::.*::/ /g' -e 's/( [0-9]+)/\1RRRR\1/' -e 's/RRRR...../ 3920/' $TMPDIR/ch-volt-ctrl-files_ >> $TMPDIR/.ctrl
+  sed -Ee 's/::.*::/ /g' -e 's/([0-9])$/\1 voltage_now/' $TMPDIR/ch-volt-ctrl-files >> $TMPDIR/.ctrl
   grep / $TMPDIR/.ctrl >> $TMPDIR/ch-switches
   rm $TMPDIR/.ctrl
 
@@ -42,7 +42,8 @@ then
   # exclude non-batt control files
   $currentWorkaround \
     && grep -i batt $TMPDIR/ch-curr-ctrl-files_ > $TMPDIR/ch-curr-ctrl-files \
-    || mv -f $TMPDIR/ch-curr-ctrl-files_ $TMPDIR/ch-curr-ctrl-files
+    || cat $TMPDIR/ch-curr-ctrl-files_ > $TMPDIR/ch-curr-ctrl-files
 fi
 
+rm $TMPDIR/ch-curr-ctrl-files_
 touch $TMPDIR/.ch-curr-read) || :

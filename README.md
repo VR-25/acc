@@ -69,7 +69,7 @@ The installation is always "systemless", whether or not the system is rooted wit
 ---
 ## LICENSE
 
-Copyright 2017-2021, VR25
+Copyright 2017-2022, VR25
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -241,7 +241,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202111030
+configVerCode=202201010
 capacity=(-1 60 70 75 false false)
 temperature=(40 60 90 65)
 cooldownRatio=()
@@ -418,7 +418,6 @@ currentWorkaround=false
 # shutdown_capacity (sc) #
 # When the battery is discharging and its capacity/voltage_now_millivolts <= sc and phone has been running for 15 minutes or more, acc daemon turns the phone off to reduce the discharge rate and protect the battery from potential damage induced by voltage below the operating range.
 # sc=-1 disables it.
-# [Beta] if the file /data/adb/vr25/acc-data/warn exists, accd posts Android shutdown warning notifications at sc + 5% or sc + 100 mV.
 
 # cooldown_capacity (cc) #
 # Capacity/voltage_now_millivolts at which the cooldown cycle starts.
@@ -736,6 +735,7 @@ Options
       acc -t /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0 ("::" is a placeholder for " " - MTK only)
 
   -t|--test [file]   Test charging switches from a file (default: /dev/.vr25/acc/ch-switches)
+    Control files that trigger reboots or kernel panics are automatically backlisted
     e.g.,
       acc -t (test known switches)
       acc -t /sdcard/experimental_switches.txt (test custom/foreign switches)
@@ -1071,7 +1071,14 @@ Automatic exporting (local) happens under specific conditions (refer back to `SE
 
 ### Finding Additional/Potential Charging Switches Quickly
 
-Refer to (search for) the `--parse` option in the [terminal commands](#terminal-commands) section.
+1. Generate a list of potential charging switches: `acc -p > /sdcard/acc-p.txt`.
+
+2. Remove from the list, all lines that you're SURE don't resemble a charging switch.
+
+3. Test all: `acc -t /sdcard/acc-p.txt`.
+
+Note that some control files may trigger reboots or kernel panics.
+ACC automatically blacklists these, so that the user can continue testing (step 2) after each reboot.
 
 
 ### Install, Upgrade, Stop and Restart Processes Seem to Take Too Long
@@ -1279,6 +1286,8 @@ With modern battery management systems, that's generally unnecessary.
 
 However, if your battery is underperforming, you may want to try the procedure described at https://batteryuniversity.com/article/bu-603-how-to-calibrate-a-smart-battery .
 
+ACC automatically optimizes system performance and battery utilization, by forcing `bg-dexopt-job` on daemon [re]start, if charging.
+
 
 > I set voltage to 4080 mV and that corresponds to just about 75% charge.
 But is it typically safer to let charging keep running, or to have the circuits turn on and shut off between defined percentage levels repeatedly?
@@ -1384,11 +1393,6 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 ---
 ## LATEST CHANGES
 
-**v2021.11.3 (202111030)**
-- Fixed installation issues
-- Improved support for the current Magisk canary.
-- Shutdown warning notifications (mV) are now posted at shutdown_capacity + 100mV (formerly 200).
-
 **v2021.12.14 (202112140)**
 - Additional charging switches;
 - Auto-add current and voltage ctrl files to charging switches list for extended idle mode support;
@@ -1407,3 +1411,13 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 - [ctrl-files]: added `battery/op_disable_charge 0 1` switch;
 - [README]: updated troubleshooting section;
 - General optimizations.
+
+**v2022.1.8 (202201080)**
+- `acc -p` finds even more potential switches;
+- Enhanced charging status detection;
+- General fixes & optimizations;
+- Improved idle mode support;
+- New charging switches;
+- Optimize system performance and battery utilization, by forcing `bg-dexopt-job` on daemon [re]start, if charging;
+- Support for Qualcomm SnapDragon 8 Gen 1 devices, Nokia 2.2 and more;
+- Updated documentation.

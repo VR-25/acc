@@ -1,6 +1,6 @@
 #!/system/bin/sh
 # Advanced Charging Controller
-# Copyright 2017-2021, VR25
+# Copyright 2017-2022, VR25
 # License: GPLv3+
 
 
@@ -135,9 +135,9 @@ test_charging_switch() {
   flip_sw off && sleep_sd not_charging || :
 
   ! not_charging && failed=true || {
-    not_charging not \
+    [ $_status = Idle ] \
       && battIdleMode=true \
-      || battIdleMode=false
+      || { [ ${chargingSwitch[2]:-.} = voltage_now ] && battIdleMode=true || battIdleMode=false; }
   }
 
   flip_sw on 2>/dev/null
@@ -181,7 +181,7 @@ parse_switches() {
 
   cat -v "$2" > $f
 
-  for i in $(grep -En '^  (1|0)$' $f | cut -d: -f1); do
+  for i in $(grep -Ein '^  ((1|0)$|.*able.*)' $f | cut -d: -f1); do
 
     n=$i
     i="$(sed -n "$(($n - 1))p" "$f")"
@@ -311,7 +311,6 @@ case "${1-}" in
   -d|--disable)
     shift
     ${verbose:-true} || exec > /dev/null
-    print_m_mode
     ! daemon_ctrl stop > /dev/null || print_stopped
    . $execDir/acquire-lock.sh
     disable_charging "$@"
@@ -324,7 +323,6 @@ case "${1-}" in
   -e|--enable)
     shift
     ${verbose:-true} || exec > /dev/null
-    print_m_mode
     ! daemon_ctrl stop > /dev/null || print_stopped
     . $execDir/acquire-lock.sh
     enable_charging "$@"
