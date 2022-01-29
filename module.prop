@@ -5,3 +5,4 @@ version=v2022.1.8
 versionCode=202201080
 author=VR25
 description=Mainly intended for extending battery service life on Android devices. In a nutshell, this is achieved through limiting charging current, temperature and voltage. Any root solution is supported. The installation is always "system-less", whether or not the system is rooted with Magisk.
+updateJson=https://raw.githubusercontent.com/VR-25/acc/dev/magisk_module_repo.json
