@@ -1024,7 +1024,7 @@ Here's how to do it:
 3. Test the reliability of the set switch. If it doesn't work properly, try another.
 
 Since not everyone is tech savvy, ACC daemon automatically applies settings for certain devices to minimize charging switch issues.
-These are are in `acc/oem-custom.sh`.
+These are in `acc/oem-custom.sh`.
 
 
 ### Custom Max Charging Voltage And Current Limits
