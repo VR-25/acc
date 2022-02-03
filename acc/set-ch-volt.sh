@@ -1,6 +1,8 @@
 set_ch_volt() {
   if [ -n "${1-}" ]; then
 
+    set -- $*
+
     ${verbose:-true} || {
       exxit() { exit $?; }
       . $execDir/misc-functions.sh

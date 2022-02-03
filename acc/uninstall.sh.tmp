@@ -1,0 +1,15 @@
+#!/sbin/sh
+# $id uninstaller
+# id is set/corrected by build.sh
+# Copyright 2019-2021, VR25
+# License: GPLv3+
+#
+# devs: triple hashtags (###) mark non-generic code
+
+set -u
+id=acc
+domain=vr25
+export TMPDIR=/dev/.$domain/$id
+
+# set up busybox
+#BB#

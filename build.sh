@@ -20,23 +20,33 @@ set_prop() {
 }
 
 
+date=$(date +%Y-%m-%d_%H.%M.%S)
+
 id=$(sed -n "s/^id=//p" module.prop)
 
 domain=$(sed -n "s/^domain=//p" module.prop)
 
-version=$(grep '\*\*.*\(.*\)\*\*' README.md \
-  | tail -n 1 | sed 's/\*\*//; s/ .*//')
+version="$(sed -n 1p changelog.md | sed 's/[*()]//g')"
 
-versionCode=$(grep '\*\*.*\(.*\)\*\*' README.md \
-  | tail -n 1 | sed 's/\*\*//g; s/.* //' | tr -d ')' | tr -d '(')
+versionCode=${version#* }
+
+version=${version% *}
 
 tmpDir=.tmp/META-INF/com/google/android
 
 
-# update module.prop
+# update module info
 grep -q "$versionCode" module.prop || {
   set_prop version $version
   set_prop versionCode $versionCode
+  cat << EOF > module.json
+{
+    "version": "$version",
+    "versionCode": $versionCode,
+    "zipUrl": "https://github.com/VR-25/$id/releases/download/$version/${id}_${date}.zip",
+    "changelog": "https://raw.githubusercontent.com/VR-25/$id/master/changelog.md"
+}
+EOF
 }
 
 
@@ -109,7 +119,7 @@ fi
 
 [ -z "$1" ] && {
 
-  archive=${id}_$(date +%Y-%m-%d_%H:%M:%S)
+  archive=${id}_$date
   basename=${id}_${version}_$versionCode
 
   # cleanup
@@ -121,13 +131,13 @@ fi
   # generate $id flashable zip
   echo "=> _builds/${basename}/${archive}.zip"
   zip -r9 _builds/${basename}/${archive}.zip \
-    * .gitattributes .gitignore \
+    * .gitattributes .gitignore .github \
     -x _\*/\* | sed 's|.*adding: ||' | grep -iv 'zip warning:'
   echo
 
   # prepare files to be included in $id installable tarball
   cp install-tarball.sh _builds/${basename}/
-  cp -R ${id}/ install.sh *.md module.prop bin/ \
+  cp -R ${id}/ install.sh License.md README.* module.prop bin/ \
     _builds/${basename}/${basename}/ 2>&1 \
     | grep -iv "can't preserve"
 

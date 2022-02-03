@@ -24,6 +24,7 @@ set -eu
 
 execDir=/data/adb/vr25/acc
 config=/data/adb/vr25/acc-data/config.txt
+dataDir=${config%/*}
 defaultConfig=$execDir/default-config.txt
 TMPDIR=/dev/.vr25/acc
 verbose=false
@@ -32,7 +33,7 @@ export execDir TMPDIR verbose
 cd /sys/class/power_supply/
 . $execDir/setup-busybox.sh
 
-mkdir -p ${config%/*} 2>/dev/null || :
+mkdir -p $dataDir
 [ -f $config ] || cat $defaultConfig > $config
 
 # custom config path
@@ -84,9 +85,9 @@ case "$@" in
       set_ch_curr ${mcc:-${max_charging_current:--}} || :
     }
 
-    [ .${mcv-${max_charging_voltage-x}} = .x ] || {
+    [ ".${mcv-${max_charging_voltage-x}}" = .x ] || {
       . $execDir/set-ch-volt.sh
-      set_ch_volt ${mcv:-${max_charging_voltage:--}} || :
+      set_ch_volt "${mcv:-${max_charging_voltage:--}}" || :
     }
 
     . $execDir/write-config.sh

@@ -2,8 +2,7 @@ logf() {
 
   if tt "${1:-x}" "-*e*"; then
 
-    data_dir=/data/adb/vr25/acc-data
-    mkdir -p $data_dir/logs
+    mkdir -p $dataDir/logs
 
     exec 2>> ${log:-/dev/null}
     cd $TMPDIR
@@ -21,7 +20,7 @@ logf() {
       [ -f $file ] && cp $file ./ && break
     done
 
-    cp $data_dir/logs/* ./ 2>/dev/null
+    cp $dataDir/logs/* ./ 2>/dev/null
     grep -Ev '^#|^$' $config_ > ./config.txt
     set +x
 
@@ -30,9 +29,9 @@ logf() {
     batt_info > $TMPDIR/acc-i.txt)
     dumpsys battery > dumpsys-battery.txt
 
-    tar -c *.log *.txt | gzip -9 > $data_dir/logs/acc-logs-$device.tar.gz
+    tar -c *.log *.txt | gzip -9 > $dataDir/logs/acc-logs-$device.tar.gz
     rm *.txt magisk.log in*.log power*.log 2>/dev/null
-    echo "(i) $data_dir/logs/acc-logs-$device.tar.gz"
+    echo "(i) $dataDir/logs/acc-logs-$device.tar.gz"
 
   else
     if tt "${1:-x}" "-*a*"; then

@@ -176,7 +176,7 @@ Options
 
   -p|--parse [<base file> <file to parse>]|[file to parse]   Helps find potential charging switches quickly, for any device
     e.g.,
-      acc -p   Parse ${config_%/*}/logs/power_supply-\*.log and print potential charging switches not present in $TMPDIR/ch-switches
+      acc -p   Parse $dataDir/logs/power_supply-\*.log and print potential charging switches not present in $TMPDIR/ch-switches
       acc -p /sdcard/power_supply-harpia.log   Parse the given file and print potential charging switches that are not already in $TMPDIR/ch-switches
       acc -p /sdcard/charging-switches.txt /sdcard/power_supply-harpia.log   Parse /sdcard/power_supply-harpia.log and print potential charging switches absent from /sdcard/charging-switches.txt
 
@@ -465,7 +465,7 @@ print_only() {
 }
 
 print_wait() {
-  echo "(i) Alright, this may take a minute or so..."
+  echo "(i) This may take a minute or so..."
 }
 
 print_as_warning() {
@@ -478,4 +478,8 @@ print_i() {
 
 print_undo() {
   echo "Undo upgrade"
+}
+
+print_blacklisted() {
+  echo "(i) [$@] is blacklisted; won't be tested"
 }

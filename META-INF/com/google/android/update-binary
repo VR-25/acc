@@ -162,7 +162,7 @@ cp -aH /data/adb/$domain/$id/* $config $data_dir/backup/ 2>/dev/null || :
 cp -R $srcDir/$id/ $installDir/
 installDir=$(readlink -f $installDir/$id)
 cp $srcDir/module.prop $installDir/
-cp -f $srcDir/README.md $data_dir/
+cp -f $srcDir/README.* $data_dir/
 
 
 ###
@@ -251,20 +251,19 @@ esac
 
 
 set +eu
-echo "- Done
+printf "- Done\n\n\n"
 
 
-"
 # print links and changelog
 sed -En "\|^## LINKS|,\$p" $srcDir/README.md \
   | grep -v '^---' | sed 's/^## //'
 
+printf "\n\nCHANGELOG\n\n"
+cat $srcDir/changelog.md
 
-###
-echo "
 
-
-(i) Rebooting is unnecessary
+printf "\n\n"
+echo "(i) Rebooting is unnecessary
 - $id commands may require the "/dev/.$domain/$id/" prefix (e.g., /dev/.$domain/$id/$id -v) until system is rebooted.
 - Daemon started."
 
@@ -277,11 +276,11 @@ case $installDir in
   ;;
 esac
 
+#legacy
+f=$data_dir/logs/ps-blacklist.log
+[ -f $f ] || mv $data_dir/logs/psl-blacklist.txt $f 2>/dev/null
+
 # initialize $id
 /data/adb/$domain/$id/service.sh --init
-
-[ $(date +%m%d) -gt 110 ] || su -lp 2000 -c "/system/bin/cmd notification post -S bigtext -t 'ACC' 'Tag' \"Happy New Year!\"" < /dev/null > /dev/null 2>&1
-
-rm $data_dir/curr $data_dir/warn 2>/dev/null ###
 
 exit 0

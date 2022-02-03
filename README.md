@@ -30,9 +30,8 @@
   - [Profiles](#profiles)
   - [More](#more)
 - [TROUBLESHOOTING](#troubleshooting)
-  - [`acc -t` hangs an/or All Charging Switches Fail](#acc--t-hangs-anor-all-charging-switches-fail)
+  - [`acc -t` hangs and/or All Charging Switches Fail](#acc--t-hangs-andor-all-charging-switches-fail)
   - [Battery Capacity (% Level) Doesn't Seem Right](#battery-capacity--level-doesnt-seem-right)
-  - [Bootloop or Unexpected Reboots](#bootloop-or-unexpected-reboots)
   - [Charging Switch](#charging-switch)
   - [Custom Max Charging Voltage And Current Limits](#custom-max-charging-voltage-and-current-limits)
   - [Diagnostics/Logs](#diagnosticslogs)
@@ -42,6 +41,7 @@
   - [Samsung, Charging _Always_ Stops at 70% Capacity](#samsung-charging-always-stops-at-70-capacity)
   - [Slow Charging](#slow-charging)
   - [Unable to Charge](#unable-to-charge)
+  - [Unexpected Reboots](#unexpected-reboots)
   - [WARP, VOOC and Other Fast Charging Tech](#warp-vooc-and-other-fast-charging-tech)
   - [Why Did accd Stop?](#why-did-accd-stop)
 - [POWER SUPPLY LOGS (HELP NEEDED)](#power-supply-logs-help-needed)
@@ -54,16 +54,15 @@
   - [Idle Mode and Alternatives](#idle-mode-and-alternatives)
 - [FREQUENTLY ASKED QUESTIONS (FAQ)](#frequently-asked-questions-faq)
 - [LINKS](#links)
-- [LATEST CHANGES](#latest-changes)
 
 
 ---
 ## DESCRIPTION
 
 ACC is an Android software mainly intended for [extending battery service life](https://batteryuniversity.com/article/bu-808-how-to-prolong-lithium-based-batteries).
-In a nutshell, this is achieved through limiting charging current, temperature and voltage.
+In a nutshell, this is achieved through limiting charging current, temperature, and voltage.
 Any root solution is supported.
-The installation is always "systemless", whether or not the system is rooted with Magisk.
+Regardless of whether the system is rooted with Magisk, the installation is always "systemless".
 
 
 ---
@@ -110,7 +109,7 @@ Using acc's auto shutdown feature is highly recommended.
 
 Refer to [this XDA post](https://forum.xda-developers.com/t/rom-official-arrowos-11-0-android-11-0-vayu-bhima.4267263/post-85119331) for additional details.
 
-[lybxlpsv](https://github.com/lybxlpsv) suggested booting into bootloader and then back into system to reset the PMIC.
+[lybxlpsv](https://github.com/lybxlpsv) suggests booting into bootloader and then back into system to reset the PMIC.
 
 
 ---
@@ -961,7 +960,7 @@ This information is in the [default configuration](#default-configuration) secti
 ## TROUBLESHOOTING
 
 
-### `acc -t` hangs an/or All Charging Switches Fail
+### `acc -t` hangs and/or All Charging Switches Fail
 
 Create a file `/data/adb/vr25/acc-data/curr` (persistent) or `/dev/.vr25/acc/curr` (volatile) to disable enhanced battery status check.
 In enhanced mode, if battery status is "charging" and the absolute value of current is <= 50 mA, the status is considered "not charging".
@@ -979,24 +978,6 @@ Pixel devices are known for having battery level discrepancies for the longest t
 
 If your device shuts down before the battery is actually empty, capacity_sync or capacity_mask may help.
 Refer to the [default configuration](#default-configuration) section above for details.
-
-
-### Bootloop or Unexpected Reboots
-
-While uncommon, it may happen.
-
-It's assumed that you already know at least one of the following: temporary disable root (e.g., Magisk), disable Magisk modules or enable Magisk core-only mode.
-
-Most of the time, though, it's just a matter of plugging the phone before turning it on.
-Battery level must be below pause_capacity.
-Once booted, one can run `acc --uninstall` (or `acc -U`) to remove ACC.
-
-From recovery, one can flash `/data/adb/vr25/acc-data/acc-uninstaller.zip` or run `mount -o ro /system; /data/adb/vr25/acc/uninstall.sh`.
-
-Troublesome charging switches trigger unexpected reboots on some systems.
-Those can be quickly identified after running `acc -x -t`.
-After the reboot, `/sdcard/acc-*.log` reveals the problematic switch.
-It can then be removed from `ctrl-files.sh` or blacklisted.
 
 
 ### Charging Switch
@@ -1024,7 +1005,7 @@ Here's how to do it:
 3. Test the reliability of the set switch. If it doesn't work properly, try another.
 
 Since not everyone is tech savvy, ACC daemon automatically applies settings for certain devices to minimize charging switch issues.
-These are are in `acc/oem-custom.sh`.
+These are in `acc/oem-custom.sh`.
 
 
 ### Custom Max Charging Voltage And Current Limits
@@ -1092,7 +1073,7 @@ One who knows what they're doing, can force-stop accd by running `pkill -9 -f ac
 
 ### Restore Default Config
 
-This can save you a lot of time and grief.
+This can potentially save a lot of time and grief.
 
 `acc --set --reset`, `acc -sr` or `rm /data/adb/vr25/acc-data/config.txt` (failsafe)
 
@@ -1118,6 +1099,14 @@ At least one of the following may be the cause:
 ### Unable to Charge
 
 Refer back to the [warnings](#warnings) section above.
+
+
+### Unexpected Reboots
+
+Wrong/troublesome charging control files may trigger unwanted reboots.
+ACC blacklist these automatically (registered in `/data/adb/vr25/acc-data/logs/write.log`, with a leading hashtag).
+Sometimes, there may be false positives in there - i.e., due to unexpected reboots caused by something else. Thus, if a control file that used to work, suddenly does not, see if it was blacklisted (`acc -t` also reveals blacklisted switches).
+Send `write.log` to the developer once the reboots have stopped.
 
 
 ### WARP, VOOC and Other Fast Charging Tech
@@ -1388,36 +1377,3 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 - [Telegram Profile](https://t.me/vr25xda)
 - [Upstream Repository](https://github.com/VR-25/acc)
 - [XDA Thread](https://forum.xda-developers.com/apps/magisk/module-magic-charging-switch-cs-v2017-9-t3668427)
-
-
----
-## LATEST CHANGES
-
-**v2021.12.14 (202112140)**
-- Additional charging switches;
-- Auto-add current and voltage ctrl files to charging switches list for extended idle mode support;
-- Do not include potentially sensitive data in log archives;
-- Enhanced charging status and idle mode detection (current is checked in addition to battery status);
-- General fixes & optimizations;
-- Reverted `acc mA` resume difference to 50;
-- Updated build script;
-- Updated links in the README.
-
-**v2021.12.20 (202112200)**
-- [accd, misc-functions]: prevent unwanted crashes related to `eval` and `set -eu`;
-- [batt-info]: filter out the unreliable `POWER_SUPPLY_CHARGE_TYPE` property (note: this change makes AccA always display "unknown" charge type);
-- [batt-info]: fixed current reading issue;
-- [batt-info]: round current and voltage values to two decimal places;
-- [ctrl-files]: added `battery/op_disable_charge 0 1` switch;
-- [README]: updated troubleshooting section;
-- General optimizations.
-
-**v2022.1.8 (202201080)**
-- `acc -p` finds even more potential switches;
-- Enhanced charging status detection;
-- General fixes & optimizations;
-- Improved idle mode support;
-- New charging switches;
-- Optimize system performance and battery utilization, by forcing `bg-dexopt-job` on daemon [re]start, if charging;
-- Support for Qualcomm SnapDragon 8 Gen 1 devices, Nokia 2.2 and more;
-- Updated documentation.

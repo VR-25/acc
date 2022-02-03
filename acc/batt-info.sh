@@ -29,11 +29,11 @@ batt_info() {
   info="$(
     cat $batt/uevent *bms*/uevent 2>/dev/null \
       | sort -u \
-      | sed -e '/^POWER_SUPPLY_NAME=/d' \
-        -e 's/^POWER_SUPPLY_//' \
-        -e 's/^BATT_VOL=/VOLTAGE_NOW=/' \
-        -e 's/^BATT_TEMP=/TEMP=/' \
-        -e '/^CHARGE_TYPE=/d'
+      | sed -e 's/^POWER_SUPPLY_//' \
+          -e 's/^BATT_VOL=/VOLTAGE_NOW=/' \
+          -e 's/^BATT_TEMP=/TEMP=/' \
+          -e '/^(CHARGE_TYPE|NAME)=/d'\
+          -e "/^CAPACITY=/s/=.*/=$(cat $battCapacity)/"
   )"
 
 

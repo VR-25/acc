@@ -7,11 +7,11 @@ id=acc
 domain=vr25
 TMPDIR=/dev/.$domain/$id
 execDir=/data/adb/$domain/$id
-data_dir=/data/adb/$domain/${id}-data
+dataDir=/data/adb/$domain/${id}-data
 
 [ -f $execDir/disable ] && exit 14
 mkdir -p $TMPDIR
-export data_dir domain execDir id TMPDIR
+export dataDir domain execDir id TMPDIR
 
 . $execDir/setup-busybox.sh
 . $execDir/release-lock.sh

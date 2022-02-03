@@ -10,14 +10,14 @@ gather_ps_data() {
   for target in $(ls -1 $1 | grep -Ev '^[0-9]|^block$|^dev$|^fs$|^ram$'); do
     if [ -f $1/$target ]; then
       echo $1/$target | grep -Ev 'logg|(/|_|-)log|at_pmrst' | grep -Eq 'batt|charg|power_supply' && {
-        grep -q $1/$target $logsDir/psl-blacklist.txt 2>/dev/null || {
-          echo $1/$target >> $logsDir/psl-blacklist.txt
+        grep -q $1/$target $logsDir/ps-blacklist.log 2>/dev/null || {
+          echo $1/$target >> $logsDir/ps-blacklist.log
           cat -v $1/$target 2>/dev/null | grep '\^\@' > /dev/null 2>&1 || {
             echo $1/$target
             sed 's#^#  #' $1/$target
             echo
           }
-          sed -i "\|$1/$target|d" $logsDir/psl-blacklist.txt
+          sed -i "\|$1/$target|d" $logsDir/ps-blacklist.log
         }
       }
     elif [ -d $1/$target ]; then
@@ -26,14 +26,14 @@ gather_ps_data() {
         -print 2>/dev/null | grep -Ev 'logg|(/|_|-)log|at_pmrst')
       do
         [ -f $target2 ] && {
-          grep -q $target2 $logsDir/psl-blacklist.txt 2>/dev/null || {
-            echo $target2 >> $logsDir/psl-blacklist.txt
+          grep -q $target2 $logsDir/ps-blacklist.log 2>/dev/null || {
+            echo $target2 >> $logsDir/ps-blacklist.log
             cat -v $target2 2>/dev/null | grep '\^\@' > /dev/null 2>&1 || {
               echo $target2
               sed 's#^#  #' $target2
               echo
             }
-            sed -i "\|$target2|d" $logsDir/psl-blacklist.txt
+            sed -i "\|$target2|d" $logsDir/ps-blacklist.log
           }
         }
       done
@@ -46,7 +46,7 @@ export TMPDIR=/dev/.vr25/acc
 execDir=/data/adb/vr25/acc
 logsDir=/data/adb/vr25/acc-data/logs
 
-print_wait 2>/dev/null || echo "(i) Alright, this may take a minute or so..."
+print_wait 2>/dev/null || echo "(i) This may take a minute or so..."
 
 
 # log

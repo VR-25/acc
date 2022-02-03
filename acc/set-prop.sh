@@ -14,8 +14,8 @@ set_prop() {
       [ .${mcc-${max_charging_current-x}} = .x ] \
         || set_ch_curr ${mcc:-${max_charging_current:--}} || :
 
-      [ .${mcv-${max_charging_voltage-x}} = .x ] || {
-        set_ch_volt ${mcv:-${max_charging_voltage:--}} || :
+      [ ".${mcv-${max_charging_voltage-x}}" = .x ] || {
+        set_ch_volt "${mcv:-${max_charging_voltage:--}}" || :
       }
     ;;
 

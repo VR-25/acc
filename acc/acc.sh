@@ -57,6 +57,7 @@ daemon_ctrl() {
         return 8
       else
         print_started
+        echo
         exec $TMPDIR/accd $config
       fi
     ;;
@@ -78,6 +79,7 @@ daemon_ctrl() {
       else
         print_started
       fi
+      echo
       exec $TMPDIR/accd $config
     ;;
 
@@ -132,7 +134,12 @@ test_charging_switch() {
   local failed=false
   chargingSwitch=($@)
 
-  flip_sw off && sleep_sd not_charging || :
+  flip_sw off && sleep_sd not_charging
+
+  $blacklisted && {
+    print_blacklisted "$@"
+    return 10
+  }
 
   ! not_charging && failed=true || {
     [ $_status = Idle ] \
@@ -175,7 +182,7 @@ parse_switches() {
   [ -n "${2-}" ] || set -- $TMPDIR/ch-switches "${1-}"
 
   if [ -z "${2-}" ]; then
-    set -- $1 $(echo ${config_%/*}/logs/power_supply-${device}.log)
+    set -- $1 $(echo $dataDir/logs/power_supply-${device}.log)
     [ -f $2 ] || $execDir/power-supply-logger.sh
   fi
 
@@ -203,7 +210,7 @@ parse_switches() {
 
 rollback() {
   rm -rf $execDir/*
-  cp -a ${config%/*}/backup/* $execDir/
+  cp -a $dataDir/backup/* $execDir/
   mv -f $execDir/config.txt $config
   $TMPDIR/accd --init
 }
@@ -216,7 +223,6 @@ set_prop_() {
 
 
 ! ${verbose:-true} || echo
-isAccd=false
 execDir=/data/adb/vr25/acc
 defaultConfig=$execDir/default-config.txt
 
@@ -268,7 +274,7 @@ if ${verbose:-true} && [ -f $execDir/translations/$language/strings.sh ]; then
 fi
 grep -q .. $execDir/translations/$language/README.md 2>/dev/null \
   && readMe=$execDir/translations/$language/README.md \
-  || readMe=${config%/*}/README.md
+  || readMe=$dataDir/README.md
 
 
 # aliases/shortcuts
@@ -446,7 +452,7 @@ case "${1-}" in
 
     . $execDir/acquire-lock.sh
 
-    cp -f $config $TMPDIR/.config
+    grep -Ev '^$|^#' $config > $TMPDIR/.config
     config=$TMPDIR/.config
 
     set +e
@@ -468,15 +474,20 @@ case "${1-}" in
     case "${2-}" in
       "")
         exitCode=10
-        while read chargingSwitch; do
-          echo "x$chargingSwitch" | grep -Eq '^x$|^x#' && continue
-          [ -f "$(echo "$chargingSwitch" | cut -d ' ' -f 1)" ] && {
+        # [ -n "${1-}" ] || { ###
+        #   set -- $dataDir/logs/acc-t.log
+        #   cp $TMPDIR/ch-switches $1
+        # }
+        while read _chargingSwitch; do
+          echo "x$_chargingSwitch" | grep -Eq '^x$|^x#' && continue
+          [ -f "$(echo "$_chargingSwitch" | cut -d ' ' -f 1)" ] && {
             echo
-            [ -n "${1-}" ] && sed -i "\|^$chargingSwitch$|s|^|#|" "$1"
-            test_charging_switch $chargingSwitch
-            [ -n "${1-}" ] && sed -i "\|^#$chargingSwitch$|s|^#||" "$1"
+            # sed -i "\|^$_chargingSwitch$|s|^|##|" "$1"
+            test_charging_switch $_chargingSwitch
+            # sed -i "\|^##$_chargingSwitch$|s|^#||" "$1"
           }
           [ $? -eq 0 ] && exitCode=0
+        # done < "$1"
         done < ${1-$TMPDIR/ch-switches}
         echo
       ;;
