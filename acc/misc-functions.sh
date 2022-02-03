@@ -18,9 +18,7 @@ apply_on_boot() {
     file=${1-}
     value=${2-}
     { $exitCmd && ! $force; } && default=${2-} || default=${3:-${2-}}
-    if [ -f "$file" ] && chmod 0644 $file; then
-      write \$$arg $file &
-    fi || :
+    write \$$arg $file 0 &
   done
 
   wait
@@ -44,16 +42,17 @@ apply_on_plug() {
     file=${1-}
     value=${2-}
     default=${3:-${2-}}
-    if [ -f "$file" ] && chmod 0644 $file; then
-      write \$$arg $file &
-    fi || :
+    write \$$arg $file 0 &
   done
 
   wait
 }
 
 
-calc() { awk "BEGIN { print $* }"; }
+calc() {
+  awk "BEGIN {print $*}"
+}
+
 
 cmd_batt() {
   /system/bin/cmd battery "$@" < /dev/null > /dev/null 2>&1 || :
@@ -90,7 +89,7 @@ cycle_switches() {
 
 
 cycle_switches_off() {
-  ! $prioritizeBattIdleMode || cycle_switches off not
+  ! $prioritizeBattIdleMode || cycle_switches off Idle
   not_charging || cycle_switches off
 }
 
@@ -138,7 +137,7 @@ disable_charging() {
     chargingDisabled=true
   fi
 
-  (set +eu
+  (set +eux
   eval "${runCmdOnPause[@]-}"
   eval "${runCmdOnPause_-}") || :
 
@@ -147,7 +146,7 @@ disable_charging() {
       *%)
         print_charging_disabled_until $1
         echo
-        (until [ $(cat $batt/capacity) -le ${1%\%} ]; do
+        (until [ $(cat $battCapacity) -le ${1%\%} ]; do
           sleep ${loopDelay[1]}
           set +x
         done)
@@ -218,7 +217,7 @@ enable_charging() {
       *%)
         print_charging_enabled_until $1
         echo
-        (until [ $(cat $batt/capacity) -ge ${1%\%} ]; do
+        (until [ $(cat $battCapacity) -ge ${1%\%} ]; do
           sleep ${loopDelay[1]}
           set +x
         done)
@@ -255,22 +254,23 @@ flip_sw() {
   [ -f ${1:-//} ] || return 1
 
   while [ -f ${1:-//} ]; do
-    on="$(echo $2 | sed 's/::/ /g')"
+    on="$(parse_value "$2")"
     if [ $flip = off ]; then
-      ! tt "${chargingSwitch[*]:-.}" "battery/input_suspend?0?1?/proc/mtk_battery_cmd/en_power_path?1?1*" ] || sleep 6 # mtk idle mode workaround
+      #! tt "${chargingSwitch[*]:-.}" "battery/input_suspend?0?1?/proc/mtk_battery_cmd/en_power_path?1?1*" ] || sleep 6 # mtk idle mode workaround
       if [ ${chargingSwitch[2]:-.} = voltage_now ]; then
         off_="$off"
         ! off=$(cat $batt/voltage_now 2>/dev/null) \
           && off="$off_" \
           || { [ $off -lt 10000 ] && off=$((off - 50)) || off=$((off - 50000)); }
       else
-        off="$(echo $3 | sed 's/::/ /g')"
+        off="$(parse_value "$3")"
       fi
-      curr=$(sed s/-// $currFile)
+      cat $currFile > $TMPDIR/.curr
+      sleep 1
     else
-      curr=-1
+      echo null > $TMPDIR/.curr
     fi
-    chmod 0644 $1 && write \$$flip $1 || return 1
+    write \$$flip $1 || return 1
     shift 3 2>/dev/null || return 0
   done
 }
@@ -285,7 +285,7 @@ invalid_switch() {
 
 misc_stuff() {
   set -eu
-  mkdir -p ${config%/*} 2>/dev/null || :
+  mkdir -p $dataDir 2>/dev/null || :
   [ -f $config ] || cat $execDir/default-config.txt > $config
 
   # custom config path
@@ -301,6 +301,15 @@ misc_stuff() {
 
 notif() {
   su -lp 2000 -c "/system/bin/cmd notification post -S bigtext -t 'ACC' 'Tag' \"$*\"" < /dev/null > /dev/null 2>&1
+}
+
+
+parse_value() {
+  local i=
+  case $1 in
+    */*) i="$(sed 's/ /::/g' $1 2>/dev/null || :)"; [ -z "$i" ] || echo $i;;
+    *) echo $1;;
+  esac
 }
 
 
@@ -369,10 +378,20 @@ wait_plug() {
 
 write() {
   local i=
-  for i in 1 2 3; do
-    eval echo "$1" > "$2" || return 1
-    sleep 0.33
+  local l=$dataDir/logs/write.log
+  local s=
+  [ -f "$2" ] && chmod 0644 "$2" || return ${3-1}
+  s="$(grep -E "^(#$2|$2)$" $l 2>/dev/null || :)"
+  case "$s" in
+    \#*) blacklisted=true; return ${3-1};;
+    "") echo "#$2" >> $l; s=x;;
+  esac
+  for i in 1 2; do
+    eval echo "$1" > "$2" || return ${3-1}
+    sleep 0.5
   done
+  blacklisted=false
+  [ $s != x ] || sed -i "\|^#$2$|s|^#||" $l
 }
 
 
@@ -381,11 +400,13 @@ write() {
 id=acc
 domain=vr25
 switchSeq=4
+isAccd=false
 loopDelay=(5 10)
 execDir=/data/adb/$domain/acc
 export TMPDIR=/dev/.vr25/acc
 config=/data/adb/$domain/${id}-data/config.txt
 config_=$config
+dataDir=${config%/*}
 
 [ -f $TMPDIR/.ghost-charging ] \
   && ghostCharging=true \

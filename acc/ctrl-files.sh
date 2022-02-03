@@ -45,21 +45,32 @@ battery/input_suspend 0 1 /proc/mtk_battery_cmd/en_power_path 1 1
 
 # experimental
 /sys/class/qcom-battery/cool_mode 0 1
-/sys/class/qcom-battery/vbus_disable 0 1
+/sys/class/qcom-battery/restricted_charging 0 1
 /sys/devices/platform/battery_meter/FG_suspend_current_threshold 100 5
 /sys/devices/platform/google,charger/charge_stop_level 100 5
+/sys/kernel/debug/google_charger/chg_mode 0 1
+/sys/kernel/fast_charge/force_fast_charge 1 0
+#/sys/module/qpnp_fg/parameters/batt_range_pct 0 1
+#/sys/module/qpnp_smbcharger/parameters/dynamic_icl_wipower_en 0 1
+#battery/charge_control_limit 0 1
+#bbc/hiz_mode 0 1
+#bms/ignore_false_negative_isense 1 0
+#bms/update_now 0 1
+#CROS_USB_PD_CHARGER0/charge_control_limit_max 0 1
+#usb/cc_toggle_enable 1 0
+#usb/otg_fastroleswap 0 1
+battery/charge_control_limit 0 battery/charge_control_limit_max
 battery/hmt_ta_charge 1 0
-bbc/hiz_mode 0 1
-CROS_USB_PD_CHARGER0/charge_control_limit_max 0 1
+battery/restricted_charging 0 1
 main/cool_mode 0 1
-usb/cc_toggle_enable 1 0
-usb/otg_fastroleswap 0 1
-usb/vbus_disable 0 1
+maxfg/offmode_charger 0 1
 
 # troublesome
 /sys/devices/platform/battery/ChargerEnable 1 0
+#/sys/class/qcom-battery/vbus_disable 0 1
 #/sys/devices/platform/battery_meter/FG_daemon_disable 0 1
 #/sys/power/pnpmgr/battery/charging_enabled 1 0
+#usb/vbus_disable 0 1
 battery/ChargerEnable 1 0
 
 # deprecated
@@ -89,7 +100,7 @@ list_curr_ctrl_files_static() {
 */aca_charge
 */aca_input
 */batt_tune_*_charge_current
-*/batt_tune_chg_limit_cur
+#*/batt_tune_chg_limit_cur
 */car_charge
 */car_input
 */constant_charge_current_max

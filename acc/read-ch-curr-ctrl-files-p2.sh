@@ -12,7 +12,7 @@ then
   plugins=/data/adb/vr25/acc-data/plugins
   [ -f $plugins/ctrl-files.sh ] && . $plugins/ctrl-files.sh
 
-  ls -1 $(list_curr_ctrl_files_dynamic) 2>/dev/null | \
+  ls -1 $(list_curr_ctrl_files_dynamic | grep -Ev '^#|^$') 2>/dev/null | \
     while read file; do
       chmod 0644 $file || continue
       defaultValue=$(cat $file)

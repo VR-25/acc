@@ -33,7 +33,7 @@ if ! $init; then
     if t ${capacity[1]} -gt 3000; then
       t $(grep -o '^....' $voltage_now) -ge ${capacity[1]}
     else
-      t $(cat $batt/capacity) -ge ${capacity[1]}
+      t $(cat $battCapacity) -ge ${capacity[1]}
     fi
   }
 
@@ -42,7 +42,7 @@ if ! $init; then
     if t ${capacity[3]} -gt 3000; then
       t $(grep -o '^....' $voltage_now) -ge ${capacity[3]}
     else
-      t $(cat $batt/capacity) -ge ${capacity[3]}
+      t $(cat $battCapacity) -ge ${capacity[3]}
     fi
   }
 
@@ -51,7 +51,7 @@ if ! $init; then
     if t ${capacity[3]} -gt 3000; then
       t $(grep -o '^....' $voltage_now) -lt ${capacity[3]}
     else
-      t $(cat $batt/capacity) -lt ${capacity[3]}
+      t $(cat $battCapacity) -lt ${capacity[3]}
     fi
   }
 
@@ -60,7 +60,7 @@ if ! $init; then
     if t ${capacity[2]} -gt 3000; then
       t $(grep -o '^....' $voltage_now) -gt ${capacity[2]}
     else
-      t $(cat $batt/capacity) -gt ${capacity[2]}
+      t $(cat $battCapacity) -gt ${capacity[2]}
     fi
   }
 
@@ -69,7 +69,7 @@ if ! $init; then
     if t ${capacity[2]} -gt 3000; then
       t $(grep -o '^....' $voltage_now) -le ${capacity[2]}
     else
-      t $(cat $batt/capacity) -le ${capacity[2]}
+      t $(cat $battCapacity) -le ${capacity[2]}
     fi
   }
 
@@ -78,7 +78,7 @@ if ! $init; then
     if t ${capacity[0]} -gt 3000; then
       t $(grep -o '^....' $voltage_now) -le ${capacity[0]}
     else
-      t $(cat $batt/capacity) -le ${capacity[0]}
+      t $(cat $battCapacity) -le ${capacity[0]}
     fi
   }
 
@@ -101,6 +101,7 @@ if ! $init; then
       logf --export
     fi
     cd /
+    echo versionCode=$versionCode
     exit $exitCode
   }
 
@@ -123,7 +124,7 @@ if ! $init; then
     fi
 
     # run custom code
-    (set +eu
+    (set +eux
     eval "${loopCmd[@]-}"
     eval "${loopCmd_-}") || :
 
@@ -137,9 +138,7 @@ if ! $init; then
         && chgStatusCode=$(dumpsys battery 2>/dev/null | sed -n 's/^  status: //p')
       then
         setup_capacity_sync
-        set +e
-        cmd package bg-dexopt-job < /dev/null > /dev/null 2>&1 &
-        set -e
+        start-stop-daemon -bx $TMPDIR/.bg-dexopt-job.sh -S -- 2>/dev/null || :
       fi
 
       # read charging current ctrl files (part 2) once
@@ -174,7 +173,7 @@ if ! $init; then
         # resetBattStatsOnUnplug
         if $resetBattStatsOnUnplug && ${resetBattStats[1]}; then
           sleep ${loopDelay[1]}
-          ! not_charging dis || {
+          ! not_charging Discharging || {
             dumpsys batterystats --reset < /dev/null > /dev/null 2>&1 || :
             rm /data/system/batterystats* || :
             resetBattStatsOnUnplug=false
@@ -278,7 +277,7 @@ if ! $init; then
         fi
 
         # auto-shutdown
-        if ! $maxTempPause && [ $(cut -d '.' -f 1 /proc/uptime) -ge 900 ] && not_charging dis; then
+        if ! $maxTempPause && [ $(cut -d '.' -f 1 /proc/uptime) -ge 900 ] && not_charging Discharging; then
           if [ ${capacity[0]} -ge 1 ]; then
             # warnings
             ! $shutdownWarnings || {
@@ -287,7 +286,7 @@ if ! $init; then
                   || ! notif "WARNING: ~100mV to auto shutdown, plug the charger!" \
                     || sleep ${loopDelay[1]}
               else
-                ! t $(cat $batt/capacity) -eq $(( ${capacity[0]} + 5 )) \
+                ! t $(cat $battCapacity) -eq $(( ${capacity[0]} + 5 )) \
                   || ! notif "WARNING: 5% to auto shutdown, plug the charger!" \
                     || sleep ${loopDelay[1]}
               fi
@@ -296,7 +295,7 @@ if ! $init; then
             # action
             if _le_shutdown_cap; then
               sleep ${loopDelay[1]}
-              ! not_charging dis || shutdown
+              ! not_charging Discharging || shutdown
             fi
           fi
         fi
@@ -311,9 +310,9 @@ if ! $init; then
   setup_capacity_sync(){
     if ! $capacitySync; then
       if ${capacity[4]} || ${capacity[5]} || \
-        { [ $(dumpsys battery 2>/dev/null | sed -n 's/^  level: //p') -ne $(cat $batt/capacity) ] \
+        { [ $(dumpsys battery 2>/dev/null | sed -n 's/^  level: //p') -ne $(cat $battCapacity) ] \
         && sleep 2 \
-        &&  [ $(dumpsys battery 2>/dev/null | sed -n 's/^  level: //p') -ne $(cat $batt/capacity) ]; }
+        &&  [ $(dumpsys battery 2>/dev/null | sed -n 's/^  level: //p') -ne $(cat $battCapacity) ]; }
       then
         capacitySync=true
       fi
@@ -322,7 +321,7 @@ if ! $init; then
 
 
   shutdown() {
-    am start -n android/com.android.internal.app.ShutdownActivity < /dev/null > /dev/null 2>&1 \
+    /system/bin/am start -n android/com.android.internal.app.ShutdownActivity < /dev/null > /dev/null 2>&1 \
       || reboot -p 2>/dev/null \
       || /system/bin/reboot -p || :
   }
@@ -334,14 +333,14 @@ if ! $init; then
 
       isCharging=${isCharging:-false}
       local isCharging_=$isCharging
-      local battCap=$(cat $batt/capacity)
+      local battCap=$(cat $battCapacity)
 
       ! ${capacity[5]} || {
         if [ ${capacity[3]} -gt 3000 ]; then
           local maskedCap=$battCap
         else
           local capFactor=$(calc 100 / ${capacity[3]})
-          local maskedCap=$(printf %.f $(calc $battCap \* $capFactor))
+          local maskedCap=$(calc $battCap \* $capFactor | xargs printf %.f)
         fi
       }
 
@@ -381,6 +380,7 @@ if ! $init; then
   maxTempPause=false
   shutdownWarnings=true
   resetBattStatsOnUnplug=false
+  versionCode=$(sed -n s/versionCode=//p $execDir/module.prop 2>/dev/null || :)
 
 
   if [ "${1:-y}" = -x ]; then
@@ -396,7 +396,6 @@ if ! $init; then
   # verbose
   [ -z "${LINENO-}" ] || export PS4='$LINENO: '
   echo "###$(date)###" >> $log
-  echo "versionCode=$(sed -n s/versionCode=//p $execDir/module.prop 2>/dev/null)" >> $log
   exec >> $log 2>&1
   set -x
 
@@ -428,11 +427,30 @@ if ! $init; then
 else
 
 
-  mkdir -p $TMPDIR $data_dir/logs
+  # filter out missing and problematic charging switches (those with unrecognized values)
+
+  filter_sw() {
+    local over3=false
+    [ $# -gt 3 ] && over3=true
+    for f in $(echo $1); do
+      if [ -f "$f" ] && chmod 0644 $f 2>/dev/null \
+        && {
+          ! cat $f > /dev/null 2>&1 \
+          || [ -z "$(cat $f 2>/dev/null)" ] \
+          || grep -Eiq '^(1|0|0 0|0 1|(en|dis)able?)$' $f
+        }
+      then
+        $over3 && printf "$f $2 $3 " || printf "$f $2 $3\n"
+      else
+        return 1
+      fi
+    done
+  }
 
 
   # log
-  exec > $data_dir/logs/init.log 2>&1
+  mkdir -p $TMPDIR $dataDir/logs
+  exec > $dataDir/logs/init.log 2>&1
   set -x
 
 
@@ -486,32 +504,15 @@ else
   fi
 
 
-  # filter out missing and problematic charging switches (those with unrecognized values)
-
-  filter_sw() {
-    local over3=false
-    [ $# -gt 3 ] && over3=true
-    for f in $(echo $1); do
-      if [ -f "$f" ] && chmod 0644 $f 2>/dev/null \
-        && {
-          ! cat $f > /dev/null 2>&1 \
-          || [ -z "$(cat $f 2>/dev/null)" ] \
-          || grep -Eiq '^(1|0|0 0|0 1|(en|dis)abled?)$' $f
-        }
-      then
-        $over3 && printf "$f $2 $3 " || printf "$f $2 $3\n"
-      else
-        return 1
-      fi
-    done
-  }
-
   cd /sys/class/power_supply/
   : > $TMPDIR/ch-switches_
   : > $TMPDIR/ch-switches__
-  . $execDir/ctrl-files.sh
-  plugins=/data/adb/vr25/acc-data/plugins
-  [ -f $plugins/ctrl-files.sh ] && . $plugins/ctrl-files.sh
+  for f in $TMPDIR/plugins/ctrl-files.sh \
+    ${execDir}-data/plugins/ctrl-files.sh \
+    $execDir/ctrl-files.sh
+  do
+    [ -f $f ] && . $f && break
+  done
   list_ch_switches | grep -Ev '^#|^$' | \
     while IFS= read -r chargingSwitch; do
       set -f
@@ -539,7 +540,7 @@ else
 
   # read charging voltage control files
   : > $TMPDIR/ch-volt-ctrl-files_
-  ls -1 $(list_volt_ctrl_files) 2>/dev/null | \
+  ls -1 $(list_volt_ctrl_files | grep -Ev '^#|^$') 2>/dev/null | \
     while read file; do
       chmod 0644 $file 2>/dev/null && grep -Eq '^4[1-4][0-9]{2}' $file || continue
       grep -q '.... ....' $file && continue
@@ -553,17 +554,17 @@ else
 
   rm $TMPDIR/.ch-curr-read 2>/dev/null
   : > $TMPDIR/ch-curr-ctrl-files_
-  ls -1 $(list_curr_ctrl_files_boolean) 2>/dev/null | \
+  ls -1 $(list_curr_ctrl_files_boolean | grep -Ev '^#|^$') 2>/dev/null | \
     while read file; do
       chmod 0644 $file 2>/dev/null || continue
       grep -q '^[01]$' $file && echo ${file}::1::0 >> $TMPDIR/ch-curr-ctrl-files
     done
 
-  ls -1 $(list_curr_ctrl_files_static) 2>/dev/null | \
+  ls -1 $(list_curr_ctrl_files_static | grep -Ev '^#|^$') 2>/dev/null | \
     while read file; do
       chmod 0644 $file 2>/dev/null || continue
       defaultValue=$(cat $file)
-      ampFactor=$(sed -n 's/^ampFactor=//p' $data_dir/config.txt 2>/dev/null)
+      ampFactor=$(sed -n 's/^ampFactor=//p' $dataDir/config.txt 2>/dev/null)
       [ -n "$ampFactor" -o $defaultValue -ne 0 ] || continue
       if [ "${ampFactor:-1}" -eq 1000 -o ${defaultValue#-} -lt 10000 ]; then
         # milliamps
@@ -592,6 +593,9 @@ else
   # preprocess battery interface
   . $execDir/batt-interface.sh
 
+  # prepare bg-dexopt-job wrapper
+  printf "#!/system/bin/sh\n/system/bin/cmd package bg-dexopt-job < /dev/null > /dev/null 2>&1" > $TMPDIR/.bg-dexopt-job.sh
+  chmod +x $TMPDIR/.bg-dexopt-job.sh
 
   # start $id daemon
   rm $TMPDIR/.ghost-charging 2>/dev/null

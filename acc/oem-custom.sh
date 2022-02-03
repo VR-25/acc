@@ -26,12 +26,12 @@ fi
   || loopCmd_='[ $(cat battery/input_suspend) != 1 ] || echo 0 > battery/input_suspend'
 
 # bttery idle mode for certain mtk devices
-! _grep '^chargingSwitch=.battery/input_suspend 0 1 /proc/mtk_battery_cmd/en_power_path 1 1' \
-  || loopCmd_='
-    if [ $(cat /proc/mtk_battery_cmd/en_power_path) -eq 0 ] && [ $(cat battery/status) = Discharging ]; then
-      echo 0 > battery/input_suspend
-    fi
-  '
+# ! _grep '^chargingSwitch=.battery/input_suspend 0 1 /proc/mtk_battery_cmd/en_power_path 1 1' \
+#   || loopCmd_='
+#     if [ $(cat /proc/mtk_battery_cmd/en_power_path) -eq 0 ] && [ $(cat battery/status) = Discharging ]; then
+#       echo 0 > battery/input_suspend
+#     fi
+#   '
 
 # block "ghost charging on steroids" (Xiaomi Redmi 3 - ido)
 [ ! -f $TMPDIR/accd-ido.log ] || touch $TMPDIR/.ghost-charging

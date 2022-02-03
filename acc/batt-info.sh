@@ -9,7 +9,7 @@ batt_info() {
 
 
   # calculator
-  calc() {
+  calc2() {
     awk "BEGIN {print $*}" | xargs printf %.2f
   }
 
@@ -29,11 +29,11 @@ batt_info() {
   info="$(
     cat $batt/uevent *bms*/uevent 2>/dev/null \
       | sort -u \
-      | sed -e '/^POWER_SUPPLY_NAME=/d' \
-        -e 's/^POWER_SUPPLY_//' \
-        -e 's/^BATT_VOL=/VOLTAGE_NOW=/' \
-        -e 's/^BATT_TEMP=/TEMP=/' \
-        -e '/^CHARGE_TYPE=/d'
+      | sed -e 's/^POWER_SUPPLY_//' \
+          -e 's/^BATT_VOL=/VOLTAGE_NOW=/' \
+          -e 's/^BATT_TEMP=/TEMP=/' \
+          -e '/^(CHARGE_TYPE|NAME)=/d'\
+          -e "/^CAPACITY=/s/=.*/=$(cat $battCapacity)/"
   )"
 
 
@@ -52,7 +52,7 @@ batt_info() {
   # parse CURRENT_NOW & convert to Amps
   currNow=$(echo "$info" | sed -n "s/^CURRENT_NOW=//p" | head -n1)
   dtr_conv_factor ${currNow#-} ${ampFactor:-$ampFactor_}
-  currNow=$(calc ${currNow:-0} / $factor)
+  currNow=$(calc2 ${currNow:-0} / $factor)
 
 
   # add/remove negative sign
@@ -73,11 +73,11 @@ batt_info() {
   # parse VOLTAGE_NOW & convert to Volts
   voltNow=$(echo "$info" | sed -n "s/^VOLTAGE_NOW=//p")
   dtr_conv_factor $voltNow ${voltFactor-}
-  voltNow=$(calc ${voltNow:-0} / $factor)
+  voltNow=$(calc2 ${voltNow:-0} / $factor)
 
 
   # calculate POWER_NOW (Watts)
-  powerNow=$(calc $currNow \* $voltNow)
+  powerNow=$(calc2 $currNow \* $voltNow)
 
 
   {

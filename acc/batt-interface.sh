@@ -1,28 +1,37 @@
+discharging() {
+  [ $(cat $TMPDIR/.curr) != null ] \
+    && [ $(cat $currFile) -lt $(cat $TMPDIR/.curr) ]
+}
+
+idle() {
+  [ -n "$idleThreshold" ] \
+    && [ $(sed s/-// $currFile) -le $idleThreshold ]
+}
+
+
 not_charging() {
 
   local file=
+  local i=
 
   for file in sm????_bms/status $batt/status; do
     [ ! -f $file ] || break
   done
 
-  [ ${1:-.} = not ] && _status=Idle || _status=Discharging
+  _status=$(sed 's/Not charging/Idle/' $file)
 
-  grep -Eiq "${1-dis|not}" $file || {
-    if [ -n "$currThreshold" ] && [ ! -f ${config_%/*}/curr ] \
-      && [ ! -f $TMPDIR/curr ] && [ $(sed s/-// $currFile) -le $currThreshold ]
-    then
-      return 0
-    else
-      if { [ -z "${1-}" ] || [ $1 = dis ]; } \
-        && [ $(sed s/-// $currFile) -lt $curr ]
-      then
-        return 0
-      fi
-      _status=Charging
-      return 1
-    fi
-  }
+  if [ ! -f $TMPDIR/curr ] && [ ! -f $dataDir/curr ]; then
+    case $_status in
+      Charging) idle && _status=Idle || { ! discharging || _status=Discharging; };;
+      Discharging) ! idle || _status=Idle;;
+    esac
+  fi
+
+  for i in Discharging DischargingDischarging Idle IdleIdle; do
+    [ $i != ${1-}$_status ] || return 0
+  done
+
+  return 1
 }
 
 
@@ -38,6 +47,8 @@ if ${init:-false}; then
   case $batt in
     */capacity) exit 1;;
   esac
+
+  [ -f maxfg/capacity ] && battCapacity=maxfg/capacity || battCapacity=$batt/capacity
 
 
   echo 250 > $TMPDIR/.dummy-temp
@@ -56,23 +67,27 @@ if ${init:-false}; then
   done
 
   curr=$(sed s/-// $currFile)
-  currThreshold=95 # mA
+  idleThreshold=95 # mA
+
   ampFactor_=1000
 
-  if [ $curr -le $currThreshold ]; then
+  if [ $curr -le $idleThreshold ]; then
     ampFactor_=
-    currThreshold=
+    idleThreshold=
   else
     ! [ $curr -ge 10000 ] || {
       ampFactor_=1000000
-      currThreshold=${currThreshold}000
+      idleThreshold=${idleThreshold}000
     }
   fi
+
+  unset curr
 
   echo "ampFactor_=$ampFactor_
 batt=$batt
 currFile=$currFile
-currThreshold=$currThreshold
+battCapacity=$battCapacity
+idleThreshold=$idleThreshold
 temp=$temp" > $TMPDIR/.batt-interface.sh
 
   init=false
@@ -81,4 +96,4 @@ else
   . $TMPDIR/.batt-interface.sh
 fi
 
-curr=-1
+[ -f $TMPDIR/.curr ] || echo null > $TMPDIR/.curr
