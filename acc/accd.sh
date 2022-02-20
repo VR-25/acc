@@ -339,8 +339,9 @@ if ! $init; then
         if [ ${capacity[3]} -gt 3000 ]; then
           local maskedCap=$battCap
         else
-          local capFactor=$(calc 100 / ${capacity[3]})
-          local maskedCap=$(calc $battCap \* $capFactor | xargs printf %.f)
+          local capFactor=$(calc 100 / ${capacity[3]} | tr , .)
+          local maskedCap=$(calc $battCap \* $capFactor | tr , . | xargs printf %.f)
+          [ $maskedCap -le 100 ] || maskedCap=100
         fi
       }
 

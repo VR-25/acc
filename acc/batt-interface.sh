@@ -1,7 +1,24 @@
 discharging() {
-  [ $(cat $TMPDIR/.curr) != null ] \
-    && [ $(cat $currFile) -lt $(cat $TMPDIR/.curr) ]
+  local af=${ampFactor:-$ampFactor_}
+  local curThen=$(cat $TMPDIR/.curr)
+  local curNow=
+  local maxMA=750
+  local mAThreshold=100
+  [ $curThen != null ] && {
+    [ -n "$af" ] || {
+      [ $curThen -lt 10000 ] && af=1000 || af=1000000
+    }
+    af=${af#1000}
+    curNow=$(cat $currFile)
+    [ $curNow -lt $((curThen + mAThreshold$af)) ] && {
+      case $curThen$curNow in
+        [0-9]*-*) ;;
+        *) [ ${curNow#-} -lt $maxMA$af ];;
+      esac
+    }
+  }
 }
+
 
 idle() {
   [ -n "$idleThreshold" ] \
@@ -67,8 +84,7 @@ if ${init:-false}; then
   done
 
   curr=$(sed s/-// $currFile)
-  idleThreshold=95 # mA
-
+  [ -d /proc/mtk_battery_cmd ] && idleThreshold=95 || idleThreshold=15 # mA
   ampFactor_=1000
 
   if [ $curr -le $idleThreshold ]; then

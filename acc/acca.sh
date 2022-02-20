@@ -55,6 +55,7 @@ case "$@" in
 
   # print battery uevent data
   -i*|--info*)
+    . $config
     . $execDir/batt-interface.sh
     . $execDir/batt-info.sh
     batt_info "${2-}"

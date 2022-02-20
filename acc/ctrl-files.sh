@@ -9,8 +9,9 @@ list_ch_switches() {
 */enable_charg* 1 0
 */input_suspend 0 1
 battery/batt_slate_mode 0 1
-battery/device/Charging_Enable 1 0
+battery/battery_input_suspend 0 1
 battery/device/*stop_charging 0 1
+battery/device/Charging_Enable 1 0
 battery/op_disable_charge 0 1
 battery/store_mode 0 1
 idt/pin_enabled 1 0

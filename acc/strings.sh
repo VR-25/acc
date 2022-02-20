@@ -254,7 +254,7 @@ Options
       acc -t /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0 ("::" is a placeholder for " " - MTK only)
 
   -t|--test [file]   Test charging switches from a file (default: /dev/.vr25/acc/ch-switches)
-    Control files that trigger reboots or kernel panics are automatically backlisted
+    Control files that trigger reboots or kernel panic are automatically backlisted
     e.g.,
       acc -t (test known switches)
       acc -t /sdcard/experimental_switches.txt (test custom/foreign switches)
@@ -297,11 +297,12 @@ Exit Codes
   7. Failed to disable charging
   8. Daemon already running ("--daemon start")
   9. Daemon not running ("--daemon" and "--daemon stop")
-  10. "--test" failed
+  10. All charging switches fail (--test)
   11. Current (mA) out of 0-9999 range
   12. Initialization failed
   13. Failed to lock /dev/.vr25/acc/acc.lock
-  14. ACC wont initialize because the Magisk module disable flag is set
+  14. ACC won't initialize, because the Magisk module disable flag is set
+  15. Idle mode is supported (--test)
 
   Logs are exported automatically ("--log --export") on exit codes 1, 2, 7 and 10.
 
@@ -482,4 +483,9 @@ print_undo() {
 
 print_blacklisted() {
   echo "(i) [$@] is blacklisted; won't be tested"
+}
+
+print_acct_hint() {
+  echo "(i) Results may vary with different power supplies and conditions, as stated in README.md -- TROUBLESHOOTING."
+  [ -n "${1-}" ] && printf '"battIdleMode" refers to the ability of running off the charger.\n\n' || echo
 }

@@ -30,7 +30,7 @@
   - [Profiles](#profiles)
   - [More](#more)
 - [TROUBLESHOOTING](#troubleshooting)
-  - [`acc -t` hangs and/or All Charging Switches Fail](#acc--t-hangs-andor-all-charging-switches-fail)
+  - [`acc -t` Results Seem Inconsistent](#acc--t-results-seem-inconsistent)
   - [Battery Capacity (% Level) Doesn't Seem Right](#battery-capacity--level-doesnt-seem-right)
   - [Charging Switch](#charging-switch)
   - [Custom Max Charging Voltage And Current Limits](#custom-max-charging-voltage-and-current-limits)
@@ -125,8 +125,8 @@ As the project gets bigger and more popular, the need for coffee goes up as well
 - [Must read - how to prolong lithium ion batteries lifespan](https://batteryuniversity.com/article/bu-808-how-to-prolong-lithium-based-batteries)
 - Android or Android based OS
 - Any root solution (e.g., [Magisk](https://github.com/topjohnwu/Magisk))
-- [Busybox\*](https://github.com/search?o=desc&q=busybox+android&s=updated&type=Repositories) (only if not rooted with Magisk)
-- [curl](https://github.com/search?o=desc&q=curl+android&s=updated&type=Repositories) (for acc --upgrade, optional)
+- [Busybox\*](https://github.com/Magisk-Modules-Repo/busybox-ndk) (only if not rooted with Magisk)
+- [curl](https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/tree/master/curl) (for acc --upgrade, optional)
 - Non-Magisk users can enable acc auto-start by running /data/adb/vr25/acc/service.sh, a copy of, or a link to it - with init.d or an app that emulates it.
 - Terminal emulator
 - Text editor (optional)
@@ -240,7 +240,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202201010
+configVerCode=202202060
 capacity=(-1 60 70 75 false false)
 temperature=(40 60 90 65)
 cooldownRatio=()
@@ -303,7 +303,7 @@ currentWorkaround=false
 
 # chargingSwitch=charging_switch=(milliamps)
 
-# chargingSwitch=charging_switch=(3700)
+# chargingSwitch=charging_switch=(3700-4300 millivolts)
 
 # applyOnBoot=apply_on_boot=(ctrl_file1::value[::default] ctrl_file2::value[::default] ... --exit)
 
@@ -485,8 +485,8 @@ currentWorkaround=false
 # This automated process can be disabled by appending " --" to "charging_switch=...".
 # e.g., acc -s s="battery/charge_enabled 1 0 --"
 # acc -ss always appends " --".
-# charging_switch=milliamps (e.g., 0, 250 or 500) enables current-based charging control.
-# If charging switch is set to 3700 (millivolts), acc stops charging by limiting voltage.
+# charging_switch=milliamps (e.g., 0-250) enables current-based charging control.
+# If charging switch is set to 3700-4300 (millivolts), acc stops charging by limiting voltage.
 # For details, refer to the readme's tips section.
 # Unlike the original variant, this kind of switch is never unset automatically.
 # Thus, in this case, appending " --" to it leads to invalid syntax.
@@ -734,7 +734,7 @@ Options
       acc -t /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0 ("::" is a placeholder for " " - MTK only)
 
   -t|--test [file]   Test charging switches from a file (default: /dev/.vr25/acc/ch-switches)
-    Control files that trigger reboots or kernel panics are automatically backlisted
+    Control files that trigger reboots or kernel panic are automatically backlisted
     e.g.,
       acc -t (test known switches)
       acc -t /sdcard/experimental_switches.txt (test custom/foreign switches)
@@ -777,11 +777,12 @@ Exit Codes
   7. Failed to disable charging
   8. Daemon already running ("--daemon start")
   9. Daemon not running ("--daemon" and "--daemon stop")
-  10. "--test" failed
+  10. All charging switches fail (--test)
   11. Current (mA) out of 0-9999 range
   12. Initialization failed
   13. Failed to lock /dev/.vr25/acc/acc.lock
-  14. ACC wont initialize because the Magisk module disable flag is set
+  14. ACC won't initialize, because the Magisk module disable flag is set
+  15. Idle mode is supported (--test)
 
   Logs are exported automatically ("--log --export") on exit codes 1, 2, 7 and 10.
 
@@ -849,6 +850,22 @@ The simplest way is flashing acc from Magisk manager.
 Alternatively, `install.sh`, `install-online.sh` or `install-tarball.sh` can be used.
 For details, refer back to [install from local source or GitHub](#install-from-local-source-or-github).
 
+Developers can also use the _updateJSON_ API.
+The front-end downloads and parses [this JSON file](https://raw.githubusercontent.com/VR-25/acc/master/module.json).
+The format is as follows:
+
+```
+{
+    "busybox": "https://github.com/Magisk-Modules-Repo/busybox-ndk",
+    "changelog": "https://raw.githubusercontent.com/VR-25/acc/master/changelog.md",
+    "curl": "https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/tree/master/curl",
+    "tgz": "https://github.com/VR-25/acc/releases/download/$version/acc_${version}_${versionCode}.tgz",
+    "tgzInstaller": "https://github.com/VR-25/acc/releases/download/$version/install-tarball.sh",
+    "version": "STRING",
+    "versionCode": INT,
+    "zipUrl": "https://github.com/VR-25/acc/releases/download/$version/acc_${version}_${versionCode}.zip"
+}
+```
 
 ### Uninstalling ACC
 
@@ -906,7 +923,7 @@ Most of the lines are either unnecessary (e.g., type: everyone knows that alread
 
 Here's what one should focus on:
 
-STATUS=Charging # Charging, Not charging (idle mode) or Discharging
+STATUS=Charging # Charging, Discharging or Idle
 CAPACITY=50 # Battery level, 0-100
 TEMP=281 # Always in (ºC * 10)
 CURRENT_NOW=0 # Charging current (Amps)
@@ -960,14 +977,15 @@ This information is in the [default configuration](#default-configuration) secti
 ## TROUBLESHOOTING
 
 
-### `acc -t` hangs and/or All Charging Switches Fail
+### `acc -t` Results Seem Inconsistent
 
-Create a file `/data/adb/vr25/acc-data/curr` (persistent) or `/dev/.vr25/acc/curr` (volatile) to disable enhanced battery status check.
-In enhanced mode, if battery status is "charging" and the absolute value of current is <= 50 mA, the status is considered "not charging".
+In enhanced charging status detection mode (default), if the battery is "Charging" and the absolute value of current is <= 15 mA (95 for mtk), the status is considered "Idle".
+Furthermore, the battery status is considered "Discharging", if current drops by mA >= 100 after calling disable_charging().
 Although rare, this can cause charging control issues on some devices.
 Hence, one may want to see if disabling it makes a difference.
 However, before trying this, it's recommend to test a different power source.
 Fast charging, in particular, is known for overriding/blocking custom charging control settings.
+On certain devices (e.g., Nokia 2.2), acc only works when enhanced mode is enabled.
 
 
 ### Battery Capacity (% Level) Doesn't Seem Right
@@ -1058,7 +1076,7 @@ Automatic exporting (local) happens under specific conditions (refer back to `SE
 
 3. Test all: `acc -t /sdcard/acc-p.txt`.
 
-Note that some control files may trigger reboots or kernel panics.
+Note that some control files may trigger reboots or kernel panic.
 ACC automatically blacklists these, so that the user can continue testing (step 2) after each reboot.
 
 
@@ -1188,7 +1206,7 @@ If your device does not support custom current limits, use a dedicated ("slow") 
 
 ### Current and Voltage Based Charging Control
 
-Enabled by setting charging_switch=milliamps or charging_switch=3700 (millivolts) (e.g., `acc -s s=0`, `acc -s s=250`, `acc -s s=3700`, `acc -ss` (wizard)).
+Enabled by setting charging_switch=milliamps or charging_switch=3700-4300 (millivolts) (e.g., `acc -s s=0`, `acc -s s=250`, `acc -s s=3700`, `acc -ss` (wizard)).
 
 Essentially, this turns current/voltage control files into _[pseudo] charging switches_.
 

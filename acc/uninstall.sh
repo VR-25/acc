@@ -13,26 +13,30 @@ export TMPDIR=/dev/.$domain/$id
 
 # set up busybox
 #BB#
-[ -x /dev/.vr25/busybox/ls ] || {
-  mkdir -p /dev/.vr25/busybox
-  chmod 0700 /dev/.vr25/busybox
-  if [ -f /data/adb/vr25/bin/busybox ]; then
-    [ -x /data/adb/vr25/bin/busybox ] || chmod -R 0700 /data/adb/vr25/bin
-    /data/adb/vr25/bin/busybox --install -s /dev/.vr25/busybox
-  elif [ -f /data/adb/magisk/busybox ]; then
-    [ -x /data/adb/magisk/busybox ] || chmod 0700 /data/adb/magisk/busybox
-    /data/adb/magisk/busybox --install -s /dev/.vr25/busybox
-  elif which busybox > /dev/null; then
-    eval "$(which busybox) --install -s /dev/.vr25/busybox"
-  else
-    echo "(!) Install busybox or simply place it in /data/adb/vr25/bin/"
+bin_dir=/data/adb/bin
+busybox_dir=/dev/.vr25/busybox
+magisk_busybox=/data/adb/magisk/busybox
+[ -x $busybox_dir/ls ] || {
+  mkdir -p $busybox_dir
+  chmod 0700 $busybox_dir
+  for f in $bin_dir/busybox $magisk_busybox /system/*bin/busybox*; do
+    [ -f $f ] && {
+      [ -x $f ] || chmod 0755 $f 2>/dev/null
+      $f --install -s $busybox_dir/
+      break
+    }
+  done
+  [ -x $busybox_dir/ls ] || {
+    echo "(!) Install busybox or simply place it in $bin_dir/"
+    echo
     exit 3
-  fi
+  }
 }
 case $PATH in
-  /data/adb/vr25/bin:*) :;;
-  *) export PATH=/data/adb/vr25/bin:/dev/.vr25/busybox:$PATH;;
+  $bin_dir:*) ;;
+  *) export PATH="$bin_dir:$busybox_dir:$PATH";;
 esac
+unset f bin_dir busybox_dir magisk_busybox
 #/BB#
 
 exec 2>/dev/null
@@ -71,7 +75,7 @@ rm -rf $(readlink -f /data/adb/$id) \
   /data/adb/${id}-data \
   $(readlink -f /sbin/.$id/$id) \
   /data/media/0/${id}-logs-*.tar.* \
-  /data/media/0/${id}-uninstaller.zip \
+  /data/media/0/${id}[-_]*uninstaller.zip \
   /data/media/0/.${id}-config-backup.txt \
   /data/media/0/Download/$id \
   /data/media/0/$domain \

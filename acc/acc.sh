@@ -131,6 +131,7 @@ get_prop() { sed -n "s|^$1=||p" ${2:-$config}; }
 
 test_charging_switch() {
 
+  local battIdleMode=false
   local failed=false
   chargingSwitch=($@)
 
@@ -144,7 +145,7 @@ test_charging_switch() {
   ! not_charging && failed=true || {
     [ $_status = Idle ] \
       && battIdleMode=true \
-      || { [ ${chargingSwitch[2]:-.} = voltage_now ] && battIdleMode=true || battIdleMode=false; }
+      || { [ ${chargingSwitch[2]:-.} = voltage_now ] && battIdleMode=true; }
   }
 
   flip_sw on 2>/dev/null
@@ -152,10 +153,10 @@ test_charging_switch() {
   if ! $failed && sleep_sd "! not_charging"; then
     print_switch_works "$@"
     echo "- battIdleMode=$battIdleMode"
-    return 0
+    $battIdleMode && return 15 || return 0
   else
     print_switch_fails "$@"
-    return 1
+    return 10
   fi
 }
 
@@ -445,10 +446,17 @@ case "${1-}" in
   -t|--test)
 
     shift
+    exitCode_=10
+    exitCode=10
     print_unplugged
 
-    daemon_ctrl stop > /dev/null \
-      && daemonWasUp=true || daemonWasUp=false
+    ! daemon_ctrl stop > /dev/null && daemonWasUp=false || {
+      daemonWasUp=true
+      echo "#!/system/bin/sh
+        $TMPDIR/accd $config_
+        rm $0" > $TMPDIR/.accd2s
+      chmod +x $TMPDIR/.accd2s
+    }
 
     . $execDir/acquire-lock.sh
 
@@ -456,7 +464,7 @@ case "${1-}" in
     config=$TMPDIR/.config
 
     set +e
-    trap '! $daemonWasUp || exec $TMPDIR/accd $config_' EXIT
+    trap '! $daemonWasUp || start-stop-daemon -bx $TMPDIR/.accd2s -S --; exit $exitCode' EXIT
 
     not_charging && enable_charging > /dev/null
 
@@ -473,32 +481,30 @@ case "${1-}" in
 
     case "${2-}" in
       "")
-        exitCode=10
-        # [ -n "${1-}" ] || { ###
-        #   set -- $dataDir/logs/acc-t.log
-        #   cp $TMPDIR/ch-switches $1
-        # }
         while read _chargingSwitch; do
           echo "x$_chargingSwitch" | grep -Eq '^x$|^x#' && continue
           [ -f "$(echo "$_chargingSwitch" | cut -d ' ' -f 1)" ] && {
             echo
-            # sed -i "\|^$_chargingSwitch$|s|^|##|" "$1"
             test_charging_switch $_chargingSwitch
-            # sed -i "\|^##$_chargingSwitch$|s|^#||" "$1"
+            exitCode_=$?
+            case $exitCode in
+              15) ;;
+              0) [ $exitCode_ -eq 15 ] && exitCode=15;;
+              *) exitCode=$exitCode_;;
+            esac
           }
-          [ $? -eq 0 ] && exitCode=0
-        # done < "$1"
         done < ${1-$TMPDIR/ch-switches}
         echo
       ;;
       *)
         echo
         test_charging_switch "$@"
+        exitCode=$?
         echo
       ;;
     esac
 
-    : ${exitCode=$?}
+    print_acct_hint $(tt $exitCode "0|15" && echo y)
     exit $exitCode
   ;;
 

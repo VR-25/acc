@@ -1,3 +1,18 @@
+**v2022.2.20 (202202200)**
+- [acc -t]: show hints, fixed return code issues (10: no switch or all switches fail, 0: success, 15: idle mode works);
+- Additional charging switches;
+- Consider STATUS=Discharging, if idle() returns false, current turns negative or drops by 101+ mA -- and its absolute value is less than 750 mA;
+- Fixed: capacityMask going over 100%;
+- Fixed: custom unit conversion factors not effective for acca -i;
+- General optimizations;
+- Improved busybox detection;
+- Misc changes for front-ends;
+- New presets for charging_switch=<mA|mV>;
+- Updated links in README.md;
+- Updated naming conventions for release files;
+- updateJSON API for front-ends (details in the readme);
+- Use idleThreshold=95 (mA) for mtk devices and 15 for the rest.
+
 **v2022.2.3 (202202030)**
 - Additional charging switches;
 - Auto detect and blacklist unwritable charging control files and those that trigger unexpected reboots;
@@ -22,12 +37,3 @@
 - Optimize system performance and battery utilization, by forcing `bg-dexopt-job` on daemon [re]start, if charging;
 - Support for Qualcomm SnapDragon 8 Gen 1 devices, Nokia 2.2 and more;
 - Updated documentation.
-
-- **v2021.12.20 (202112200)**
-- [accd, misc-functions]: prevent unwanted crashes related to `eval` and `set -eu`;
-- [batt-info]: filter out the unreliable `POWER_SUPPLY_CHARGE_TYPE` property (note: this change makes AccA always display "unknown" charge type);
-- [batt-info]: fixed current reading issue;
-- [batt-info]: round current and voltage values to two decimal places;
-- [ctrl-files]: added `battery/op_disable_charge 0 1` switch;
-- [README]: updated troubleshooting section;
-- General optimizations.

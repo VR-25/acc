@@ -1,4 +1,4 @@
-configVerCode=202201010
+configVerCode=202202060
 capacity=(-1 60 70 75 false false)
 temperature=(40 60 90 65)
 cooldownRatio=()
@@ -61,7 +61,7 @@ currentWorkaround=false
 
 # chargingSwitch=charging_switch=(milliamps)
 
-# chargingSwitch=charging_switch=(3700)
+# chargingSwitch=charging_switch=(3700-4300 millivolts)
 
 # applyOnBoot=apply_on_boot=(ctrl_file1::value[::default] ctrl_file2::value[::default] ... --exit)
 
@@ -243,8 +243,8 @@ currentWorkaround=false
 # This automated process can be disabled by appending " --" to "charging_switch=...".
 # e.g., acc -s s="battery/charge_enabled 1 0 --"
 # acc -ss always appends " --".
-# charging_switch=milliamps (e.g., 0, 250 or 500) enables current-based charging control.
-# If charging switch is set to 3700 (millivolts), acc stops charging by limiting voltage.
+# charging_switch=milliamps (e.g., 0-250) enables current-based charging control.
+# If charging switch is set to 3700-4300 (millivolts), acc stops charging by limiting voltage.
 # For details, refer to the readme's tips section.
 # Unlike the original variant, this kind of switch is never unset automatically.
 # Thus, in this case, appending " --" to it leads to invalid syntax.

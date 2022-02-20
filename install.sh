@@ -37,26 +37,30 @@ trap exxit EXIT
 
 # set up busybox
 #BB#
-[ -x /dev/.vr25/busybox/ls ] || {
-  mkdir -p /dev/.vr25/busybox
-  chmod 0700 /dev/.vr25/busybox
-  if [ -f /data/adb/$domain/bin/busybox ]; then
-    [ -x /data/adb/$domain/bin/busybox ] || chmod -R 0700 /data/adb/$domain/bin
-    /data/adb/$domain/bin/busybox --install -s /dev/.vr25/busybox
-  elif [ -f /data/adb/magisk/busybox ]; then
-    [ -x /data/adb/magisk/busybox ] || chmod 0700 /data/adb/magisk/busybox
-    /data/adb/magisk/busybox --install -s /dev/.vr25/busybox
-  elif which busybox > /dev/null; then
-    eval "$(which busybox) --install -s /dev/.vr25/busybox"
-  else
-    echo "(!) Install busybox or simply place it in /data/adb/$domain/bin/"
+bin_dir=/data/adb/bin
+busybox_dir=/dev/.vr25/busybox
+magisk_busybox=/data/adb/magisk/busybox
+[ -x $busybox_dir/ls ] || {
+  mkdir -p $busybox_dir
+  chmod 0700 $busybox_dir
+  for f in $bin_dir/busybox $magisk_busybox /system/*bin/busybox*; do
+    [ -f $f ] && {
+      [ -x $f ] || chmod 0755 $f 2>/dev/null
+      $f --install -s $busybox_dir/
+      break
+    }
+  done
+  [ -x $busybox_dir/ls ] || {
+    echo "(!) Install busybox or simply place it in $bin_dir/"
+    echo
     exit 3
-  fi
+  }
 }
 case $PATH in
-  /data/adb/$domain/bin:*) :;;
-  *) export PATH=/data/adb/$domain/bin:/dev/.vr25/busybox:$PATH;;
+  $bin_dir:*) ;;
+  *) export PATH="$bin_dir:$busybox_dir:$PATH";;
 esac
+unset f bin_dir busybox_dir magisk_busybox
 #/BB#
 
 
@@ -190,7 +194,7 @@ if $acca; then
       mkdir /data/adb/service.d
     }
     echo "#!/system/bin/sh
-      # AccA post-uninstall cleanup script
+      # acc front-end post-uninstall cleanup script
 
       until test -d /sdcard/Android \\
         && test .\$(getprop sys.boot_completed) = .1
@@ -215,7 +219,7 @@ fi
 
 
 # install binaries
-cp -f $srcDir/bin/${id}-uninstaller.zip $data_dir/
+cp -f $srcDir/bin/${id}_flashable_uninstaller.zip $data_dir/
 
 
 # Termux, fix shebang
@@ -269,16 +273,15 @@ echo "(i) Rebooting is unnecessary
 
 
 case $installDir in
-  /data/adb/modules*)
-  ;;
+  /data/adb/modules*) ;;
   *) echo "
-(i) Non-Magisk users can enable $id auto-start by running /data/adb/$domain/$id/service.sh, a copy of, or a link to it - with init.d or an app that emulates it."
-  ;;
+(i) Non-Magisk users can enable $id auto-start by running /data/adb/$domain/$id/service.sh, a copy of, or a link to it - with init.d or an app that emulates it.";;
 esac
 
 #legacy
 f=$data_dir/logs/ps-blacklist.log
 [ -f $f ] || mv $data_dir/logs/psl-blacklist.txt $f 2>/dev/null
+rm $data_dir/${id}-uninstaller.zip 2>/dev/null
 
 # initialize $id
 /data/adb/$domain/$id/service.sh --init

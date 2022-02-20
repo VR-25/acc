@@ -426,8 +426,8 @@ cd /sys/class/power_supply/
 
 # cmd and dumpsys wrappers for Termux and recovery
 ! tt "$(readlink -f $execDir)" "*com.termux*" || {
-  cmd_batt() { su -c /system/bin/cmd battery "$@" < /dev/null > /dev/null 2>&1 || :; }
-  dumpsys() { su -c /system/bin/dumpsys "$@" || :; }
+  cmd_batt() { /system/bin/cmd battery "$@" < /dev/null > /dev/null 2>&1 || :; }
+  dumpsys() { /system/bin/dumpsys "$@" || :; }
 }
 pgrep -f zygote > /dev/null || {
   cmd_batt() { :; }
