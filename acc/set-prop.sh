@@ -1,3 +1,14 @@
+print_ss_() {
+  local IFS=$' \t\n'
+  local csw="charging_switch=\"${chargingSwitch[*]-}\""
+  case "$csw" in
+    *\ --*) echo "$csw";;
+    *) printf "%s" "$csw"; echo " ($(print_auto))";;
+  esac
+  echo
+}
+
+
 set_prop() {
 
   local restartDaemon=false
@@ -45,7 +56,7 @@ set_prop() {
     s|--charging*witch)
       IFS=$'\n'
       PS3="$(print_choice_prompt)"
-      print_known_switches
+      print_ss_
       . $execDir/select.sh
       select_ charging_switch $(print_auto; cat $TMPDIR/ch-switches; ! grep -q / $TMPDIR/ch-curr-ctrl-files 2>/dev/null || printf '0 mA\n5 mA\n10 mA\n15 mA\n50 mA\n150 mA\n250 mA\n'; ! grep -q / $TMPDIR/ch-volt-ctrl-files 2>/dev/null || printf '3700 mV\n3800 mV\n3850 mV\n3920 mV\n'; print_exit)
       [ ${charging_switch:-x} != $(print_exit) ] || exit 0

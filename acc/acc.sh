@@ -453,9 +453,9 @@ case "${1-}" in
     ! daemon_ctrl stop > /dev/null && daemonWasUp=false || {
       daemonWasUp=true
       echo "#!/system/bin/sh
-        $TMPDIR/accd $config_
-        rm $0" > $TMPDIR/.accd2s
-      chmod +x $TMPDIR/.accd2s
+        sleep 2
+        exec $TMPDIR/accd $config_" > $TMPDIR/.accdt
+      chmod +x $TMPDIR/.accdt
     }
 
     . $execDir/acquire-lock.sh
@@ -464,7 +464,7 @@ case "${1-}" in
     config=$TMPDIR/.config
 
     set +e
-    trap '! $daemonWasUp || start-stop-daemon -bx $TMPDIR/.accd2s -S --; exit $exitCode' EXIT
+    trap '! $daemonWasUp || start-stop-daemon -bx $TMPDIR/.accdt -S --; exit $exitCode' EXIT
 
     not_charging && enable_charging > /dev/null
 
@@ -504,7 +504,7 @@ case "${1-}" in
       ;;
     esac
 
-    print_acct_hint $(tt $exitCode "0|15" && echo y)
+    print_acct_info $(tt $exitCode "0|15" && echo y)
     exit $exitCode
   ;;
 

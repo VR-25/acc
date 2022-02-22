@@ -1144,7 +1144,7 @@ This will print the last 10 lines of the daemon log file.
 A relatively common exit code is `7` - meaning all charging switches failed to disable charging.
 It happens due to kernel issues (refer to the previous subsection - [charging switch](#charging-switch)).
 The daemon only stops due to this if acc is set to automatically determine the switches to use (default behavior).
-Manually setting a working switch with `acc -ss` or `acc -s s="SWITCHES GO HERE --"` prevents this issue.
+Manually setting a working switch with `acc -ss` or `acc -s s="SWITCHES GO HERE --"` disables auto mode and prevents accd from stopping if the set the charging switches fail.
 
 
 ---

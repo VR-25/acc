@@ -1,3 +1,8 @@
+**v2022.2.22.1 (202202221)**
+- acc -ss and -t show more info/hints;
+- Fixed `acc: inaccessible or not found` following acc -t execution;
+- Minor additions to readme.
+
 **v2022.2.20 (202202200)**
 - [acc -t]: show hints, fixed return code issues (10: no switch or all switches fail, 0: success, 15: idle mode works);
 - Additional charging switches;
@@ -27,13 +32,3 @@
 - Removed README.html;
 - Support for a new charging switch format: `ctrl_file1 <on_value|file> <off_value|file> ctrl_file2 <on_value|file> <off_value|file> ...`, `file` is where to get the on/off value from, e.g., `battery/charge_control_limit 0 battery/charge_control_limit_max`;
 - Updated unexpected reboot troubleshooting guide.
-
-**v2022.1.8 (202201080)**
-- `acc -p` finds even more potential switches;
-- Enhanced charging status detection;
-- General fixes & optimizations;
-- Improved idle mode support;
-- New charging switches;
-- Optimize system performance and battery utilization, by forcing `bg-dexopt-job` on daemon [re]start, if charging;
-- Support for Qualcomm SnapDragon 8 Gen 1 devices, Nokia 2.2 and more;
-- Updated documentation.

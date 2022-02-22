@@ -28,10 +28,6 @@ print_config_reset() {
   echo "(i) Konfiguration zurückgesetzt"
 }
 
-print_known_switches() {
-  echo "(i) Bekannte Ladeschalter"
-}
-
 print_switch_fails() {
   echo "(!) [${chargingSwitch[@]-}] funktioniert nicht"
 }

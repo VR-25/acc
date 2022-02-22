@@ -28,10 +28,6 @@ print_config_reset() {
   echo "(i) Config reset"
 }
 
-print_known_switches() {
-  echo "(i) Known charging switches"
-}
-
 print_invalid_switch() {
   echo "(!) Invalid charging switch, [${chargingSwitch[@]-}]"
 }
@@ -485,7 +481,8 @@ print_blacklisted() {
   echo "(i) [$@] is blacklisted; won't be tested"
 }
 
-print_acct_hint() {
-  echo "(i) Results may vary with different power supplies and conditions, as stated in README.md -- TROUBLESHOOTING."
+print_acct_info() {
+  echo "(i) Results may vary with different power supplies and conditions, as stated in README.md -- TROUBLESHOOTING.
+To set charging switches, run acc -ss (wizard) or acc -s s=\"SWITCHES GO HERE --\"."
   [ -n "${1-}" ] && printf '"battIdleMode" refers to the ability of running off the charger.\n\n' || echo
 }

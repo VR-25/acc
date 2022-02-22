@@ -28,10 +28,6 @@ print_config_reset() {
   echo "(i) Mengatur ulang konfigurasi"
 }
 
-print_known_switches() {
-  echo "(i) Saklar pengisi daya yang diketahui"
-}
-
 print_invalid_switch() {
   echo "(!) Saklar pengisi daya salah, [${chargingSwitch[@]-}]"
 }

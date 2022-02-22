@@ -28,10 +28,6 @@ print_config_reset() {
   echo "(i) 配置已重置"
 }
 
-print_known_switches() {
-  echo "(i) 充电开关可用"
-}
-
 print_invalid_switch() {
   echo "(!) 无效充电开关, [${chargingSwitch[@]-}]"
 }
