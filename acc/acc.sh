@@ -194,7 +194,20 @@ parse_switches() {
     n=$i
     i="$(sed -n "$(($n - 1))p" "$f")"
     n=$(sed -n ${n}p $f)
-    n="$([ $n -eq 1 ] && echo "1 0" || echo "0 1")"
+
+    case $n in
+      0) n="$n 1";;
+      1) n="$n 0";;
+      disable) n="$n enable";;
+      disabled) n="$n disabled";;
+      enable) n="$n disable";;
+      enabled) n="$n disabled";;
+      DISABLE) n="$n ENABLE";;
+      DISABLED) n="$n DISABLED";;
+      ENABLE) n="$n DISABLE";;
+      ENABLED) n="$n DISABLED";;
+      *) continue;;
+    esac
 
     i="$(echo "$i $n" | grep -Eiv 'brightness|curr|online|present|runtime|status|temp|volt|wakeup|[^pP]reset' \
       | sed 's|^/.*/power_supply/||')"
