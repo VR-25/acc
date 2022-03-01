@@ -196,7 +196,7 @@ parse_switches() {
     n=$(sed -n ${n}p $f)
     n="$([ $n -eq 1 ] && echo "1 0" || echo "0 1")"
 
-    i="$(echo "$i $n" | grep -Eiv 'brightness|curr|online|present|runtime|status|temp|volt|wakeup' \
+    i="$(echo "$i $n" | grep -Eiv 'brightness|curr|online|present|runtime|status|temp|volt|wakeup|[^pP]reset' \
       | sed 's|^/.*/power_supply/||')"
 
     if [ -n "$i" ] && ! grep -q "^$i" $1; then
