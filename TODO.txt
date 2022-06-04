@@ -1,0 +1,7 @@
+notifications
+  resume_capacity and more
+-e and -d, voltage support
+profiles
+reduce array usage
+adaptive charging
+allow any current and voltage values

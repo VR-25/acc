@@ -20,7 +20,7 @@ set -x
 
 # set up busybox
 #BB#
-bin_dir=/data/adb/bin
+bin_dir=/data/adb/vr25/bin
 busybox_dir=/dev/.vr25/busybox
 magisk_busybox=/data/adb/magisk/busybox
 [ -x $busybox_dir/ls ] || {
@@ -34,7 +34,7 @@ magisk_busybox=/data/adb/magisk/busybox
     }
   done
   [ -x $busybox_dir/ls ] || {
-    echo "(!) Install busybox or simply place it in $bin_dir/"
+    echo "Install busybox or simply place it in $bin_dir/"
     echo
     exit 3
   }
@@ -48,7 +48,7 @@ unset f bin_dir busybox_dir magisk_busybox
 
 # root check
 [ $(id -u) -ne 0 ] && {
-  echo "(!) $0 must run as root (su)"
+  echo "$0 must run as root (su)"
   exit 4
 }
 

@@ -37,7 +37,7 @@ trap exxit EXIT
 
 # set up busybox
 #BB#
-bin_dir=/data/adb/bin
+bin_dir=/data/adb/vr25/bin
 busybox_dir=/dev/.vr25/busybox
 magisk_busybox=/data/adb/magisk/busybox
 [ -x $busybox_dir/ls ] || {
@@ -51,7 +51,7 @@ magisk_busybox=/data/adb/magisk/busybox
     }
   done
   [ -x $busybox_dir/ls ] || {
-    echo "(!) Install busybox or simply place it in $bin_dir/"
+    echo "Install busybox or simply place it in $bin_dir/"
     echo
     exit 3
   }
@@ -66,7 +66,7 @@ unset f bin_dir busybox_dir magisk_busybox
 
 # root check
 [ $(id -u) -ne 0 ] && {
-  echo "(!) $0 must run as root (su)"
+  echo "$0 must run as root (su)"
   exit 4
 }
 
@@ -97,7 +97,7 @@ set -eu
 srcDir="$(cd "${0%/*}" 2>/dev/null || :; echo "$PWD")"
 
 # extract flashable zip if source code is unavailable
-[ -d $srcDir/$id ] || {
+[ -d $srcDir/install ] || {
   srcDir=/dev/.$domain.${id}-install
   rm -rf $srcDir 2>/dev/null || :
   mkdir $srcDir
@@ -153,7 +153,7 @@ echo "$name $version ($versionCode)
 Copyright 2017-2022, $author
 GPLv3+
 
-(i) Installing in $installDir/$id/..."
+Installing in $installDir/$id/..."
 
 
 # backup
@@ -162,8 +162,8 @@ mkdir -p $data_dir/backup
 cp -aH /data/adb/$domain/$id/* $config $data_dir/backup/ 2>/dev/null || :
 
 
-/system/bin/sh $srcDir/$id/uninstall.sh install
-cp -R $srcDir/$id/ $installDir/
+/system/bin/sh $srcDir/install/uninstall.sh install
+cp -R $srcDir/install/ $installDir/$id
 installDir=$(readlink -f $installDir/$id)
 cp $srcDir/module.prop $installDir/
 cp -f $srcDir/README.* $data_dir/
@@ -267,7 +267,7 @@ cat $srcDir/changelog.md
 
 
 printf "\n\n"
-echo "(i) Rebooting is unnecessary
+echo "Rebooting is unnecessary.
 - $id commands may require the "/dev/.$domain/$id/" prefix (e.g., /dev/.$domain/$id/$id -v) until system is rebooted.
 - Daemon started."
 
@@ -275,13 +275,13 @@ echo "(i) Rebooting is unnecessary
 case $installDir in
   /data/adb/modules*) ;;
   *) echo "
-(i) Non-Magisk users can enable $id auto-start by running /data/adb/$domain/$id/service.sh, a copy of, or a link to it - with init.d or an app that emulates it.";;
+Non-Magisk users can enable $id auto-start by running /data/adb/$domain/$id/service.sh, a copy of, or a link to it - with init.d or an app that emulates it.";;
 esac
 
 #legacy
 f=$data_dir/logs/ps-blacklist.log
 [ -f $f ] || mv $data_dir/logs/psl-blacklist.txt $f 2>/dev/null
-rm $data_dir/${id}-uninstaller.zip 2>/dev/null
+rm $data_dir/${id}-uninstaller.zip $data_dir/logs/*.tar.gz $data_dir/curr 2>/dev/null
 
 # initialize $id
 /data/adb/$domain/$id/service.sh --init

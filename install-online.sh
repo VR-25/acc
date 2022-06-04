@@ -26,7 +26,7 @@ trap 'e=$?; echo; exit $e' EXIT
 
 # set up busybox
 #BB#
-bin_dir=/data/adb/bin
+bin_dir=/data/adb/vr25/bin
 busybox_dir=/dev/.vr25/busybox
 magisk_busybox=/data/adb/magisk/busybox
 [ -x $busybox_dir/ls ] || {
@@ -40,7 +40,7 @@ magisk_busybox=/data/adb/magisk/busybox
     }
   done
   [ -x $busybox_dir/ls ] || {
-    echo "(!) Install busybox or simply place it in $bin_dir/"
+    echo "Install busybox or simply place it in $bin_dir/"
     echo
     exit 3
   }
@@ -55,7 +55,7 @@ unset f bin_dir busybox_dir magisk_busybox
 
 # root check
 [ $(id -u) -ne 0 ] && {
-  echo "(!) $0 must run as root (su)"
+  echo "$0 must run as root (su)"
   exit 4
 }
 
@@ -67,6 +67,14 @@ get_ver() { sed -n 's/^versionCode=//p' ${1:-}; }
 ! test -f /data/adb/vr25/bin/curl || {
   test -x /data/adb/vr25/bin/curl \
     || chmod -R 0700 /data/adb/vr25/bin
+}
+
+
+which curl >/dev/null || {
+  curl() {
+    shift $(($# - 1))
+    PATH=${PATH#*/busybox:} /dev/.vr25/busybox/wget -O - --no-check-certificate $1
+  }
 }
 
 
@@ -102,7 +110,7 @@ then
     else
       echo
       print_available $id $onlineVersion 2>/dev/null \
-        || echo "(i) $id $onlineVersion is available"
+        || echo "$id $onlineVersion is available"
       echo "- https://github.com/VR-25/$id/blob/${commit}/README.md#latest-changes"
       print_install_prompt 2>/dev/null \
         || echo -n "- Should I download and install it ([enter]: yes, CTRL-C: no)? "
@@ -121,7 +129,7 @@ then
 
 else
   echo
-  print_no_update 2>/dev/null || echo "(i) No update available"
+  print_no_update 2>/dev/null || echo "No update available"
   exit 6
 fi
 

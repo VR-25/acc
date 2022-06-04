@@ -126,7 +126,6 @@ As the project gets bigger and more popular, the need for coffee goes up as well
 - Android or Android based OS
 - Any root solution (e.g., [Magisk](https://github.com/topjohnwu/Magisk))
 - [Busybox\*](https://github.com/Magisk-Modules-Repo/busybox-ndk) (only if not rooted with Magisk)
-- [curl](https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/tree/master/curl) (for acc --upgrade, optional)
 - Non-Magisk users can enable acc auto-start by running /data/adb/vr25/acc/service.sh, a copy of, or a link to it - with init.d or an app that emulates it.
 - Terminal emulator
 - Text editor (optional)
@@ -201,8 +200,6 @@ or `curl -L#  https://github.com/VR-25/acc/archive/master.tar.gz | tar -xz`
 Refer to framework-details.txt for a full list of tasks carried out by it.
 To skip generating archives, run the build script with a random argument (e.g. bash build.sh h).
 
-- The output files are (in `_builds/acc-$versionCode/`): `acc-$versionCode.zip`, `acc-$versionCode.tar.gz`, and `install-tarball.sh`.
-
 - To update the local source code, run `git pull --force` or re-download it (with wget/curl) as described above.
 
 
@@ -240,25 +237,48 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202202060
+configVerCode=202206010
+
 capacity=(-1 60 70 75 false false)
+
 temperature=(40 60 90 65)
+
 cooldownRatio=()
 cooldownCurrent=
 cooldownCustom=()
-resetBattStats=(false false)
+
+resetBattStats=(false false false)
+
 chargingSwitch=()
+
 applyOnBoot=()
+
 applyOnPlug=()
+
 maxChargingCurrent=()
+
 maxChargingVoltage=()
-language=en
-runCmdOnPause=()
+
+language=
+
+runCmdOnPause=''
+
 ampFactor=
 voltFactor=
-loopCmd=()
+
+loopCmd=''
+
 prioritizeBattIdleMode=false
 currentWorkaround=false
+battStatusWorkaround=true
+
+schedule=''
+
+battStatusOverride=''
+
+rebootResume=false
+
+: one-line script sample; echo nothing >/dev/null
 
 
 # WARNINGS
@@ -282,7 +302,9 @@ currentWorkaround=false
 
 # A change to current_workaround (cw) only takes effect after an acc [re]initialization (install, upgrade or "accd --init") or system reboot.
 
-# If those 2 variables are updated with "acc --set" (not acca --set), accd is restarted automatically (--init is implied as needed).
+# If those 2 variables are updated with "acc --set" (not acca --set), accd is restarted automatically (--init is implied, as needed).
+
+# The only nullable variables are those which are null by default (var=, var="" and var=()).
 
 
 # BASICS
@@ -297,7 +319,7 @@ currentWorkaround=false
 
 # cooldownCurrent=cooldown_current=[milliamps]
 
-# resetBattStats=(reset_batt_stats_on_pause reset_batt_stats_on_unplug)
+# resetBattStats=(reset_batt_stats_on_pause reset_batt_stats_on_unplug reset_batt_stats_on_plug)
 
 # chargingSwitch=charging_switch=(ctrl_file1 on off ctrl_file2 on off --)
 
@@ -319,20 +341,30 @@ currentWorkaround=false
 
 # language=lang=language_code
 
-# runCmdOnPause=run_cmd_on_pause=(. script)
+# runCmdOnPause=run_cmd_on_pause='command...'
 
 # ampFactor=amp_factor=[multiplier]
 
 # voltFactor=volt_factor=[multiplier]
 
-# loopCmd=loop_cmd=(. script)
+# loopCmd=loop_cmd='command...'
 
 # prioritizeBattIdleMode=prioritize_batt_idle_mode=boolean
 
 # currentWorkaround=current_workaround=boolean
 
+# battStatusWorkaround=batt_status_workaround=boolean
 
-# VARIABLE ALIASES/SHORTCUTS
+# schedule=sched='HHMM command...
+# HHMM command...
+# ...'
+
+# battStatusOverride=batt_status_override=Idle|Discharging|'code to PRINT value for _status'
+
+# rebootResume=reboot_resume=boolean
+
+
+# ALIASES/SHORTCUTS
 
 # cc cooldown_capacity
 # rc resume_capacity
@@ -355,6 +387,7 @@ currentWorkaround=false
 
 # rbsp reset_batt_stats_on_pause
 # rbsu reset_batt_stats_on_unplug
+# rbspl reset_batt_stats_on_plug
 
 # s charging_switch
 
@@ -371,42 +404,15 @@ currentWorkaround=false
 # vf volt_factor
 
 # lc loop_cmd
+
 # pbim prioritize_batt_idle_mode
 # cw current_workaround
+# bsw batt_status_workaround
 
+# sd sched
 
-# COMMAND EXAMPLES
-
-# acc 85 80
-# acc -s pc=85 rc=80
-# acc --set pause_capacity=85 resume_capacity=80
-
-# acc -s "s=battery/charging_enabled 1 0"
-# acc --set "charging_switch=/proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0"
-# NOTE: "::" is used as a whitespace placeholder in "/proc/mtk_battery_cmd/current_cmd 0::0 0::1" charging switch only.
-
-# acc -s -v 3920 (millivolts)
-# acc -s -c 500 (milliamps)
-
-# custom config path
-# acc /data/acc-night-config.txt 45 43
-# acc /data/acc-night-config.txt -s c 500
-# accd /data/acc-night-config.txt
-
-# acc -s "ccu=battery/current_now 1450000 100 20"
-# acc -s "cooldown_custom=battery/current_now 1450000 100 20"
-# acc -s ccu="/sys/devices/virtual/thermal/thermal_zone1/temp 55 50 10"
-
-# acc -s amp_factor=1000
-# acc -s volt_factor=1000000
-
-# acc -s mcc=500 mcv="3920 --exit"
-
-# acc -s loop_cmd="echo 0 \\> battery/input_suspend"
-
-# acc -s cooldown_current=500
-
-# acc -s st=60
+# bso batt_status_override
+# rr reboot_resume
 
 
 # FINE, BUT WHAT DOES EACH OF THESE VARIABLES ACTUALLY MEAN?
@@ -467,7 +473,6 @@ currentWorkaround=false
 # cooldown_custom (ccu) #
 # When cooldown_capacity and/or cooldown_temp don't suit your needs, this comes to the rescue.
 # It takes precedence over the regular cooldown settings.
-# Refer back the command examples.
 
 # cooldown_current (cdc) #
 # Instead of pausing charging periodically during the cooldown phase, limit the max charging current (e.g., to 500 mA)
@@ -476,7 +481,10 @@ currentWorkaround=false
 # Reset battery stats after pausing charging.
 
 # reset_batt_stats_on_unplug (rbsu) #
-# Reset battery stats if the charger has been unplugged for 10 seconds.
+# Reset battery stats if the charger has been unplugged for a few seconds.
+
+# reset_batt_stats_on_plug (rbspl) #
+# Reset battery stats if the charger has been plugged for a few seconds.
 
 # charging_switch (s) #
 # If unset, acc cycles through its database and sets the first working switch/group that disables charging.
@@ -506,10 +514,10 @@ currentWorkaround=false
 # max_charging_voltage (mcv) #
 # Only the current/voltage value is to be supplied.
 # Control files are automatically selected.
-# Refer back to the command examples.
 
 # lang (l) #
-# acc language, managed with "acc --set --lang" (acc -s l).
+# acc language, managed with "acc --set --lang" (acc -sl).
+# When null, English (en) is assumed.
 
 # run_cmd_on_pause (rcp) #
 # Run commands* after pausing charging.
@@ -525,7 +533,7 @@ currentWorkaround=false
 
 # loop_cmd (lc) #
 # This is meant for extending accd's functionality.
-# It is periodically executed by is_charging() - which is called regularly, within the main accd loop.
+# It is periodically executed by the is_charging function -- which is called regularly, within the main accd loop.
 # The boolean isCharging is available.
 # Refer back to COMMAND EXAMPLES.
 
@@ -539,6 +547,57 @@ currentWorkaround=false
 # This is necessary only if the current limit affects both input and charging current values.
 # Try this if low current values don't work.
 # "accd --init" is required after changing this (automated by "acc --set").
+
+# batt_status_workaround (bsw) #
+# With this enabled, in addition to just reading POWER_SUPPLY_STATUS, if the battery is "Charging" and current is within -11 and 95 mA (inclusive), battery status is considered "Idle". Status is considered "Discharging", if current drops significantly, after calling the disable_charging function.
+# By not relying solely on the information provided by POWER_SUPPLY_STATUS, this approach boosts compatibility quite dramatically. So much so, that on certain devices (e.g., Nokia 2.2), acc only works when this is enabled.
+# On the other hand, the user may observe charging control inconsistencies on devices that report wrong current values or major current fluctuations.
+# Oftentimes, charging control issues are related to the power adapter.
+
+# sched (sd) #
+# Command/script schedules, in the following format:
+#
+# sched="HHMM command...
+# HHMM command...
+# ..."
+#
+# e.g., 3900 mV at 22:00, and 4100 mV at 6:00, daily:
+# sched="2200 acc -s mcv=3900
+# 0600 acc -s mcv=4100"
+#
+# 12 hour format is not supported.
+# Each schedule must be on its own line.
+# Each line is daemonized.
+# This is not limited to acc commands. It can run anything.
+#
+# Commands:
+#   -s|--set [sd|sched]="[+-]schedule to add or pattern to delete"
+#     e.g.,
+#       acc -s sd=-2050 (delete schedules that match 2050)
+#       acc -s sd="+2200 acc -s mcv=3900 mcc=500; acc -n "Switched to \"sleep\" profile" (append schedule)
+#     Note: "acc -s sd=" behaves just like similar commands (restores default value; for schedules, it's null)
+
+# batt_status_override (bso) #
+# Overrides the battery status determined by the not_charging function.
+# It can be Idle, Discharging (both case sensitive), or logic to PRINT the desired value for the _status variable.
+# When set to Idle or Discharging, _status will be set to that value if the enforced* charging switch state is off.
+# It only works in conjunction with an enforced charging switch (set manually, has a trailing " --").
+#
+# Usage scenario: the switch "main/cool_mode 0 1" supports idle mode. However, sometimes it does not respond soon enough (e.g., due to fast charging). The user can then enforce it with acc -ss and set batt_status_override=Idle. This means, when main/cool_mode is on (0), _status will be determined by the not_charging function (as usual), but when it's off (1), _status will be Idle, bypassing the not_charging function.
+#
+# If the user were to write their own logic, it would've be something as follows:
+# batt_status_override='[ $(cat main/cool_mode) -eq 1 ] && printf Idle'
+
+# reboot_resume (rr) #
+# Reboot (when capacity <= resume_capacity) to re-enable charging.
+# A warning notification is posted 60 seconds prior, for the user to block the action, if they so please.
+
+# one-line scripts #
+# Every line that begins with ": " is interpreted as a one-line script.
+# This feature can be useful for many things, including setting up persistent config profiles (source a file that overrides the main config).
+# All script lines are executed whenever the config is loaded/sourced.
+# This happens regularly while the daemon is running, and at least once per command run.
+# Warning: all files used in one-line scripts must reside somewhere in /data/adb/, just like acc's own data files.
 
 #/DC#
 ```
@@ -577,20 +636,24 @@ Usage
     e.g.,
       acc 75 70
       acc 80 (resume_capacity defaults to 80% - 5)
-      acc 3920 (same as acc 3920 3870, great idle mode alternative)
+      acc 3900 (same as acc 3900 3870, great idle mode alternative)
 
   acc [options] [args]   Refer to the list of options below
 
   acca [options] [args]   acc optimized for front-ends
 
-  acc[d] -x [options] [args]   Sets log=/sdcard/acc[d]-${device}.log; useful for debugging unwanted reboots
+  acc[d] -x [options] [args]   Sets log=/sdcard/Download/acc[d]-${device}.log; useful for debugging unwanted reboots
 
   A custom config path can be specified as first parameter (second if -x is used).
   If the file doesn't exist, the current config is cloned.
     e.g.,
       acc /data/acc-night-config.txt --set pause_capacity=45 resume_capacity=43
       acc /data/acc-night-config.txt --set --current 500
-      accd /data/acc-night-config.txt
+      accd /data/acc-night-config.txt --init
+
+  Notes regarding accd:
+    - The order of "--init|-i" does not matter.
+    - The config path string shall not contain "--init|-i".
 
 
 Options
@@ -649,12 +712,15 @@ Options
 
   -la   Same as -l -a
 
-  -l|--log -e|--export   Export all logs to /data/adb/vr25/acc-data/logs/acc-logs-$deviceName.tar.gz
+  -l|--log -e|--export   Export all logs to /logs/acc-logs-$deviceName.tgz
     e.g., acc -l -e
 
   -le   Same as -l -e
 
-  -p|--parse [<base file> <file to parse>]|[file to parse]   Helps find potential charging switches quickly, for any device
+  -n|--notif [["STRING" (default: ":)")] [USER ID (default: 2000 (shell))]]   Post Android notification; may not work on all systems
+    e.g., acc -n "Hello, World!"
+
+  -p|--parse [<base file> <file to parse>] | <file to parse>]   Helps find potential charging switches quickly, for any device
     e.g.,
       acc -p   Parse /logs/power_supply-\*.log and print potential charging switches not present in /ch-switches
       acc -p /sdcard/power_supply-harpia.log   Parse the given file and print potential charging switches that are not already in /ch-switches
@@ -676,7 +742,13 @@ Options
       acc -s charging_switch=
       acc -s pause_capacity=60 resume_capacity=55 (shortcuts: acc -s pc=60 rc=55, acc 60 55)
       acc -s "charging_switch=battery/charging_enabled 1 0" resume_capacity=55 pause_capacity=60
-    Note: all properties have short aliases for faster typing; run "acc -c cat" to see these
+    Note: all properties have short aliases for faster typing; run "acc -c cat" to see them
+
+  -s|--set [sd|sched]="[+-]schedule to add or pattern to delete"
+    e.g.,
+      acc -s sd=-2050 (delete schedules that match 2050)
+      acc -s sd="+2200 acc -s mcv=3900 mcc=500; acc -n "Switched to \"sleep\" profile" (append schedule)
+    Note: "acc -s sd=" behaves just like similar commands (restores default value; for schedules, it's null)
 
   -s|--set c|--current [milliamps|-]   Set/print/restore_default max charging current (range: 0-9999 Milliamps)
     e.g.,
@@ -702,12 +774,12 @@ Options
 
   -sp [egrep regex (default: ".")]   Same as above
 
-  -s|--set r|--reset   Restore default config
+  -s|--set r|--reset [a]   Restore default config ("a" is for "all": config and control file blacklists, essentially a hard reset)
     e.g.,
       acc -s r
-      rm /data/adb/vr25/acc-data/config.txt (failsafe)
 
-  -sr   Same as above
+  -sr [a]   Same as above
+
 
   -s|--set s|charging_switch   Enforce a specific charging switch
     e.g., acc -s s
@@ -722,9 +794,9 @@ Options
   -s|--set v|--voltage [millivolts|-] [--exit]   Set/print/restore_default max charging voltage (range: 3700-4300 Millivolts)
     e.g.,
       acc -s v (print)
-      acc -s v 3920 (set)
+      acc -s v 3900 (set)
       acc -s v - (restore default)
-      acc -s v 3920 --exit (stop the daemon after applying settings)
+      acc -s v 3900 --exit (stop the daemon after applying settings)
 
   -sv [millivolts|-] [--exit]   Same as above
 
@@ -733,16 +805,19 @@ Options
       acc -t battery/charging_enabled 1 0
       acc -t /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0 ("::" is a placeholder for " " - MTK only)
 
-  -t|--test [file]   Test charging switches from a file (default: /dev/.vr25/acc/ch-switches)
-    Control files that trigger reboots or kernel panic are automatically backlisted
+  -t|--test [file]   Test charging switches from a file (default: /ch-switches)
     e.g.,
       acc -t (test known switches)
       acc -t /sdcard/experimental_switches.txt (test custom/foreign switches)
 
+  -t|--test [p|parse]   Parse potential charging switches from the power supply log (as "acc -p"), test them all, and add the working ones to the list of known switches
+    Implies -x, as acc -x -t p
+    e.g., acc -t p
+
   -T|--logtail   Monitor accd log (tail -F)
     e.g., acc -T
 
-  -u|--upgrade [-c|--changelog] [-f|--force] [-k|--insecure] [-n|--non-interactive]   Online upgrade/downgrade (requires curl)
+  -u|--upgrade [-c|--changelog] [-f|--force] [-k|--insecure] [-n|--non-interactive]   Online upgrade/downgrade
     e.g.,
       acc -u dev (upgrade to the latest dev version)
       acc -u (latest version from the current branch)
@@ -780,11 +855,12 @@ Exit Codes
   10. All charging switches fail (--test)
   11. Current (mA) out of 0-9999 range
   12. Initialization failed
-  13. Failed to lock /dev/.vr25/acc/acc.lock
+  13. Failed to lock /acc.lock
   14. ACC won't initialize, because the Magisk module disable flag is set
   15. Idle mode is supported (--test)
+  16. Failed to enable charging (--test)
 
-  Logs are exported automatically ("--log --export") on exit codes 1, 2, 7 and 10.
+  Logs are exported automatically ("--log --export") on exit codes 1, 2 and 7.
 
 
 Tips
@@ -794,8 +870,8 @@ Tips
     acc -e 30m && acc -d 6h && acc -e 85 && accd
 
   Sample profile
-    acc -s pc=45 rc=43 mcc=500 mcv=3920
-      This keeps battery capacity between 43-45%, limits charging current to 500 mA and voltage to 3920 millivolts.
+    acc -s pc=45 rc=43 mcc=500 mcv=3900
+      This keeps battery capacity between 43-45%, limits charging current to 500 mA and voltage to 3900 millivolts.
       It's great for nighttime and "forever-plugged".
 
   Refer to acc -r (or --readme) for the full documentation (recommended)
@@ -977,15 +1053,9 @@ This information is in the [default configuration](#default-configuration) secti
 ## TROUBLESHOOTING
 
 
-### `acc -t` Results Seem Inconsistent
+## acc -t Results Are Inconsistent
 
-In enhanced charging status detection mode (default), if the battery is "Charging" and the absolute value of current is <= 15 mA (95 for mtk), the status is considered "Idle".
-Furthermore, the battery status is considered "Discharging", if current drops by mA >= 100 after calling disable_charging().
-Although rare, this can cause charging control issues on some devices.
-Hence, one may want to see if disabling it makes a difference.
-However, before trying this, it's recommend to test a different power source.
-Fast charging, in particular, is known for overriding/blocking custom charging control settings.
-On certain devices (e.g., Nokia 2.2), acc only works when enhanced mode is enabled.
+Refer to "default config > batt_status_workaround".
 
 
 ### Battery Capacity (% Level) Doesn't Seem Right
@@ -1063,21 +1133,9 @@ Reminder: a daemon restart is required to load new/modified plugins.
 Volatile logs (gone on reboot) are stored in `/dev/.vr25/acc/` (.log files only).
 Persistent logs reside in `/data/adb/vr25/acc-data/logs/`.
 
-`acc -le` exports all acc logs, plus Magisk's and extras to `/data/adb/acc-data/logs/acc-$device_codename.tar.gz`.
+`acc -le` exports all acc logs, plus Magisk's and extras to `/data/adb/acc-data/logs/acc-$device_codename.tgz`.
 The logs do not contain any personal information and are never automatically sent to the developer.
 Automatic exporting (local) happens under specific conditions (refer back to `SETUP/USAGE > Terminal Commands > Exit Codes`).
-
-
-### Finding Additional/Potential Charging Switches Quickly
-
-1. Generate a list of potential charging switches: `acc -p > /sdcard/acc-p.txt`.
-
-2. Remove from the list, all lines that you're SURE don't resemble a charging switch.
-
-3. Test all: `acc -t /sdcard/acc-p.txt`.
-
-Note that some control files may trigger reboots or kernel panic.
-ACC automatically blacklists these, so that the user can continue testing (step 2) after each reboot.
 
 
 ### Install, Upgrade, Stop and Restart Processes Seem to Take Too Long
@@ -1087,6 +1145,11 @@ Sometimes, **this requires the charger to be plugged**.
 That's because some devices have kernel bugs and/or bad charging driver implementations.
 That said, accd is always stopped _gracefully_ to ensure the restoration takes place.
 One who knows what they're doing, can force-stop accd by running `pkill -9 -f accd`.
+
+
+### Kernel Panic and Spontaneous Reboots
+
+Control files that trigger these are automatically backlisted (commented out in `/data/adb/acc-data/logs/write.log`).
 
 
 ### Restore Default Config
@@ -1218,13 +1281,13 @@ If it changes intermittently, the current is too low; increment it until the iss
 
 ### Generic
 
-Emulate _battery idle mode_ with a voltage limit: `acc -s pc=101 rc=0 mcv=3920`.
+Emulate _battery idle mode_ with a voltage limit: `acc -s pc=101 rc=0 mcv=3900`.
 The first two arguments disable the regular charging pause/resume functionality.
 The last sets a voltage limit that will dictate how much the battery should charge.
 The battery enters a _[pseudo] idle mode_ when its voltage peaks.
 Essentially, it works as a power buffer.
 
-A similar effect can be achieved with settings such as `acc 60 59` (percentages) and `acc 3920` (millivolts).
+A similar effect can be achieved with settings such as `acc 60 59` (percentages) and `acc 3900` (millivolts).
 
 Yet another way is limiting charging current to 0-250 mA or so (e.g., `acc -sc 0`).
 `acc -sc -` restores the default limit.
@@ -1251,18 +1314,18 @@ Extremely slow discharge rate is expected.
 2 - `charging_switch=0`: if current fluctuates, also set `current_workaround=true` (only takes affect after a reboot).
 If this method works, the behavior is exactly the same as `#1`.
 
-3 - `charging_switch=3920`: only works on devices that actually support voltage control.
-Unlike regular idle mode, this maintains 3920 mV (_the sweet spot_) indefinitely.
+3 - `charging_switch=3900`: only works on devices that actually support voltage control.
+Unlike regular idle mode, this maintains 3900 mV, indefinitely.
 This is not good with higher voltages.
 We're trying to minimize battery stress as much as possible.
-Maintaining a voltage higher than 3920 for a long time is _not_ recommended.
+Maintaining a voltage higher than 3900 for a long time is _not_ recommended.
 
-4 - `acc 3920`: this is short for _acc 3920 3870_ (a 50 mV difference).
-It tries to maintain 3920 mV without voltage control support.
+4 - `acc 3900`: this is short for _acc 3900 3870_ (a 50 mV difference).
+It tries to maintain 3900 mV without voltage control support.
 Yes, it's definitely not a joke.
 This works with regular charging switches and voltage readings.
 
-5 - `acc 45 44`: this closely translates to 3920 mV under most circumstances.
+5 - `acc 45 44`: this closely translates to 3900 mV under most circumstances.
 Voltage and capacity (%) do not have a linear relationship.
 Voltage varies with temperature, battery chemistry and age.
 
@@ -1275,7 +1338,7 @@ Voltage varies with temperature, battery chemistry and age.
 
 Open issues on GitHub or contact the developer on Facebook, Telegram (preferred) or XDA (links below).
 Always provide as much information as possible.
-Attach `/data/adb/vr25/acc-data/logs/acc-logs-*tar.gz` - generated by `acc -le` _right after_ the problem occurs.
+Attach `/data/adb/vr25/acc-data/logs/acc-logs-*.tgz` - generated by `acc -le` _right after_ the problem occurs.
 Refer back to `TROUBLESHOOTING > Diagnostics/Logs` for additional details.
 
 
@@ -1293,7 +1356,7 @@ With modern battery management systems, that's generally unnecessary.
 
 However, if your battery is underperforming, you may want to try the procedure described at https://batteryuniversity.com/article/bu-603-how-to-calibrate-a-smart-battery .
 
-ACC automatically optimizes system performance and battery utilization, by forcing `bg-dexopt-job` on daemon [re]start, if charging.
+ACC automatically optimizes system performance and battery utilization, by forcing `bg-dexopt-job` on daemon [re]start, once after boot, if charging and uptime >= 900 seconds.
 
 
 > I set voltage to 4080 mV and that corresponds to just about 75% charge.
@@ -1307,16 +1370,12 @@ Otherwise, the other option is actually more beneficial - since it mitigates hig
 If you use both, simultaneously - you get the best of both worlds.
 On top of that, if you enable the cooldown cycle, it'll give you even more benefits.
 
-Anyway, while the battery is happy in the 3700-4100 mV range, the optimal voltage for [the greatest] longevity is said\* to be ~3920 mV.
-
-If you're leaving your phone plugged in for extended periods of time, that's the voltage limit to aim for.
-
 Ever wondered why lithium ion batteries aren't sold fully charged? They're usually ~40-60% charged. Why is that?
 Keeping a battery fully drained, almost fully drained or 70%+ charged for a long times, leads to significant (permanent) capacity loss
 
 Putting it all together in practice...
 
-Night/heavy-duty profile: keep capacity within 40-60% and/or voltage around ~3920 mV
+Night/heavy-duty profile: keep capacity within 40-60% and/or voltage around ~3900 mV
 
 Day/regular profile: max capacity: 75-80% and/or voltage no higher than 4100 mV
 
@@ -1382,16 +1441,24 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 ## LINKS
 
 - [Daily Job Scheduler](https://github.com/VR-25/djs)
+
 - [Donate - Airtm, username: ivandro863auzqg](https://app.airtm.com/send-or-request/send)
+- [Donate - Credit/Debit Card](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=iprj25@gmail.com&lc=US&item_name=VR25+is+creating+free+and+open+source+software.+Donate+to+suppport+their+work.&no_note=0&cn=&currency_code=USD&bn=PP-DonationsBF:btn_donateCC_LG.gif:NonHosted)
 - [Donate - Liberapay](https://liberapay.com/vr25)
 - [Donate - Patreon](https://patreon.com/vr25)
-- [Donate - PayPal or Credit/Debit Card](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=iprj25@gmail.com&lc=US&item_name=VR25+is+creating+free+and+open+source+software.+Donate+to+suppport+their+work.&no_note=0&cn=&currency_code=USD&bn=PP-DonationsBF:btn_donateCC_LG.gif:NonHosted)
+- [Donate - PayPal Me](https://paypal.me/vr25xda)
+
 - [Facebook Page](https://fb.me/vr25xda)
+
 - [Frontend - ACC App](https://github.com/MatteCarra/AccA/releases)
 - [Frontend - ACC Settings](https://github.com/CrazyBoyFeng/AccSettings)
+
 - [Must Read - How to Prolong Lithium Ion Batteries Lifespan](https://batteryuniversity.com/article/bu-808-how-to-prolong-lithium-based-batteries)
+
 - [Telegram Channel](https://t.me/vr25_xda)
 - [Telegram Group](https://t.me/acc_group)
 - [Telegram Profile](https://t.me/vr25xda)
+
 - [Upstream Repository](https://github.com/VR-25/acc)
+
 - [XDA Thread](https://forum.xda-developers.com/apps/magisk/module-magic-charging-switch-cs-v2017-9-t3668427)
