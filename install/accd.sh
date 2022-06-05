@@ -132,7 +132,7 @@ if ! $init; then
         start-stop-daemon -bx $schedScript -S --
       fi
 
-      sed +x
+      set +x
       eval '${loopCmd-}'
       eval '${loopCmd_-}') || :
 
