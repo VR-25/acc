@@ -20,7 +20,7 @@ logf() {
       [ -f $file ] && cp $file ./ && break
     done
 
-    cp $dataDir/logs/* ./ 2>/dev/null
+    cp $dataDir/logs/* /sdcard/Download/acc-t_*.log ./ 2>/dev/null
     grep -Ev '^#|^$' $config_ > ./config.txt
     set +x
 
