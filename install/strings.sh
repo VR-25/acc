@@ -513,7 +513,7 @@ print_acct_info() {
 
   - idleMode: whether the device can run directly off the charger.
 
-  - The output of this command is saved to /sdcard/Download/acc-t_output.txt."
+  - The output of this command is saved to /sdcard/Download/acc-t_output-${device}.log."
 }
 
 

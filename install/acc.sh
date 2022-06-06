@@ -505,7 +505,7 @@ case "${1-}" in
 
     [ "${1-}" != -- ] || shift #legacy, AccA
     . $execDir/read-ch-curr-ctrl-files-p2.sh
-    : > /sdcard/Download/acc-t_output.txt
+    : > /sdcard/Download/acc-t_output-${device}.log
 
     case "${1-}" in
       ""|p|parse)
@@ -532,7 +532,7 @@ case "${1-}" in
           echo "x$_chargingSwitch" | grep -Eq '^x$|^x#' && continue
           [ -f "$(echo "$_chargingSwitch" | cut -d ' ' -f 1)" ] && {
             { test_charging_switch $_chargingSwitch; echo $? > $TMPDIR/.exitCode; } \
-              | tee -a /sdcard/Download/acc-t_output.txt
+              | tee -a /sdcard/Download/acc-t_output-${device}.log
             exitCode_=$(cat $TMPDIR/.exitCode)
             if [ -n "$parsed" ] && [ $exitCode_ -ne 10 ]; then
               grep -q "^$_chargingSwitch$" $_parsed 2>/dev/null \
@@ -549,7 +549,7 @@ case "${1-}" in
       ;;
       *)
         { test_charging_switch "$@"; echo $? > $TMPDIR/.exitCode; } \
-          | tee -a /sdcard/Download/acc-t_output.txt
+          | tee -a /sdcard/Download/acc-t_output-${device}.log
         exitCode=$(cat $TMPDIR/.exitCode)
         echo
       ;;
