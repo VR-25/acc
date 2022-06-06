@@ -209,11 +209,12 @@ parse_switches() {
       *) continue;;
     esac
 
+    i=${i#/sys/class/power_supply/}
+
     # exclude all known switches
     ! grep -q "$i " $1 || continue
 
-    i="$(echo "$i $n" | grep -Eiv 'brightness|curr|online|present|runtime|status|temp|volt|wakeup|[^pP]reset|daemon|calibrat|init|resistance|capacitance|shutdown|parallel|cycle|shutdown|reboot|nvram|count' \
-      | sed 's|^/.*/power_supply/||')"
+    i="$(echo "$i $n" | grep -Eiv 'brightness|curr|online|present|runtime|status|temp|volt|wakeup|[^pP]reset|daemon|calibrat|init|resistance|capacitance|shutdown|parallel|cycle|shutdown|reboot|nvram|count')"
 
     [ -z "$i" ] || echo "$i"
 
