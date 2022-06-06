@@ -71,7 +71,7 @@ maxfg/offmode_charger 0 1
 # troublesome
 #/sys/devices/platform/battery_meter/FG_daemon_disable 0 1
 #/sys/power/pnpmgr/battery/charging_enabled 1 0
-/sys/class/qcom-battery/vbus_disable 0 1
+#/sys/class/qcom-battery/vbus_disable 0 1
 /sys/devices/platform/battery/ChargerEnable 1 0
 battery/ChargerEnable 1 0
 #usb/vbus_disable 0 1
