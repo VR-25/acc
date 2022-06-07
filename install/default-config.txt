@@ -42,33 +42,34 @@ rebootResume=false
 : one-line script sample; echo nothing >/dev/null
 
 
-# WARNINGS
+# UYARILAR
 
-# Do not edit this in Windows Notepad, ever!
-# It replaces LF (Linux/Unix) with CRLF (Windows) line endings.
+# Windows Notepad ile bu dosyayı düzenlemeyin, asla!
+# Dosya sonundaki (Linux/Unix) bitişini CRLF (Windows) ile değiştiriyor.
 
-# As you may have guessed, what is null by default, can be null.
-# "language=" is interpreted as "language=en".
-# Nullifying values that should not be null causes unexpected behavior.
-# However, doing so with "--set var=" restores the default value of "var".
-# In other words, for regular users, "--set" is safer than modifying the config file directly.
+# Muhtemelen tahmin ettiğiniz üzere, varsayılan olarak "null" (boş) olan şey, boş bırakılabilir.
+# "language=" ile "language=en" eşdeğerdir.
+# Boş bırakılmaması gereken yerleri boş bırakmak beklenmedik durumlara yol açabilir.
+# Ancak "--set var=" komutu 'var' değeri için varsayılan değeri geri yükler.
+# Başka bir deyişle, normal kullanıcılar için, "--set" komutu config(ayarlar) dosyasını direkt düzenlemekten daha güvenlidir.
 
-# Do not feel like you must configure everything!
-# Do not change what you don't understand.
+# Her şeyi ayarlamanız/değiştirmeniz lazım gibi düşünmeyin!
+# Anlamadığınız şeyi değiştirmeyin.
 
 
 # NOTES
 
-# The daemon does not have to be restarted after making changes to this file - unless one of the changes is charging_switch.
+# Bu dosyada bir değişlik yapıldıktan sonra daemon yeniden başlatılmak zorunda değilsiniz  - istisna -> 'charging_switch'.
 
-# A change to current_workaround (cw) only takes effect after an acc [re]initialization (install, upgrade or "accd --init") or system reboot.
+# current_workaround (cw) değişkenine girdiğiniz yeni değerler acc yeniden başladığında aktif hale gelir (yükleme, güncelleme veya "accd --init") veya sistemi
+yeniden başlatın.
 
-# If those 2 variables are updated with "acc --set" (not acca --set), accd is restarted automatically (--init is implied, as needed).
+# Eğer bu 2 değişken "acc --set" (acca --set değil) ile değiştirildi ise, accd otomatik yeniden başlatılır (--init komutu uygulanır, gerektiği üzere).
 
-# The only nullable variables are those which are null by default (var=, var="" and var=()).
+# Boş olarak bırakılabilecek tek değerler varsayılan(default) olarak boş halde verilenlerdir (var=, var="" and var=()).
 
 
-# BASICS
+# TEMELLER
 
 # capacity=(shutdown_capacity cooldown_capacity resume_capacity pause_capacity capacity_sync capacity_mask)
 
@@ -176,146 +177,152 @@ rebootResume=false
 # rr reboot_resume
 
 
-# FINE, BUT WHAT DOES EACH OF THESE VARIABLES ACTUALLY MEAN?
+# TAMAM DA, BÜTÜN BUNLAR NE DEMEK?
 
 # configVerCode #
-# This is checked during updates to determine whether config should be patched. Do NOT modify.
+# Bu güncellemeler sırasında config(ayarlar) dosyasının değiştirilip değiştirilmemesi gerektiğini anlamak için kullanılır. Değişiklik YAPMAYIN.
 
 # shutdown_capacity (sc) #
-# When the battery is discharging and its capacity/voltage_now_millivolts <= sc and phone has been running for 15 minutes or more, acc daemon turns the phone off to reduce the discharge rate and protect the battery from potential damage induced by voltage below the operating range.
-# sc=-1 disables it.
+# Batarya deşarj oluyor ve seviyesi <= sc  değeri ise, acc daemon deşarj hızını düşürmek ve fazla düşük voltajın bataryaya verebileceği olası etkileri
+azaltmak için telefonu kapatır.
+# Devre dışı bırakmak için sc=-1.
 
 # cooldown_capacity (cc) #
-# Capacity/voltage_now_millivolts at which the cooldown cycle starts.
-# Cooldown reduces battery stress induced by prolonged exposure to high temperature and high charging voltage.
-# It does so through periodically pausing charging for a few seconds (more details below).
+# Soğutma döngüsünün başlatıldığı seviyedir (cc).
+# Soğutma işlemi, yüksek sıcaklık ve voltajın batarya üstüne bindirdiği yükü azaltır.
+# Bunu periodik olarak şarjı birkaç saniyeliğine keserek yapar (daha fazla detay için aşağıya bakın).
 
 # resume_capacity (rc) #
-# Capacity or voltage_now_millivolts at which charging should resume.
+# Şarjın yeniden başlatılacağı batarya seviyesi.
 
 # pause_capacity (pc) #
-# Capacity or voltage_now_millivolts at which charging should pause.
+# Şarjın durdurulacağı batarya seviyesi.
 
 # capacity_sync (cs) #
-# Some devices, notably from the Pixel lineup, have a capacity discrepancy issue between Android and the kernel.
-# capacity_sync forces Android to report the actual battery capacity supplied by the kernel.
+# Bazı cihazlar, özellikle Pixel sınıfından olanlar, Android ve kernel arasında batarya ile ilgili bazı tutarsızlıklara sahipler.
+# capacity_sync Anroid sistemini kernel tarafından sağlanan batarya seviyesini göstermeye zorlar.
 # The discrepancy is usually detected and corrected automatically by accd.
-# This setting overrides the automatic behavior.
-# Besides, it also prevents Android from getting capacity readings below 2%, since some systems shutdown before battery level actually drops to 0%.
+# Bu ayar otomatik davranışı yok sayar/geçersiz kılar.
+# (cs.2) - Bunun yanında Android'in 2% altında değerler göstermesini engeller, bunun sebebi bazı sistemlerin kernel batarya değeri 0% olmadan önce kapanmasıdır.
 
 # capacity_mask (cm) #
-# Implies capacity_sync.
-# This forces Android to report "capacity = capacity * (100 / pause_capacity)", effectively masking capacity limits (more like capacity_sync on steroids).
-# It also prevents Android from getting capacity readings below 2%, since some systems shutdown before battery level actually drops to 0%.
+# bkz. capacity_sync.
+# Bu değişken Android'i "capacity = capacity * (100 / pause_capacity)" değerini göstermeye zorlar. Uzun lafın kısası örneğin
+cihazınızı şarj 70%'de dursun diye ayarladınız, şarj bu seviyeye geldiğinde sanki dolmuş (100%) gibi gösteriyor.
+# bkz (cs.2) - (yukarıda)
 
 # cooldown_temp (ct) #
-# Temperature (°C) at which the cooldown cycle starts.
-# Cooldown reduces the battery degradation rate by lowering the device's temperature.
-# Refer back to cooldown_capacity for more details.
+# Soğutma döndüsünün (bkz. cs) (°C) başladığı sıcaklık.
+# Soğutma işlemi cihazın sıcaklığını düşürerek deşarj olma hızını azaltır.
+# Daha fazla bilgi için (bkz. cooldown_capacity).
 
 # max_temp (mt) #
 # mtp or max_temp_pause #
-# These two work together and are NOT tied to the cooldown cycle.
-# On max_temp (°C), charging is paused for max_temp_pause (seconds).
-# Unlike the cooldown cycle, which aims at reducing BOTH high temperature and high voltage induced stress - this is ONLY meant specifically for reducing high temperature induced stress.
-# Even though both are separate features, this complements the cooldown cycle when environmental temperatures are off the charts.
+# Bu ikisi birlikte çalışırlar ve soğutma işlemi ile (bkz. cs) bağlantıları YOKTUR.
+# Cihazın sıcaklığı max_temp (°C) derecesine geldiğinde, şarj 'max_temp_pause (saniye)' kadar durdurulur.
+# Hem yüksek sıcaklığı hem yüksek voltajı önlemeye çalışan soğutma döngüsünün aksine - bu değişken YALNIZCA sıcaklığı
+düşürmeyi amaçlar.
+# Soğutma döngüsü ile direkt bağlantılı olmasa da çevre sıcaklığı çok yüksek olduğunda ona yardımcı olur.
 
 # shutdown_temp (st) #
-# Shutdown the system if battery temperature >= this value.
+# Cihazı kapat, eğer sıcaklığı >= bu değer(st) ise.
 
 # cooldown_charge (cch) #
 # cooldown_pause (cp) #
-# These two dictate the cooldown cycle intervals (seconds).
-# When not set, the cycle is disabled.
-# Suggested values are cch=50 and cp=10.
-# If charging gets a bit slower than desired, try cch=50 and cp=5.
-# Note that cooldown_capacity and cooldown_temp can be disabled individually by assigning them values that would never be reached under normal circumstances.
+# Bu ikisi soğutma döngüsünün aralıklarını (saniye) ayarlar.
+# Eğer ayarlanmadılarsa, döngü devre dışı kalır.
+# Tavsiye edilen değerler cch=50 ve cp=10.
+# Eğer çok yavaş şarj oluyorsa, cch=50 ve cp=5 değerlerini deneyin.
+# cooldown_capacity(cc) ve cooldown_temp(ct) normal koşullar altında asla ulaşılamayacak absürt değerler verilerek de etkisiz
+hale getirilebilir.
 
 # cooldown_custom (ccu) #
-# When cooldown_capacity and/or cooldown_temp don't suit your needs, this comes to the rescue.
-# It takes precedence over the regular cooldown settings.
+# Eğer cooldown_capacity ve/veya cooldown_temp ihtiyaçlarınıza uymuyorsa, bu iş görebilir.
+# Varsayılan soğutma döngüsü ayarlarını yok sayar/onlardan önceliklidir.
 
 # cooldown_current (cdc) #
-# Instead of pausing charging periodically during the cooldown phase, limit the max charging current (e.g., to 500 mA)
+# Soğutma işlemi sırasında şarj işlemini periodik olarak kesmek yerine, maksimum izin verilen şarj akımını kısıtlar(örneğin 500mA)
 
 # reset_batt_stats_on_pause (rbsp) #
-# Reset battery stats after pausing charging.
+# Şarjın ardından batarya istatistiklerini sıfırlar.
 
 # reset_batt_stats_on_unplug (rbsu) #
-# Reset battery stats if the charger has been unplugged for a few seconds.
+# Eğer şarj kablosu birkaç saniyeliğine çıkartıldı ise batarya istatistiklerini sıfırlar.
 
 # reset_batt_stats_on_plug (rbspl) #
-# Reset battery stats if the charger has been plugged for a few seconds.
+# Eğer şarj kablosu birkaç saniyeliğine takıldı ise batarya istatistiklerini sıfırlar.
 
 # charging_switch (s) #
-# If unset, acc cycles through its database and sets the first working switch/group that disables charging.
-# If the set switch/group doesn't work, acc unsets chargingSwitch and repeats the above.
-# If all switches fail to disable charging, chargingSwitch is unset and acc/d exit with error code 7.
-# This automated process can be disabled by appending " --" to "charging_switch=...".
+# Eğer belirtilmedi ise, acc şarjı devre dışı bırakabilen ilk portu seçer.
+# Eğer port düzgün çalışmıyor ise, seçili olan portu bırakıp yukarıdaki işlemi tekrarlar.
+# Eğer bütün portal şarjı devre dışı bırakma konusunda başarısız ise, chargingSwitch ayarlanmaz ve acc/d hata kodu 7 ile
+çıkış yapar.
+# Bu otomatik işlem "charging_switch=..." kısmının başına " --" ekleyerek devre dışı bırakılabilir.
 # e.g., acc -s s="battery/charge_enabled 1 0 --"
-# acc -ss always appends " --".
-# charging_switch=milliamps (e.g., 0-250) enables current-based charging control.
-# If charging switch is set to 3700-4300 (millivolts), acc stops charging by limiting voltage.
-# For details, refer to the readme's tips section.
-# Unlike the original variant, this kind of switch is never unset automatically.
-# Thus, in this case, appending " --" to it leads to invalid syntax.
-# A daemon restart is required after changing this (automated by "acc --set").
+# acc -ss komutu her zaman " --" kendisi ekler.
+# charging_switch=milliamps (e.g., 0-250) şarj akım kontrolünü etkinleştirir.
+# Eğer charging_switch 3700-4300 (milivolts) değerine ayarlanırsa, acc voltajı kısıtlayarak şarjı durdurur.
+# Detaylar için, bkz. 'readme' dosyası /Tavsiyeler bölümü.
+# Yukarıdaki orijinal varyanta kıyasla, bu otomatik olarak devre dışı kalmaz.
+# Bu yüzden başına " --" koymanıza gerek yoktur.
+# Bu değişken ile oynama yapıldıktan sonra daemon yeniden başlatılmalıdır (komut "acc --set").
 
 # apply_on_boot (ab) #
-# Settings to apply on boot or daemon start/restart.
-# The --exit flag (refer back to applyOnBoot=...) tells the daemon to stop after applying settings.
-# If the --exit flag is not included, default values are restored when the daemon stops.
+# Sistem açılışında/başlangıcında uygulanan daemon kodları.
+# --exit opsiyonu (bkz. applyOnBoot=...) gerekli ayarlar yapıldıktan sonra daemon modülünü durdurur.
+# Eğer --exit flag opsiyonu kullanılmamış ise, daemon durduğunda varsayılan değerler tekrar yüklenir.
 
 # apply_on_plug (ap) #
-# Settings to apply on plug
-# This exists because some /sys files (e.g., current_max) are reset on charger re-plug.
-# Default values are restored on unplug and when the daemon stops.
+# Şarj kablosu takıldığında uygulancak olanlar
+# Böyle bir değişken var çünkü /sys files (e.g., current_max) içindeki bazı değerler kablo takıldığında sıfırlanıyor.
+# daemon durduğunda varsayılan değerler tekrardan yüklenir.
 
 # max_charging_current (mcc) #
 # max_charging_voltage (mcv) #
-# Only the current/voltage value is to be supplied.
-# Control files are automatically selected.
+# Yalnızca akım/voltaj değeri giriniz.
+# Control dosyaları otomatik olarak seçilir.
 
 # lang (l) #
-# acc language, managed with "acc --set --lang" (acc -sl).
-# When null, English (en) is assumed.
+# acc dili, "acc --set --lang" (acc -sl) kullanılarak değiştirilebilir.
+# Eğer null(boş) ise, English (en) yazılmış kabul edilir.
 
 # run_cmd_on_pause (rcp) #
-# Run commands* after pausing charging.
-# * Usually a script ("sh some_file" or ". some_file")
+# Şarj durduktan sonra bir şey çalıştırın.
+# * Genellikle bir script ("sh some_file" veya ". some_file")
 
 # amp_factor (af) #
 # volt_factor (vf) #
-# Unit multiplier for conversion (e.g., 1V = 1000000 Microvolts)
-# ACC can automatically determine the units, but the mechanism is not 100% foolproof.
-# e.g., if the input current is too low, the unit is miscalculated.
-# This issue is rare, though.
-# Leave these properties alone if everything is running fine.
+# Referans için birim çevirimi (e.g., 1V = 1000000 Microvolts)
+# ACC birimi otomatik olarak algılayabilir, ancak her zaman 100% kusursuz değildir.
+# e.g., eğer girilen akım değeri çok düşük ise, birim yanlış hesaplanabilir.
+# Ancak nadir bir hatadır.
+# Her şey düzgün çalıyorsa bu değerler ile oynamayın.
 
 # loop_cmd (lc) #
-# This is meant for extending accd's functionality.
+# accd'nin kullanılabilirliğini arttırmak amacı ile yapıldı. (bu kısmı İngilizce anlamıyorsanız sizlik bir şey söz konusu değil
+geçebilirsiniz)
 # It is periodically executed by the is_charging function -- which is called regularly, within the main accd loop.
 # The boolean isCharging is available.
 # Refer back to COMMAND EXAMPLES.
 
 # prioritize_batt_idle_mode (pbim) #
-# If enabled charging switches that support battery idle mode take precedence.
-# It is only used when charging_switch is not set.
-# This is disabled by default due to issues on Samsung (store_mode) and other devices.
+# Eğer aktif edilirse Idle mod desteklenmesi durumunda ona öncelik verilir.
+# Yalnızca charging_switch seçilmediği zaman kullanılır.
+# Bu Samsung cihazlarda problem yarattığı için default(varsayılan) olarak devre dışıdır.
 
 # current_workaround (cw) #
 # Only use current control files whose paths match "batt" (default: false).
-# This is necessary only if the current limit affects both input and charging current values.
-# Try this if low current values don't work.
-# "accd --init" is required after changing this (automated by "acc --set").
+# Bu değer yalnızca şarj limitleri hem giriş hem de şarj akımını etkiliyorsa gereklidir.
+# Eğer düşük akım değerleri çalışmıyor ise bunu deneyin.
+# Değiştirdikten sonra "accd --init" komutu gereklidir ("acc --set" tarafından otomatize de edilebilir).
 
 # batt_status_workaround (bsw) #
-# With this enabled, in addition to just reading POWER_SUPPLY_STATUS, if the battery is "Charging" and current is within -11 and 95 mA (inclusive), battery status is considered "Idle". Status is considered "Discharging", if current drops significantly, after calling the disable_charging function.
-# By not relying solely on the information provided by POWER_SUPPLY_STATUS, this approach boosts compatibility quite dramatically. So much so, that on certain devices (e.g., Nokia 2.2), acc only works when this is enabled.
-# On the other hand, the user may observe charging control inconsistencies on devices that report wrong current values or major current fluctuations.
-# Oftentimes, charging control issues are related to the power adapter.
+# Bu değer etkin ise, 'POWER_SUPPLY_STATUS' değerinin yanında, eğer batarya "Charging(şarj edilme)" durumunda ise ve akım değeri -11 ve 95 mA (uçlar dahil olmak üzere) aralığında ise, batarya "Idle" modda kabul edilir. Disable_charhing fonskiyonu çağırılıktan sonra, eğer akım değeri fazla düşerse, statü "Discharging(deşarj)" durumuna düşer.
+# Sadece POWER_SUPPLY_STATUS değerinden alınan sonuca bağlı kalınmadığı için, bu değer uyumluluğu önemli derecede arttırır. O kadar ki, bazı cihazlarda (mesela, Nokia 2.2), acc yalnızca bu değer aktif iken çalışır.
+# Öteki taraftan, cihazınız yanlış akım değerleri gösteriyorsa ve akımda fazla dalgalanma var ise şarj kontrolünde sıkıntılar yaşanabilir.
+# Çoğunlukla, bu sıkıntılar adaptör kaynaklıdır.
 
-# sched (sd) #
+# sched (sd) # (eğer düzenli olarak çalıştırmak istediğiniz komutlar varsa)
 # Command/script schedules, in the following format:
 #
 # sched="HHMM command...
@@ -326,19 +333,19 @@ rebootResume=false
 # sched="2200 acc -s mcv=3900
 # 0600 acc -s mcv=4100"
 #
-# 12 hour format is not supported.
-# Each schedule must be on its own line.
-# Each line is daemonized.
-# This is not limited to acc commands. It can run anything.
+# 12 saat formatı desteklenmiyor.
+# Her bir profil(schedule) kendi satırında olmalı.
+# Her satır daemon tarafından işleme alınır.
+# Bu acc komutlarına bağlı değildir, her şeyi çalıştırabilir.
 #
 # Commands:
 #   -s|--set [sd|sched]="[+-]schedule to add or pattern to delete"
 #     e.g.,
 #       acc -s sd=-2050 (delete schedules that match 2050)
 #       acc -s sd="+2200 acc -s mcv=3900 mcc=500; acc -n "Switched to \"sleep\" profile" (append schedule)
-#     Note: "acc -s sd=" behaves just like similar commands (restores default value; for schedules, it's null)
+#     Not: "acc -s sd=" aynı diğer basit komutlar gibi çalışır (varsayılan değeri yükler; varsayılan değer: null, profiller için)
 
-# batt_status_override (bso) #
+# batt_status_override (bso) # (Eğer kalan kısımları İngilizce anlayamıyorsanız çok bulaşmanıza gerek yok, fazlası ile teknik)
 # Overrides the battery status determined by the not_charging function.
 # It can be Idle, Discharging (both case sensitive), or logic to PRINT the desired value for the _status variable.
 # When set to Idle or Discharging, _status will be set to that value if the enforced* charging switch state is off.

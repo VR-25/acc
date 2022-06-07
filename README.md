@@ -2,238 +2,234 @@
 
 
 ---
-- [DESCRIPTION](#description)
-- [LICENSE](#license)
-- [DISCLAIMER](#disclaimer)
-- [WARNINGS](#warnings)
-- [DONATIONS](#donations)
-- [PREREQUISITES](#prerequisites)
-- [QUICK START GUIDE](#quick-start-guide)
-  - [Notes](#notes)
-- [BUILDING AND/OR INSTALLING FROM SOURCE](#building-andor-installing-from-source)
-  - [Dependencies (Build)](#dependencies-build)
-  - [Build Tarballs and Flashable Zips](#build-tarballs-and-flashable-zips)
-    - [Notes](#notes-1)
-  - [Install from Local Source or GitHub](#install-from-local-source-or-github)
-    - [Notes](#notes-2)
-- [DEFAULT CONFIGURATION](#default-configuration)
-- [SETUP/USAGE](#setupusage)
-  - [Terminal Commands](#terminal-commands)
-- [PLUGINS](#plugins)
-- [NOTES/TIPS FOR FRONT-END DEVELOPERS](#notestips-for-front-end-developers)
-  - [Basics](#basics)
-  - [Installing/Upgrading ACC](#installingupgrading-acc)
-  - [Uninstalling ACC](#uninstalling-acc)
-  - [Initializing ACC](#initializing-acc)
-  - [Managing ACC](#managing-acc)
-  - [The Output of --info](#the-output-of---info)
-  - [Profiles](#profiles)
-  - [More](#more)
-- [TROUBLESHOOTING](#troubleshooting)
-  - [`acc -t` Results Seem Inconsistent](#acc--t-results-seem-inconsistent)
-  - [Battery Capacity (% Level) Doesn't Seem Right](#battery-capacity--level-doesnt-seem-right)
-  - [Charging Switch](#charging-switch)
-  - [Custom Max Charging Voltage And Current Limits](#custom-max-charging-voltage-and-current-limits)
-  - [Diagnostics/Logs](#diagnosticslogs)
-  - [Finding Additional/Potential Charging Switches Quickly](#finding-additionalpotential-charging-switches-quickly)
-  - [Install, Upgrade, Stop and Restart Processes Seem to Take Too Long](#install-upgrade-stop-and-restart-processes-seem-to-take-too-long)
-  - [Restore Default Config](#restore-default-config)
-  - [Samsung, Charging _Always_ Stops at 70% Capacity](#samsung-charging-always-stops-at-70-capacity)
-  - [Slow Charging](#slow-charging)
-  - [Unable to Charge](#unable-to-charge)
-  - [Unexpected Reboots](#unexpected-reboots)
-  - [WARP, VOOC and Other Fast Charging Tech](#warp-vooc-and-other-fast-charging-tech)
-  - [Why Did accd Stop?](#why-did-accd-stop)
-- [POWER SUPPLY LOGS (HELP NEEDED)](#power-supply-logs-help-needed)
-- [LOCALIZATION](#localization)
-- [TIPS](#tips)
-  - [_Always_ Limit the Charging Current If Your Battery is Old and/or Tends to Discharge Too Fast](#always-limit-the-charging-current-if-your-battery-is-old-andor-tends-to-discharge-too-fast)
-  - [Current and Voltage Based Charging Control](#current-and-voltage-based-charging-control)
-  - [Generic](#generic)
-  - [Google Pixel Devices](#google-pixel-devices)
-  - [Idle Mode and Alternatives](#idle-mode-and-alternatives)
-- [FREQUENTLY ASKED QUESTIONS (FAQ)](#frequently-asked-questions-faq)
-- [LINKS](#links)
+- [Açıklama](#açıklama)
+- [Lisans](#lisans)
+- [Kullanmadan önce okuyun](#kullanmadan-önce-okuyun)
+- [Uyarılar](#uyarılar)
+- [Bağışlar](#bağışlar)
+- [Gereksinimler](#gereksinimler)
+- [Hızlı başlangıç kılavuzu](#hızlı-başlangıç-kılavuzu)
+  - [Notlar](#notlar)
+- [Kaynaktan indirme ve/veya kurma](#kaynaktan-indirme-veveya-kurma)
+  - [(Kurulum) Gereksinimleri](#kurulum-gereksinimleri)
+  - [Tarball veya zip dosyalarından kurulum](#tarball-veya-zip-dosyalarından-kurulum)
+    - [Notlar](#notlar-1)
+  - [Lokal kaynaktan veya GitHub'dan indir](#lokal-kaynaktan-veya-githubdan-indir)
+    - [Notlar](#notlar-2)
+- [Varsayılan ayarlar](#varsayılan-ayarlar)
+- [Kurulum/Kullanım](#kurulumkullanım)
+  - [Terminal Komutları](#terminal-komutları)
+- [Pluginler](#pluginler)
+- [Front end developerlar için notlar/tavsiyeler](#front-end-developerlar-için-notlartavsiyeler)
+  - [Temeller](#temeller)
+  - [ACC Yükleme/Güncelleme](#acc-yüklemegüncelleme)
+  - [ACC Kaldırma](#acc-kaldırma)
+  - [ACC Başlatma](#acc-başlatma)
+  - [ACC Yönetimi](#acc-yönetimi)
+  - [--info komutu](#--info-komutu)
+  - [Profiller](#profiller)
+  - [Daha fazla](#daha-fazla)
+- [Sorun Giderme](#sorun-giderme)
+  - [`acc -t` komutunun çıktıları tutarsız](#acc--t-komutunun-çıktıları-tutarsız)
+  - [Batarya seviyesi doğru görünmüyor](#batarya-seviyesi-doğru-görünmüyor)
+  - [Şarj portu](#şarj-portu)
+  - [Özel max şarj voltaj ve akım limitleri](#özel-max-şarj-voltaj-ve-akım-limitleri)
+  - [Tanı/Loglar](#tanıloglar)
+  - [Hızlıca potansiyel şarj portları bulma](#hızlıca-potansiyel-şarj-portları-bulma)
+  - [Yükleme, Güncelleme, çok fazla zaman alan işlemleri durdurma ve yeniden başlatma](#yükleme-güncelleme-çok-fazla-zaman-alan-işlemleri-durdurma-ve-yeniden-başlatma)
+  - [Varsayılan ayarları geri yükleme](#varsayılan-ayarları-geri-yükleme)
+  - [Samsung, Şarj 70% seviyede duruyor](#samsung-şarj-70-seviyede-duruyor)
+  - [Yavaş şarj olma](#yavaş-şarj-olma)
+  - [Şarj olmuyor](#şarj-olmuyor)
+  - [Beklenmedik yeniden başlatma](#beklenmedik-yeniden-başlatma)
+  - [WARP, VOOC ve Diğer hızlı şarj teknolojileri](#warp-vooc-ve-diğer-hızlı-şarj-teknolojileri)
+  - [accd neden durdu?](#accd-neden-durdu)
+- [Güç kaynağı logları (yardım lazım)](#güç-kaynağı-logları-yardım-lazım)
+- [Lokalize etme](#lokalize-etme)
+- [Tavsiyeler](#tavsiyeler)
+  - [Eğer bataryanız çok eskiyse veya çok hızlı deşarj oluyorsa şarj etme akımını kısıtlayın](eğer-bataryanız-çok-eskiyse-veya-çok-hızlı-deşarj-oluyorsa-şarj-etme-akımını-kısıtlayın)
+  - [Akım ve voltaj odaklı şarj kontrolü](#akım-ve-voltaj-odaklı-şarj-kontrolü)
+  - [Genel](#genel)
+  - [Google Pixel Cihazları](#google-pixel-cihazları)
+  - [idle Mod ve Alternatifler](#idle-mod-ve-alternatifler)
+- [Sıkça sorulan sorular (SSS)](#sıkça-sorulan-sorular-sss)
+- [Linkler](#linkler)
 
 
 ---
-## DESCRIPTION
+## Açıklama
 
-ACC is an Android software mainly intended for [extending battery service life](https://batteryuniversity.com/article/bu-808-how-to-prolong-lithium-based-batteries).
-In a nutshell, this is achieved through limiting charging current, temperature, and voltage.
-Any root solution is supported.
-Regardless of whether the system is rooted with Magisk, the installation is always "systemless".
+ACC [bateri ömrünü uzatma](https://batteryuniversity.com/article/bu-808-how-to-prolong-lithium-based-batteries) amaçlı bir Andorid yazılımıdır.
+Kısaca anlatmak gerekirse, bu işlem sıcaklığı, şarj sırasında kullanılan akımı ve voltajı limitleyerek yapılır.
+Herhangi bir çeşit root makuldür.
+Sistem Magisk kullanılarak veya başka bir şekilde rootlanmış fark etmez, kurulum hep aynıdır.
 
 
 ---
-## LICENSE
+## Lisans
 
 Copyright 2017-2022, VR25
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+Bu ücretsiz bir yazılımdır: dilerseniz Free Software Foundation tarafından yayımlanan
+GNU General Public License altında değiştirebilir veya yeniden dağıtabilirsiniz.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+Bu program kullanışlu olması ümidi ile yazılmıştır,
+ancak HERHANGİ BİR GARANTİSİ YOKTUR; detaylar için bkz -> GNU General Public License
 
-You should have received a copy of the GNU General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
+Bu program aracılığı ile bu lisansın bir kopyasını edinmiş olmanız
+lazım. Yoksa, bkz. <https://www.gnu.org/licenses/>.
 
 
 ---
-## DISCLAIMER
+## Kullanmadan önce okuyun
 
-Always read/reread this reference prior to installing/upgrading this software.
+Bu yazılımı yüklemeden önce bu kısımı defalarca kez okuyun/yeniden okuyun.
 
-While no cats have been harmed, the author assumes no responsibility for anything that might break due to the use/misuse of it.
-
-To prevent fraud, do NOT mirror any link associated with this project.
-Do NOT share builds (tarballs/zips)! Share official links instead.
-
-
----
-## WARNINGS
-
-ACC manipulates Android low level ([kernel](https://duckduckgo.com/lite/?q=kernel+android)) parameters which control the charging circuitry.
-The author assumes no responsibility under anything that might break due to the use/misuse of this software.
-By choosing to use/misuse it, you agree to do so at your own risk!
-
-Some devices, notably Xiaomi phones, have a buggy PMIC (Power Management Integrated Circuit) that can be triggered by acc.
-The issue blocks charging.
-Ensure your battery does not discharge too low.
-Using acc's auto shutdown feature is highly recommended.
-
-Refer to [this XDA post](https://forum.xda-developers.com/t/rom-official-arrowos-11-0-android-11-0-vayu-bhima.4267263/post-85119331) for additional details.
-
-[lybxlpsv](https://github.com/lybxlpsv) suggests booting into bootloader and then back into system to reset the PMIC.
+Henüz herhangi bir cihaza zarar verilmemiş olsa da, bu yazılımın geliştiricisi yanlış kullanım sonucu oluşabilecek hiçbir şey için sorumluluk almamaktadır.
+Dolandırıcılığı önlemek adına, bu proje ile bağlantılı hiçbir linki mirror(kısaltma işlemi) uygulamayın.
+Farklı (tarballs/zip) buildleri PAYLAŞMAYIN! Orijinal linkleri kullanın.
 
 
 ---
-## DONATIONS
+## Uyarılar
 
-Please, support the project with donations ([links](#links) at the bottom).
-As the project gets bigger and more popular, the need for coffee goes up as well.
+ACC Android sistemindeki ([kernel](https://duckduckgo.com/lite/?q=kernel+android))'da şarj için sorumlu devrenin parametreleri ile oynar.
+Bu yazılımın geliştiricisi yanlış kullanım sonucu oluşabilecek hiçbir şey için sorumluluk almaz.
+Bu yazılımı doğru/yanlış kullanıyorsanız, bu risk size aittir!
 
+Bazı cihazlar, özellikle Xiaomi, bug'lı bir PMIC'a (Power Management Integrated Circuit) sahipler.
+Bu problem cihazın şarj olmasını engelliyor.
+Bataryanızın çok düşük değerlere düşmediğinden emin olun.
+acc'nin otomatik kapatma özelliğini kullanmanız şiddetle tavsiye edilir.
 
----
-## PREREQUISITES
+Ekstra detaylar için [ilgili XDA forum postu](https://forum.xda-developers.com/t/rom-official-arrowos-11-0-android-11-0-vayu-bhima.4267263/post-85119331)
 
-- [Must read - how to prolong lithium ion batteries lifespan](https://batteryuniversity.com/article/bu-808-how-to-prolong-lithium-based-batteries)
-- Android or Android based OS
-- Any root solution (e.g., [Magisk](https://github.com/topjohnwu/Magisk))
-- [Busybox\*](https://github.com/Magisk-Modules-Repo/busybox-ndk) (only if not rooted with Magisk)
-- Non-Magisk users can enable acc auto-start by running /data/adb/vr25/acc/service.sh, a copy of, or a link to it - with init.d or an app that emulates it.
-- Terminal emulator
-- Text editor (optional)
-
-\* A busybox binary can simply be placed in /data/adb/vr25/bin/.
-Permissions (0700) are set automatically, as needed.
-Precedence: /data/adb/vr25/bin/busybox > Magisk's busybox > system's busybox
-
-Other executables or static binaries can also be placed in /data/adb/vr25/bin/ (with proper permissions) instead of being installed system-wide.
+[lybxlpsv](https://github.com/lybxlpsv) bootlader'dan sonra sisteme geçerek PMIC sıfırlamanızı tavsiye ediyor. (fazla teknik)
 
 
 ---
-## QUICK START GUIDE
+## Bağışlar
 
-
-0. All commands/actions require root.
-
-1. Install/upgrade: flash\* the zip or use a front-end app.
-There are two additional ways of upgrading: `acc --upgrade` (online) and `acc --flash` (zip flasher).
-Rebooting after installation/removal is generally unnecessary.
-
-2. [Optional] run `acc` (wizard). That's the only command you need to remember.
-
-3. [Optional] run `acc pause_capacity resume_capacity` (default `75 70`) to set the battery levels at which charging should pause and resume, respectively.
-
-4. If you come across any issues, refer to the [troubleshooting](#troubleshooting), [tips](#tips) and [FAQ](#frequently-asked-questions-faq) sections below.
-Read as much as you can prior to reporting issues and/or asking questions.
-Oftentimes, solutions/answers will be right before your eyes.
-
-
-### Notes
-
-Steps `2` and `3` are optional because there are default settings.
-For details, refer to the [default configuration](#default-configuration) section below.
-Users are encouraged to try step `2` - to familiarize themselves with the available options.
-
-Settings can be overwhelming. Start with what you understand.
-The default configuration has you covered.
-Don't ever feel like you have to configure everything. You probably shouldn't anyway - unless you really know what you're doing.
-
-Uninstall: run `acc --uninstall` or flash\* `/data/adb/vr25/acc-data/acc-uninstaller.zip`.
-
-ACC runs in some recovery environments as well.
-Unless the zip is flashed again, manual initialization is required.
-The initialization command is `/data/adb/vr25/acc/service.sh`.
+Lütfen bu projeyi aşağıdaki ([linkler](#linkler)'den destekleyin.
+Proje büyüyüp popülerleştikçe, kahveye olan ihtiyaç artıyor :)
 
 
 ---
-## BUILDING AND/OR INSTALLING FROM SOURCE
+## Gereksinimler
+
+- [Kesinlikle okunmalı - lityum iyon bataryaların ömrü nasıl uzatılır (İngilizce))](https://batteryuniversity.com/article/bu-808-how-to-prolong-lithium-based-batteries)
+- Android veya Android temelli bir OS (işletim sistemi)
+- Herhangi bir root (e.g., [Magisk](https://github.com/topjohnwu/Magisk))
+- [Busybox\*](https://github.com/Magisk-Modules-Repo/busybox-ndk) (yalnızca root için Magisk kullanılmadı ise)
+- Magisk kullanmayanlar acc'nin otomatik-başlamasını /data/adb/vr25/acc/service.sh, veya bir kopyasını, buna bağlı bir uzantıyı - init.d veya bunu simüle eden başka bir uygulama ile sağlayabilir.
+- Terminal
+- Text editor (opsiyonel)
+
+\* Busybox binaryleri /data/adb/vr25/bin/ dizinine konabilir.
+İzinler (0700), otomatik olarak ayarlanır.
+Öncelik sıralaması: /data/adb/vr25/bin/busybox > Magisk's busybox > system's busybox
+
+Diğer çalıştırılabilir veya statik binary'ler de /data/adb/vr25/bin/ dizinine (gerekli izinlerle birlikte) konabilir.
 
 
-### Dependencies (Build)
+---
+## Hızlı başlangıç kılavuzu
 
-- git, wget, or curl (pick one)
+
+0. Bütün kodlar/aksiyonlar root gerektirir.
+
+1. Yükleme/Güncelleme: zip dosyasından yükleyin\* veya bir front-end uygulaması kullanın.
+Güncellemek için 2 yol daha mevcut: `acc --upgrade` (online) ve `acc --flash` (zip yükleyici).
+Kaldırmadan/kurulumdan sonra yeniden başlatmak çoğu durumda gerekli değil.
+
+2. [Opsiyonel] `acc` (asistan) kodunu çalıştırın. Hatırlamanız gereken tek şey bu.
+
+3. [Opsiyonel] `acc pause_capacity resume_capacity` (varsayılan `75 70`) kodunu çalıştırıp, sırasıyla şarjın durması ve tekrardan başlaması gereken seviyeleri ayarlayın.
+
+4. Eğer bir sorun ile karşılaşırsanız, aşağıdaki [Sorun Giderme](#sorun-giderme), [tavsiyeler](#tavsiyeler) ve [SSS](#sıkça-sorulan-sorular-sss) kısımlarına bakın.
+Bir sorunu raporlamadan veya bir soru sormadan önce olabildiğince okumaya çalışın.
+Çoğunlukla, sorular/cevaplar gözünüzün önünde olacak.
+
+
+### Notlar
+
+Aşama `2` ve `3` opsiyonel, çünkü varsayılan ayarlar mevcut.
+Detaylar için, aşağıdaki [varsayılan ayarlar](#varsayılan-ayarlar) kısmına bakın.
+Kullanıcılar için aşama `2`'nin uygulanması mevcut opsiyonlara alışmak adına şiddetle tavsiye edilir.
+
+Ayarlar biraz fazla gibi gelebilir. Anladığınız yerden başlayın.
+Varsayılan ayarlar olayı çoğunlukla toparlıyor.
+Her şeyi düzenlemeniz lazımmış gibi hissetmeyin. Muhtemelen yapmamalısınız da - eğer ne yaptığınızı bilmiyorsanız.
+
+Kaldırma: `acc --uninstall` komudunu çalıştırın veya `/data/adb/vr25/acc-data/acc-uninstaller.zip` dosyasını yükleyin\*(flashlayın).
+
+ACC bazı 'recovery' ortamlarında da çalışıyor. (Telefonun recovery ortamı nedir bilmiyorsanız, araştırınız)
+Zip tekrar yüklenmediği sürece manuel başlatma gereklidir.
+Başlatma komutu `/data/adb/vr25/acc/service.sh`.
+
+
+---
+## Kaynaktan indirme ve/veya kurma
+
+
+### (Kurulum) Gereksinimleri
+
+- git, wget, or curl (birini seçin)
 - zip
 
 
-### Build Tarballs and Flashable Zips
+### Tarball veya zip dosyalarından kurulum
 
-1. Download and extract the source code: `git clone https://github.com/VR-25/acc.git`
-or `wget  https://github.com/VR-25/acc/archive/master.tar.gz -O - | tar -xz`
-or `curl -L#  https://github.com/VR-25/acc/archive/master.tar.gz | tar -xz`
+1. Kaynak kodu indirin ve gerekli dizine çıkartın: `git clone https://github.com/VR-25/acc.git`
+veya `wget  https://github.com/VR-25/acc/archive/master.tar.gz -O - | tar -xz`
+veya `curl -L#  https://github.com/VR-25/acc/archive/master.tar.gz | tar -xz`
 
 2. `cd acc*`
 
-3. `sh build.sh` (or double-click `build.bat` on Windows 10, if you have Windows subsystem for Linux (with zip) installed)
+3. `sh build.sh` (veya `build.bat` dosyasına çift click eğer Windows 10 kullanıyorsanız, veya linux içinde (zip yüklü) bir Windows alt
+sistemi kullanıyorsanız)
 
 
-#### Notes
+#### Notlar
 
-- build.sh automatically sets/corrects `id=*` in `*.sh` and `update-binary` files.
-Refer to framework-details.txt for a full list of tasks carried out by it.
-To skip generating archives, run the build script with a random argument (e.g. bash build.sh h).
+- build.sh otomatik olarak `*.sh` ve `update-binary` dosyaları içindeki `id=*` kısmını doğrular/düzeltir.
+Detaylar için bkz -> framework-details.txt.
+Arşiv yaratma işlemini geçmek için, kurulum script'ini rastgele bir argüman ile çalıştırın (e.g. bash build.sh h).
 
-- To update the local source code, run `git pull --force` or re-download it (with wget/curl) as described above.
-
-
-### Install from Local Source or GitHub
-
-- `[export installDir=<parent install dir>] sh install.sh` installs acc from the extracted source.
-
-- `sh install-online.sh [-c|--changelog] [-f|--force] [-k|--insecure] [-n|--non-interactive] [%parent install dir%] [commit]` downloads and installs acc from GitHub - e.g., `sh install-online.sh dev`.
-The order of arguments doesn't matter.
-For upgrades, if `%parent install dir%` is not supplied, the original/current is used.
-
-- `sh install-tarball.sh [module id, default: acc] [parent install dir (e.g., /data/data/mattecarra.accapp/files)]` installs the tarball (acc*gz) from the script's location.
-The archive must be in the same directory as this script - and obtained from GitHub: https://github.com/VR-25/acc/archive/$commit.tar.gz ($commit examples: master, dev, v2020.5.20-rc).
+- Lokal kaynak kodunu güncellemek için `git pull --force` veya (wget/curl kullanara) yukarıda tanımlandığı gibi yeniden indirin.
 
 
-#### Notes
+### Lokal kaynaktan veya GitHub'dan indir
 
-- `install-online.sh` is the `acc --upgrade` back-end.
+- `[export installDir=<parent install dir>] sh install.sh` çıkartılmış kaynaktan acc'yi yükler.
 
-- The default parent installation directories, in order of priority, are: `/data/data/mattecarra.accapp/files/` (ACC App, but only if Magisk is not installed), `/data/adb/modules/` (Magisk) and `/data/adb/` (other root solutions).
+- `sh install-online.sh [-c|--changelog] [-f|--force] [-k|--insecure] [-n|--non-interactive] [%parent install dir%] [commit]` acc'yi GitHub'dan indirip kurar - e.g., `sh install-online.sh dev`.
+Argümanların sırası fark etmez.
+Güncellemeler için, eğer `%parent install dir%` verilmedi ise, orijinal/var olan kullanılır.
 
-- No argument/option is strictly mandatory.
-The exception is `--non-interactive` for front-end apps.
+- `sh install-tarball.sh [module id, default: acc] [parent install dir (e.g., /data/data/mattecarra.accapp/files)]` script'in lokasyonundan tarball (acc*gz) yükler.
+Arşiv script ile aynı klasörde olmalı - ve GitHub'dan alınmalıdır: https://github.com/VR-25/acc/archive/$commit.tar.gz ($commit examples: master, dev, v2020.5.20-rc).
 
-- The `--force` option to `install-online.sh` is meant for re-installation and downgrading.
 
-- `sh install-online.sh --changelog --non-interactive` prints the version code (integer) and changelog URL (string) when an update is available.
-In interactive mode, it also asks the user whether they want to download and install the update.
+#### Notlar
 
-- You may also want to read [Terminal Commands](#terminal-commands) > `Exit Codes` below.
+- `install-online.sh`, `acc --upgrade` için bir back-end.
+
+- Sırası ile varsayılan yükleme klasörü: `/data/data/mattecarra.accapp/files/` (ACC Uygulaması, eğer Magisk kurulu değilse), `/data/adb/modules/` (Magisk) ve `/data/adb/` (diğer root'lar için).
+
+- Hiçbir argüman/opsiyon zorunlu değildir.
+İstisna `--non-interactive` front-end uygulamalar için.
+
+- `install-online.sh` için `--force` opsiyonu tekrar kurma veya downgrade(sürüm düşürme) içindir.
+
+- `sh install-online.sh --changelog --non-interactive` versiyon kodunu yazdırır ve changelog(değişimler) linkini paylaşır, eğer bir güncelleme varsa.
+Interaktif modda, kullanıcıya güncellemeyi indirip kurmak isteyip istemediğini de sorar.
+
+- Aynı zamanda aşağıdaki [Terminal Komutları](#terminal-komutları) > `Çıkış Kodları` kısmını okumak yararlı olabilir.
 
 
 ---
-## DEFAULT CONFIGURATION
+## Varsayılan ayarlar
 ```
 #DC#
 
@@ -281,33 +277,34 @@ rebootResume=false
 : one-line script sample; echo nothing >/dev/null
 
 
-# WARNINGS
+# UYARILAR
 
-# Do not edit this in Windows Notepad, ever!
-# It replaces LF (Linux/Unix) with CRLF (Windows) line endings.
+# Windows Notepad ile bu dosyayı düzenlemeyin, asla!
+# Dosya sonundaki (Linux/Unix) bitişini CRLF (Windows) ile değiştiriyor.
 
-# As you may have guessed, what is null by default, can be null.
-# "language=" is interpreted as "language=en".
-# Nullifying values that should not be null causes unexpected behavior.
-# However, doing so with "--set var=" restores the default value of "var".
-# In other words, for regular users, "--set" is safer than modifying the config file directly.
+# Muhtemelen tahmin ettiğiniz üzere, varsayılan olarak "null" (boş) olan şey, boş bırakılabilir.
+# "language=" ile "language=en" eşdeğerdir.
+# Boş bırakılmaması gereken yerleri boş bırakmak beklenmedik durumlara yol açabilir.
+# Ancak "--set var=" komutu 'var' değeri için varsayılan değeri geri yükler.
+# Başka bir deyişle, normal kullanıcılar için, "--set" komutu config(ayarlar) dosyasını direkt düzenlemekten daha güvenlidir.
 
-# Do not feel like you must configure everything!
-# Do not change what you don't understand.
+# Her şeyi ayarlamanız/değiştirmeniz lazım gibi düşünmeyin!
+# Anlamadığınız şeyi değiştirmeyin.
 
 
 # NOTES
 
-# The daemon does not have to be restarted after making changes to this file - unless one of the changes is charging_switch.
+# Bu dosyada bir değişlik yapıldıktan sonra daemon yeniden başlatılmak zorunda değilsiniz  - istisna -> 'charging_switch'.
 
-# A change to current_workaround (cw) only takes effect after an acc [re]initialization (install, upgrade or "accd --init") or system reboot.
+# current_workaround (cw) değişkenine girdiğiniz yeni değerler acc yeniden başladığında aktif hale gelir (yükleme, güncelleme veya "accd --init") veya sistemi
+yeniden başlatın.
 
-# If those 2 variables are updated with "acc --set" (not acca --set), accd is restarted automatically (--init is implied, as needed).
+# Eğer bu 2 değişken "acc --set" (acca --set değil) ile değiştirildi ise, accd otomatik yeniden başlatılır (--init komutu uygulanır, gerektiği üzere).
 
-# The only nullable variables are those which are null by default (var=, var="" and var=()).
+# Boş olarak bırakılabilecek tek değerler varsayılan(default) olarak boş halde verilenlerdir (var=, var="" and var=()).
 
 
-# BASICS
+# TEMELLER
 
 # capacity=(shutdown_capacity cooldown_capacity resume_capacity pause_capacity capacity_sync capacity_mask)
 
@@ -415,146 +412,152 @@ rebootResume=false
 # rr reboot_resume
 
 
-# FINE, BUT WHAT DOES EACH OF THESE VARIABLES ACTUALLY MEAN?
+# TAMAM DA, BÜTÜN BUNLAR NE DEMEK?
 
 # configVerCode #
-# This is checked during updates to determine whether config should be patched. Do NOT modify.
+# Bu güncellemeler sırasında config(ayarlar) dosyasının değiştirilip değiştirilmemesi gerektiğini anlamak için kullanılır. Değişiklik YAPMAYIN.
 
 # shutdown_capacity (sc) #
-# When the battery is discharging and its capacity/voltage_now_millivolts <= sc and phone has been running for 15 minutes or more, acc daemon turns the phone off to reduce the discharge rate and protect the battery from potential damage induced by voltage below the operating range.
-# sc=-1 disables it.
+# Batarya deşarj oluyor ve seviyesi <= sc  değeri ise, acc daemon deşarj hızını düşürmek ve fazla düşük voltajın bataryaya verebileceği olası etkileri
+azaltmak için telefonu kapatır.
+# Devre dışı bırakmak için sc=-1.
 
 # cooldown_capacity (cc) #
-# Capacity/voltage_now_millivolts at which the cooldown cycle starts.
-# Cooldown reduces battery stress induced by prolonged exposure to high temperature and high charging voltage.
-# It does so through periodically pausing charging for a few seconds (more details below).
+# Soğutma döngüsünün başlatıldığı seviyedir (cc).
+# Soğutma işlemi, yüksek sıcaklık ve voltajın batarya üstüne bindirdiği yükü azaltır.
+# Bunu periodik olarak şarjı birkaç saniyeliğine keserek yapar (daha fazla detay için aşağıya bakın).
 
 # resume_capacity (rc) #
-# Capacity or voltage_now_millivolts at which charging should resume.
+# Şarjın yeniden başlatılacağı batarya seviyesi.
 
 # pause_capacity (pc) #
-# Capacity or voltage_now_millivolts at which charging should pause.
+# Şarjın durdurulacağı batarya seviyesi.
 
 # capacity_sync (cs) #
-# Some devices, notably from the Pixel lineup, have a capacity discrepancy issue between Android and the kernel.
-# capacity_sync forces Android to report the actual battery capacity supplied by the kernel.
+# Bazı cihazlar, özellikle Pixel sınıfından olanlar, Android ve kernel arasında batarya ile ilgili bazı tutarsızlıklara sahipler.
+# capacity_sync Anroid sistemini kernel tarafından sağlanan batarya seviyesini göstermeye zorlar.
 # The discrepancy is usually detected and corrected automatically by accd.
-# This setting overrides the automatic behavior.
-# Besides, it also prevents Android from getting capacity readings below 2%, since some systems shutdown before battery level actually drops to 0%.
+# Bu ayar otomatik davranışı yok sayar/geçersiz kılar.
+# (cs.2) - Bunun yanında Android'in 2% altında değerler göstermesini engeller, bunun sebebi bazı sistemlerin kernel batarya değeri 0% olmadan önce kapanmasıdır.
 
 # capacity_mask (cm) #
-# Implies capacity_sync.
-# This forces Android to report "capacity = capacity * (100 / pause_capacity)", effectively masking capacity limits (more like capacity_sync on steroids).
-# It also prevents Android from getting capacity readings below 2%, since some systems shutdown before battery level actually drops to 0%.
+# bkz. capacity_sync.
+# Bu değişken Android'i "capacity = capacity * (100 / pause_capacity)" değerini göstermeye zorlar. Uzun lafın kısası örneğin
+cihazınızı şarj 70%'de dursun diye ayarladınız, şarj bu seviyeye geldiğinde sanki dolmuş (100%) gibi gösteriyor.
+# bkz (cs.2) - (yukarıda)
 
 # cooldown_temp (ct) #
-# Temperature (°C) at which the cooldown cycle starts.
-# Cooldown reduces the battery degradation rate by lowering the device's temperature.
-# Refer back to cooldown_capacity for more details.
+# Soğutma döndüsünün (bkz. cs) (°C) başladığı sıcaklık.
+# Soğutma işlemi cihazın sıcaklığını düşürerek deşarj olma hızını azaltır.
+# Daha fazla bilgi için (bkz. cooldown_capacity).
 
 # max_temp (mt) #
 # mtp or max_temp_pause #
-# These two work together and are NOT tied to the cooldown cycle.
-# On max_temp (°C), charging is paused for max_temp_pause (seconds).
-# Unlike the cooldown cycle, which aims at reducing BOTH high temperature and high voltage induced stress - this is ONLY meant specifically for reducing high temperature induced stress.
-# Even though both are separate features, this complements the cooldown cycle when environmental temperatures are off the charts.
+# Bu ikisi birlikte çalışırlar ve soğutma işlemi ile (bkz. cs) bağlantıları YOKTUR.
+# Cihazın sıcaklığı max_temp (°C) derecesine geldiğinde, şarj 'max_temp_pause (saniye)' kadar durdurulur.
+# Hem yüksek sıcaklığı hem yüksek voltajı önlemeye çalışan soğutma döngüsünün aksine - bu değişken YALNIZCA sıcaklığı
+düşürmeyi amaçlar.
+# Soğutma döngüsü ile direkt bağlantılı olmasa da çevre sıcaklığı çok yüksek olduğunda ona yardımcı olur.
 
 # shutdown_temp (st) #
-# Shutdown the system if battery temperature >= this value.
+# Cihazı kapat, eğer sıcaklığı >= bu değer(st) ise.
 
 # cooldown_charge (cch) #
 # cooldown_pause (cp) #
-# These two dictate the cooldown cycle intervals (seconds).
-# When not set, the cycle is disabled.
-# Suggested values are cch=50 and cp=10.
-# If charging gets a bit slower than desired, try cch=50 and cp=5.
-# Note that cooldown_capacity and cooldown_temp can be disabled individually by assigning them values that would never be reached under normal circumstances.
+# Bu ikisi soğutma döngüsünün aralıklarını (saniye) ayarlar.
+# Eğer ayarlanmadılarsa, döngü devre dışı kalır.
+# Tavsiye edilen değerler cch=50 ve cp=10.
+# Eğer çok yavaş şarj oluyorsa, cch=50 ve cp=5 değerlerini deneyin.
+# cooldown_capacity(cc) ve cooldown_temp(ct) normal koşullar altında asla ulaşılamayacak absürt değerler verilerek de etkisiz
+hale getirilebilir.
 
 # cooldown_custom (ccu) #
-# When cooldown_capacity and/or cooldown_temp don't suit your needs, this comes to the rescue.
-# It takes precedence over the regular cooldown settings.
+# Eğer cooldown_capacity ve/veya cooldown_temp ihtiyaçlarınıza uymuyorsa, bu iş görebilir.
+# Varsayılan soğutma döngüsü ayarlarını yok sayar/onlardan önceliklidir.
 
 # cooldown_current (cdc) #
-# Instead of pausing charging periodically during the cooldown phase, limit the max charging current (e.g., to 500 mA)
+# Soğutma işlemi sırasında şarj işlemini periodik olarak kesmek yerine, maksimum izin verilen şarj akımını kısıtlar(örneğin 500mA)
 
 # reset_batt_stats_on_pause (rbsp) #
-# Reset battery stats after pausing charging.
+# Şarjın ardından batarya istatistiklerini sıfırlar.
 
 # reset_batt_stats_on_unplug (rbsu) #
-# Reset battery stats if the charger has been unplugged for a few seconds.
+# Eğer şarj kablosu birkaç saniyeliğine çıkartıldı ise batarya istatistiklerini sıfırlar.
 
 # reset_batt_stats_on_plug (rbspl) #
-# Reset battery stats if the charger has been plugged for a few seconds.
+# Eğer şarj kablosu birkaç saniyeliğine takıldı ise batarya istatistiklerini sıfırlar.
 
 # charging_switch (s) #
-# If unset, acc cycles through its database and sets the first working switch/group that disables charging.
-# If the set switch/group doesn't work, acc unsets chargingSwitch and repeats the above.
-# If all switches fail to disable charging, chargingSwitch is unset and acc/d exit with error code 7.
-# This automated process can be disabled by appending " --" to "charging_switch=...".
+# Eğer belirtilmedi ise, acc şarjı devre dışı bırakabilen ilk portu seçer.
+# Eğer port düzgün çalışmıyor ise, seçili olan portu bırakıp yukarıdaki işlemi tekrarlar.
+# Eğer bütün portal şarjı devre dışı bırakma konusunda başarısız ise, chargingSwitch ayarlanmaz ve acc/d hata kodu 7 ile
+çıkış yapar.
+# Bu otomatik işlem "charging_switch=..." kısmının başına " --" ekleyerek devre dışı bırakılabilir.
 # e.g., acc -s s="battery/charge_enabled 1 0 --"
-# acc -ss always appends " --".
-# charging_switch=milliamps (e.g., 0-250) enables current-based charging control.
-# If charging switch is set to 3700-4300 (millivolts), acc stops charging by limiting voltage.
-# For details, refer to the readme's tips section.
-# Unlike the original variant, this kind of switch is never unset automatically.
-# Thus, in this case, appending " --" to it leads to invalid syntax.
-# A daemon restart is required after changing this (automated by "acc --set").
+# acc -ss komutu her zaman " --" kendisi ekler.
+# charging_switch=milliamps (e.g., 0-250) şarj akım kontrolünü etkinleştirir.
+# Eğer charging_switch 3700-4300 (milivolts) değerine ayarlanırsa, acc voltajı kısıtlayarak şarjı durdurur.
+# Detaylar için, bkz. 'readme' dosyası /Tavsiyeler bölümü.
+# Yukarıdaki orijinal varyanta kıyasla, bu otomatik olarak devre dışı kalmaz.
+# Bu yüzden başına " --" koymanıza gerek yoktur.
+# Bu değişken ile oynama yapıldıktan sonra daemon yeniden başlatılmalıdır (komut "acc --set").
 
 # apply_on_boot (ab) #
-# Settings to apply on boot or daemon start/restart.
-# The --exit flag (refer back to applyOnBoot=...) tells the daemon to stop after applying settings.
-# If the --exit flag is not included, default values are restored when the daemon stops.
+# Sistem açılışında/başlangıcında uygulanan daemon kodları.
+# --exit opsiyonu (bkz. applyOnBoot=...) gerekli ayarlar yapıldıktan sonra daemon modülünü durdurur.
+# Eğer --exit flag opsiyonu kullanılmamış ise, daemon durduğunda varsayılan değerler tekrar yüklenir.
 
 # apply_on_plug (ap) #
-# Settings to apply on plug
-# This exists because some /sys files (e.g., current_max) are reset on charger re-plug.
-# Default values are restored on unplug and when the daemon stops.
+# Şarj kablosu takıldığında uygulancak olanlar
+# Böyle bir değişken var çünkü /sys files (e.g., current_max) içindeki bazı değerler kablo takıldığında sıfırlanıyor.
+# daemon durduğunda varsayılan değerler tekrardan yüklenir.
 
 # max_charging_current (mcc) #
 # max_charging_voltage (mcv) #
-# Only the current/voltage value is to be supplied.
-# Control files are automatically selected.
+# Yalnızca akım/voltaj değeri giriniz.
+# Control dosyaları otomatik olarak seçilir.
 
 # lang (l) #
-# acc language, managed with "acc --set --lang" (acc -sl).
-# When null, English (en) is assumed.
+# acc dili, "acc --set --lang" (acc -sl) kullanılarak değiştirilebilir.
+# Eğer null(boş) ise, English (en) yazılmış kabul edilir.
 
 # run_cmd_on_pause (rcp) #
-# Run commands* after pausing charging.
-# * Usually a script ("sh some_file" or ". some_file")
+# Şarj durduktan sonra bir şey çalıştırın.
+# * Genellikle bir script ("sh some_file" veya ". some_file")
 
 # amp_factor (af) #
 # volt_factor (vf) #
-# Unit multiplier for conversion (e.g., 1V = 1000000 Microvolts)
-# ACC can automatically determine the units, but the mechanism is not 100% foolproof.
-# e.g., if the input current is too low, the unit is miscalculated.
-# This issue is rare, though.
-# Leave these properties alone if everything is running fine.
+# Referans için birim çevirimi (e.g., 1V = 1000000 Microvolts)
+# ACC birimi otomatik olarak algılayabilir, ancak her zaman 100% kusursuz değildir.
+# e.g., eğer girilen akım değeri çok düşük ise, birim yanlış hesaplanabilir.
+# Ancak nadir bir hatadır.
+# Her şey düzgün çalıyorsa bu değerler ile oynamayın.
 
 # loop_cmd (lc) #
-# This is meant for extending accd's functionality.
+# accd'nin kullanılabilirliğini arttırmak amacı ile yapıldı. (bu kısmı İngilizce anlamıyorsanız sizlik bir şey söz konusu değil
+geçebilirsiniz)
 # It is periodically executed by the is_charging function -- which is called regularly, within the main accd loop.
 # The boolean isCharging is available.
 # Refer back to COMMAND EXAMPLES.
 
 # prioritize_batt_idle_mode (pbim) #
-# If enabled charging switches that support battery idle mode take precedence.
-# It is only used when charging_switch is not set.
-# This is disabled by default due to issues on Samsung (store_mode) and other devices.
+# Eğer aktif edilirse Idle mod desteklenmesi durumunda ona öncelik verilir.
+# Yalnızca charging_switch seçilmediği zaman kullanılır.
+# Bu Samsung cihazlarda problem yarattığı için default(varsayılan) olarak devre dışıdır.
 
 # current_workaround (cw) #
 # Only use current control files whose paths match "batt" (default: false).
-# This is necessary only if the current limit affects both input and charging current values.
-# Try this if low current values don't work.
-# "accd --init" is required after changing this (automated by "acc --set").
+# Bu değer yalnızca şarj limitleri hem giriş hem de şarj akımını etkiliyorsa gereklidir.
+# Eğer düşük akım değerleri çalışmıyor ise bunu deneyin.
+# Değiştirdikten sonra "accd --init" komutu gereklidir ("acc --set" tarafından otomatize de edilebilir).
 
 # batt_status_workaround (bsw) #
-# With this enabled, in addition to just reading POWER_SUPPLY_STATUS, if the battery is "Charging" and current is within -11 and 95 mA (inclusive), battery status is considered "Idle". Status is considered "Discharging", if current drops significantly, after calling the disable_charging function.
-# By not relying solely on the information provided by POWER_SUPPLY_STATUS, this approach boosts compatibility quite dramatically. So much so, that on certain devices (e.g., Nokia 2.2), acc only works when this is enabled.
-# On the other hand, the user may observe charging control inconsistencies on devices that report wrong current values or major current fluctuations.
-# Oftentimes, charging control issues are related to the power adapter.
+# Bu değer etkin ise, 'POWER_SUPPLY_STATUS' değerinin yanında, eğer batarya "Charging(şarj edilme)" durumunda ise ve akım değeri -11 ve 95 mA (uçlar dahil olmak üzere) aralığında ise, batarya "Idle" modda kabul edilir. Disable_charhing fonskiyonu çağırılıktan sonra, eğer akım değeri fazla düşerse, statü "Discharging(deşarj)" durumuna düşer.
+# Sadece POWER_SUPPLY_STATUS değerinden alınan sonuca bağlı kalınmadığı için, bu değer uyumluluğu önemli derecede arttırır. O kadar ki, bazı cihazlarda (mesela, Nokia 2.2), acc yalnızca bu değer aktif iken çalışır.
+# Öteki taraftan, cihazınız yanlış akım değerleri gösteriyorsa ve akımda fazla dalgalanma var ise şarj kontrolünde sıkıntılar yaşanabilir.
+# Çoğunlukla, bu sıkıntılar adaptör kaynaklıdır.
 
-# sched (sd) #
+# sched (sd) # (eğer düzenli olarak çalıştırmak istediğiniz komutlar varsa)
 # Command/script schedules, in the following format:
 #
 # sched="HHMM command...
@@ -565,19 +568,19 @@ rebootResume=false
 # sched="2200 acc -s mcv=3900
 # 0600 acc -s mcv=4100"
 #
-# 12 hour format is not supported.
-# Each schedule must be on its own line.
-# Each line is daemonized.
-# This is not limited to acc commands. It can run anything.
+# 12 saat formatı desteklenmiyor.
+# Her bir profil(schedule) kendi satırında olmalı.
+# Her satır daemon tarafından işleme alınır.
+# Bu acc komutlarına bağlı değildir, her şeyi çalıştırabilir.
 #
 # Commands:
 #   -s|--set [sd|sched]="[+-]schedule to add or pattern to delete"
 #     e.g.,
 #       acc -s sd=-2050 (delete schedules that match 2050)
 #       acc -s sd="+2200 acc -s mcv=3900 mcc=500; acc -n "Switched to \"sleep\" profile" (append schedule)
-#     Note: "acc -s sd=" behaves just like similar commands (restores default value; for schedules, it's null)
+#     Not: "acc -s sd=" aynı diğer basit komutlar gibi çalışır (varsayılan değeri yükler; varsayılan değer: null, profiller için)
 
-# batt_status_override (bso) #
+# batt_status_override (bso) # (Eğer kalan kısımları İngilizce anlayamıyorsanız çok bulaşmanıza gerek yok, fazlası ile teknik)
 # Overrides the battery status determined by the not_charging function.
 # It can be Idle, Discharging (both case sensitive), or logic to PRINT the desired value for the _status variable.
 # When set to Idle or Discharging, _status will be set to that value if the enforced* charging switch state is off.
@@ -603,284 +606,286 @@ rebootResume=false
 ```
 
 ---
-## SETUP/USAGE
+## Kurulum/Kullanım
 
 
-As the [default configuration](#default-configuration) (above) suggests, ACC is designed to run out of the box, with little to no customization/intervention.
+Yukarıdaki [varsayılan ayarlar](#varsayılan-ayarlar)'da da bahsediliği üzere, ACC kutusu açılır açılmaz çalışması için tasarlandı, çok minik
+veya hiç değişim olmadan.
 
-The only command you have to remember is `acc`.
-It's a wizard you'll either love or hate.
+Hatırlamanız gereken tek komut `acc`.
+Ya tamamen seveceğiniz ya da tamamen nefret edeceğinizi bir asistan.
 
-If you feel uncomfortable with the command line, skip this section and use a front-end app instead.
+Terminal kullanmaktan rahatsız oluyorsanız, bu kısmı atlayın ve bir fron-end app kullanın.
 
-Alternatively, you can use a `text editor` to modify `/data/adb/vr25/acc-data/config.txt`.
-The config file itself has configuration instructions.
-Those are the same found in the [default configuration](#default-configuration) section, above.
+Alternatif olarak, `/data/adb/vr25/acc-data/config.txt` dosyasını düzenlemek için bir `text editor` kullanabilirsiniz.
+Ayarlar(config) dosyası içinde aynı zamanda yönergeler barındırıyor.
+Bunlar yukarıda [varsayılan ayarlar](#varsayılan-ayarlar) kısmında bulunanlar ile aynı.
 
 
-### Terminal Commands
+### Terminal Komutları
 ```
 #TC#
 
-Usage
+Kullanım
 
-  acc   Wizard
+  acc    Asistan
 
-  accd   Start/restart accd
+  accd   accd başlat/yeniden başlat
 
-  accd.   Stop acc/daemon
+  accd.  acc/daemon durdur
 
-  accd,   Print acc/daemon status (running or not)
+  accd,  acc/daemon durumunu yazdır (çalışıyor veya çalışmıyor)
 
-  acc [pause_capacity/millivolts [resume_capacity/millivolts, default: pause_capacity/millivolts - 5%/50mV]]
+  acc [pause_capacity/millivolts [resume_capacity/millivolts, varsayılan: pause_capacity/millivolts - 5%/50mV]]
     e.g.,
       acc 75 70
-      acc 80 (resume_capacity defaults to 80% - 5)
-      acc 3900 (same as acc 3900 3870, great idle mode alternative)
+      acc 80 (resume_capacity 80% - 5 yapılır)
+      acc 3900 (acc 3900 3870 ile aynı, idle mod için alternatif)
 
-  acc [options] [args]   Refer to the list of options below
+  acc [options] [args]   Opsiyonlar listesi için aşağıya bakın
 
-  acca [options] [args]   acc optimized for front-ends
+  acca [options] [args]   front-end için acca
 
-  acc[d] -x [options] [args]   Sets log=/sdcard/Download/acc[d]-${device}.log; useful for debugging unwanted reboots
+  acc[d] -x [options] [args]   Sets log=/sdcard/Download/acc[d]-\${device}.log; istenmeyen reboot durumlarında debug(hata ayıklama) için kullanışlı
 
-  A custom config path can be specified as first parameter (second if -x is used).
-  If the file doesn't exist, the current config is cloned.
+  İlk parametre yerine özel bir ayar dosyası dizini belirtilebilir (eğer -x kullanıldı ise ikinci parametre).
+  Eğer böyle bir dosya yoksa, mevcut ayarlar kopyalanır.
     e.g.,
       acc /data/acc-night-config.txt --set pause_capacity=45 resume_capacity=43
       acc /data/acc-night-config.txt --set --current 500
       accd /data/acc-night-config.txt --init
 
-  Notes regarding accd:
-    - The order of "--init|-i" does not matter.
-    - The config path string shall not contain "--init|-i".
+  accd için notlar:
+    - "--init|-i" sıralaması önemli değil.
+    - Ayar dosyası dizini "--init|-i" içermemeli.
 
 
 Options
 
-  -b|--rollback   Undo upgrade
+  -b|--rollback   Güncellemeyi geri al
 
-  -c|--config [editor] [editor_opts]   Edit config (default editor: nano/vim/vi)
+  -c|--config [editor] [editor_opts]   Ayarları düzenle (varsayılan editör: nano/vim/vi)
     e.g.,
-      acc -c (edit w/ nano/vim/vi)
+      acc -c (nano/vim/vi kullanarak düzenle)
       acc -c less
       acc -c cat
 
-  -d|--disable [#%, #s, #m or #h (optional)]   Disable charging
+  -d|--disable [#%, #s, #m or #h (optional)]   Şarjı devre dışı bırak
     e.g.,
-      acc -d 70% (do not recharge until capacity <= 70%)
-      acc -d 1h (do not recharge until 1 hour has passed)
+      acc -d 70% (şarj seviyesi <= 70% olana kadar şarj etme)
+      acc -d 1h (1 saat boyunca şarj etme)
 
-  -D|--daemon   Print daemon status, (and if running) version and PID
-    e.g., acc -D (alias: "accd,")
+  -D|--daemon   daemon durumunu yazdır, (eğer çalışıyorsa) versiyon ve PID
+    e.g., acc -D (namıdiğer: "accd,")
 
-  -D|--daemon [start|stop|restart]   Manage daemon
+  -D|--daemon [start|stop|restart]   daemon kontrolü
     e.g.,
-      acc -D start (alias: accd)
-      acc -D restart (alias: accd)
-      accd -D stop (alias: "accd.")
+      acc -D start (namıdiğer: accd)
+      acc -D restart (namıdiğer: accd)
+      accd -D stop (namıdiğer: "accd.")
 
-  -e|--enable [#%, #s, #m or #h (optional)]   Enable charging
+  -e|--enable [#%, #s, #m or #h (optional)]   Şarjı aktif et
     e.g.,
-      acc -e 75% (recharge to 75%)
-      acc -e 30m (recharge for 30 minutes)
+      acc -e 75% (75%'e kadar şarj et)
+      acc -e 30m (30 dakika şarj et)
 
-  -f|--force|--full [capacity]   Charge once to a given capacity (default: 100%), without restrictions
+  -f|--force|--full [capacity]   Bir kereliğine verilen seviyeye kadar şarj et (varsayılan: 100%), kısıtlamalar olmadan
     e.g.,
-      acc -f 95 (charge to 95%)
-      acc -f (charge to 100%)
-    Note: if the desired % is less than pause_capacity, use acc -e #%
+      acc -f 95 (95%'e kadar şarj et)
+      acc -f (100%'e kadar şarj et)
+    Note: Eğer istediğiniz seviye [pause_capacity]'den küçükse, acc -e #% kullanın
 
-  -F|--flash ["zip_file"]   Flash any zip files whose update-binary is a shell script
+  -F|--flash ["zip_file"]   update-binary olarak shell-script kullanan herhangi bir zip dosyası yükle
     e.g.,
-      acc -F (lauches a zip flashing wizard)
-      acc -F "file1" "file2" "fileN" ... (install multiple zips)
+      acc -F (zip yükleme asistanını başlatır)
+      acc -F "file1" "file2" "fileN" ... (birden fazla zip yükle)
       acc -F "/sdcard/Download/Magisk-v20.0(20000).zip"
 
-  -i|--info [case insensitive egrep regex (default: ".")]   Show battery info
+  -i|--info [case insensitive egrep regex (default: ".")]   Batarya bilgisini göster
     e.g.,
       acc -i
       acc -i volt
       acc -i 'volt\|curr'
 
-  -l|--log [-a|--acc] [editor] [editor_opts]   Print/edit accd log (default) or acc log (-a|--acc)
+  -l|--log [-a|--acc] [editor] [editor_opts]   accd log yazdır/düzenle (varsayılan) veya acc log (-a|--acc)
     e.g.,
-      acc -l (same as acc -l less)
+      acc -l (acc -l less ile aynı)
       acc -l rm
       acc -l -a cat
-      acc -l grep ': ' (show explicit errors only)
+      acc -l grep ': ' (bariz hataları göster)
 
   -la   Same as -l -a
 
-  -l|--log -e|--export   Export all logs to /logs/acc-logs-$deviceName.tgz
+  -l|--log -e|--export   Bütün logları $dataDir/logs/acc-logs-\$deviceName.tgz dizinine çıkart
     e.g., acc -l -e
 
   -le   Same as -l -e
 
-  -n|--notif [["STRING" (default: ":)")] [USER ID (default: 2000 (shell))]]   Post Android notification; may not work on all systems
+  -n|--notif [["STRING" (default: ":)")] [USER ID (default: 2000 (shell))]]   Android bildirimi; her sistemde çalışmayabilir
     e.g., acc -n "Hello, World!"
 
-  -p|--parse [<base file> <file to parse>] | <file to parse>]   Helps find potential charging switches quickly, for any device
+  -p|--parse [<base file> <file to parse>] | <file to parse>]   Şarj portlarını hızlıca bulmaya yardımcı olur, herhangi bir cihaz için
     e.g.,
-      acc -p   Parse /logs/power_supply-\*.log and print potential charging switches not present in /ch-switches
-      acc -p /sdcard/power_supply-harpia.log   Parse the given file and print potential charging switches that are not already in /ch-switches
-      acc -p /sdcard/charging-switches.txt /sdcard/power_supply-harpia.log   Parse /sdcard/power_supply-harpia.log and print potential charging switches absent from /sdcard/charging-switches.txt
+      acc -p   $dataDir/logs/power_supply-\*.log oluştur $TMPDIR/ch-switches içinde olmayan şarj portlarını yazdır
+      acc -p /sdcard/power_supply-harpia.log verilen dizini oluştur ve $TMPDIR/ch-switches içinde olmayan şarj portlarını yazdır
+      acc -p /sdcard/charging-switches.txt /sdcard/power_supply-harpia.log  /sdcard/power_supply-harpia.log dizinini oluştur ve /sdcard/charging-switches.txt içinde olmayan şarj portlarını yazdır
 
-  -r|--readme [editor] [editor_opts]   Print/edit README.md
+  -r|--readme [editor] [editor_opts]   Yazdır/düzenle README.md
     e.g.,
       acc -r (same as acc -r less)
       acc -r cat
 
-  -R|--resetbs   Reset battery stats
+  -R|--resetbs   Batarya istatistiklerini sıfırla
     e.g., acc -R
 
-  -s|--set   Print current config
+  -s|--set   Kullanılan ayarları yazdır
     e.g., acc -s
 
-  -s|--set prop1=value "prop2=value1 value2"   Set [multiple] properties
+  -s|--set prop1=value "prop2=value1 value2"   [birden fazla] özellik ayarla
     e.g.,
       acc -s charging_switch=
-      acc -s pause_capacity=60 resume_capacity=55 (shortcuts: acc -s pc=60 rc=55, acc 60 55)
+      acc -s pause_capacity=60 resume_capacity=55 (kısayollar: acc -s pc=60 rc=55, acc 60 55)
       acc -s "charging_switch=battery/charging_enabled 1 0" resume_capacity=55 pause_capacity=60
-    Note: all properties have short aliases for faster typing; run "acc -c cat" to see them
+    Not: her şeyin hızlıca yazmak için bir kısayolu var; görmek için "acc -c cat"
 
-  -s|--set [sd|sched]="[+-]schedule to add or pattern to delete"
+  -s|--set [sd|sched]="[+-]profil ayarlar veya kaldır"
     e.g.,
-      acc -s sd=-2050 (delete schedules that match 2050)
+      acc -s sd=-2050 (2050 ile eşleşenleri kaldır)
       acc -s sd="+2200 acc -s mcv=3900 mcc=500; acc -n "Switched to \"sleep\" profile" (append schedule)
-    Note: "acc -s sd=" behaves just like similar commands (restores default value; for schedules, it's null)
+    Not: "acc -s sd=" aynı diğer basit komutlar gibi çalışır (varsayılan değeri yükler; varsayılan değer: null, profiller için)
 
-  -s|--set c|--current [milliamps|-]   Set/print/restore_default max charging current (range: 0-9999 Milliamps)
+  -s|--set c|--current [milliamps|-]   Maksimum şarj akımı ayarla/yazdır/varsayılana döndür (aralık: 0-9999$(print_mA))
     e.g.,
-      acc -s c (print current limit)
-      acc -s c 500 (set)
-      acc -s c - (restore default)
+      acc -s c (şu anki limiti yazdır)
+      acc -s c 500 (ayarla)
+      acc -s c - (varsayılana döndür)
 
-  -sc [milliamps|-]   Same as above
+  -sc [milliamps|-]   Yukarıdaki ile aynı
 
-  -s|--set l|--lang   Change language
+  -s|--set l|--lang   Dil değiştir
     e.g., acc -s l
 
-  -sl   Same as above
+  -sl   Yukarıdaki ile aynı
 
-  -s|--set d|--print-default [egrep regex (default: ".")]   Print default config without blank lines
+  -s|--set d|--print-default [egrep regex (default: ".")]   Varsayılan ayaları yazdır, boşluk olmadan
     e.g.,
-      acc -s d (print entire defaul config)
-      acc -s d cap (print only entries matching "cap")
+      acc -s d (bütün varsayılan ayarları yazdır)
+      acc -s d cap (yalnızca "cap" ile eşleşen girdileri yazdır)
 
-  -sd [egrep regex (default: ".")]   Same as above
+  -sd [egrep regex (default: ".")]   Yukarıdaki ile aynı
 
-  -s|--set p|--print [egrep regex (default: ".")]   Print current config without blank lines (refer to previous examples)
+  -s|--set p|--print [egrep regex (default: ".")]   Varsayılan ayaları yazdır, boşluk olmadan (önceki örneklere bakın)
 
-  -sp [egrep regex (default: ".")]   Same as above
+  -sp [egrep regex (default: ".")]   Yukarıdaki ile aynı
 
-  -s|--set r|--reset [a]   Restore default config ("a" is for "all": config and control file blacklists, essentially a hard reset)
+  -s|--set r|--reset [a]   Varsayılan ayaları yükle ("a", "all" tamamı için: ayar ve kontrol dosyaları, kökten bir sıfırlama)
     e.g.,
       acc -s r
 
-  -sr [a]   Same as above
+  -sr [a]   Yukarıdaki ile aynı
 
 
-  -s|--set s|charging_switch   Enforce a specific charging switch
+  -s|--set s|charging_switch   Bir şarj portunu seç
     e.g., acc -s s
 
-  -ss    Same as above
+  -ss    Yukarıdaki ile aynı
 
-  -s|--set s:|chargingSwitch:   List known charging switches
+  -s|--set s:|chargingSwitch:   Bilinen şarj portlarını listele
     e.g., acc -s s:
 
-  -ss:   Same as above
+  -ss:   Yukarıdaki ile aynı
 
-  -s|--set v|--voltage [millivolts|-] [--exit]   Set/print/restore_default max charging voltage (range: 3700-4300 Millivolts)
+  -s|--set v|--voltage [millivolts|-] [--exit]   Maksimum şarj voltajı ayarla/yazdır/varsayılana döndür (range: 3700-4300$(print_mV))
     e.g.,
-      acc -s v (print)
-      acc -s v 3900 (set)
-      acc -s v - (restore default)
-      acc -s v 3900 --exit (stop the daemon after applying settings)
+      acc -s v (yazdır)
+      acc -s v 3900 (ayarla)
+      acc -s v - (varsayılana döndür)
+      acc -s v 3900 --exit (ayaları uyguladıktan sonra daemon durdur)
 
-  -sv [millivolts|-] [--exit]   Same as above
+  -sv [millivolts|-] [--exit]   Yukarıdaki ile aynı
 
-  -t|--test [ctrl_file1 on off [ctrl_file2 on off]]   Test custom charging switches
+  -t|--test [ctrl_file1 on off [ctrl_file2 on off]]   Özel şarj portlarını test et
     e.g.,
       acc -t battery/charging_enabled 1 0
-      acc -t /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0 ("::" is a placeholder for " " - MTK only)
+      acc -t /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0 ("::" yerini tutar -> " " - MTK only)
 
-  -t|--test [file]   Test charging switches from a file (default: /ch-switches)
+  -t|--test [file]   Bir dosyadaki şarj portlarını test et (varsayılan: $TMPDIR/ch-switches)
     e.g.,
-      acc -t (test known switches)
-      acc -t /sdcard/experimental_switches.txt (test custom/foreign switches)
+      acc -t (bilinen portları test et)
+      acc -t /sdcard/experimental_switches.txt (özel/bilinmeyen portları test et)
 
-  -t|--test [p|parse]   Parse potential charging switches from the power supply log (as "acc -p"), test them all, and add the working ones to the list of known switches
+  -t|--test [p|parse]   Potansiyel şarj portlarını güç kaynağı loglarından (aynı "acc -p" gibi) al, hepsini test et, ve çalışanları bilinen portlar
+listesine ekle
     Implies -x, as acc -x -t p
     e.g., acc -t p
 
-  -T|--logtail   Monitor accd log (tail -F)
+  -T|--logtail   accd loglarını görüntüle (tail -F)
     e.g., acc -T
 
-  -u|--upgrade [-c|--changelog] [-f|--force] [-k|--insecure] [-n|--non-interactive]   Online upgrade/downgrade
+  -u|--upgrade [-c|--changelog] [-f|--force] [-k|--insecure] [-n|--non-interactive]   Online güncelleme/sürüm düşürme
     e.g.,
-      acc -u dev (upgrade to the latest dev version)
-      acc -u (latest version from the current branch)
-      acc -u master^1 -f (previous stable release)
-      acc -u -f dev^2 (two dev versions below the latest dev)
-      acc -u v2020.4.8-beta --force (force upgrade/downgrade to v2020.4.8-beta)
-      acc -u -c -n (if update is available, prints version code (integer) and changelog link)
+      acc -u dev (en son versiyona güncelle)
+      acc -u (bulunulan (branch)'teki son versiyona güncelle)
+      acc -u master^1 -f (bir önceki versiyon)
+      acc -u -f dev^2 (iki versiyon öncesi)
+      acc -u v2020.4.8-beta --force (güncelleme/sürümü düşürmeyi zorla -> v2020.4.8-beta)
+      acc -u -c -n (eğer güncelleme varsa, versiyon numarasını yazdır ve changelog(değişimler) linkini göster)
       acc -u -c (same as above, but with install prompt)
 
-  -U|--uninstall   Completely remove acc and AccA
+  -U|--uninstall   acc ve AccA 'yı tamamen kaldır
     e.g., acc -U
 
-  -v|--version   Print acc version and version code
+  -v|--version   acc versiyon ve versiyon kodunu yazdır
     e.g., acc -v
 
-  -w#|--watch#   Monitor battery uevent
+  -w#|--watch#   Bataryada olanları izle/görüntüle
     e.g.,
-      acc -w (update info every 3 seconds)
-      acc -w0.5 (update info every half a second)
-      acc -w0 (no extra delay)
+      acc -w (her 3 saniyede bir güncelle)
+      acc -w0.5 (her yarım saniyede bir güncelle)
+      acc -w0 (eksta gecikme yok)
 
 
-Exit Codes
+Çıkış kodları
 
-  0. True/success
-  1. False or general failure
-  2. Incorrect command syntax
-  3. Missing busybox binary
-  4. Not running as root
-  5. Update available ("--upgrade")
-  6. No update available ("--upgrade")
-  7. Failed to disable charging
-  8. Daemon already running ("--daemon start")
-  9. Daemon not running ("--daemon" and "--daemon stop")
-  10. All charging switches fail (--test)
-  11. Current (mA) out of 0-9999 range
-  12. Initialization failed
-  13. Failed to lock /acc.lock
-  14. ACC won't initialize, because the Magisk module disable flag is set
-  15. Idle mode is supported (--test)
-  16. Failed to enable charging (--test)
+  0. Doğru/başaarılı
+  1. Yanlış/genel olarak hatalı
+  2. Yanlış syntax
+  3. Eksik busybox binary
+  4. root olarak çalışmıyor
+  5. Güncelleme mevcut ("--upgrade")
+  6. Güncelleme yok ("--upgrade")
+  7. Şarjı devre dışı bırakılamadı.
+  8. Daemon zaten çalışıyor ("--daemon start")
+  9. Daemon çalışmıyor ("--daemon" and "--daemon stop")
+  10. Hiçbir şarj portu çalışmıyor (--test)
+  11. 0-9999 aralığından akım (mA)
+  12. Başlatma işlemi başarısız
+  13. $TMPDIR/acc.lock kitlenemedi
+  14. ACC başlatılamadı, çünkü Magisk module 'disable flag' aktif durumda
+  15. Idle mod destekleniyor (--test)
+  16. Şarj aktif etme işlemi başarısız (--test)
 
-  Logs are exported automatically ("--log --export") on exit codes 1, 2 and 7.
+  Loglar ("--log --export") çıkış kodları 1,2 ve 7'de otomatik olark yazdırılır
 
 
-Tips
+Tavsiyeler
 
-  Commands can be chained for extended functionality.
-    e.g., charge for 30 minutes, pause charging for 6 hours, charge to 85% and restart the daemon
+  Komutlar kolaylık olması açısından arka arkaya sıralanabilir.
+    e.g., 30 dakika şarj et, 6 saat şarj etmeyi durdur, 85% seviyesine kadar şarj et ve daemon yeniden başlat
     acc -e 30m && acc -d 6h && acc -e 85 && accd
 
-  Sample profile
+  Basit bir profil
     acc -s pc=45 rc=43 mcc=500 mcv=3900
-      This keeps battery capacity between 43-45%, limits charging current to 500 mA and voltage to 3900 millivolts.
-      It's great for nighttime and "forever-plugged".
+      Şarj seviyesi 43-45% arasında tutulur, akım 500 mA ve voltaj 3900 milivolt ile sınırlanır.
+      Gece vakti "sürekli-şarjda" durumları için ideal.
 
-  Refer to acc -r (or --readme) for the full documentation (recommended)
+  Bütün bilgiler için acc -r (veya --readme) kodlarını çalıştırın (önerilir)
 
 #/TC#
 ```
 
 ---
-## PLUGINS
+## Pluginler
 
 Those are scripts that override functions and some global variables.
 They should be placed in `/data/adb/vr25/acc-data/plugins/`.
@@ -895,10 +900,9 @@ A daemon restart is required to load new/modified plugins.
 
 
 ---
-## NOTES/TIPS FOR FRONT-END DEVELOPERS
+## Front end developerlar için notlar/tavsiyeler
 
-
-### Basics
+### Temeller
 
 ACC does not require Magisk.
 Any root solution is fine.
@@ -918,7 +922,7 @@ Take advantage of exit codes.
 Refer back to `SETUP/USAGE > [Terminal Commands](#terminal-commands) > Exit Codes`.
 
 
-### Installing/Upgrading ACC
+### ACC Yükleme/Güncelleme
 
 This should be trivial.
 The simplest way is flashing acc from Magisk manager.
@@ -943,12 +947,12 @@ The format is as follows:
 }
 ```
 
-### Uninstalling ACC
+### ACC Kaldırma
 
 Either run `/dev/.vr25/acc/uninstall` (no reboot required; **charger must be plugged**) or uninstall from Magisk manager and reboot.
 
 
-### Initializing ACC
+### ACC Başlatma
 
 On boot_completed receiver and main activity, run:
 
@@ -973,10 +977,10 @@ Notes
 - ACC's installer always initializes it.
 
 
-### Managing ACC
+### ACC Yönetimi
 
 As already stated, front-ends should use the executable `/dev/.vr25/acc/acca`.
-Refer to the [default configuration](#default-configuration) and [terminal commands](#terminal-commands) sections above.
+Refer to the [default configuration](#varsayılan-ayarlar) and [terminal commands](#terminal-commands) sections above.
 
 The default config reference has a section entitled variable aliases/shortcuts.
 Use ONLY those with `/dev/.vr25/acc/acca --set`!
@@ -990,7 +994,7 @@ Use `--set --print` and `--set --print-default`.
 Refer back to [terminal commands](#terminal-commands) for details.
 
 
-### The Output of --info
+### --info komutu
 
 It comes from the kernel, not acc itself.
 Some kernels provide more information than others.
@@ -1010,7 +1014,7 @@ Note that the power information refers to what is actually supplied to the batte
 External power is always converted before it reaches the battery.
 
 
-### Profiles
+### Profiller
 
 Those are simply different config files.
 A config path can be supplied as first argument to `acca` and second to `accd` executables.
@@ -1036,7 +1040,7 @@ _Back to the main config:_
 `/dev/.vr25/acc/accd --init`
 
 
-### More
+### Daha fazla
 
 ACC daemon does not have to be restarted after making changes to the config.
 It picks up new changes within seconds.
@@ -1046,89 +1050,89 @@ There are a few exceptions:
 - `charging_switch` (`s`) requires a daemon restart (`/dev/.vr25/acc/accd`).
 - `current_workaround` (`cw`) requires a full re-initialization (`/dev/.vr25/acc/accd --init`).
 
-This information is in the [default configuration](#default-configuration) section as well.
+This information is in the [default configuration](#varsayılan-ayarlar) section as well.
 
 
 ---
-## TROUBLESHOOTING
+## Sorun Giderme
 
 
-## acc -t Results Are Inconsistent
+## acc -t komutunun çıktıları tutarsız
 
-Refer to "default config > batt_status_workaround".
-
-
-### Battery Capacity (% Level) Doesn't Seem Right
-
-When Android's battery level differs from that of the kernel, ACC daemon automatically syncs it by stopping the battery service and feeding it the real value every few seconds.
-
-Pixel devices are known for having battery level discrepancies for the longest time.
-
-If your device shuts down before the battery is actually empty, capacity_sync or capacity_mask may help.
-Refer to the [default configuration](#default-configuration) section above for details.
+"varsayılan ayarlar > batt_status_workaround" kısmına bakın.
 
 
-### Charging Switch
+### Batarya seviyesi doğru görünmüyor
 
-By default, ACC uses whichever [charging switch](https://github.com/VR-25/acc/blob/dev/acc/charging-switches.txt) works ("automatic" charging switch).
-However, things don't always go well.
+Android'teki batarya seviyesi kernel'dakinden farklı ise, ACC daemon otomatik olarak yenilenir ve batarya servisini durdurarak birkaç saniyede bir
+gerçek değeri kullandırtır.
 
-- Some switches are unreliable under certain conditions (e.g., while display is off).
+Uzun süredir Pixel cihazları bataryadaki tutarsızlıkları ile biliniyorlar.
 
-- Others hold a [wakelock](https://duckduckgo.com/lite/?q=wakelock).
-This causes fast battery drain when charging is paused and the device remains plugged.
-
-- Charging keeps being re-enabled by the system, seconds after acc daemon disables it.
-As a result, the battery eventually charges to 100% capacity, regardless of pause_capacity.
-
-- High CPU load (drains battery) was also reported.
-
-- In the worst case scenario, the battery status is reported as `discharging`, while it's actually `charging`.
-
-In such situations, one has to enforce a switch that works as expected.
-Here's how to do it:
-
-1. Run `acc --test` (or `acc -t`) to see which switches work.
-2. Run `acc --set charging_switch` (or `acc -ss`) to enforce a working switch.
-3. Test the reliability of the set switch. If it doesn't work properly, try another.
-
-Since not everyone is tech savvy, ACC daemon automatically applies settings for certain devices to minimize charging switch issues.
-These are in `acc/oem-custom.sh`.
+Eğer cihazınız bataryanız daha tamamen boşalmadan kapanıyorsa, capacity_sync veya capacity_mask yardımcı olabilir.
+Detaylar için yukarıdaki [varsayılan ayarlar](#varsayılan-ayarlar) kısmına bakınız.
 
 
-### Custom Max Charging Voltage And Current Limits
+### Şarj portu
 
-Unfortunately, not all kernels support these features.
-While custom current limits are supported by most (at least to some degree), voltage tweaking support is _exceptionally_ rare.
+Fabrika ayalarında, ACC çalışan herhangi bir [charging switch](https://github.com/VR-25/acc/blob/dev/acc/charging-switches.txt) (şarj portu) kullanır. Ancak, işler her zaman düzgün gitmeyebiliyor.
 
-That said, the existence of potential voltage/current control file doesn't necessarily mean these are writable* or the features, supported.
+- Bazı portlar spesifik koşullar altında çalışmaz (e.g., mesela ekran kapalı iken).
 
-\* Root is not enough.
-Kernel level permissions forbid write access to certain interfaces.
+- Bazılarında bir [wakelock](https://duckduckgo.com/lite/?q=wakelock) mevcuttur.
+Bu, şarj işlemi durduktan sonra cihazın hızlı deşarj olmasına neden olur.
 
-Sometimes, restoring the default current may not work without a system reboot.
-A workaround is setting the default max current value or any arbitrary high number (e.g., 9000 mA).
-Don't worry about frying things.
-The phone will only draw the max it can take.
+- Sistem tarafından aktif edilen şarj işlemi, ACC tarafından birkaç saniye sonra kapatılıyor.
+Bunun bir sonucu olarak, batarya eninde sonunda %100 şarja ulaşıyor, pause_capacity (şarj durma seviyesi) ne olursa olsun.
 
-**WARNING**: limiting voltage causes battery state of charge (SoC) deviation on some devices.
-The  battery management system self-calibrates constantly, though.
-Thus, as soon as the default voltage limit is restored, it'll start "fixing" itself.
+- Yüksek CPU kullanımı (batarya kullanımı) aynı zamanda tarafımıza raporlandı.
 
-Limiting current, on the other hand, has been found to be universally safe.
-Some devices do not support just any current value, though.
-That's not to say out-of-range values cause issues.
-These are simply ignored.
+- En kötü senaryoda, batarya durumu `discharging` (şarj olmuyor), şeklinde gösterilirken `charging` (şarj edilme) durumunda oluyor.
 
-If low current values don't work, try setting `current_workaround=true` (takes effect after `accd --init`.
-Refer to the [default configuration](#default-configuration) section for details.
+Bu tarz durumlarda çalışan bir port seçmelisiniz.
+İşte nasıl yapılacağı:
 
-One can override the default lists of max charging current/voltage control files by copying `acc/ctrl-files.sh` to `/data/adb/vr25/acc-data/plugins/` and modifying it accordingly.
-Note that default limits must be restored prior to that to avoid the need for a system reboot.
-Reminder: a daemon restart is required to load new/modified plugins.
+1. Hangi portların çalıştığını öğrenmek için `acc --test` (veya `acc -t`)komutunu çalıştırın.
+2. Portlardan birini seçmek/ayarlamak için `acc --set charging_switch` (veya `acc -ss`) komutlarını kullanın.
+3. Portun güvenilirliğini kontrol edin. Eğer çalışmıyorsa, başkasını deneyin.
+
+Herkes aynı teknik beceriye sahip olmadığı için, ACC bazı cihazlarda şarj portu problemlerini azaltmak için modele özel ayarlar uyguluyor.
+bkz. `acc/oem-custom.sh`.
 
 
-### Diagnostics/Logs
+### Özel max şarj voltaj ve akım limitleri
+
+Maalesef, bütün kernal'lar bunu desteklemiyor.
+Akım limitleri çoğu kernel tarafından desteklense de (en azından bir düzeye kadar), voltaj değiştirme desteği _fazlasıyla_ nadir.
+
+Bununla birlikte, voltaj üzerinden oynama yapmanıza izin tanıyan kontrol dosyalarının var olması bunların kernel'a her zaman işlenebileceği anlamına gelmiyor.
+
+\* Root yeterli değil.
+Kernel düzeyi izinler bazı şeylerin yazılmasına engel olabiliyor.
+
+Bazen, varsayılan ayarların yüklenmesi sistemi yeniden başlatmadan mümkün olmayabilir.
+Bunun bir çözümü maksimum akım değerini gereksiz yüksek bir değere eşitlemektir (e.g., 9000 mA).
+Cihazını yakma korkunuz falan olmasın.
+Telefon alabildiği maksimum değeri alacaktır.
+
+**UYARI**: voltaj limitleri bazı cihazlarda batarya seviyesinin yansımasına dair problemler yaratabilir.
+Ancak, batarya bakım sistemi kendi kendisini sürekli doğrultuyor.
+Bu yüzden, eski varsayılan hale döndürüldüğünde kendini yavaş yavaş düzeltmeye başlayacaktır.
+
+Öte yandan. akımı limitlemek evrensel olarak güvenli gibi görünüyor.
+Bazı cihazlar her değeri sağlamayabilir.
+Bu yüksek değerler problem yaratır demek değildir ancak.
+Onlar kısaca görmezden gelinir.
+
+Eğer düşük akım değerleri işe yaramıyor ise `current_workaround=true` değişkenini deneyebilirsiniz (`accd --init` komutundan sonra çalışır.)
+Detaylar için [varsayılan ayarlar](#varsayılan-ayarlar) kısmına bakınız.
+
+Varsayılan şarj voltaj/akımlarını `acc/ctrl-files.sh` dosyasını `/data/adb/vr25/acc-data/plugins/` dizinine kopyalayıp gerekli değişimleri yaparak kendi ayarlarınızı dikte edebilirsiniz.
+Bunda önce varsayılan limitlere geri dönülmesi gerektiğini not edelim, aksi takdirde sistemin reboot(yeniden başlatması) gerekecektir.
+Hatırlatma: yeni/değiştirilmiş pluginlerin yüklenmesi için daemon başlamalıdır.
+
+
+### Tanı/Loglar
 
 Volatile logs (gone on reboot) are stored in `/dev/.vr25/acc/` (.log files only).
 Persistent logs reside in `/data/adb/vr25/acc-data/logs/`.
@@ -1138,7 +1142,7 @@ The logs do not contain any personal information and are never automatically sen
 Automatic exporting (local) happens under specific conditions (refer back to `SETUP/USAGE > Terminal Commands > Exit Codes`).
 
 
-### Install, Upgrade, Stop and Restart Processes Seem to Take Too Long
+### Yükleme, Güncelleme, çok fazla zaman alan işlemleri durdurma ve yeniden başlatma
 
 The daemon stop process implies complete reversal of changes made to the charging management system.
 Sometimes, **this requires the charger to be plugged**.
@@ -1149,40 +1153,40 @@ One who knows what they're doing, can force-stop accd by running `pkill -9 -f ac
 
 ### Kernel Panic and Spontaneous Reboots
 
-Control files that trigger these are automatically backlisted (commented out in `/data/adb/acc-data/logs/write.log`).
+Buna neden olan kontrol dosyaları otomatik olarak kara listeye alınır (bkz. `/data/adb/acc-data/logs/write.log`).
 
 
-### Restore Default Config
+### Varsayılan ayarları geri yükleme
 
-This can potentially save a lot of time and grief.
+Bu fazlası ile zaman kazandırabilir.
 
-`acc --set --reset`, `acc -sr` or `rm /data/adb/vr25/acc-data/config.txt` (failsafe)
-
-
-### Samsung, Charging _Always_ Stops at 70% Capacity
-
-This is a device-specific issue (by design?).
-It's caused by the _store_mode_ charging control file.
-Switch to _batt_slate_mode_ to prevent it.
-Refer back to [charging switch](#charging-switch) above for details on that.
+`acc --set --reset`, `acc -sr` veya `rm /data/adb/vr25/acc-data/config.txt` (failsafe)
 
 
-### Slow Charging
+### Samsung, Şarj 70% seviyede duruyor
 
-At least one of the following may be the cause:
-
-- Charging current and/or voltage limits
-- Cooldown cycle (non optimal charge/pause ratio, try 50/10 or 50/5)
-- Troublesome charging switch (refer back to `TROUBLESHOOTING > Charging Switch`)
-- Weak adapter and/or power cord
+Bu cihaza özel bir problem (tercih olarak?).
+Sebebi _store_mode_ şarj kontrol dosyası.
+Engellemek için  _batt_slate_mode_ değişkeninin aktifleştirin.
+Daha detaylı bilgi için [şarjı portu](#şarj-portu) kısmına göz atın.
 
 
-### Unable to Charge
+### Yavaş şarj olma
 
-Refer back to the [warnings](#warnings) section above.
+Aşağıdakilerden en az biri bir sebep olabilir:
+
+- Şarj akımı ve/veya voltaj limitleri
+- Soğutma döngüsü (optimal olmayan şarj et/dur oranı, 50/10 veya 50/5 deneyin)
+- Sorunlu şarj portu (bkz. `Sorun Giderme > Şarj Portu`)
+- Yetersiz adaptör ve/veya güç kardı
 
 
-### Unexpected Reboots
+### şarj olmuyor
+
+bkz. [Uyarılar](#uyarılar) kısmı.
+
+
+### Beklenmedik yeniden başlatma
 
 Wrong/troublesome charging control files may trigger unwanted reboots.
 ACC blacklist these automatically (registered in `/data/adb/vr25/acc-data/logs/write.log`, with a leading hashtag).
@@ -1190,7 +1194,7 @@ Sometimes, there may be false positives in there - i.e., due to unexpected reboo
 Send `write.log` to the developer once the reboots have stopped.
 
 
-### WARP, VOOC and Other Fast Charging Tech
+### WARP, VOOC ve Diğer hızlı şarj teknolojileri
 
 Charging switches may not work reliably with the original power adapter.
 This has nothing to do with acc.
@@ -1199,35 +1203,35 @@ If you face issues, either try a different charging switch or a regular power br
 You may also want to try stopping charging by limiting current/voltage.
 
 
-### Why Did accd Stop?
+### accd neden durdu?
 
-Run `acc -l tail` to find out.
-This will print the last 10 lines of the daemon log file.
+Nedenini bulmak için `acc -l tail` komudunu çalıştırın.
+Bu daemon log dosyasının son 10 satırını yazdırır.
 
-A relatively common exit code is `7` - meaning all charging switches failed to disable charging.
-It happens due to kernel issues (refer to the previous subsection - [charging switch](#charging-switch)).
-The daemon only stops due to this if acc is set to automatically determine the switches to use (default behavior).
-Manually setting a working switch with `acc -ss` or `acc -s s="SWITCHES GO HERE --"` disables auto mode and prevents accd from stopping if the set the charging switches fail.
-
-
----
-## POWER SUPPLY LOGS (HELP NEEDED)
-
-Please run `acc -le` and upload `/data/adb/vr25/acc-data/logs/power_supply-*.log` to [my dropbox](https://www.dropbox.com/request/WYVDyCc0GkKQ8U5mLNlH) (no account/sign-up required).
-This file contains invaluable power supply information, such as battery details and available charging control files.
-A public database is being built for mutual benefit.
-Your cooperation is greatly appreciated.
-
-Privacy Notes
-
-- Name: random/fake
-- Email: random/fake
-
-See current submissions [here](https://www.dropbox.com/sh/rolzxvqxtdkfvfa/AABceZM3BBUHUykBqOW-0DYIa?dl=0).
+Fazlasıyla yaygın bir çıkış kodu `7` - bütün portlar şarjı devre dışı bırakmakta başarısız oldu anlamına geliyor.
+Bu kernel ile alaklı bir sorunlardan ötürü gerçekleşiyor (bundan önceki kısma bkz. - [şarj portu](#şarj-portu)).
+Eğer daemon çalışan portu otomatik olarak kurmaya ayarlı ise (varsayılan ayar), bunun sonucu olarak durabilir.
+Manuel olarak `acc -ss` veya `acc -s s="PORTLAR BURAYA YAZILIYOR --"` komutları ile bir port belirlemek accd'nin otomatik olarak devre dışı kalmasını bu durumda önler.
 
 
 ---
-## LOCALIZATION
+## Güç kaynağı logları (yardım lazım)
+
+Lütfen `acc -le` komudunu çalıştırıp `/data/adb/vr25/acc-data/logs/power_supply-*.log` dizinindeki çıktıyı [dropbox](https://www.dropbox.com/request/WYVDyCc0GkKQ8U5mLNlH) linkine yükleyin (herhangi bir hesap oluşturmanız gerekli değil).
+Bu dosya değeri ölçülmez düzeyde güç kaynağı hakkında bilgi içeriyor, batarya detayları ve mevcut şarj yöntemleri gibi.
+Karşılıklı yarar sağlanması adına halka açık bir database oluşturuluyor.
+Yardımınız fazlası ile takdir görecektir.
+
+Gizlilik notları
+
+- İsim: rastgele/sahte
+- İsim: rastgele/sahte
+
+Yapılmış yüklemeleri [buradan](https://www.dropbox.com/sh/rolzxvqxtdkfvfa/AABceZM3BBUHUykBqOW-0DYIa?dl=0) görüntüleyin.
+
+
+---
+## Lokalize etme
 
 
 Currently Supported Languages and Translation Levels (full, good, fair, minimal)
@@ -1253,85 +1257,85 @@ Alternatively, a _compressed_ archive of translated `strings.sh` and `README.md`
 
 
 ---
-## TIPS
+## Tavsiyeler
 
 
-### _Always_ Limit the Charging Current If Your Battery is Old and/or Tends to Discharge Too Fast
+### Eğer bataryanız çok eskiyse veya çok hızlı deşarj oluyorsa şarj etme akımını kısıtlayın
 
-This extends the battery's lifespan and may even _reduce_ its discharge rate.
+Bu, bataryanın total hayatını olumlu etkiler ve hatta _deşarj_ olma hızını bile azaltabilir.
 
-750-1000mA is a good range for regular use.
+750-1000mA aralığı gündelik kullanım için uygundur.
 
-500mA is a comfortable minimum - and also very compatible.
+500mA kabul edilebilir bir minimum - aynı zamanda oldukça uyumlu.
 
-If your device does not support custom current limits, use a dedicated ("slow") power adapter.
-
-
-### Current and Voltage Based Charging Control
-
-Enabled by setting charging_switch=milliamps or charging_switch=3700-4300 (millivolts) (e.g., `acc -s s=0`, `acc -s s=250`, `acc -s s=3700`, `acc -ss` (wizard)).
-
-Essentially, this turns current/voltage control files into _[pseudo] charging switches_.
-
-A common and positive side effect of this is _[pseudo] idle mode_ - i.e., the battery may work just as a power buffer.
-
-Note: depending on the kernel - at `pause_capacity`, the charging status may either change ("discharging" or "not charging") or remain still ("charging" - not an issue).
-If it changes intermittently, the current is too low; increment it until the issue goes away.
+Eğer cihazınız akım limitlemeyi desteklemiyor ise, ("yavaş") şarj eden bir adaptör kullanın.
 
 
-### Generic
+### Akım ve voltaj odaklı şarj kontrolü
 
-Emulate _battery idle mode_ with a voltage limit: `acc -s pc=101 rc=0 mcv=3900`.
-The first two arguments disable the regular charging pause/resume functionality.
-The last sets a voltage limit that will dictate how much the battery should charge.
-The battery enters a _[pseudo] idle mode_ when its voltage peaks.
-Essentially, it works as a power buffer.
+charging_switch=milliamps veya charging_switch=3700-4300 (millivolts) değişkenlerini ayarlayarak aktive edilir (e.g., `acc -s s=0`, `acc -s s=250`, `acc -s s=3700`, `acc -ss` (asistan)).
 
-A similar effect can be achieved with settings such as `acc 60 59` (percentages) and `acc 3900` (millivolts).
+Sonuç olarak bu işlem voltaj/akım kontrol dosyalarını _[sahte] şarj portları_'na dönüştürür.
 
-Yet another way is limiting charging current to 0-250 mA or so (e.g., `acc -sc 0`).
-`acc -sc -` restores the default limit.
-Alternatively, one can experiment with `acc -s s=0` and/or `acc -s s=3700`, which uses current/voltage control files as charging switches.
+Bunun yaygın ve pozitif bir yan etkisi ise _[sahte] idle mod_ 'dur - i.e., batarya bir çeşit power buffer gibi çalışır.
 
-Force fast charge: `appy_on_boot="/sys/kernel/fast_charge/force_fast_charge::1::0 usb/boost_current::1::0 charger/boost_current::1::0"`
+Not: kernel'a bağlı olarak - `pause_capacity`(durma seviyesinde), şarj statüsü değişebilir veya ("deşarj" veya "şarj olmuyor") veya sabit kalabilir ("şarj ediliyor" - bir problem değil).
+Aralıklı olarak değişiyorsa, akım çok az demektir; problem çözülene kadar arttırın.
 
 
-### Google Pixel Devices
+### Genel
 
-Force fast wireless charging with third party wireless chargers that are supposed to charge the battery faster: `apply_on_plug=wireless/voltage_max::9000000`.
+ _batarya idle mod_ 'unu bir voltaj limiti ile taklit edin: `acc -s pc=101 rc=0 mcv=3900`.
+İlk iki argüman şarj başlama/durma fonksiyonunu devre dışı bırakıyor.
+Son olan da bataryanın ne derecede dolacağını ayarlayan bir voltaj dikte ediyor.
+Batarya, voltaj yükseldiğinde bir _[sahte] idle mod_ 'a giriyor.
+Sonuç olarak, bir power buffer gibi çalışıyor.
 
-This may not work on all Pixel devices.
-There are no negative consequences when it doesn't.
+Benzer bir etki `acc 60 59` (yüzdeler) ve `acc 3900` (milivolt) komutları ile de elde edilebilir.
+
+Başka bir yol ise şarj akımını 0-250 mA aaralığına hapsetmek veya (e.g., `acc -sc 0`).
+`acc -sc -` varsayılan(fabiraka ayarı) limiti yeniden yükler.
+Alternatif olarak, `acc -s s=0` ve/veya `acc -s s=3700`komutlarını test edebilirsiniz, bunlar şarj/voltaj kontrol dosyalarını bir şarj portu gibi kullanırlar.
+
+Hızlı şarja zorla: `appy_on_boot="/sys/kernel/fast_charge/force_fast_charge::1::0 usb/boost_current::1::0 charger/boost_current::1::0"`
 
 
-### Idle Mode and Alternatives
+### Google Pixel Cihazları
 
-1 - Charging switch that supports idle mode (the obvious winner).
-Note that self discharge is a thing.
-This is as if the battery were physically disconnected.
-Extremely slow discharge rate is expected.
+Üçüncü parti kablosuz cihazlarda hızlı şarjı zorlayın: `apply_on_plug=wireless/voltage_max::9000000`.
 
-2 - `charging_switch=0`: if current fluctuates, also set `current_workaround=true` (only takes affect after a reboot).
-If this method works, the behavior is exactly the same as `#1`.
+Bu bütün cihazlarda çalışmayabilir.
+Çalışmadığında herhangi bir negatif etkisi yoktur.
 
-3 - `charging_switch=3900`: only works on devices that actually support voltage control.
-Unlike regular idle mode, this maintains 3900 mV, indefinitely.
-This is not good with higher voltages.
-We're trying to minimize battery stress as much as possible.
-Maintaining a voltage higher than 3900 for a long time is _not_ recommended.
 
-4 - `acc 3900`: this is short for _acc 3900 3870_ (a 50 mV difference).
-It tries to maintain 3900 mV without voltage control support.
-Yes, it's definitely not a joke.
-This works with regular charging switches and voltage readings.
+### idle Mod and Alternatifler
 
-5 - `acc 45 44`: this closely translates to 3900 mV under most circumstances.
-Voltage and capacity (%) do not have a linear relationship.
-Voltage varies with temperature, battery chemistry and age.
+1 - Idle mod destekleyen bir şarj portu seçmek (açık ara kazanan).
+Cihazın kendi kendisine deşarj olabileceğini unutmayın.
+Bu batarya sanki fiziksel olarak takılı değilmiş gibi çalışır.
+Aşırı yavaş deşarj oranları beklendik sonuçlardır.
+
+2 - `charging_switch=0`: eğer akım dalgalanıyor ise deneyiniz, aynı zamanda `current_workaround=true` (yalnızca yeniden başlatıldıktan sonra etkili olur).
+Eğer bu method çalışıyorsa, etkisi aynı `#1` gibidir.
+
+3 - `charging_switch=3900`: yalnızca voltaj kontrolü destekleyen cihazlarda çalışır.
+Alışıldık idle mod'un aksine, cihaz sürekli olarak 3900mV'ta kalır.
+Yüksek voltajlar için bu yöntem iyi değildir.
+Bizler bataryaya binen stresi azaltmaya çalışıyoruz.
+Uzun bir süre boyunca 3900 üstü bir voltaj tavsiye _edilmemektedir_.
+
+4 - `acc 3900`: kısaca _acc 3900 3870_ (50 mV fark).
+Voltaj kontrol desteği olmadan 3900mV aralığında kalmaya çalışır.
+Evet, şaka falan değil.
+Bu sıradan şarj portları ile çalışır.
+
+5 - `acc 45 44`: bu az çok 3900 mV'a denk gelmektedir, çoğu durumda.
+Voltaj ve batarya seviyesi (%) doğrusal bir ilişkiye sahip değillerdir.
+Voltaj sıcaklığa göre, batarya ise kimyasına ve yaşına göre değişir.
 
 
 ---
-## FREQUENTLY ASKED QUESTIONS (FAQ)
+## Sıkça sorulan sorular (SSS)
 
 
 > How do I report issues?
@@ -1438,7 +1442,7 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 
 
 ---
-## LINKS
+## Linkler
 
 - [Daily Job Scheduler](https://github.com/VR-25/djs)
 
