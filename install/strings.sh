@@ -19,9 +19,9 @@ print_not_running() {
 print_restarted() {
   echo "accd yeniden başlatıldı"
 }
-# need some context
+
 print_is_running() {
-  echo "accd $1 is running $2"
+  echo "accd $1 - $2 kodlu işlemi çalıştırıyor"
 }
 
 print_config_reset() {
