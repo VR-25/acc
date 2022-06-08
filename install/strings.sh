@@ -169,7 +169,7 @@ Options
 
   -la   Same as -l -a
 
-  -l|--log -e|--export   Export all logs to $dataDir/logs/acc-logs-\$deviceName.tgz
+  -l|--log -e|--export   Export all logs to /sdcard/Download/acc-logs-\$deviceName.tgz
     e.g., acc -l -e
 
   -le   Same as -l -e
