@@ -169,7 +169,7 @@ Options
 
   -la   Same as -l -a
 
-  -l|--log -e|--export   Bütün logları $dataDir/logs/acc-logs-\$deviceName.tgz dizinine çıkart
+  -l|--log -e|--export   Bütün logları /sdcard/Download/acc-logs-$deviceName.tgz dizinine çıkart
     e.g., acc -l -e
 
   -le   Same as -l -e

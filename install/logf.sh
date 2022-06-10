@@ -31,7 +31,9 @@ logf() {
 
     tar -c *.log *.txt | gzip -9 > $dataDir/logs/acc-logs-$device.tgz
     rm *.txt magisk.log in*.log power*.log 2>/dev/null
-    echo "$dataDir/logs/acc-logs-$device.tgz"
+    cp -f $dataDir/logs/acc-logs-$device.tgz /sdcard/Download/ 2>/dev/null \
+      && echo /sdcard/Download/acc-logs-$device.tgz \
+      || echo $dataDir/logs/acc-logs-$device.tgz
 
   else
     if tt "${1:-x}" "-*a*"; then
