@@ -51,4 +51,9 @@ sched='$schedule'
 
 batt_status_override='$battStatusOverride'
 
-reboot_resume=$rebootResume"
+reboot_resume=$rebootResume
+
+discharge_polarity=$dischargePolarity
+"
+
+sed -n '/^: /p' $config

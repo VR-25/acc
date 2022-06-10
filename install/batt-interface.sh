@@ -7,11 +7,11 @@ discharging() {
 
 idle() {
   grep -iq 'Not charging' $battStatus || {
-    [ -n "$idleThreshold_" ] && [ $curThen != null ] && {
-      if $positive; then
-        [ $curNow -ge -$idleThreshold_ ] && [ $curNow -le $idleThreshold1 ]
+    [ $curThen != null ] && {
+      if $plusChgPolarity; then
+        [ $curNow -ge -$idleThresholdL ] && [ $curNow -le $idleThresholdH ]
       else
-        [ $curNow -le $idleThreshold_ ] && [ $curNow -ge -$idleThreshold1 ]
+        [ $curNow -le $idleThresholdL ] && [ $curNow -ge -$idleThresholdH ]
       fi
     } || return 1
   }
@@ -24,10 +24,15 @@ not_charging() {
   local i=
   local off=${flip-}; flip=
   local curThen=$(cat $curThen)
-  local positive=true
+  local plusChgPolarity=true
   local seqCount=${seqCount:-16} ###
 
-  [ $curThen != null ] && [ $curThen -lt 0 ] && positive=false || :
+  case "${dischargePolarity-}" in
+    +) plusChgPolarity=false;;
+    -) :;;
+    *) [ $curThen != null ] && [ $curThen -lt 0 ] && plusChgPolarity=false || :;;
+  esac
+
   tt "${chargingSwitch[$*]-}" "*\ --" || battStatusOverride=
   [ $currFile != $TMPDIR/.dummy-curr ] || battStatusWorkaround=false
 
@@ -37,7 +42,7 @@ not_charging() {
       if $off; then
         ! status ${1-} || return 0
         [ $i -lt 5 ] || {
-          if $positive; then
+          if $plusChgPolarity; then
             [ $(cat $currFile) -lt $((curThen / 100 * 90)) ] || return 1
           else
             [ $(cat $currFile) -gt $((curThen / 100 * 90)) ] || return 1
@@ -114,28 +119,17 @@ if ${init:-false}; then
     [ ! -f $currFile ] || break
   done
 
-  curr=$(sed s/-// $currFile)
-  idleThreshold=11 # mA
-  idleThreshold1=101 # mA
-  idleThreshold_=$idleThreshold
-  ampFactor_=1000
+  idleThresholdL=11 # mA
+  idleThresholdH=101 # mA
+  ampFactor=$(sed -n 's/^ampFactor=//p' $dataDir/config.txt 2>/dev/null || :)
+  ampFactor_=${ampFactor:-1000}
 
-  if [ $curr -le $idleThreshold_ ]; then
-    ampFactor_=
-    idleThreshold_=
-  else
-    ! [ $curr -ge 10000 ] || {
-      ampFactor_=1000000
-      idleThreshold_=${idleThreshold_}000
-    }
+  if [ $ampFactor_ -eq 1000000 ] || [ $(sed s/-// $currFile) -ge 16000 ]; then
+    ampFactor_=1000000
+    idleThresholdL=${idleThresholdL}000
+    idleThresholdH=${idleThresholdH}000
   fi
 
-  case "$(sed -n 's/^ampFactor=//p' $dataDir/config.txt 2>/dev/null)" in
-    1000) idleThreshold_=$idleThreshold;;
-    1000000) idleThreshold_=${idleThreshold}000; idleThreshold1=${idleThreshold1}000;;
-  esac
-
-  unset curr
   curThen=$TMPDIR/.curr
   rm $curThen 2>/dev/null || :
 
@@ -147,8 +141,8 @@ battCapacity=$batt/capacity
 battStatus=\"$battStatus\"
 currFile=$currFile
 curThen=$curThen
-idleThreshold_=$idleThreshold_
-idleThreshold1=$idleThreshold1
+idleThresholdL=$idleThresholdL
+idleThresholdH=$idleThresholdH
 temp=$temp
 " > $TMPDIR/.batt-interface.sh
 

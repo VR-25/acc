@@ -19,7 +19,7 @@ batt_info() {
     if [ -z "$factor" ]; then
       case $1 in
         0) factor=1;;
-        *) [ $1 -lt 10000 ] && factor=1000 || factor=1000000;;
+        *) [ $1 -le 15000 ] && factor=1000 || factor=1000000;;
       esac
     fi
   }

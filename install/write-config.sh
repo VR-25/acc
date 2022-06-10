@@ -52,6 +52,8 @@ bso="${batt_status_override-${bso-$battStatusOverride}}"
 
 rr="${reboot_resume-${rr-$rebootResume}}"
 
+dp="${discharge_polarity-${dp-$dischargePolarity}}"
+
 
 # schedule -- append/delete
 case "$sd" in
@@ -119,6 +121,8 @@ schedule='$sd'
 battStatusOverride='$bso'
 
 rebootResume=${rr:-false}
+
+dischargePolarity=$dp
 
 : one-line script sample; echo nothing >/dev/null
 " > $config

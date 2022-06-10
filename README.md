@@ -237,7 +237,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202206010
+configVerCode=202206100
 
 capacity=(-1 60 70 75 false false)
 
@@ -277,6 +277,8 @@ schedule=''
 battStatusOverride=''
 
 rebootResume=false
+
+dischargePolarity=
 
 : one-line script sample; echo nothing >/dev/null
 
@@ -363,6 +365,8 @@ rebootResume=false
 
 # rebootResume=reboot_resume=boolean
 
+# dischargePolarity=discharge_polarity=+|-
+
 
 # ALIASES/SHORTCUTS
 
@@ -413,6 +417,7 @@ rebootResume=false
 
 # bso batt_status_override
 # rr reboot_resume
+# dp discharge_polarity
 
 
 # FINE, BUT WHAT DOES EACH OF THESE VARIABLES ACTUALLY MEAN?
@@ -591,6 +596,9 @@ rebootResume=false
 # reboot_resume (rr) #
 # Reboot (when capacity <= resume_capacity) to re-enable charging.
 # A warning notification is posted 60 seconds prior, for the user to block the action, if they so please.
+
+# discharge_polarity (dp) #
+# This overrides the automatic current polarity detection.
 
 # one-line scripts #
 # Every line that begins with ": " is interpreted as a one-line script.
