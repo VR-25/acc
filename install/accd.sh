@@ -234,9 +234,8 @@ if ! $init; then
       if is_charging; then
 
         # disable charging after a reboot, if min < capacity < max
-        if [ -z "${minCapMax-}" ] && _lt_pause_cap && _gt_resume_cap; then
+        if [ -f $TMPDIR/.minCapMax ] && _lt_pause_cap && _gt_resume_cap; then
           disable_charging
-          minCapMax=done
         fi
 
         # disable charging under <conditions>
@@ -350,6 +349,9 @@ if ! $init; then
         sleep ${loopDelay[1]}
 
       fi
+
+      rm $TMPDIR/.minCapMax 2>/dev/null || :
+
     done
   }
 
@@ -468,6 +470,7 @@ if ! $init; then
 
 
   apply_on_boot
+  touch $TMPDIR/.minCapMax
   ctrl_charging
   exit $?
 
