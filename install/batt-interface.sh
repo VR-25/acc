@@ -6,7 +6,7 @@ discharging() {
 
 
 idle() {
-  grep -iq 'Not charging' $battStatus || {
+  #grep -iq 'Not charging' $battStatus || {
     [ $curThen != null ] && {
       if $plusChgPolarity; then
         [ $curNow -ge -$idleThresholdL ] && [ $curNow -le $idleThresholdH ]
@@ -14,7 +14,7 @@ idle() {
         [ $curNow -le $idleThresholdL ] && [ $curNow -ge -$idleThresholdH ]
       fi
     } || return 1
-  }
+  #}
   _status=Idle
 }
 
@@ -75,7 +75,11 @@ status() {
       _status=$(set -eu; eval '$battStatusOverride') || :
     fi
   elif $battStatusWorkaround; then
-    idle || discharging || :
+    #idle || discharging || :
+    case $_status in
+      Charging) idle || discharging || :;;
+      Discharging) idle || :;;
+    esac
   fi
 
   for i in Discharging DischargingDischarging Idle IdleIdle; do
