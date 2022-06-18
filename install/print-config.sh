@@ -54,6 +54,8 @@ batt_status_override='$battStatusOverride'
 reboot_resume=$rebootResume
 
 discharge_polarity=$dischargePolarity
+
+off_mid=$offMid
 "
 
 sed -n '/^: /p' $config

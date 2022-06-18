@@ -237,7 +237,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202206100
+configVerCode=202206180
 
 capacity=(-1 60 70 75 false false)
 
@@ -279,6 +279,8 @@ battStatusOverride=''
 rebootResume=false
 
 dischargePolarity=
+
+offMid=true
 
 : one-line script sample; echo nothing >/dev/null
 
@@ -367,6 +369,8 @@ dischargePolarity=
 
 # dischargePolarity=discharge_polarity=+|-
 
+# offMid=off_mid=boolean
+
 
 # ALIASES/SHORTCUTS
 
@@ -418,6 +422,7 @@ dischargePolarity=
 # bso batt_status_override
 # rr reboot_resume
 # dp discharge_polarity
+# om off_mid
 
 
 # FINE, BUT WHAT DOES EACH OF THESE VARIABLES ACTUALLY MEAN?
@@ -606,6 +611,9 @@ dischargePolarity=
 # All script lines are executed whenever the config is loaded/sourced.
 # This happens regularly while the daemon is running, and at least once per command run.
 # Warning: all files used in one-line scripts must reside somewhere in /data/adb/, just like acc's own data files.
+
+# off_mid (om) #
+# Whether to turn off charging after rebooting or restarting accd, if capacity is within resume_capacity and pause_capacity (default: true).
 
 #/DC#
 ```

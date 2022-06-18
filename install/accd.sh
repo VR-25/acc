@@ -234,7 +234,7 @@ if ! $init; then
       if is_charging; then
 
         # disable charging after a reboot, if min < capacity < max
-        if [ -f $TMPDIR/.minCapMax ] && _lt_pause_cap && _gt_resume_cap; then
+        if $offMid && [ -f $TMPDIR/.minCapMax ] && _lt_pause_cap && _gt_resume_cap; then
           disable_charging
         fi
 
