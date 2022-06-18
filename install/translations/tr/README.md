@@ -875,8 +875,8 @@ Tavsiyeler
     acc -e 30m && acc -d 6h && acc -e 85 && accd
 
   Basit bir profil
-    acc -s pc=45 rc=43 mcc=500 mcv=3900
-      Şarj seviyesi 43-45% arasında tutulur, akım 500 mA ve voltaj 3900 milivolt ile sınırlanır.
+    acc -s pc=60 rc=55 mcc=500 mcv=3900
+      Şarj seviyesi 55-60% arasında tutulur, akım 500 mA ve voltaj 3900 milivolt ile sınırlanır.
       Gece vakti "sürekli-şarjda" durumları için ideal.
 
   Bütün bilgiler için acc -r (veya --readme) kodlarını çalıştırın (önerilir)

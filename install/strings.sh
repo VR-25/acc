@@ -327,8 +327,8 @@ Tips
     acc -e 30m && acc -d 6h && acc -e 85 && accd
 
   Sample profile
-    acc -s pc=45 rc=43 mcc=500 mcv=3900
-      This keeps battery capacity between 43-45%, limits charging current to 500 mA and voltage to 3900 millivolts.
+    acc -s pc=60 rc=55 mcc=500 mcv=3900
+      This keeps battery capacity between 55-60%, limits charging current to 500 mA and voltage to 3900 millivolts.
       It's great for nighttime and "forever-plugged".
 
   Refer to acc -r (or --readme) for the full documentation (recommended)

@@ -244,8 +244,8 @@ Tipps:
         z.B. 30 Minuten laden, Ladepause für 6 Stunden, auf 85% laden und den Daemon neu starten
         acc -e 30m && acc -d 6h && acc -e 85 && accd
     Beispielprofil
-        acc -s pc=45 rc=43 mcc=500 mcv=3900
-            Dies hält die Batteriekapazität zwischen 43-45 %, begrenzt den Ladestrom auf 500 mA und die Spannung auf 3900 Millivolt.
+        acc -s pc=60 rc=55 mcc=500 mcv=3900
+            Dies hält die Batteriekapazität zwischen 55-60%, begrenzt den Ladestrom auf 500 mA und die Spannung auf 3900 Millivolt.
             Das ist ideal für die Nacht und für "ewig-angeschlossen".
     Siehe acc -r (oder --readme) für die vollständige Dokumentation (empfohlen)
 EOF

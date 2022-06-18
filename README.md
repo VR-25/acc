@@ -1,4 +1,4 @@
-# Advanced Charging Controller (ACC)
+ftt# Advanced Charging Controller (ACC)
 
 
 ---
@@ -51,7 +51,6 @@
   - [Current and Voltage Based Charging Control](#current-and-voltage-based-charging-control)
   - [Generic](#generic)
   - [Google Pixel Devices](#google-pixel-devices)
-  - [Idle Mode and Alternatives](#idle-mode-and-alternatives)
 - [FREQUENTLY ASKED QUESTIONS (FAQ)](#frequently-asked-questions-faq)
 - [LINKS](#links)
 
@@ -886,8 +885,8 @@ Tips
     acc -e 30m && acc -d 6h && acc -e 85 && accd
 
   Sample profile
-    acc -s pc=45 rc=43 mcc=500 mcv=3900
-      This keeps battery capacity between 43-45%, limits charging current to 500 mA and voltage to 3900 millivolts.
+    acc -s pc=60 rc=55 mcc=500 mcv=3900
+      This keeps battery capacity between 55-60%, limits charging current to 500 mA and voltage to 3900 millivolts.
       It's great for nighttime and "forever-plugged".
 
   Refer to acc -r (or --readme) for the full documentation (recommended)
@@ -1246,14 +1245,15 @@ See current submissions [here](https://www.dropbox.com/sh/rolzxvqxtdkfvfa/AABceZ
 ## LOCALIZATION
 
 
-Currently Supported Languages and Translation Levels (full, good, fair, minimal)
+Currently Supported Languages and Translation Levels (default, full, good, fair, minimal)
 
 - Chinese, simplified (zh-rCN): minimal
 - Chinese, traditional (zh-rTW): minimal
-- English (en): full
+- English (en): default
 - German (de_DE): fair
 - Indonesia (id): minimal
 - Portuguese, Portugal (pt-PT): minimal
+- Turkish (tr): full
 
 
 Translation Notes
@@ -1285,29 +1285,15 @@ If your device does not support custom current limits, use a dedicated ("slow") 
 
 ### Current and Voltage Based Charging Control
 
-Enabled by setting charging_switch=milliamps or charging_switch=3700-4300 (millivolts) (e.g., `acc -s s=0`, `acc -s s=250`, `acc -s s=3700`, `acc -ss` (wizard)).
+Enabled by setting charging_switch=milliamps or charging_switch=3700-4300 (millivolts) (e.g., `acc -s s=0`, `acc -s s=250`, `acc -s s=3900`, `acc -ss` (wizard)).
 
 Essentially, this turns current/voltage control files into _[pseudo] charging switches_.
+Alternatively, one can set a specific current or voltage regulator as charging switch (e.g., acc -s s="battery/current_max 3000000 0").
 
-A common and positive side effect of this is _[pseudo] idle mode_ - i.e., the battery may work just as a power buffer.
-
-Note: depending on the kernel - at `pause_capacity`, the charging status may either change ("discharging" or "not charging") or remain still ("charging" - not an issue).
-If it changes intermittently, the current is too low; increment it until the issue goes away.
+Note: depending on the device - at `pause_capacity`, the charging status may either change ("Discharging" or "Idle" ("Not charging") or remain still ("Charging" -- not an issue).
 
 
 ### Generic
-
-Emulate _battery idle mode_ with a voltage limit: `acc -s pc=101 rc=0 mcv=3900`.
-The first two arguments disable the regular charging pause/resume functionality.
-The last sets a voltage limit that will dictate how much the battery should charge.
-The battery enters a _[pseudo] idle mode_ when its voltage peaks.
-Essentially, it works as a power buffer.
-
-A similar effect can be achieved with settings such as `acc 60 59` (percentages) and `acc 3900` (millivolts).
-
-Yet another way is limiting charging current to 0-250 mA or so (e.g., `acc -sc 0`).
-`acc -sc -` restores the default limit.
-Alternatively, one can experiment with `acc -s s=0` and/or `acc -s s=3700`, which uses current/voltage control files as charging switches.
 
 Force fast charge: `appy_on_boot="/sys/kernel/fast_charge/force_fast_charge::1::0 usb/boost_current::1::0 charger/boost_current::1::0"`
 
@@ -1318,32 +1304,6 @@ Force fast wireless charging with third party wireless chargers that are suppose
 
 This may not work on all Pixel devices.
 There are no negative consequences when it doesn't.
-
-
-### Idle Mode and Alternatives
-
-1 - Charging switch that supports idle mode (the obvious winner).
-Note that self discharge is a thing.
-This is as if the battery were physically disconnected.
-Extremely slow discharge rate is expected.
-
-2 - `charging_switch=0`: if current fluctuates, also set `current_workaround=true` (only takes affect after a reboot).
-If this method works, the behavior is exactly the same as `#1`.
-
-3 - `charging_switch=3900`: only works on devices that actually support voltage control.
-Unlike regular idle mode, this maintains 3900 mV, indefinitely.
-This is not good with higher voltages.
-We're trying to minimize battery stress as much as possible.
-Maintaining a voltage higher than 3900 for a long time is _not_ recommended.
-
-4 - `acc 3900`: this is short for _acc 3900 3870_ (a 50 mV difference).
-It tries to maintain 3900 mV without voltage control support.
-Yes, it's definitely not a joke.
-This works with regular charging switches and voltage readings.
-
-5 - `acc 45 44`: this closely translates to 3900 mV under most circumstances.
-Voltage and capacity (%) do not have a linear relationship.
-Voltage varies with temperature, battery chemistry and age.
 
 
 ---
@@ -1381,7 +1341,7 @@ But is it typically safer to let charging keep running, or to have the circuits 
 It's not much about which method is safer.
 It's specifically about electron stability: optimizing the pressure (voltage) and current flow.
 
-As long as you don't set a voltage limit higher than 4200 mV and don't leave the phone plugged in for extended periods of time, you're good with that limitation alone.
+As long as you don't set a voltage limit higher than 4200 mV, and don't leave the phone plugged in for extended periods of time, you're good with that limitation alone.
 Otherwise, the other option is actually more beneficial - since it mitigates high pressure (voltage) exposure/time to a greater extent.
 If you use both, simultaneously - you get the best of both worlds.
 On top of that, if you enable the cooldown cycle, it'll give you even more benefits.
@@ -1391,7 +1351,7 @@ Keeping a battery fully drained, almost fully drained or 70%+ charged for a long
 
 Putting it all together in practice...
 
-Night/heavy-duty profile: keep capacity within 40-60% and/or voltage around ~3900 mV
+Night/heavy-duty/forever-plugged profile: keep capacity within 40-60% (e.g., acc 60 55) and/or voltage around ~3900 mV
 
 Day/regular profile: max capacity: 75-80% and/or voltage no higher than 4100 mV
 
