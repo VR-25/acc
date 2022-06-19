@@ -389,9 +389,9 @@ write() {
     \#*) blacklisted=true; return ${3-1};;
     "") echo "#$2" >> $l; s=x;;
   esac
-  for i in $(seq 4); do
+  for i in $(seq 3); do
     eval echo "$1" > "$2" || { i=x; break; }
-    sleep 0.5
+    sleep 0.33
   done
   [ $s != x ] || sed -i "\|^#$2$|s|^#||" $l
   [ $i != x ] || return ${3-1}
