@@ -6,15 +6,13 @@ discharging() {
 
 
 idle() {
-  #grep -iq 'Not charging' $battStatus || {
-    [ $curThen != null ] && {
-      if $plusChgPolarity; then
-        [ $curNow -ge -$idleThresholdL ] && [ $curNow -le $idleThresholdH ]
-      else
-        [ $curNow -le $idleThresholdL ] && [ $curNow -ge -$idleThresholdH ]
-      fi
-    } || return 1
-  #}
+  [ $curThen != null ] && {
+    if $_dischargePolarity; then
+      [ $curNow -ge -$idleThresholdL ] && [ $curNow -le $idleThresholdH ]
+    else
+      [ $curNow -le $idleThresholdL ] && [ $curNow -ge -$idleThresholdH ]
+    fi
+  } || return 1
   _status=Idle
 }
 
@@ -24,36 +22,34 @@ not_charging() {
   local i=
   local off=${flip-}; flip=
   local curThen=$(cat $curThen)
-  local plusChgPolarity=true
-  local seqCount=${seqCount:-16} ###
+  local seqCount=${seqCount:-16}
+  local battStatusOverride="${battStatusOverride-}"
+  local battStatusWorkaround=${battStatusWorkaround-}
 
   case "${dischargePolarity-}" in
-    +) plusChgPolarity=false;;
-    -) :;;
-    *) [ $curThen != null ] && [ $curThen -lt 0 ] && plusChgPolarity=false || :;;
+    +) _dischargePolarity=false;;
+    -) _dischargePolarity=true;;
   esac
 
   tt "${chargingSwitch[$*]-}" "*\ --" || battStatusOverride=
-  [ $currFile != $TMPDIR/.dummy-curr ] || battStatusWorkaround=false
 
-  if [ -z "${battStatusOverride-}" ] && [ -n "$off" ]; then
-    [ $off = off ] && off=true || off=false
+  if [ $currFile = $TMPDIR/.dummy-curr ] || [ -z "${_dischargePolarity-}" ]; then
+    battStatusWorkaround=false
+  fi
+
+  if [ -z "${battStatusOverride-}" ] && [ "$off" = off ]; then
     for i in $(seq $seqCount); do
-      if $off; then
-        ! status ${1-} || return 0
-        [ $i -lt 5 ] || {
-          if $plusChgPolarity; then
-            [ $(cat $currFile) -lt $((curThen / 100 * 90)) ] || return 1
-          else
-            [ $(cat $currFile) -gt $((curThen / 100 * 90)) ] || return 1
-          fi
-        }
-      else
-        status ${1-} || return 1
+      ! status ${1-} || return 0
+      if $battStatusWorkaround && [ $i -ge 5 ]; then
+        if $_dischargePolarity; then
+          [ $(cat $currFile) -lt $((curThen / 100 * 90)) ] || return 1
+        else
+          [ $(cat $currFile) -gt $((curThen / 100 * 90)) ] || return 1
+        fi
       fi
       [ $i = $seqCount ] || sleep 1
     done
-    $off && return 1 || return 0
+    return 1
   else
     status ${1-}
   fi
@@ -66,7 +62,7 @@ status() {
   local curNow=$(cat $currFile)
 
   _status=$(sed 's/Not charging/Idle/' $battStatus)
-  [ -z "${exitCode_-}" ] || echo "  curr=$curThen,$curNow off=${off:-false} status=$_status"
+  [ -z "${exitCode_-}" ] || echo "  curr:$curThen,$curNow switch:${off:-on} status:$_status"
 
   if [ -n "${battStatusOverride-}" ]; then
     if tt "$battStatusOverride" "Discharging|Idle"; then
@@ -75,11 +71,9 @@ status() {
       _status=$(set -eu; eval '$battStatusOverride') || :
     fi
   elif $battStatusWorkaround; then
-    #idle || discharging || :
-    case $_status in
-      Charging) idle || discharging || :;;
-      Discharging) idle || :;;
-    esac
+    ! tt "$_status" "Charging|Discharging" || {
+      idle || discharging || :
+    }
   fi
 
   for i in Discharging DischargingDischarging Idle IdleIdle; do
@@ -138,11 +132,18 @@ if ${init:-false}; then
   rm $curThen 2>/dev/null || :
 
 
+  case "$(cat $battStatus)$(cat $currFile)" in
+    Discharging-*|Charging[0-9]*) _dischargePolarity=true;;
+    Discharging[0-9]*|Charging-*) _dischargePolarity=false;;
+  esac
+
+
   echo "
+_dischargePolarity=$_dischargePolarity
 ampFactor_=$ampFactor_
 batt=$batt
 battCapacity=$batt/capacity
-battStatus=\"$battStatus\"
+battStatus=$battStatus
 currFile=$currFile
 curThen=$curThen
 idleThresholdL=$idleThresholdL

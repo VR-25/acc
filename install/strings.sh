@@ -503,17 +503,17 @@ print_acct_info() {
   echo "
 💡Notes/Tips:
 
-  - Some switches -- notably those that control current and voltage -- are prone to inconsistencies. If a switch works at least twice, assume it's functional.
+  Some switches -- notably those that control current and voltage -- are prone to inconsistencies. If a switch works at least twice, assume it's functional.
 
-  - Results may vary with different power supplies and conditions, as stated in \"readme > troubleshooting > charging switch\".
+  Results may vary with different power supplies and conditions, as stated in \"readme > troubleshooting > charging switch\".
 
-  - Want to test all potential switches? \"acc -t p\" parses them from the power supply log (as \"acc -p\"), tests all, and adds the working ones to the list of known switches.
+  Want to test all potential switches? \"acc -t p\" parses them from the power supply log (as \"acc -p\"), tests all, and adds the working ones to the list of known switches.
 
-  - To set charging switches, run acc -ss (wizard) or acc -s s=\"switches go here --\".
+  To set charging switches, run acc -ss (wizard) or acc -s s=\"switches go here --\".
 
-  - idleMode: whether the device can run directly off the charger.
+  battIdleMode: whether the device can run directly off the charger.
 
-  - The output of this command is saved to /sdcard/Download/acc-t_output-${device}.log."
+  The output of this command is saved to /sdcard/Download/acc-t_output-${device}.log."
 }
 
 
@@ -522,4 +522,11 @@ print_panic() {
 Some problematic control files are blacklisted automatically, based on known patterns.
 Do you want to see/edit the list of potential switches before testing?
 a: abort operation | n: no | y: yes (default) "
+}
+
+
+print_resume() {
+  echo "  Waiting for charging to resume..."
+  echo "  If it's not happening, try re-plugging the charger."
+  echo "  In extreme cases, one shall comment out this switch in $dataDir/logs/write.log, reboot, and re-run the test."
 }

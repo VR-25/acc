@@ -270,16 +270,7 @@ flip_sw() {
       fi
     }
 
-    [ $flip = on ] || {
-      # cn=$(cat $currFile)
-      # ct=$(cat $curThen)
-      # case $ct in
-      #   -*) [ $cn -lt $ct ] || ct=n;;
-      #   [0-9]*) [ $cn -gt $ct ] || ct=n;;
-      # esac
-      # [ $ct = n ] || cat $currFile > $curThen
-      cat $currFile > $curThen
-    }
+    [ $flip = on ] || cat $currFile > $curThen
 
     write \$$flip $1 || return 1
 

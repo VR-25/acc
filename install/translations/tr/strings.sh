@@ -504,19 +504,19 @@ print_acct_info() {
   echo "
 💡Notlar/Tavsiyeler:
 
-  - Bazı portlar -- özellikle akım ve voltaj kontrol edenlerde -- dengesizlikler kaçınılmaz. Eğer bir port en az iki kere çalıştıysa, iş gördüğünü
+  Bazı portlar -- özellikle akım ve voltaj kontrol edenlerde -- dengesizlikler kaçınılmaz. Eğer bir port en az iki kere çalıştıysa, iş gördüğünü
 varsayın.
 
-  - Sonuçlar farklı koşullara ve güç kaynaklarına göre değişebilir, \"readme > troubleshooting > charging switch\" kısmında da bahsedildiği gibi.
+  Sonuçlar farklı koşullara ve güç kaynaklarına göre değişebilir, \"readme > troubleshooting > charging switch\" kısmında da bahsedildiği gibi.
 
-  - Bütün portları test mi etmek istiyorsunuz? \"acc -t p\" güç kaynağı loglarından hepsini alıyor (as \"acc -p\"), test ediyor, ve çalışanları bilindik
+  Bütün portları test mi etmek istiyorsunuz? \"acc -t p\" güç kaynağı loglarından hepsini alıyor (as \"acc -p\"), test ediyor, ve çalışanları bilindik
 portlar listesine ekliyor.
 
-  - Şarj portlarını test etmek için, acc -ss (asistan) veya acc -s s=\"portlar buraya yazılıyor --\" kodlarını çalıştırın.
+  Şarj portlarını test etmek için, acc -ss (asistan) veya acc -s s=\"portlar buraya yazılıyor --\" kodlarını çalıştırın.
 
-  - idleMod: cihazın yalnızca şarjdan beslenerek çalışıp/çalışamayacağını ifade eder.
+  battIdleMode: cihazın yalnızca şarjdan beslenerek çalışıp/çalışamayacağını ifade eder.
 
-  - Bu komutun çıktısı /sdcard/Download/acc-t_output.txt dizinine kaydedilir."
+  Bu komutun çıktısı /sdcard/Download/acc-t_output.txt dizinine kaydedilir."
 }
 
 

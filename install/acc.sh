@@ -136,7 +136,9 @@ test_charging_switch() {
   chargingSwitch=($@)
 
   echo
-  echo "${chargingSwitch[@]}"
+  [ -n "${swCount-}" ] \
+    && echo "$swCount/$swTotal: ${chargingSwitch[@]}" \
+    || echo "${chargingSwitch[@]}"
   flip_sw off
 
   $blacklisted && {
@@ -152,10 +154,16 @@ test_charging_switch() {
 
   if ! $failed && ! not_charging; then
     print_switch_works
-    echo "  idleMode=$idleMode"
+    echo "  battIdleMode=$idleMode"
     $idleMode && return 15 || return 0
   else
     print_switch_fails
+    ! not_charging >/dev/null || {
+      print_resume
+      while not_charging; do #TODO
+        sleep 1
+      done
+    }
     return 10
   fi
 }
@@ -523,11 +531,14 @@ case "${1-}" in
             exit
           fi
         }
+        swCount=1
+        swTotal=$(wc -l ${1-$TMPDIR/ch-switches} | cut -d ' ' -f 1)
         while read _chargingSwitch; do
           echo "x$_chargingSwitch" | grep -Eq '^x$|^x#' && continue
           [ -f "$(echo "$_chargingSwitch" | cut -d ' ' -f 1)" ] && {
             { test_charging_switch $_chargingSwitch; echo $? > $TMPDIR/.exitCode; } \
               | tee -a /sdcard/Download/acc-t_output-${device}.log
+            swCount=$((swCount + 1))
             exitCode_=$(cat $TMPDIR/.exitCode)
             if [ -n "$parsed" ] && [ $exitCode_ -ne 10 ]; then
               grep -q "^$_chargingSwitch$" $_parsed 2>/dev/null \
@@ -551,6 +562,7 @@ case "${1-}" in
     esac
 
     print_acct_info
+    echo
     exit $exitCode
   ;;
 
