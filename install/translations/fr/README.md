@@ -10,11 +10,11 @@
 - [PRÉREQUIS](#prérequis)
 - [GUIDE DE DÉMARAGE RAPIDE](#guide-de-démarage-rapide)
   - [Notes](#notes)
-- [BUILDING AND/OR INSTALLING FROM SOURCE](#building-andor-installing-from-source)
-  - [Dependencies (Build)](#dependencies-build)
-  - [Build Tarballs and Flashable Zips](#build-tarballs-and-flashable-zips)
+- [CONSTRUIRE ET/OU INSTALLER DEPUIS LA SOURCE](#construire-etou-installer-depuis-la-source)
+  - [Dépendances (construction)](#dépendances-construction)
+  - [Construire des Tarballs et des Zips Flashables](#construire-des-tarballs-et-des-zips-flashables)
     - [Notes](#notes-1)
-  - [Install from Local Source or GitHub](#install-from-local-source-or-github)
+  - [Installer depuis la Source Locale ou Github](#installer-depuis-la-source-locale-ou-github)
     - [Notes](#notes-2)
 - [DEFAULT CONFIGURATION](#default-configuration)
 - [SETUP/USAGE](#setupusage)
@@ -174,45 +174,44 @@ La commande d'initialisation est `/data/adb/vr25/acc/service.sh`.
 
 
 ---
-## BUILDING AND/OR INSTALLING FROM SOURCE
+## CONSTRUIRE ET/OU INSTALLER DEPUIS LA SOURCE
 
 
-### Dependencies (Build)
+### Dépendances (construction)
 
 - git, wget, ou curl
 - zip
 
 
-### Build Tarballs and Flashable Zips
+### Construire des Tarballs et des Zips Flashables
 
-1. Download and extract the source code: `git clone https://github.com/VR-25/acc.git`
+1. Télécharger et extraire le code source : `git clone https://github.com/VR-25/acc.git`
 ou `wget  https://github.com/VR-25/acc/archive/master.tar.gz -O - | tar -xz`
 ou `curl -L#  https://github.com/VR-25/acc/archive/master.tar.gz | tar -xz`
 
 2. `cd acc*`
 
-3. `sh build.sh` (or double-click `build.bat` on Windows 10, if you have Windows subsystem for Linux (with zip) installed)
+3. `sh build.sh` (ou double cliquer `build.bat` sur Windows 10, si vous avez WSL (Windows subsystem for Linux) (avec zip) d'installé)
 
 
 #### Notes
 
-- build.sh automatically sets/corrects `id=*` in `*.sh` and `update-binary` files.
-Refer to framework-details.txt for a full list of tasks carried out by it.
-To skip generating archives, run the build script with a random argument (e.g. bash build.sh h).
+- build.sh définit/change automatiquement `id=*` dans les fichiers `*.sh` et `update-binary`.
+Se référer à framework-details.txt pour une liste entière des tâches qu'il exécute.
+Pour passer la génération des archives, lancer le script de construction avec un argument aléatoire. (ex,`bash build.sh h`)
+- Pour mettre à jour le code source local, exécuter `git pull --force` ou le retélécharger (avec wget/curl) comme expliqué au-dessus.
 
-- To update the local source code, run `git pull --force` or re-download it (with wget/curl) as described above.
 
+### Installer depuis la Source Locale ou Github
 
-### Install from Local Source or GitHub
+- `[export installDir=<répertoire d'installation parrent>] sh install.sh` installe acc depuis la source extraite.
 
-- `[export installDir=<parent install dir>] sh install.sh` installs acc from the extracted source.
+- `sh install-online.sh [-c|--changelog] [-f|--force] [-k|--insecure] [-n|--non-interactive] [%répertoire d'installation parrent%] [commit]` télécharge et installe acc depuis github - ex, `sh install-online.sh dev`.
+L'ordre des arguments n'a pas d'importance.
+Pour les mises à jour, si `%répertoire d'installation parrent%` n'est pas donné, le répertoire actuel/original est utilisé.
 
-- `sh install-online.sh [-c|--changelog] [-f|--force] [-k|--insecure] [-n|--non-interactive] [%parent install dir%] [commit]` downloads and installs acc from GitHub - e.g., `sh install-online.sh dev`.
-The order of arguments doesn't matter.
-For upgrades, if `%parent install dir%` is not supplied, the original/current is used.
-
-- `sh install-tarball.sh [module id, default: acc] [parent install dir (e.g., /data/data/mattecarra.accapp/files)]` installs the tarball (acc*gz) from the script's location.
-The archive must be in the same directory as this script - and obtained from GitHub: https://github.com/VR-25/acc/archive/$commit.tar.gz ($commit examples: master, dev, v2020.5.20-rc).
+- `sh install-tarball.sh [module id, défaut: acc] [répertoire d'installation parrent (ex, /data/data/mattecarra.accapp/files)]` installe le tarball (acc*gz) à partir de l'emplacement du script.
+L'archive doit être dans le même répertoire que le script - et obtenue via Github : https://github.com/VR-25/acc/archive/$commit.tar.gz (exemples de commit: master, dev, v2020.5.20-rc).
 
 
 #### Notes
