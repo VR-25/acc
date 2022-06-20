@@ -236,7 +236,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202206180
+configVerCode=202206200
 
 capacity=(-1 60 70 75 false false)
 
@@ -602,7 +602,8 @@ offMid=true
 # A warning notification is posted 60 seconds prior, for the user to block the action, if they so please.
 
 # discharge_polarity (dp) #
-# This overrides the automatic current polarity detection.
+# This overrides the automatic current polarity (+|-) detection.
+# Keep in mind that polarity may change with a kernel upgrade. If this setting is wrong, charging control won't work.
 
 # one-line scripts #
 # Every line that begins with ": " is interpreted as a one-line script.
