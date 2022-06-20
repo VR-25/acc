@@ -60,7 +60,7 @@ read_status() {
   local status="$(cat $battStatus)"
   case "$status" in
     Charging|Discharging) printf %s $status;;
-    Not Charging) printf Idle;;
+    Not?charging) printf Idle;;
     *) printf Discharging;;
   esac
 }
