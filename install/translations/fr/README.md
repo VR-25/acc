@@ -162,15 +162,15 @@ Les étapes `2` et `3` sont optionnelles car ce sont des paramètres par défaut
 Pour plus de détails, se référer à la [configuration par défaut](#default-configuration) plus bas.
 Les utilisateurs sont encouragés à essayer l'étape `2` - pour se familiariser avec les options disponibles.
 
-Settings can be overwhelming. Start with what you understand.
-The default configuration has you covered.
-Don't ever feel like you have to configure everything. You probably shouldn't anyway - unless you really know what you're doing.
+Les paramètres peuvent s'écraser. Commencez avec ce que vous comprenez.
+La configuration par défaut vous couvre.
+Ne croyez pas que vous avez besoin de tout configurer. Vous devriez l'éviter de toute façon - à moins que vous sachiez ce que vous faites.
 
-Désinstallation: lancer `acc --uninstall` o flasher\* `/data/adb/vr25/acc-data/acc-uninstaller.zip`.
+Désinstallation: lancer `acc --uninstall` ou flasher\* `/data/adb/vr25/acc-data/acc-uninstaller.zip`.
 
-ACC runs in some recovery environments as well.
-Unless the zip is flashed again, manual initialization is required.
-The initialization command is `/data/adb/vr25/acc/service.sh`.
+ACC fonctionne également dans certains environements de récupération.
+À moins que le zip ne soit à nouveau flashé, une initialisation manuelle est requise.
+La commande d'initialisation est `/data/adb/vr25/acc/service.sh`.
 
 
 ---
