@@ -56,12 +56,22 @@ not_charging() {
 }
 
 
+read_status() {
+  local status="$(cat $battStatus)"
+  case "$status" in
+    Charging|Discharging) printf %s $status;;
+    Not Charging) printf Idle;;
+    *) printf Discharging;;
+  esac
+}
+
+
 status() {
 
   local i=
   local curNow=$(cat $currFile)
 
-  _status=$(sed 's/Not charging/Idle/' $battStatus)
+  _status=$(read_status)
   [ -z "${exitCode_-}" ] || echo "  curr:$curThen,$curNow switch:${off:-on} status:$_status"
 
   if [ -n "${battStatusOverride-}" ]; then
@@ -132,7 +142,7 @@ if ${init:-false}; then
   rm $curThen 2>/dev/null || :
 
 
-  case "$(cat $battStatus)$(cat $currFile)" in
+  case "$(read_status)$(cat $currFile)" in
     Discharging-*|Charging[0-9]*) _dischargePolarity=true;;
     Discharging[0-9]*|Charging-*) _dischargePolarity=false;;
   esac
