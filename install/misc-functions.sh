@@ -180,6 +180,8 @@ enable_charging() {
 
   ! not_charging || {
 
+    [ ! -f $TMPDIR/.sw ] || (eval "chargingSwitch=($(cat $TMPDIR/.sw))"; rm $TMPDIR/.sw; flip_sw on) 2>/dev/null || :
+
     if tt "${chargingSwitch[0]:-/}" "*/*"; then
 
       if ! $ghostCharging || { $ghostCharging && tt "$(cat */online)" "*1*"; }; then

@@ -246,7 +246,8 @@ if ! $init; then
             # if possible, avoid idle mode when capacity > pause_capacity
             (cat $config > $TMPDIR/.cfg
             config=$TMPDIR/.cfg
-            cycle_switches off Discharging)
+            cycle_switches off Discharging
+            echo "${chargingSwitch[@]}" > $TMPDIR/.sw)
           else
             disable_charging
           fi
