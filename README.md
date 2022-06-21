@@ -1,4 +1,4 @@
-ftt# Advanced Charging Controller (ACC)
+# Advanced Charging Controller (ACC)
 
 
 ---
