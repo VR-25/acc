@@ -20,9 +20,10 @@ idle() {
 not_charging() {
 
   local i=
-  local off=${flip-}; flip=
+  local switch=${flip-}; flip=
   local curThen=$(cat $curThen)
-  local seqCount=${seqCount:-16}
+  local seqOff=${seqOff:-16}
+  local seqOn=${seqOn:-60}
   local battStatusOverride="${battStatusOverride-}"
   local battStatusWorkaround=${battStatusWorkaround-}
 
@@ -37,8 +38,8 @@ not_charging() {
     battStatusWorkaround=false
   fi
 
-  if [ -z "${battStatusOverride-}" ] && [ "$off" = off ]; then
-    for i in $(seq $seqCount); do
+  if [ -z "${battStatusOverride-}" ] && [ "$switch" = off ]; then
+    for i in $(seq $seqOff); do
       ! status ${1-} || return 0
       if $battStatusWorkaround && [ $i -ge 5 ]; then
         if $_dischargePolarity; then
@@ -47,11 +48,19 @@ not_charging() {
           [ $(cat $currFile) -gt $((curThen / 100 * 90)) ] || return 1
         fi
       fi
-      [ $i = $seqCount ] || sleep 1
+      [ $i = $seqOff ] || sleep 1
     done
     return 1
   else
     status ${1-}
+    if [ "$switch" = on ]; then
+      for i in $(seq $seqOn); do
+        status ${1-} || return 1
+        sleep 1
+      done
+    else
+      status ${1-}
+    fi
   fi
 }
 
@@ -72,7 +81,7 @@ status() {
   local curNow=$(cat $currFile)
 
   _status=$(read_status)
-  [ -z "${exitCode_-}" ] || echo "  curr:$curThen,$curNow switch:${off:-on} status:$_status"
+  [ -z "${exitCode_-}" ] || echo "  curr:$curThen,$curNow switch:${switch:-on} status:$_status"
 
   if [ -n "${battStatusOverride-}" ]; then
     if tt "$battStatusOverride" "Discharging|Idle"; then

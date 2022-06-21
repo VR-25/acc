@@ -160,7 +160,7 @@ test_charging_switch() {
     print_switch_fails
     ! not_charging >/dev/null || {
       print_resume
-      while not_charging; do #TODO
+      while not_charging; do
         sleep 1
       done
     }
