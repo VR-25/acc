@@ -1,7 +1,5 @@
 discharging() {
-  tt "$curThen,$curNow" "-*,[0-9]*|[0-9]*,-*" && {
-    [ ${chargingSwitch[2]:-.} = voltage_now ] && _status=Idle || _status=Discharging
-  }
+  tt "$curThen,$curNow" "-*,[0-9]*|[0-9]*,-*" && _status=Discharging
 }
 
 
@@ -81,6 +79,7 @@ status() {
   local curNow=$(cat $currFile)
 
   _status=$(read_status)
+
   [ -z "${exitCode_-}" ] || echo "  curr:$curThen,$curNow switch:${switch:-on} status:$_status"
 
   if [ -n "${battStatusOverride-}" ]; then
@@ -92,6 +91,9 @@ status() {
   elif $battStatusWorkaround; then
     ! tt "$_status" "Charging|Discharging" || {
       idle || discharging || :
+      if [ $_status = Discharging ] && [ ${chargingSwitch[2]:-.} = voltage_now ]; then
+        _status=Idle
+      fi
     }
   fi
 

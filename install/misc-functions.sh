@@ -250,29 +250,25 @@ enable_charging() {
 flip_sw() {
 
   flip=$1
-  local cn=
-  local ct=
   local on=
   local off=
-  local off_=
 
   set -- ${chargingSwitch[@]-}
   [ -f ${1:-//} ] || return 1
 
   while [ -f ${1:-//} ]; do
-    on="$(parse_value "$2")"
-    [ $flip = on ] || {
-      if [ ${chargingSwitch[2]:-.} = voltage_now ]; then
-        off_="$off"
-        ! off=$(cat $batt/voltage_now 2>/dev/null) \
-          && off="$off_" \
-          || { [ $off -lt 10000 ] && off=$((off - ${voltOff:-150})) || off=$((off - ${voltOff:-150}000)); }
+
+    if [ $flip = on ]; then
+      on="$(parse_value "$2")"
+    else
+      if [ $3 = voltage_now ]; then
+        off=$(cat $1)
+        [ $off -lt 10000 ] && off=$((off - ${voltOff:-200})) || off=$((off - ${voltOff:-200}000))
       else
         off="$(parse_value "$3")"
       fi
-    }
-
-    [ $flip = on ] || cat $currFile > $curThen
+      cat $currFile > $curThen
+    fi
 
     write \$$flip $1 || return 1
 
