@@ -262,7 +262,7 @@ else
 fi
 
 # verbose
-if ${verbose:-true} && ! tt "${1-}" "*-w*"; then
+if ${verbose:-true} && ! tt "${1-}" "-l*|--log*|-w*|--watch*"; then
   [ -z "${LINENO-}" ] || export PS4='$LINENO: '
   touch $log
   [ $(du -k $log | cut -f 1) -ge 256 ] && : > $log
