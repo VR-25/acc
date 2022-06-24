@@ -43,6 +43,7 @@ battery/input_suspend 0 1 /proc/mtk_battery_cmd/en_power_path 1 1
 /sys/module/pm*_charger/parameters/disabled 0 1
 
 /proc/driver/charger_limit_enable 0 1 /proc/driver/charger_limit 100 1
+/proc/mtk_battery_cmd/current_cmd 0::0 0::1
 /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0
 /sys/module/lge_battery/parameters/charge_stop_level 100 5 battery/input_suspend 0 0
 
@@ -65,8 +66,13 @@ battery/input_suspend 0 1 /proc/mtk_battery_cmd/en_power_path 1 1
 battery/charge_control_limit 0 battery/charge_control_limit_max
 battery/hmt_ta_charge 1 0
 battery/restricted_charging 0 1
+battery/system_temp_in_level 0 battery/num_system_temp_in_levels
+battery/system_temp_level 0 battery/num_system_temp_levels
+bms/temp_cool 0 900
 main/cool_mode 0 1
 maxfg/offmode_charger 0 1
+wireless/restricted_charging 0 1
+wireless/system_temp_in_level 0 wireless/num_system_temp_in_levels
 
 # troublesome
 #/sys/devices/platform/battery_meter/FG_daemon_disable 0 1
