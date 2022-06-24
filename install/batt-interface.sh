@@ -91,9 +91,6 @@ status() {
   elif $battStatusWorkaround; then
     ! tt "$_status" "Charging|Discharging" || {
       idle || discharging || :
-      if [ $_status = Discharging ] && [ ${chargingSwitch[2]:-.} = voltage_now ]; then
-        _status=Idle
-      fi
     }
   fi
 
