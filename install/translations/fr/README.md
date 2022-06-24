@@ -16,9 +16,9 @@
     - [Notes](#notes-1)
   - [Installer depuis la Source Locale ou Github](#installer-depuis-la-source-locale-ou-github)
     - [Notes](#notes-2)
-- [DEFAULT CONFIGURATION](#default-configuration)
+- [CONFIGURATION PAR DÉFAUT](#configuration-par-défaut)
 - [SETUP/USAGE](#setupusage)
-  - [Terminal Commands](#terminal-commands)
+  - [Commandes du Terminal](#commandes-du-terminal)
 - [PLUGINS](#plugins)
 - [NOTES/TIPS FOR FRONT-END DEVELOPERS](#notestips-for-front-end-developers)
   - [Basics](#basics)
@@ -216,23 +216,23 @@ L'archive doit être dans le même répertoire que le script - et obtenue via Gi
 
 #### Notes
 
-- `install-online.sh` is the `acc --upgrade` back-end.
+- `install-online.sh` est l'équivalent de `acc --upgrade`.
 
-- The default parent installation directories, in order of priority, are: `/data/data/mattecarra.accapp/files/` (ACC App, but only if Magisk is not installed), `/data/adb/modules/` (Magisk) and `/data/adb/` (other root solutions).
+- Les répertoires d'installation par défaut , dans l'ordre des priorités, sont : `/data/data/mattecarra.accapp/files/` (ACC App, mais seulement si Magisk n'est pas inatallé), `/data/adb/modules/` (Magisk) et `/data/adb/` (autres solutions de root).
 
-- No argument/option is strictly mandatory.
-The exception is `--non-interactive` for front-end apps.
+- Aucun argument/option n'est obligatoire.
+`--non-interactive` est une exeption pour les applications "front-end".
 
-- The `--force` option to `install-online.sh` is meant for re-installation and downgrading.
+- L'option `--force` de `install-online.sh` est demandée pour une réinstallation et un rétrogradation.
 
-- `sh install-online.sh --changelog --non-interactive` prints the version code (integer) and changelog URL (string) when an update is available.
-In interactive mode, it also asks the user whether they want to download and install the update.
+- `sh install-online.sh --changelog --non-interactive` affiche le numéro de vertion (nombre entier) et l'URL du journal des modifications (chaîne de caractères), quand une mise à jour est disponible.
+En mode interactif, il demande également à l'utilisateur s'il souhaite télécharger et installer la mise à jour.
 
-- You may also want to read [Terminal Commands](#terminal-commands) > `Exit Codes` below.
+- Vous pouvez aussi lire les [Commandes du Terminal](#commandes-du-terminal) > `Codes de sortie` plus bas.
 
 
 ---
-## DEFAULT CONFIGURATION
+## CONFIGURATION PAR DÉFAUT
 ```
 #DC#
 
@@ -613,19 +613,19 @@ dischargePolarity=
 ## SETUP/USAGE
 
 
-As the [default configuration](#default-configuration) (above) suggests, ACC is designed to run out of the box, with little to no customization/intervention.
+Ainsi que la  [configuration par défaut](#configuration-par-défaut) (au-dessus) suggère, ACC est conçu pour fonctionner dès l'installation, avec peu, voir aucune customisation/intervention demandé.
 
-The only command you have to remember is `acc`.
-It's a wizard you'll either love or hate.
+La seule commende dont vous devrez vous souvenir est `acc`.
+C'est un menu que vous aimerez, ou que vous détesterez.
 
-If you feel uncomfortable with the command line, skip this section and use a front-end app instead.
+Si vous ne vous sentez pas dans l'utilisation de lignes de commandes, passez cette section et utilisez un application "front-end" (graphique) à la place.
 
-Alternatively, you can use a `text editor` to modify `/data/adb/vr25/acc-data/config.txt`.
-The config file itself has configuration instructions.
-Those are the same found in the [default configuration](#default-configuration) section, above.
+Alternativement, vous pouvez utiliser un étideur de texte pour modifier `/data/adb/vr25/acc-data/config.txt`.
+Le fichier de configuration comporte des instructions de modification.
+Il est le même que dans la [configuration par défaut](#configuration-par-défaut) au-dessus.
 
 
-### Terminal Commands
+### Commandes du Terminal
 ```
 #TC#
 
