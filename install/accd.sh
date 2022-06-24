@@ -492,7 +492,7 @@ else
         && {
           ! cat $f > /dev/null 2>&1 \
           || [ -z "$(cat $f 2>/dev/null)" ] \
-          || grep -Eiq '^(1|0|0 0|0 1|(en|dis)able?)$' $f
+          || grep -Eiq '^([0-9]+|0 0|0 1|(en|dis)abl(e|ed))$' $f
         }
       then
         $over3 && printf "$f $2 $3 " || printf "$f $2 $3\n"
