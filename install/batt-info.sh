@@ -1,5 +1,6 @@
 batt_info() {
 
+  local i=
   local info=
   local voltNow=
   local currNow=
@@ -91,5 +92,37 @@ batt_info() {
 CURRENT_NOW=$currNow$(print_A 2>/dev/null || :)
 VOLTAGE_NOW=$voltNow$(print_V 2>/dev/null || :)
 POWER_NOW=$powerNow$(print_W 2>/dev/null || :)"
+
+  # power supply info
+  for i in usb/online wireless/online; do
+    if [ -f $i ] && [ $(cat $i) -eq 1 ]; then
+      i=${i%/*}
+      POWER_SUPPLY_TYPE=$(cat $i/real_type 2>/dev/null || echo $i | tr [a-z] [A-Z])
+
+      echo "
+POWER_SUPPLY_TYPE=$POWER_SUPPLY_TYPE"
+
+      POWER_SUPPLY_AMPS=$(calc2 $(grep -o '^....' $i/*current_now | tail -n1) / 1000)
+      [ $POWER_SUPPLY_AMPS = 0.00 ] || {
+        POWER_SUPPLY_VOLTS=$(calc2 $(grep -o '^....' $i/voltage_now) / 1000)
+        POWER_SUPPLY_WATTS=$(calc2 $POWER_SUPPLY_AMPS \* $POWER_SUPPLY_VOLTS)
+
+      echo "POWER_SUPPLY_AMPS=$POWER_SUPPLY_AMPS
+POWER_SUPPLY_VOLTS=$POWER_SUPPLY_VOLTS
+POWER_SUPPLY_WATTS=$POWER_SUPPLY_WATTS"
+
+}
+      break
+    fi
+  done 2>/dev/null || :
+
+  # battery health
+  for i in */charge_full_design; do
+    if [ -f $i ] && [ -f ${i%_design} ]; then
+      printf "\n%s\n" BATT_HEALTH=$(calc2 "($(cat ${i%_design}) * 100) / $(cat $i)")%
+      break
+    fi
+  done
+
   } | grep -Ei "${1:-.*}" || :
 }
