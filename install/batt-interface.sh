@@ -80,7 +80,14 @@ status() {
 
   _status=$(read_status)
 
-  [ -z "${exitCode_-}" ] || echo "  curr:$curThen,$curNow switch:${switch:-on} status:$_status"
+  [ -n "${_dischargePolarity-}" ] || {
+    case "$_status$curNow" in
+      Discharging-*) _dischargePolarity=true;;
+      Discharging[0-9]*) _dischargePolarity=false;;
+    esac
+  }
+
+  [ -z "${exitCode_-}" ] || echo "  switch:${switch:-on} status:$_status curr:$curThen,$curNow"
 
   if [ -n "${battStatusOverride-}" ]; then
     if tt "$battStatusOverride" "Discharging|Idle"; then
@@ -150,22 +157,15 @@ if ${init:-false}; then
   rm $curThen 2>/dev/null || :
 
 
-  case "$(read_status)$(cat $currFile)" in
-    Discharging-*|Charging[0-9]*) _dischargePolarity=true;;
-    Discharging[0-9]*|Charging-*) _dischargePolarity=false;;
-  esac
-
-
   echo "
-_dischargePolarity=$_dischargePolarity
 ampFactor_=$ampFactor_
 batt=$batt
 battCapacity=$batt/capacity
 battStatus=$battStatus
 currFile=$currFile
 curThen=$curThen
-idleThresholdL=$idleThresholdL
 idleThresholdH=$idleThresholdH
+idleThresholdL=$idleThresholdL
 temp=$temp
 " > $TMPDIR/.batt-interface.sh
 
