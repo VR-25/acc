@@ -99,10 +99,9 @@ set_prop() {
       PS3="$(print_choice_prompt)"
       . $execDir/select.sh
       eval 'select_ _lang \
-        $(echo "- English (en)" | grep -v $language; \
-        (for file in $(ls -1 $execDir/translations/*/strings.sh); do \
-          sed -n "'s/# /- /p'" $file | grep -v $language; \
-        done); \
+        $(for file in $(ls -1 $execDir/strings.sh $execDir/translations/*/strings.sh); do \
+          sed -n 1p $file | sed "'s/# /- /p'" | grep -v "' .$language.'" | sort -u; \
+        done; \
         print_exit)'
       lang=${_lang#*\(}
       [ $lang != $(print_exit) ] || exit 0
