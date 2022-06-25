@@ -40,7 +40,6 @@ unset f bin_dir busybox_dir magisk_busybox
 #/BB#
 
 exec 2>/dev/null
-echo "If this seems to be taking too long, re-plug the charger"
 
 # terminate/kill $id processes
 mkdir -p $TMPDIR
