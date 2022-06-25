@@ -1419,6 +1419,7 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 
 - [Daily Job Scheduler](https://github.com/VR-25/djs)
 
+- [Donate - Zelle: iprj25 @ gmail . com](https://enroll.zellepay.com/qr-codes?data=eyJuYW1lIjoiSVZBTkRSTyIsInRva2VuIjoiaXByajI1QGdtYWlsLmNvbSIsImFjdGlvbiI6InBheW1lbnQifQ==)
 - [Donate - Airtm, username: ivandro863auzqg](https://app.airtm.com/send-or-request/send)
 - [Donate - Credit/Debit Card](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=iprj25@gmail.com&lc=US&item_name=VR25+is+creating+free+and+open+source+software.+Donate+to+suppport+their+work.&no_note=0&cn=&currency_code=USD&bn=PP-DonationsBF:btn_donateCC_LG.gif:NonHosted)
 - [Donate - Liberapay](https://liberapay.com/vr25)
