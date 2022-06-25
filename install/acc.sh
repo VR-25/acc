@@ -133,6 +133,7 @@ test_charging_switch() {
 
   local idleMode=false
   local failed=false
+  local testingSwitch=true
   chargingSwitch=($@)
 
   echo
