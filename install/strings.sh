@@ -526,10 +526,10 @@ a: abort operation | n: no | y: yes (default) "
 
 
 print_resume() {
-  echo "  #
+  echo "  ##########
   Waiting for charging to resume...
   If it doesn't happen after a few seconds, try re-plugging the charger.
-  If it's taking too long, stop the test with CTRL-C, and retry ~90 seconds after running accd -i.
+  If it's taking too long, unplug the charger, stop the test with CTRL-C, run accd -i, wait a few seconds, and retest.
   In extreme cases, one shall comment out (blacklist) this switch in $dataDir/logs/write.log, reboot, and re-run the test.
-  #"
+  ##########"
 }

@@ -21,7 +21,6 @@ not_charging() {
   local switch=${flip-}; flip=
   local curThen=$(cat $curThen)
   local seqOff=${seqOff:-16}
-  local seqOn=${seqOn:-60}
   local battStatusOverride="${battStatusOverride-}"
   local battStatusWorkaround=${battStatusWorkaround-}
 
@@ -51,14 +50,6 @@ not_charging() {
     return 1
   else
     status ${1-}
-    if [ "$switch" = on ]; then
-      for i in $(seq $seqOn); do
-        status ${1-} || return 1
-        sleep 1
-      done
-    else
-      status ${1-}
-    fi
   fi
 }
 

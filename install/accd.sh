@@ -18,7 +18,7 @@ esac
 # wait until Android has fully booted
 
 until [ .$(getprop sys.boot_completed 2>/dev/null) = .1 ]; do
-  sleep 15
+  sleep 10
 done
 
 
@@ -126,7 +126,7 @@ if ! $init; then
       schedTime=$(date +%H%M)
       schedScript=$TMPDIR/.${schedTime}_schedScript.sh
       if [ ! -f $schedScript ] && echo "${schedules-}" | grep "$schedTime " >/dev/null; then
-        echo "${schedules-}" | sed -n "s|^$schedTime |#!/system/bin/sh\n|p" > $schedScript
+        echo "$schedules" | sed -n "s|^$schedTime |#!/system/bin/sh\n|p" > $schedScript
         echo "sleep 60; rm $schedScript; exit" >> $schedScript
         chmod +x $schedScript
         start-stop-daemon -bx $schedScript -S --
@@ -150,7 +150,6 @@ if ! $init; then
           start-stop-daemon -bx $TMPDIR/.bg-dexopt-job.sh -S -- 2>/dev/null || :
           touch $TMPDIR/.dexopt.done
         fi
-
       fi
 
       # read charging current ctrl files (part 2) once
