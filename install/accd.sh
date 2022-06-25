@@ -86,12 +86,12 @@ if ! $init; then
     [ -n "$1" ] && exitCode=$1
     [ -n "$2" ] && print "$2"
     $persistLog || exec > /dev/null 2>&1
-    cmd_batt reset &
+    cmd_batt reset
     grep -Ev '^$|^#' $config > $TMPDIR/.config
     config=$TMPDIR/.config
-    apply_on_boot default &
-    apply_on_plug default &
-    enable_charging &
+    apply_on_boot default
+    apply_on_plug default
+    enable_charging
     if tt "$exitCode" "[127]"; then
       . $execDir/logf.sh
       logf --export
@@ -99,7 +99,6 @@ if ! $init; then
     fi
     cd /
     echo versionCode=$versionCode
-    wait
     exit $exitCode
   }
 

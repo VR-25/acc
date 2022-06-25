@@ -40,13 +40,15 @@ unset f bin_dir busybox_dir magisk_busybox
 #/BB#
 
 exec 2>/dev/null
+echo "If this seems to be taking too long, re-plug the charger"
 
 # terminate/kill $id processes
 mkdir -p $TMPDIR
 (flock -n 0 || {
   read pid
   kill $pid
-  timeout 10 flock 0 || kill -KILL $pid
+  timeout 10 flock 0
+  kill -KILL $pid >/dev/null 2>&1
   flock 0
 }) <>$TMPDIR/${id}.lock
 ###
