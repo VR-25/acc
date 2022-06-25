@@ -136,9 +136,12 @@ test_charging_switch() {
   chargingSwitch=($@)
 
   echo
+
   [ -n "${swCount-}" ] \
     && echo "$swCount/$swTotal: ${chargingSwitch[@]}" \
     || echo "${chargingSwitch[@]}"
+
+  echo "chargingSwitch=($*)" > $TMPDIR/.sw
   flip_sw off
 
   $blacklisted && {
@@ -491,6 +494,12 @@ case "${1-}" in
         cat $TMPDIR/ch-switches $_parsed 2>/dev/null > $parsed \
           && sort -u $parsed | sed 's/ $//; /^$/d' > $TMPDIR/ch-switches
       }
+      [ ! -f $TMPDIR/.sw ] || {
+        while IFS= read line; do
+          [ -n "$line" ] || continue
+          ! grep -q "$line " $TMPDIR/.sw || sed -i "\|$line|d" $dataDir/logs/write.log
+        done < $dataDir/logs/write.log
+      }
       ! $daemonWasUp || start-stop-daemon -bx $TMPDIR/.accdt -S --
       exit $exitCode
     }
@@ -538,6 +547,7 @@ case "${1-}" in
           [ -f "$(echo "$_chargingSwitch" | cut -d ' ' -f 1)" ] && {
             { test_charging_switch $_chargingSwitch; echo $? > $TMPDIR/.exitCode; } \
               | tee -a /sdcard/Download/acc-t_output-${device}.log
+            rm $TMPDIR/.sw 2>/dev/null || :
             swCount=$((swCount + 1))
             exitCode_=$(cat $TMPDIR/.exitCode)
             if [ -n "$parsed" ] && [ $exitCode_ -ne 10 ]; then
@@ -556,6 +566,7 @@ case "${1-}" in
       *)
         { test_charging_switch "$@"; echo $? > $TMPDIR/.exitCode; } \
           | tee -a /sdcard/Download/acc-t_output-${device}.log
+        rm $TMPDIR/.sw 2>/dev/null || :
         exitCode=$(cat $TMPDIR/.exitCode)
         echo
       ;;
