@@ -46,8 +46,7 @@ mkdir -p $TMPDIR
 (flock -n 0 || {
   read pid
   kill $pid
-  #timeout 20 flock 0 || kill -KILL $pid
-  echo "If this seems to be taking too long, re-plug the charger"
+  timeout 10 flock 0 || kill -KILL $pid
   flock 0
 }) <>$TMPDIR/${id}.lock
 ###
