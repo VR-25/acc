@@ -85,6 +85,8 @@ status() {
       Discharging-*) _dischargePolarity=true;;
       Discharging[0-9]*) _dischargePolarity=false;;
     esac
+    [ -z "${_dischargePolarity-}" ] \
+      || echo "_dischargePolarity=$_dischargePolarity" >> $TMPDIR/.batt-interface.sh
   }
 
   [ -z "${exitCode_-}" ] || echo "  switch:${switch:-on} status:$_status curr:$curThen,$curNow"
