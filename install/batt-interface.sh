@@ -2,10 +2,10 @@ idle_discharging() {
   [ $curThen != null ] && [ ${curNow#-} -le $idleThreshold ] && _status=Idle || {
     [ $_status != Discharging ] || return 0
     case "${dischargePolarity-}" in
-      +) [ $curNow -ge 0 ] && status=Discharging || _status=Charging;;
-      -) [ $curNow -lt 0 ] && status=Discharging || _status=Charging;;
+      +) [ $curNow -ge 0 ] && _status=Discharging || _status=Charging;;
+      -) [ $curNow -lt 0 ] && _status=Discharging || _status=Charging;;
       *) [ $curThen = null ] || {
-           tt "$curThen,$curNow" "-*,[0-9]*|[0-9]*,-*" && status=Discharging || _status=Charging
+           tt "$curThen,$curNow" "-*,[0-9]*|[0-9]*,-*" && _status=Discharging || _status=Charging
          };;
     esac
   }
