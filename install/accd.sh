@@ -315,6 +315,19 @@ if ! $init; then
 
       else
 
+        # set discharge polarity
+        if [ -z "${dischargePolarity-}" ] && $battStatusWorkaround \
+          && [ $currFile != $TMPDIR/.dummy-curr ] && ! tt "$(cat */online)" "*1*"
+        then
+          (cmd="$TMPDIR/acca --set discharge_polarity="
+          curr=$(cat $currFile)
+          if [ $curr -gt 0 ]; then
+            eval "$cmd"+
+          elif [ $curr -lt 0 ]; then
+            eval "$cmd"-
+          fi)
+        fi
+
         # enable charging under <conditions>
         if _le_resume_cap; then
           [ ! $(cat $temp) -lt $(( ${temperature[1]} * 10 )) ] \
