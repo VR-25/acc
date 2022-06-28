@@ -1,15 +1,14 @@
-discharging() {
-  case "${dischargePolarity-}" in
-    +) [ $curNow -ge 0 ] || return 1;;
-    -) [ $curNow -lt 0 ] || return 1;;
-    *) tt "$curThen,$curNow" "-*,[0-9]*|[0-9]*,-*" || return 1;;
-  esac
-  _status=Discharging
-}
-
-
-idle() {
-  [ $curThen != null ] && [ ${curNow#-} -lt $idleThreshold ] && _status=Idle || return 1
+idle_discharging() {
+  [ $curThen != null ] && [ ${curNow#-} -le $idleThreshold ] && _status=Idle || {
+    [ $_status != Discharging ] || return 0
+    case "${dischargePolarity-}" in
+      +) [ $curNow -ge 0 ] && status=Discharging || _status=Charging;;
+      -) [ $curNow -lt 0 ] && status=Discharging || _status=Charging;;
+      *) [ $curThen = null ] || {
+           tt "$curThen,$curNow" "-*,[0-9]*|[0-9]*,-*" && status=Discharging || _status=Charging
+         };;
+    esac
+  }
 }
 
 
@@ -34,19 +33,13 @@ not_charging() {
         case "${dischargePolarity-}" in
           +) [ $(cat $currFile) -gt $((curThen / 100 * 90)) ] || return 1;;
           -) [ $(cat $currFile) -lt $((curThen / 100 * 90)) ] || return 1;;
-          *)
-            if [ $curThen -ge 0 ]; then
-              [ $(cat $currFile) -lt $((curThen / 100 * 90)) ] || return 1
-            else
-              [ $(cat $currFile) -gt $((curThen / 100 * 90)) ] || return 1
-            fi;;
         esac
       fi
       [ $i = $seqOff ] || sleep 1
     done
     return 1
   else
-    if ${testingSwitch:-false} && [ $switch = on ]; then
+    if ! ${isAccd:-false} && [ "$switch" = on ]; then
       for i in $(seq $seqOn); do
         status ${1-} || return 1
         [ $i = $seqOn ] || sleep 1
@@ -84,9 +77,7 @@ status() {
       _status=$(set -eu; eval '$battStatusOverride') || :
     fi
   elif $battStatusWorkaround; then
-    ! tt "$_status" "Charging|Discharging" || {
-      idle || discharging || :
-    }
+    [ $_status = Idle ] || idle_discharging
   fi
 
   for i in Discharging DischargingDischarging Idle IdleIdle; do
