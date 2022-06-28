@@ -158,7 +158,7 @@ test_charging_switch() {
 
   if ! $failed && ! not_charging; then
     print_switch_works
-    echo "- battIdleMode=$idleMode"
+    [ $3 = voltage_now ] && echo "- battIdleMode=true" || echo "- battIdleMode=$idleMode"
     $idleMode && return 15 || return 0
   else
     print_switch_fails

@@ -513,6 +513,8 @@ print_acct_info() {
 
   battIdleMode: whether the device can run directly off the charger.
 
+  Instead of setting a voltage switch, set a voltage value that translates to your desired pause_capacity (e.g., acc -s s=3900). This is recommended for idle mode.
+
   The output of this command is saved to /sdcard/Download/acc-t_output-${device}.log."
 }
 
