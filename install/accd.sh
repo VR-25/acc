@@ -245,7 +245,7 @@ if ! $init; then
             (cat $config > $TMPDIR/.cfg
             config=$TMPDIR/.cfg
             cycle_switches off Discharging
-            echo "chargingSwitch=(${chargingSwitch[@]})" > $TMPDIR/.sw)
+            echo "chargingSwitch=(${chargingSwitch[@]-})" > $TMPDIR/.sw)
           else
             disable_charging
           fi

@@ -107,7 +107,7 @@ disable_charging() {
       if tt "${chargingSwitch[0]-}" "*/*"; then
         if [ -f ${chargingSwitch[0]} ]; then
           if ! { flip_sw off && not_charging; }; then
-            $isAccd || print_switch_fails "${chargingSwitch[@]}"
+            $isAccd || print_switch_fails "${chargingSwitch[@]-}"
             flip_sw on 2>/dev/null || :
             if $autoMode; then
               unset_switch

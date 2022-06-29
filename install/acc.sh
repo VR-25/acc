@@ -139,8 +139,8 @@ test_charging_switch() {
   echo
 
   [ -n "${swCount-}" ] \
-    && echo "$swCount/$swTotal: ${chargingSwitch[@]}" \
-    || echo "${chargingSwitch[@]}"
+    && echo "$swCount/$swTotal: ${chargingSwitch[@]-}" \
+    || echo "${chargingSwitch[@]-}"
 
   echo "chargingSwitch=($*)" > $TMPDIR/.sw
   flip_sw off
