@@ -184,13 +184,13 @@ enable_charging() {
 
     if tt "${chargingSwitch[0]:-/}" "*/*"; then
 
-      if ! $ghostCharging || { $ghostCharging && tt "$(cat */online)" "*1*"; }; then
+      if ! $ghostCharging || { $ghostCharging && online; }; then
 
         flip_sw on || cycle_switches on
 
         # detect and block ghost charging
-        if ! $ghostCharging && ! not_charging && ! tt "$(cat */online)" "*1*" \
-          && sleep ${loopDelay[0]} && ! not_charging && ! tt "$(cat */online)" "*1*"
+        if ! $ghostCharging && ! not_charging && ! online \
+          && sleep ${loopDelay[0]} && ! not_charging && ! online
         then
           ghostCharging=true
           disable_charging > /dev/null
@@ -358,7 +358,7 @@ wait_plug() {
     echo "ghostCharging=true"
     print_wait_plug
   }
-  (while ! tt "$(cat */online)" "*1*"; do
+  (while ! online; do
     sleep ${loopDelay[1]}
     ! $isAccd || sync_capacity
     set +x

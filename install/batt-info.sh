@@ -94,7 +94,8 @@ VOLTAGE_NOW=$voltNow$(print_V 2>/dev/null || :)
 POWER_NOW=$powerNow$(print_W 2>/dev/null || :)"
 
   # power supply info
-  for i in usb/online wireless/online; do
+  for i in */online; do
+    ! tt "$i" "*[bB][mM][sS]*" || continue
     if [ -f $i ] && [ $(cat $i) -eq 1 ]; then
       i=${i%/*}
       POWER_SUPPLY_TYPE=$(cat $i/real_type 2>/dev/null || echo $i | tr [a-z] [A-Z])

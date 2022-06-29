@@ -51,6 +51,11 @@ not_charging() {
 }
 
 
+online() {
+  grep 1 */online | grep -iv bms >/dev/null
+}
+
+
 read_status() {
   local status="$(cat $battStatus)"
   case "$status" in

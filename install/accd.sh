@@ -317,7 +317,7 @@ if ! $init; then
 
         # set discharge polarity
         if [ -z "${dischargePolarity-}" ] && $battStatusWorkaround \
-          && [ $currFile != $TMPDIR/.dummy-curr ] && ! tt "$(cat */online)" "*1*"
+          && [ $currFile != $TMPDIR/.dummy-curr ] && ! online
         then
           (cmd="$TMPDIR/acca --set discharge_polarity="
           curr=$(cat $currFile)
