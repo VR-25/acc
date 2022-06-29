@@ -119,7 +119,7 @@ POWER_SUPPLY_WATTS=$POWER_SUPPLY_WATTS"
   # battery health
   for i in */charge_full_design; do
     if [ -f $i ] && [ -f ${i%_design} ]; then
-      printf "\n%s\n" BATT_HEALTH=$(calc2 "($(cat ${i%_design}) * 100) / $(cat $i)")%
+      printf "\n%s\n" HEALTH=$(calc2 "($(cat ${i%_design}) * 100) / $(cat $i)")%
       break
     fi
   done
