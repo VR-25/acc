@@ -382,6 +382,7 @@ write() {
     eval echo "$1" > "$2" || { i=x; break; }
     sleep 0.33
   done
+  chmod 0444 "$2"
   [ $s != x ] || sed -i "\|^#$2$|s|^#||" $l
   [ $i != x ] || return ${3-1}
 }
