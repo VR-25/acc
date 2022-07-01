@@ -499,7 +499,7 @@ else
     local over3=false
     [ $# -gt 3 ] && over3=true
     for f in $(echo $1); do
-      if [ -f "$f" ] && chmod 0644 $f 2>/dev/null \
+      if [ -f "$f" ] && chmod u+w $f 2>/dev/null \
         && {
           ! cat $f > /dev/null 2>&1 \
           || [ -z "$(cat $f 2>/dev/null)" ] \
@@ -609,7 +609,7 @@ else
   : > $TMPDIR/ch-volt-ctrl-files_
   ls -1 $(ls_volt_ctrl_files | grep -Ev '^#|^$') 2>/dev/null | \
     while read file; do
-      chmod 0644 $file 2>/dev/null && grep -Eq '^4[1-4][0-9]{2}' $file || continue
+      chmod u+w $file 2>/dev/null && grep -Eq '^4[1-4][0-9]{2}' $file || continue
       grep -q '.... ....' $file && continue
       echo ${file}::$(sed -n 's/^..../v/p' $file)::$(cat $file) \
         >> $TMPDIR/ch-volt-ctrl-files_
@@ -623,13 +623,13 @@ else
   : > $TMPDIR/ch-curr-ctrl-files_
   ls -1 $(ls_curr_ctrl_files_boolean | grep -Ev '^#|^$') 2>/dev/null | \
     while read file; do
-      chmod 0644 $file 2>/dev/null || continue
+      chmod u+w $file 2>/dev/null || continue
       grep -q '^[01]$' $file && echo ${file}::1::0 >> $TMPDIR/ch-curr-ctrl-files
     done
 
   ls -1 $(ls_curr_ctrl_files_static | grep -Ev '^#|^$') 2>/dev/null | \
     while read file; do
-      chmod 0644 $file 2>/dev/null || continue
+      chmod u+w $file 2>/dev/null || continue
       defaultValue=$(cat $file)
       [ -n "$defaultValue" ] || continue
       ampFactor=$(sed -n 's/^ampFactor=//p' $dataDir/config.txt 2>/dev/null)

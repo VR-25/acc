@@ -372,7 +372,7 @@ write() {
   local l=$dataDir/logs/write.log
   local s=
   blacklisted=false
-  [ -f "$2" ] && chmod 0644 "$2" || return ${3-1}
+  [ -f "$2" ] && chmod u+w "$2" || return ${3-1}
   s="$(grep -E "^(#$2|$2)$" $l 2>/dev/null || :)"
   case "$s" in
     \#*) blacklisted=true; return ${3-1};;
@@ -382,7 +382,6 @@ write() {
     eval echo "$1" > "$2" || { i=x; break; }
     sleep 0.33
   done
-  chmod 0444 "$2"
   [ $s != x ] || sed -i "\|^#$2$|s|^#||" $l
   [ $i != x ] || return ${3-1}
 }
