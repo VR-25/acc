@@ -73,6 +73,7 @@ main/cool_mode 0 1
 maxfg/offmode_charger 0 1
 wireless/restricted_charging 0 1
 wireless/system_temp_in_level 0 wireless/num_system_temp_in_levels
+wireless/system_temp_level 0 wireless/num_system_temp_levels
 
 # troublesome
 #/sys/devices/platform/battery_meter/FG_daemon_disable 0 1
