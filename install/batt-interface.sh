@@ -17,7 +17,7 @@ not_charging() {
   local i=
   local switch=${flip-}; flip=
   local curThen=$(cat $curThen)
-  local seqDrop=${seqDrop:-5}
+  #local seqDrop=${seqDrop:-5}
   local seqOff=${seqOff:-16}
   local seqOn=${seqOn:-30}
   local battStatusOverride="${battStatusOverride-}"
@@ -29,12 +29,12 @@ not_charging() {
   if [ -z "${battStatusOverride-}" ] && [ "$switch" = off ]; then
     for i in $(seq $seqOff); do
       ! status ${1-} || return 0
-      if $battStatusWorkaround && [ $i -ge $seqDrop ]; then
-        case "${dischargePolarity-}" in
-          +) [ $(cat $currFile) -gt $((curThen / 100 * 90)) ] || return 1;;
-          -) [ $(cat $currFile) -lt $((curThen / 100 * 90)) ] || return 1;;
-        esac
-      fi
+      # if $battStatusWorkaround && [ $i -ge $seqDrop ]; then
+      #   case "${dischargePolarity-}" in
+      #     +) [ $(cat $currFile) -gt $((curThen / 100 * 90)) ] || return 1;;
+      #     -) [ $(cat $currFile) -lt $((curThen / 100 * 90)) ] || return 1;;
+      #   esac
+      # fi
       [ $i = $seqOff ] || sleep 1
     done
     return 1
