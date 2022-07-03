@@ -21,7 +21,8 @@ daemon_ctrl() {
 
 
 src_cfg() {
-  . $config || cat $execDir/default-config.txt > $config
+  /system/bin/sh -n $config 2>/dev/null || cat $execDir/default-config.txt > $config
+  . $config
 }
 
 
