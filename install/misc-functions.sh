@@ -178,6 +178,8 @@ dumpsys() { /system/bin/dumpsys "$@" || :; }
 
 enable_charging() {
 
+  rm $TMPDIR/.forceoff 2>/dev/null || :
+
   ! not_charging || {
 
     [ ! -f $TMPDIR/.sw ] || (. $TMPDIR/.sw; rm $TMPDIR/.sw; flip_sw on) 2>/dev/null || :

@@ -56,6 +56,8 @@ reboot_resume=$rebootResume
 discharge_polarity=$dischargePolarity
 
 off_mid=$offMid
+
+force_off=$forceOff
 "
 
 sed -n '/^: /p' $config

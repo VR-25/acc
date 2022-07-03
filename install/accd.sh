@@ -248,6 +248,15 @@ if ! $init; then
             echo "chargingSwitch=(${chargingSwitch[@]-})" > $TMPDIR/.sw)
           else
             disable_charging
+            [ -z "${forceOff-}" ] || {
+              touch $TMPDIR/.forceoff
+              set +x
+              while [ -f $TMPDIR/.forceoff ]; do
+                flip_sw off
+                sleep $forceOff
+              done &
+              set -x
+            }
           fi
           ! ${resetBattStats[0]} || {
             # reset battery stats on pause

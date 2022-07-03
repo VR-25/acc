@@ -236,7 +236,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202206200
+configVerCode=202207030
 
 capacity=(-1 60 70 75 false false)
 
@@ -280,6 +280,8 @@ rebootResume=false
 dischargePolarity=
 
 offMid=true
+
+forceOff=
 
 : one-line script sample; echo nothing >/dev/null
 
@@ -370,6 +372,8 @@ offMid=true
 
 # offMid=off_mid=boolean
 
+# forceOff=force_off=int
+
 
 # ALIASES/SHORTCUTS
 
@@ -422,6 +426,7 @@ offMid=true
 # rr reboot_resume
 # dp discharge_polarity
 # om off_mid
+# fo force_off
 
 
 # FINE, BUT WHAT DOES EACH OF THESE VARIABLES ACTUALLY MEAN?
@@ -614,6 +619,11 @@ offMid=true
 
 # off_mid (om) #
 # Whether to turn off charging after rebooting or restarting accd, if capacity is within resume_capacity and pause_capacity (default: true).
+
+# force_off (fo) #
+# Repeatedly call "flip_sw off" after disabling charging, until enable_charging is called.
+# This is needed when the set charging switch is stubbornly reset by the system.
+# The value (integer == enabled, null == disabled) dictates the number of seconds to wait between "flip_sw off" calls. While decimals are supported, anything less than 1 is overkill. Probably the optimal value is somewhere between 2 and 5.
 
 #/DC#
 ```

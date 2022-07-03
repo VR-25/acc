@@ -56,6 +56,8 @@ dp="${discharge_polarity-${dp-$dischargePolarity}}"
 
 om="${off_mid-${om-$offMid}}"
 
+fo="${force_off-${fo-$forceOff}}"
+
 
 # schedule -- append/delete
 case "$sd" in
@@ -127,6 +129,8 @@ rebootResume=${rr:-false}
 dischargePolarity=$dp
 
 offMid=${om:-true}
+
+forceOff=$fo
 
 : one-line script sample; echo nothing >/dev/null
 " > $config
