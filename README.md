@@ -307,72 +307,64 @@ forceOff=
 
 # A change to current_workaround (cw) only takes effect after an acc [re]initialization (install, upgrade or "accd --init") or system reboot.
 
-# If those 2 variables are updated with "acc --set" (not acca --set), accd is restarted automatically (--init is implied, as needed).
+# If those 2 variables are updated with "acc --set" (does NOT apply to acca --set), accd is restarted automatically (--init is implied, as needed).
 
-# The only nullable variables are those which are null by default (var=, var="" and var=()).
+# The only nullable variables are those which are null by default (var=, var='' and var=()).
 
 
 # BASICS
 
-# capacity=(shutdown_capacity cooldown_capacity resume_capacity pause_capacity capacity_sync capacity_mask)
+# capacity=(shutdown_capacity=INT cooldown_capacity=INT resume_capacity=INT pause_capacity=INT capacity_sync=BOOLEAN capacity_mask=BOOLEAN)
 
-# temperature=(cooldown_temp max_temp max_temp_pause shutdown_temp)
+# temperature=(cooldown_temp=ºC max_temp=ºC max_temp_pause=SECONDS shutdown_temp=ºC)
 
-# cooldownRatio=(cooldown_charge cooldown_pause)
+# cooldownRatio=(cooldown_charge cooldown_pause) SECONDS,NULLABLE
 
-# cooldownCustom=cooldown_custom=(file raw_value charge_seconds pause_seconds)
+# cooldownCustom=cooldown_custom=(FILE RAW_VALUE CHARGE_SECONDS PAUSE_SECONDS) NULLABLE
 
-# cooldownCurrent=cooldown_current=[milliamps]
+# cooldownCurrent=cooldown_current=MILLIAMPS NULLABLE
 
-# resetBattStats=(reset_batt_stats_on_pause reset_batt_stats_on_unplug reset_batt_stats_on_plug)
+# resetBattStats=(reset_batt_stats_on_pause reset_batt_stats_on_unplug reset_batt_stats_on_plug) BOOLEAN
 
-# chargingSwitch=charging_switch=(ctrl_file1 on off ctrl_file2 on off --)
+# chargingSwitch=charging_switch=([CTRL_FILE1 ON OFF [CTRL_FILE2 ON OFF...] [--] | MILLIAMPS | 3700-4300 MILLIVOLTS]) NULLABLE
 
-# chargingSwitch=charging_switch=(milliamps)
+# applyOnBoot=apply_on_boot=([CTRL_FILE1::RAW_VALUE[::DEFAULT]] [CTRL_FILE2::RAW_VALUE[::DEFAULT]...] [--exit]) NULLABLE
 
-# chargingSwitch=charging_switch=(3700-4300 millivolts)
+# applyOnPlug=apply_on_plug=([CTRL_FILE1::RAW_VALUE[::DEFAULT]] [CTRL_FILE2::RAW_VALUE[::DEFAULT]...]) NULLABLE
 
-# applyOnBoot=apply_on_boot=(ctrl_file1::value[::default] ctrl_file2::value[::default] ... --exit)
+# maxChargingCurrent=max_charging_current=(MILLIAMPS CTRL_FILE1::RAW_VALUE::DEFAULT CTRL_FILE2::RAW_VALUE::DEFAULT...)
 
-# applyOnPlug=apply_on_plug=(ctrl_file1::value[::default] ctrl_file2::value[::default] ...)
+# maxChargingVoltage=max_charging_voltage=(MILLIVOLTS CTRL_FILE1::RAW_VALUE::DEFAULT CTRL_FILE2::RAW_VALUE::DEFAULT... [--exit]) NULLABLE
 
-# maxChargingCurrent=max_charging_current=([value] ctrl_file1::value::default ctrl_file2::value::default ...)
+# language=lang=LANGUAGE_CODE NULLABLE
 
-# maxChargingVoltage=max_charging_voltage=([value] ctrl_file1::value::default ctrl_file2::value::default ...) --exit)
+# runCmdOnPause=run_cmd_on_pause='COMMAND...' NULLABLE
 
-# maxChargingCurrent=max_charging_current=([value] ctrl_file1::value::default1 ctrl_file2::value::default2 ...)
+# ampFactor=amp_factor=MULTIPLIER NULLABLE
 
-# maxChargingVoltage=max_charging_voltage=([value] ctrl_file1::value::default1 ctrl_file2::value::default2 ...) --exit)
+# voltFactor=volt_factor=MULTIPLIER NULLABLE
 
-# language=lang=language_code
+# loopCmd=loop_cmd='COMMAND...' NULLABLE
 
-# runCmdOnPause=run_cmd_on_pause='command...'
+# prioritizeBattIdleMode=prioritize_batt_idle_mode=BOOLEAN
 
-# ampFactor=amp_factor=[multiplier]
+# currentWorkaround=current_workaround=BOOLEAN
 
-# voltFactor=volt_factor=[multiplier]
+# battStatusWorkaround=batt_status_workaround=BOOLEAN
 
-# loopCmd=loop_cmd='command...'
+# schedule=sched='HHMM COMMAND...
+# HHMM COMMAND...
+# ...' NULLABLE
 
-# prioritizeBattIdleMode=prioritize_batt_idle_mode=boolean
+# battStatusOverride=batt_status_override=Idle|Discharging|'code to PRINT value for _status' NULLABLE
 
-# currentWorkaround=current_workaround=boolean
+# rebootResume=reboot_resume=BOOLEAN
 
-# battStatusWorkaround=batt_status_workaround=boolean
+# dischargePolarity=discharge_polarity=+|- NULLABLE
 
-# schedule=sched='HHMM command...
-# HHMM command...
-# ...'
+# offMid=off_mid=BOOLEAN
 
-# battStatusOverride=batt_status_override=Idle|Discharging|'code to PRINT value for _status'
-
-# rebootResume=reboot_resume=boolean
-
-# dischargePolarity=discharge_polarity=+|-
-
-# offMid=off_mid=boolean
-
-# forceOff=force_off=int
+# forceOff=force_off=INT NULLABLE
 
 
 # ALIASES/SHORTCUTS
