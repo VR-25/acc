@@ -18,8 +18,8 @@ not_charging() {
   local switch=${flip-}; flip=
   local curThen=$(cat $curThen)
   #local seqDrop=${seqDrop:-5}
-  local seqOff=${seqOff:-16}
-  local seqOn=${seqOn:-30}
+  local seqOff=${seqOff:-8}
+  local seqOn=${seqOn:-15}
   local battStatusOverride="${battStatusOverride-}"
   local battStatusWorkaround=${battStatusWorkaround-}
 
@@ -35,14 +35,14 @@ not_charging() {
       #     -) [ $(cat $currFile) -lt $((curThen / 100 * 90)) ] || return 1;;
       #   esac
       # fi
-      [ $i = $seqOff ] || sleep 1
+      [ $i = $seqOff ] || sleep 2
     done
     return 1
   else
     if ! ${isAccd:-false} && [ "$switch" = on ]; then
       for i in $(seq $seqOn); do
         status ${1-} || return 1
-        [ $i = $seqOn ] || sleep 1
+        [ $i = $seqOn ] || sleep 2
       done
     else
       status ${1-}
