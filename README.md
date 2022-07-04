@@ -1266,10 +1266,11 @@ Currently Supported Languages and Translation Levels (default, full, good, fair,
 - Chinese, simplified (zh-rCN): minimal
 - Chinese, traditional (zh-rTW): minimal
 - English (en): default
+- French (fr): good
 - German (de_DE): fair
 - Indonesia (id): minimal
 - Portuguese, Portugal (pt-PT): minimal
-- Turkish (tr): full
+- Turkish (tr): good
 
 
 Translation Notes
