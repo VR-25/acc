@@ -234,6 +234,9 @@ if ! $init; then
         # disable charging after a reboot, if min < capacity < max
         if $offMid && [ -f $TMPDIR/.minCapMax ] && _lt_pause_cap && _gt_resume_cap; then
           disable_charging
+          force_off
+          sleep ${loopDelay[1]}
+          continue
         fi
 
         # disable charging under <conditions>
@@ -248,15 +251,7 @@ if ! $init; then
             echo "chargingSwitch=(${chargingSwitch[@]-})" > $TMPDIR/.sw)
           else
             disable_charging
-            [ -z "${forceOff-}" ] || {
-              touch $TMPDIR/.forceoff
-              set +x
-              while [ -f $TMPDIR/.forceoff ]; do
-                flip_sw off
-                sleep $forceOff
-              done &
-              set -x
-            }
+            force_off
           fi
           ! ${resetBattStats[0]} || {
             # reset battery stats on pause
@@ -374,6 +369,19 @@ if ! $init; then
       rm $TMPDIR/.minCapMax 2>/dev/null || :
 
     done
+  }
+
+
+  force_off() {
+    [ -z "${forceOff-}" ] || {
+      touch $TMPDIR/.forceoff
+      set +x
+      while [ -f $TMPDIR/.forceoff ]; do
+        flip_sw off
+        sleep $forceOff
+      done &
+      set -x
+    }
   }
 
 
