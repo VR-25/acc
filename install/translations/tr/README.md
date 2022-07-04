@@ -919,7 +919,7 @@ Provide additional information (trusted) where appropriate.
 Explain settings/concepts as clearly and with as few words as possible.
 
 Take advantage of exit codes.
-Refer back to `SETUP/USAGE > [Terminal Commands](#terminal-commands) > Exit Codes`.
+Refer back to `Kurulum/Kullanım > [Terminal Komutları](##terminal-komutları) > Çıkış Kodları`.
 
 
 ### ACC Yükleme/Güncelleme
@@ -949,7 +949,7 @@ The format is as follows:
 
 ### ACC Kaldırma
 
-Either run `/dev/.vr25/acc/uninstall` (no reboot required; **charger must be plugged**) or uninstall from Magisk manager and reboot.
+`/dev/.vr25/acc/uninstall` dosyasını çalıştırın (yeniden başlatmaya gerek yok; **şarj kablosu takılı olmalı**) veya Magisk üzerinden kaldırıp cihazı yeniden başlatın.
 
 
 ### ACC Başlatma
@@ -996,12 +996,12 @@ Refer back to [terminal commands](#terminal-commands) for details.
 
 ### --info komutu
 
-It comes from the kernel, not acc itself.
-Some kernels provide more information than others.
+Bu komut 'kernel' tarafından sağlanır, acc ile bağlantılı değildir.
+Bazı kernal'lar diğerlerinden daha fazla bilgi verebilir.
 
-Most of the lines are either unnecessary (e.g., type: everyone knows that already) or unreliable (e.g., health, speed).
+Çıktının çoğunluğu gereksizdir (veya güvenilemez bilgi içerir (örn. , health, speed).
 
-Here's what one should focus on:
+Odaklanmanız gerekenler şunlardır:
 
 STATUS=Charging # Charging, Discharging or Idle
 CAPACITY=50 # Battery level, 0-100
@@ -1010,8 +1010,8 @@ CURRENT_NOW=0 # Charging current (Amps)
 VOLTAGE_NOW=3.861 # Charging voltage (Volts)
 POWER_NOW=0 # (CURRENT_NOW * VOLTAGE_NOW) (Watts)
 
-Note that the power information refers to what is actually supplied to the battery, not what's coming from the adapter.
-External power is always converted before it reaches the battery.
+Güç bilgisi bataryaya sağlanan değeri gösterir, adaptör tarafından iletilen değeri değil.
+Harici kaynaklardan gelen güç bataryaya ulaşmadan önce her zaman dönüştürülür.
 
 
 ### Profiller
@@ -1042,15 +1042,15 @@ _Back to the main config:_
 
 ### Daha fazla
 
-ACC daemon does not have to be restarted after making changes to the config.
-It picks up new changes within seconds.
+Config üzerinde oynama yapıldıktan sonra ACC daemon yeniden başlatılmak zorunda değildir.
+Değişiklikleri birkaç saniye içinde görür.
 
-There are a few exceptions:
+Bazı istisnalar şunlardır:
 
 - `charging_switch` (`s`) requires a daemon restart (`/dev/.vr25/acc/accd`).
 - `current_workaround` (`cw`) requires a full re-initialization (`/dev/.vr25/acc/accd --init`).
 
-This information is in the [default configuration](#varsayılan-ayarlar) section as well.
+Bu bilgi aynı zamanda [varsayılan ayarlar](#varsayılan-ayarlar) kısmında da mevcuttur.
 
 
 ---
@@ -1134,21 +1134,21 @@ Hatırlatma: yeni/değiştirilmiş pluginlerin yüklenmesi için daemon başlama
 
 ### Tanı/Loglar
 
-Volatile logs (gone on reboot) are stored in `/dev/.vr25/acc/` (.log files only).
-Persistent logs reside in `/data/adb/vr25/acc-data/logs/`.
+Yeniden başlatınca giden (geçici) loglar `/dev/.vr25/acc/` dizininde bulunur (yalnızca .log uzantılı dosyalar).
+Kalıcı loglar `/data/adb/vr25/acc-data/logs/` adresindedir.
 
-`acc -le` exports all acc logs, plus Magisk's and extras to `/data/adb/acc-data/logs/acc-$device_codename.tgz`.
-The logs do not contain any personal information and are never automatically sent to the developer.
-Automatic exporting (local) happens under specific conditions (refer back to `SETUP/USAGE > Terminal Commands > Exit Codes`).
+`acc -le` komutu bütün acc ve Magisk ile alakalı logları gösterir, `/data/adb/acc-data/logs/acc-$device_codename.tgz` dizinine bakınız.
+Loglar kişisel veri içermez ve geliştiriciye otomatik olarak gönderilmez.
+Otomatik raporlama yalnızca belirli koşullar altında gerçekleşir (bkz. `Kurulum/Kullanım > Terminal Komutları > Çıkış Kodları`).
 
 
 ### Yükleme, Güncelleme, çok fazla zaman alan işlemleri durdurma ve yeniden başlatma
 
-The daemon stop process implies complete reversal of changes made to the charging management system.
-Sometimes, **this requires the charger to be plugged**.
-That's because some devices have kernel bugs and/or bad charging driver implementations.
-That said, accd is always stopped _gracefully_ to ensure the restoration takes place.
-One who knows what they're doing, can force-stop accd by running `pkill -9 -f accd`.
+Daemon durdurma işleminde şarj yönetim sisteminde yapılan değişiklikler geri alınır.
+Bazen, **şarj kablosunun takılması gerekebilir**.
+Bunun sebebi bazı kernel'ların sorunlu olması veya şarj devrelerinin çok iyi çalışmamasıdır.
+Bu gibi durumlarda accd restorasyon işlemi için durdurulur.
+Eğer ne yaptığınızı biliyorsunuz `pkill -9 -f accd` komutu da kullanılabilir.
 
 
 ### Kernel Panic and Spontaneous Reboots
@@ -1188,19 +1188,19 @@ bkz. [Uyarılar](#uyarılar) kısmı.
 
 ### Beklenmedik yeniden başlatma
 
-Wrong/troublesome charging control files may trigger unwanted reboots.
-ACC blacklist these automatically (registered in `/data/adb/vr25/acc-data/logs/write.log`, with a leading hashtag).
-Sometimes, there may be false positives in there - i.e., due to unexpected reboots caused by something else. Thus, if a control file that used to work, suddenly does not, see if it was blacklisted (`acc -t` also reveals blacklisted switches).
-Send `write.log` to the developer once the reboots have stopped.
+Yalnış şarj kontrol dosyaları istenmedik durumlara yol açabilir.
+ACC bunları otomatik olarak kara listeye alır (`/data/adb/vr25/acc-data/logs/write.log` dizininde bulunabilir).
+Bazen, yanlışlıkla karalisteye düşenler olabilir - başka bir deyişle, beklenmedik yeniden başlatmaya sebep olan ikinci bir sebepten ötürü. Eğer daha önce çalışan bir kontrol dosyası bir anda çalışmamaya başladı ise, kara listede olup olmadığını kontrol edin (`acc -t` aynı zamanda kara listedeki portları da gösterir).
+Yeniden başlatma işlemi durduğunda `write.log` dosyasını geliştiriciye gönderin.
 
 
 ### WARP, VOOC ve Diğer hızlı şarj teknolojileri
 
-Charging switches may not work reliably with the original power adapter.
-This has nothing to do with acc.
-It's bad design by the OEMs themselves.
-If you face issues, either try a different charging switch or a regular power brick (a.k.a., slow charger).
-You may also want to try stopping charging by limiting current/voltage.
+Şarj portları orijinal güç adaptörleriniz ile düzgün çalışmayabilir.
+Bu acc nedeni ile oluşan bir sıkıntı değildir.
+Bu telefon üreticinizden kaynaklı bir sorundur.
+Böyle sorunlar ile karşılaşıyorsanız, başka bir şarj portu deneyin veya hızlı şarj desteklemeyen bir şarj adaptörü kullanın.
+Şarj olma akım/voltaj kısıtlamalarını da deneyebilirsiniz.
 
 
 ### accd neden durdu?
@@ -1338,20 +1338,20 @@ Voltaj sıcaklığa göre, batarya ise kimyasına ve yaşına göre değişir.
 ## Sıkça sorulan sorular (SSS)
 
 
-> How do I report issues?
+> Sorunları nasıl bildirebilirim?
 
-Open issues on GitHub or contact the developer on Facebook, Telegram (preferred) or XDA (links below).
-Always provide as much information as possible.
-Attach `/sdcard/Download/acc-logs-*.tgz` - generated by `acc -le` _right after_ the problem occurs.
-Refer back to `TROUBLESHOOTING > Diagnostics/Logs` for additional details.
+GitHub üzerinden bildirin, veya geliştiriciye Facebook, Telegram (tercihen), XDA forum (link aşağıda).
+Olabildiğince fazla bilgi vermeye çalışın.
+Sorunu yaşadıktan _hemen sonra_ `acc -le` komutunun `/sdcard/Download/acc-logs-*.tgz` dizinindeki çıktısını da mesajınıza ilave edin.
+Ayrıntılı bilgi için `Sorun Giderme > Tanı/Loglar` kısmına bakın.
 
 
-> Why won't you support my device? I've been waiting for ages!
+> Neden benim cihazım için destek sağlamıyorsun? Yıllardır bekliyorum!
 
-Firstly, have some extra patience!
-Secondly, several systems don't have intuitive charging control files; I have to dig deeper - and oftentimes, improvise; this takes time and effort.
-Lastly, some systems don't support custom charging control at all;  in such cases, you have to keep trying different kernels and uploading the respective power supply logs.
-Refer back to `POWER SUPPLY LOGS (HELP NEEDED)`.
+Öncelikle, biraz sabırlı olun!
+Bazı sistemlerin kolay ulaşılabilir şarj kontrol dosyaları olmuyor; Bunlar için daha derinlere girmem -hatta bazen, üstüne bir şeyler koymam gerekiyor; bu da zaman ve emek gerektiriyor.
+Son olarak, bazı sistemler şarj manipüle işlemini direkt desteklemiyor;  bu gibi durumlarda, farklı kernel'lar denemeniz ve güç kaynağınız için logları paylaşmanız gerekli.
+bkz. `Güç kaynağı logları (yardım lazım)`.
 
 
 > Why, when and how should I calibrate the battery manager?
@@ -1363,41 +1363,41 @@ However, if your battery is underperforming, you may want to try the procedure d
 ACC automatically optimizes system performance and battery utilization, by forcing `bg-dexopt-job` on daemon [re]start, once after boot, if charging and uptime >= 900 seconds.
 
 
-> I set voltage to 4080 mV and that corresponds to just about 75% charge.
-But is it typically safer to let charging keep running, or to have the circuits turn on and shut off between defined percentage levels repeatedly?
+> Voltajı 4080 mV olarak ayarladım ve bu 75% şarja denk geliyor.
+Sürekli şarj mı etmeliyim, veya sürekli belirli aralıklar arasında şarjı durdurup başlatmalı mıyım?
 
-It's not much about which method is safer.
-It's specifically about electron stability: optimizing the pressure (voltage) and current flow.
+Hangi methodun daha güvenli olduğu pek de önemli değil.
+Önemli olan stabilite: voltaj ve şarj akımını ayarlamak.
 
-As long as you don't set a voltage limit higher than 4200 mV and don't leave the phone plugged in for extended periods of time, you're good with that limitation alone.
-Otherwise, the other option is actually more beneficial - since it mitigates high pressure (voltage) exposure/time to a greater extent.
-If you use both, simultaneously - you get the best of both worlds.
-On top of that, if you enable the cooldown cycle, it'll give you even more benefits.
+4200mV veya yukarısında bir değer ile telefonunuzu uzun süre şarj altında bırakmadığınız sürece, bu kendi başına bile yeterince güvenli olacaktır.
+Yoksa, öteki opsiyon daha yararlı olabilir- çünkü, yüksek voltaj altında geçirilen süreyi azaltmış olacaksınız.
+Eğer aynı anda ikisini de kullanırsanız - her iki tarafın da artılarından yararlanabilirsiniz.
+Bunun üstüne, cooldown cycle özelliğini aktif ederseniz, daha da yararlı olacaktır.
 
-Ever wondered why lithium ion batteries aren't sold fully charged? They're usually ~40-60% charged. Why is that?
-Keeping a battery fully drained, almost fully drained or 70%+ charged for a long times, leads to significant (permanent) capacity loss
+Daha önce neden lityum iyon bataryalar tamamen şarj olmuş şekilde satılmaz, düşündünüz mü? Genelde ~40-60% şarjlı olurlar. Neden?
+Bataryayı uzun süreri dolu bırakmak, neredeyse tam dolu veya 70%+ şarjlı olması, kalıcı kapasite kaybına yol açar.
 
-Putting it all together in practice...
+Bunların hepsinin uygulamaya dökersek...
 
-Night/heavy-duty profile: keep capacity within 40-60% and/or voltage around ~3900 mV
+Gece/yoğun işlem profili: max kapasite: 40-60% ve/veya voltaj 3900 mV civarları
 
-Day/regular profile: max capacity: 75-80% and/or voltage no higher than 4100 mV
+Genel/günlük profil: max kapasite: 75-80% ve/veya voltaj 4100 mV'dan fazla olmayacak şekilde
 
-Travel profile: capacity up to 95% and/or voltage no higher than 4200 mV
+Seyehat profili: kapasite 95% civarları ve/veya 4200 mV'dan fazla olmayacak şekilde
 
 \* https://batteryuniversity.com/article/bu-808-how-to-prolong-lithium-based-batteries/
 
 
-> I don't really understand what the "-f|--force|--full [capacity]" is meant for.
+> "-f|--force|--full [capacity]" komutu ne işe yarıyor anlamıyorum.
 
-Consider the following situation:
+Şöyle bir senaryo düşünün:
 
-You're almost late for an important event.
-You recall that I stole your power bank and sold it on Ebay.
-You need your phone and a good battery backup.
-The event will take the whole day and you won't have access to an external power supply in the middle of nowhere.
-You need your battery charged fast and as much as possible.
-However, you don't want to modify ACC config nor manually stop/restart the daemon.
+Önemli bir etkinliğe gideceksiniz, zaman az.
+Power bank'inizi çaldım ve Ebay'de satıyorum.
+Telefonunuza ve dolu bir bataryaya ihtiyacınız var.
+Etkinlikte bir güç kaynağına erişiminiz olmayacak, cihazı bütün gün Allah'ın varlığını unuttuğu bir yerde kullanacaksınız.
+Bataryanızı kısa sürede olabildikçe fazla şarj etmeniz lazım.
+Ancak, ACC Config dosyaları veya daemon yeniden başlatmak ile uğraşmak istemiyorsunuz.
 
 
 > What's DJS?
@@ -1428,17 +1428,17 @@ The back-end can be upgraded by flashing the latest ACC zip.
 However, unless you have a good reason to do so, don't fix what's not broken.
 
 
-> Does acc work also when Android is off?
+> acc Andorid kapalı iken çalışıyor mu?
 
-No, but this possibility is being explored.
-Currently, it does work in recovery mode, though.
+Hayır, ancak bu ihtimal hakkında araştırmalar yapıyorum.
+Ama şu anda, recovery mod sırasında çalışıyor.
 
 
-> I have this wakelock as soon as charging is disabled. How do I deal with it?
+> Şarj devre dışı bırakılınca cihaz uyanıyor. Bununla nasıl başa çıkarım?
 
-The best solution is enforcing a charging switch that doesn't trigger a wakelock.
-Refer back to `TROUBLESHOOTING > Charging Switch`.
-A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resume_capacity=74, pause_capacity=75.
+En iyi çözüm bu duruma sebep olmayan bir şarj portu kullanmak.
+`Sorun Giderme > Şarj Portları` kısmına bakınız.
+Bir öteki yaygın yöntem ise `resume_capacity = pause_capacity - 1`. örn., resume_capacity=74, pause_capacity=75.
 
 
 ---
