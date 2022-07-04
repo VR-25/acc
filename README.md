@@ -51,6 +51,7 @@
   - [Current and Voltage Based Charging Control](#current-and-voltage-based-charging-control)
   - [Generic](#generic)
   - [Google Pixel Devices](#google-pixel-devices)
+  - [Override Broken Temperature Sensor](override_broken_temperature_sensor)
 - [FREQUENTLY ASKED QUESTIONS (FAQ)](#frequently-asked-questions-faq)
 - [LINKS](#links)
 
@@ -1028,14 +1029,15 @@ Most of the lines are either unnecessary (e.g., type: everyone knows that alread
 
 Here's what one should focus on:
 
-STATUS=Charging # Charging, Discharging or Idle
 CAPACITY=50 # Battery level, 0-100
-TEMP=281 # Always in (ºC * 10)
 CURRENT_NOW=0 # Charging current (Amps)
-VOLTAGE_NOW=3.861 # Charging voltage (Volts)
+HEALTH=92.00% # Battery health reported by the kernel (not available on all systems)
 POWER_NOW=0 # (CURRENT_NOW * VOLTAGE_NOW) (Watts)
+STATUS=Charging # Charging, Discharging or Idle (Not charging)
+TEMP=281 # Always in (ºC * 10)
+VOLTAGE_NOW=3.861 # Charging voltage (Volts)
 
-Note that the power information refers to what is actually supplied to the battery, not what's coming from the adapter.
+Note: the power information refers to what is actually supplied to the battery, not what's coming from the adapter.
 External power is always converted before it reaches the battery.
 
 
@@ -1318,6 +1320,13 @@ Force fast wireless charging with third party wireless chargers that are suppose
 
 This may not work on all Pixel devices.
 There are no negative consequences when it doesn't.
+
+
+### Override Broken Temperature Sensor
+
+If your battery's thermistor always reports a negative value, and charging is very slow or even off, see if the following helps:
+
+`echo ': ; if ${isAccd:-false} && online; then (for i in */temp_cool */temp_cold; do [ -f $i ] || continue; chmod u+w $i && echo "-999" > $i; done); fi || :' >> $(acca -c echo)`
 
 
 ---
