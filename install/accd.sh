@@ -258,7 +258,8 @@ if ! $init; then
             dumpsys batterystats --reset < /dev/null > /dev/null 2>&1 || :
             rm /data/system/batterystats* 2>/dev/null || :
           }
-          ! $maxTempPause || ! not_charging || sleep ${temperature[2]}
+          $maxTempPause && sleep ${temperature[2]} || sleep ${loopDelay[1]}
+          continue
         fi
 
         # cooldown cycle
