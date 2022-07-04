@@ -58,6 +58,8 @@ om="${off_mid-${om-$offMid}}"
 
 fo="${force_off-${fo-$forceOff}}"
 
+tl="${temp_level-${tl-$tempLevel}}"
+
 
 # schedule -- append/delete
 case "$sd" in
@@ -131,6 +133,8 @@ dischargePolarity=$dp
 offMid=${om:-true}
 
 forceOff=$fo
+
+tempLevel=${tl:-0}
 
 : one-line script sample; echo nothing >/dev/null
 " > $config

@@ -58,6 +58,8 @@ discharge_polarity=$dischargePolarity
 off_mid=$offMid
 
 force_off=$forceOff
+
+temp_level=$tempLevel
 "
 
 sed -n '/^: /p' $config

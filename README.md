@@ -236,7 +236,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202207030
+configVerCode=202207040
 
 capacity=(-1 60 70 75 false false)
 
@@ -282,6 +282,8 @@ dischargePolarity=
 offMid=true
 
 forceOff=
+
+tempLevel=0
 
 : one-line script sample; echo nothing >/dev/null
 
@@ -366,6 +368,8 @@ forceOff=
 
 # forceOff=force_off=INT NULLABLE
 
+# tempLevel=temp_level=PERCENT (0-100)
+
 
 # ALIASES/SHORTCUTS
 
@@ -419,6 +423,7 @@ forceOff=
 # dp discharge_polarity
 # om off_mid
 # fo force_off
+# tl temp_level
 
 
 # FINE, BUT WHAT DOES EACH OF THESE VARIABLES ACTUALLY MEAN?
@@ -616,6 +621,12 @@ forceOff=
 # Repeatedly call "flip_sw off" after disabling charging, until enable_charging is called.
 # This is needed when the set charging switch is stubbornly reset by the system.
 # The value (integer == enabled, null == disabled) dictates the number of seconds to wait between "flip_sw off" calls. While decimals are supported, anything less than 1 is overkill. Probably the optimal value is somewhere between 2 and 5.
+
+# temp_level (tl) #
+# This is a current limiting hack.
+# Some devices have adjustable "temperature levels". At the highest level, charging current is blocked.
+# The stock values are generally integers, ranging from 0 to 6, 7 or slightly more.
+# For greater flexibility, this variable stores a percentage value -- which is internally converted to the system's scales.
 
 #/DC#
 ```
