@@ -27,7 +27,7 @@ if ! $init; then
 
   _ge_cooldown_cap() {
     if t ${capacity[1]} -gt 3000; then
-      t $(grep -o '^....' $voltage_now) -ge ${capacity[1]}
+      t $(volt_now) -ge ${capacity[1]}
     else
       t $(cat $battCapacity) -ge ${capacity[1]}
     fi
@@ -36,7 +36,7 @@ if ! $init; then
 
   _ge_pause_cap() {
     if t ${capacity[3]} -gt 3000; then
-      t $(grep -o '^....' $voltage_now) -ge ${capacity[3]}
+      t $(volt_now) -ge ${capacity[3]}
     else
       t $(cat $battCapacity) -ge ${capacity[3]}
     fi
@@ -45,7 +45,7 @@ if ! $init; then
 
   _lt_pause_cap() {
     if t ${capacity[3]} -gt 3000; then
-      t $(grep -o '^....' $voltage_now) -lt ${capacity[3]}
+      t $(volt_now) -lt ${capacity[3]}
     else
       t $(cat $battCapacity) -lt ${capacity[3]}
     fi
@@ -54,7 +54,7 @@ if ! $init; then
 
   _gt_resume_cap() {
     if t ${capacity[2]} -gt 3000; then
-      t $(grep -o '^....' $voltage_now) -gt ${capacity[2]}
+      t $(volt_now) -gt ${capacity[2]}
     else
       t $(cat $battCapacity) -gt ${capacity[2]}
     fi
@@ -63,7 +63,7 @@ if ! $init; then
 
   _le_resume_cap() {
     if t ${capacity[2]} -gt 3000; then
-      t $(grep -o '^....' $voltage_now) -le ${capacity[2]}
+      t $(volt_now) -le ${capacity[2]}
     else
       t $(cat $battCapacity) -le ${capacity[2]}
     fi
@@ -72,7 +72,7 @@ if ! $init; then
 
   _le_shutdown_cap() {
     if t ${capacity[0]} -gt 3000; then
-      t $(grep -o '^....' $voltage_now) -le ${capacity[0]}
+      t $(volt_now) -le ${capacity[0]}
     else
       t $(cat $battCapacity) -le ${capacity[0]}
     fi
@@ -347,7 +347,7 @@ if ! $init; then
             # warnings
             ! $shutdownWarnings || {
               if t ${capacity[0]} -gt 3000; then
-                ! t $(grep -o '^..' $voltage_now) -eq $(( ${capacity[0]%??} + 1 )) \
+                ! t $(grep -o '^..' $voltNow) -eq $(( ${capacity[0]%??} + 1 )) \
                   || ! notif "⚠️ WARNING: ~100mV to auto shutdown, plug the charger!" \
                     || sleep ${loopDelay[1]}
               else
@@ -491,14 +491,6 @@ if ! $init; then
   misc_stuff "${1-}"
   . $execDir/oem-custom.sh
   src_cfg
-
-
-  voltage_now=$batt/voltage_now
-  t -f $voltage_now || voltage_now=$batt/batt_vol
-  if ! t -f $voltage_now; then
-    echo 3900 > $TMPDIR/.voltage_now
-    voltage_now=$TMPDIR/.voltage_now
-  fi
 
 
   apply_on_boot

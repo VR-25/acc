@@ -147,9 +147,9 @@ disable_charging() {
       *%)
         print_charging_disabled_until $1
         echo
-        (until [ $(cat $battCapacity) -le ${1%\%} ]; do
+        (set +x
+        until [ $(cat $battCapacity) -le ${1%\%} ]; do
           sleep ${loopDelay[1]}
-          set +x
         done)
         enable_charging
       ;;
@@ -161,6 +161,15 @@ disable_charging() {
           *m) sleep $(( ${1%m} * 60 ));;
           *s) sleep ${1%s};;
         esac
+        enable_charging
+      ;;
+      *m[vV])
+        print_charging_disabled_until $1 v
+        echo
+        (set +x
+        until [ $(volt_now) -le ${1%m*} ]; do
+          sleep ${loopDelay[1]}
+        done)
         enable_charging
       ;;
       *)
@@ -222,9 +231,9 @@ enable_charging() {
       *%)
         print_charging_enabled_until $1
         echo
-        (until [ $(cat $battCapacity) -ge ${1%\%} ]; do
-          sleep ${loopDelay[1]}
-          set +x
+        (set +x
+        until [ $(cat $battCapacity) -ge ${1%\%} ]; do
+          sleep ${loopDelay[0]}
         done)
         disable_charging
       ;;
@@ -236,6 +245,15 @@ enable_charging() {
           *m) sleep $(( ${1%m} * 60 ));;
           *s) sleep ${1%s};;
         esac
+        disable_charging
+      ;;
+      *m[vV])
+        print_charging_enabled_until $1 v
+        echo
+        (set +x
+        until [ $(volt_now) -ge ${1%m*} ]; do
+          sleep ${loopDelay[0]}
+        done)
         disable_charging
       ;;
       *)

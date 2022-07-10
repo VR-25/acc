@@ -97,6 +97,11 @@ status() {
 }
 
 
+volt_now() {
+  grep -o '^....' $voltNow
+}
+
+
 if ${init:-false}; then
 
   for batt in maxfg/capacity */capacity; do
@@ -130,6 +135,15 @@ if ${init:-false}; then
     [ ! -f $currFile ] || break
   done
 
+
+  voltNow=$batt/voltage_now
+  [ -f $voltNow ] || voltNow=$batt/batt_vol
+  [ -f $voltNow ] || {
+    echo 3900 > $TMPDIR/.voltage_now
+    voltNow=$TMPDIR/.voltage_now
+  }
+
+
   idleThreshold=95 # mA
   ampFactor=$(sed -n 's/^ampFactor=//p' $dataDir/config.txt 2>/dev/null || :)
   ampFactor_=${ampFactor:-1000}
@@ -143,8 +157,7 @@ if ${init:-false}; then
   rm $curThen 2>/dev/null || :
 
 
-  echo "
-ampFactor_=$ampFactor_
+  echo "ampFactor_=$ampFactor_
 batt=$batt
 battCapacity=$batt/capacity
 battStatus=$battStatus
@@ -152,7 +165,7 @@ currFile=$currFile
 curThen=$curThen
 idleThreshold=$idleThreshold
 temp=$temp
-" > $TMPDIR/.batt-interface.sh
+voltNow=$voltNow" > $TMPDIR/.batt-interface.sh
 
   init=false
 

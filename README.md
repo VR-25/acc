@@ -696,10 +696,11 @@ Options
       acc -c less
       acc -c cat
 
-  -d|--disable [#%, #s, #m or #h (optional)]   Disable charging
+  -d|--disable [#%, #s, #m, #h or #mv (optional)]   Disable charging
     e.g.,
       acc -d 70% (do not recharge until capacity <= 70%)
       acc -d 1h (do not recharge until 1 hour has passed)
+      acc -d 4000mv (do not recharge until battery voltage <= 4000mV)
 
   -D|--daemon   Print daemon status, (and if running) version and PID
     e.g., acc -D (alias: "accd,")
@@ -710,10 +711,11 @@ Options
       acc -D restart (alias: accd)
       accd -D stop (alias: "accd.")
 
-  -e|--enable [#%, #s, #m or #h (optional)]   Enable charging
+  -e|--enable [#%, #s, #m, #h or #mv (optional)]   Enable charging
     e.g.,
       acc -e 75% (recharge to 75%)
       acc -e 30m (recharge for 30 minutes)
+      acc -e 4000mv (recharge to 4000mV)
 
   -f|--force|--full [capacity]   Charge once to a given capacity (default: 100%), without restrictions
     e.g.,
