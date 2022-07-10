@@ -236,6 +236,7 @@ if ! $init; then
           disable_charging
           force_off
           sleep ${loopDelay[1]}
+          rm $TMPDIR/.minCapMax 2>/dev/null || :
           continue
         fi
 
@@ -259,6 +260,7 @@ if ! $init; then
             rm /data/system/batterystats* 2>/dev/null || :
           }
           $maxTempPause && sleep ${temperature[2]} || sleep ${loopDelay[1]}
+          rm $TMPDIR/.minCapMax 2>/dev/null || :
           continue
         fi
 
@@ -362,13 +364,9 @@ if ! $init; then
             fi
           fi
         fi
-
         sleep ${loopDelay[1]}
-
       fi
-
       rm $TMPDIR/.minCapMax 2>/dev/null || :
-
     done
   }
 
