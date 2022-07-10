@@ -17,9 +17,7 @@ not_charging() {
   local i=
   local switch=${flip-}; flip=
   local curThen=$(cat $curThen)
-  #local seqDrop=${seqDrop:-5}
-  local seqOff=${seqOff:-8}
-  local seqOn=${seqOn:-15}
+  local ncTimeout=${ncTimeout:-10}
   local battStatusOverride="${battStatusOverride-}"
   local battStatusWorkaround=${battStatusWorkaround-}
 
@@ -27,26 +25,18 @@ not_charging() {
   [ $currFile != $TMPDIR/.dummy-curr ] || battStatusWorkaround=false
 
   if [ -z "${battStatusOverride-}" ] && [ "$switch" = off ]; then
-    for i in $(seq $seqOff); do
+    for i in $(seq $ncTimeout); do
       ! status ${1-} || return 0
-      # if $battStatusWorkaround && [ $i -ge $seqDrop ]; then
-      #   case "${dischargePolarity-}" in
-      #     +) [ $(cat $currFile) -gt $((curThen / 100 * 90)) ] || return 1;;
-      #     -) [ $(cat $currFile) -lt $((curThen / 100 * 90)) ] || return 1;;
-      #   esac
-      # fi
-      [ $i = $seqOff ] || sleep 2
+      [ $i = $ncTimeout ] || sleep 3
     done
     return 1
+  elif ! ${isAccd:-false} && [ "$switch" = on ]; then
+    for i in $(seq $ncTimeout); do
+      status ${1-} || return 1
+      [ $i = $ncTimeout ] || sleep 3
+    done
   else
-    if ! ${isAccd:-false} && [ "$switch" = on ]; then
-      for i in $(seq $seqOn); do
-        status ${1-} || return 1
-        [ $i = $seqOn ] || sleep 2
-      done
-    else
-      status ${1-}
-    fi
+    status ${1-}
   fi
 }
 
