@@ -87,6 +87,12 @@ esac
 }
 
 
+# enforce forceOff <= 5
+[ -z "$fo" ] || {
+  ! [ $fo -gt 5 ] || fo=5
+}
+
+
 echo "configVerCode=$(cat $TMPDIR/.config-ver)
 
 capacity=(${sc:--1} ${cc:-60} ${rc:-70} ${pc:-75} ${cs:-false} ${cm:-false})

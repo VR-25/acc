@@ -375,6 +375,10 @@ if ! $init; then
 
   force_off() {
     [ -z "${forceOff-}" ] || {
+      [ ! -f $TMPDIR/.forceoff ] || {
+        rm $TMPDIR/.forceoff
+        sleep 10
+      }
       touch $TMPDIR/.forceoff
       set +x
       while [ -f $TMPDIR/.forceoff ]; do
