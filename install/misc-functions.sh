@@ -391,6 +391,7 @@ write() {
   local i=
   local l=$dataDir/logs/write.log
   local s=
+  local f=$TMPDIR/.unblacklist.$(date +%s)
   blacklisted=false
   [ -f "$2" ] && chmod u+w "$2" || return ${3-1}
   s="$(grep -E "^(#$2|$2)$" $l 2>/dev/null || :)"
@@ -402,7 +403,15 @@ write() {
     eval echo "$1" > "$2" || { i=x; break; }
     sleep 0.5
   done
-  [ $s != x ] || sed -i "\|^#$2$|s|^#||" $l
+  [ $s != x ] || {
+    echo "#!/system/bin/sh
+    sleep 15
+    sed -i \"\|^#$2$|s|^#||\" $l
+    rm $f
+    exit" > $f
+    chmod u+x $f
+    start-stop-daemon -bx $f -S --
+  }
   [ $i != x ] || return ${3-1}
 }
 
