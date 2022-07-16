@@ -41,8 +41,6 @@ run_cmd_on_pause='$runCmdOnPause'
 amp_factor=$ampFactor
 volt_factor=$voltFactor
 
-loop_cmd='$loopCmd'
-
 prioritize_batt_idle_mode=$prioritizeBattIdleMode
 current_workaround=$currentWorkaround
 batt_status_workaround=$battStatusWorkaround

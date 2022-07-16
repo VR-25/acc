@@ -9,11 +9,7 @@ if (set +x; . $config) > /dev/null 2>&1; then
   [ $configVer -eq $defaultConfVer ] || {
     if [ $configVer -lt 202207160 ]; then
       rm $dataDir/logs/write.log 2>/dev/null || :
-      if [ $configVer -lt 202109230 ]; then
-        $TMPDIR/acca --set force_off=false loop_cmd=
-      else
-        $TMPDIR/acca --set force_off=false
-      fi
+      $TMPDIR/acca --set force_off=false
     else
       $TMPDIR/acca --set dummy=
     fi
@@ -24,15 +20,15 @@ fi
 
 # battery idle mode for OnePlus devices
 ! _grep '^chargingSwitch=.battery/op_disable_charge 0 1 battery/input_suspend 0 0.$' \
-  || loopCmd_='[ $(cat battery/input_suspend) != 1 ] || echo 0 > battery/input_suspend'
+  || loopCmd='[ $(cat battery/input_suspend) != 1 ] || echo 0 > battery/input_suspend'
 
 # battery idle mode for Google Pixel 2/XL and devices with similar hardware
 ! _grep '^chargingSwitch=./sys/module/lge_battery/parameters/charge_stop_level' \
-  || loopCmd_='[ $(cat battery/input_suspend) != 1 ] || echo 0 > battery/input_suspend'
+  || loopCmd='[ $(cat battery/input_suspend) != 1 ] || echo 0 > battery/input_suspend'
 
 # bttery idle mode for certain mtk devices
 # ! _grep '^chargingSwitch=.battery/input_suspend 0 1 /proc/mtk_battery_cmd/en_power_path 1 1' \
-#   || loopCmd_='
+#   || loopCmd='
 #     if [ $(cat /proc/mtk_battery_cmd/en_power_path) -eq 0 ] && [ $(cat battery/status) = Discharging ]; then
 #       echo 0 > battery/input_suspend
 #     fi

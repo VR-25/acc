@@ -265,8 +265,6 @@ runCmdOnPause=''
 ampFactor=
 voltFactor=
 
-loopCmd=''
-
 prioritizeBattIdleMode=false
 currentWorkaround=false
 battStatusWorkaround=true
@@ -348,8 +346,6 @@ dischargePolarity=
 
 # voltFactor=volt_factor=[multiplier]
 
-# loopCmd=loop_cmd='command...'
-
 # prioritizeBattIdleMode=prioritize_batt_idle_mode=boolean
 
 # currentWorkaround=current_workaround=boolean
@@ -405,8 +401,6 @@ dischargePolarity=
 
 # af amp_factor
 # vf volt_factor
-
-# lc loop_cmd
 
 # pbim prioritize_batt_idle_mode
 # cw current_workaround
@@ -534,12 +528,6 @@ dischargePolarity=
 # e.g., if the input current is too low, the unit is miscalculated.
 # This issue is rare, though.
 # Leave these properties alone if everything is running fine.
-
-# loop_cmd (lc) #
-# This is meant for extending accd's functionality.
-# It is periodically executed by the is_charging function -- which is called regularly, within the main accd loop.
-# The boolean isCharging is available.
-# Refer back to COMMAND EXAMPLES.
 
 # prioritize_batt_idle_mode (pbim) #
 # If enabled charging switches that support battery idle mode take precedence.

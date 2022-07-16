@@ -262,8 +262,6 @@ runCmdOnPause=''
 ampFactor=
 voltFactor=
 
-loopCmd=''
-
 prioritizeBattIdleMode=false
 currentWorkaround=false
 battStatusWorkaround=true
@@ -344,8 +342,6 @@ yeniden başlatın.
 
 # voltFactor=volt_factor=[multiplier]
 
-# loopCmd=loop_cmd='command...'
-
 # prioritizeBattIdleMode=prioritize_batt_idle_mode=boolean
 
 # currentWorkaround=current_workaround=boolean
@@ -399,8 +395,6 @@ yeniden başlatın.
 
 # af amp_factor
 # vf volt_factor
-
-# lc loop_cmd
 
 # pbim prioritize_batt_idle_mode
 # cw current_workaround
@@ -532,13 +526,6 @@ hale getirilebilir.
 # e.g., eğer girilen akım değeri çok düşük ise, birim yanlış hesaplanabilir.
 # Ancak nadir bir hatadır.
 # Her şey düzgün çalıyorsa bu değerler ile oynamayın.
-
-# loop_cmd (lc) #
-# accd'nin kullanılabilirliğini arttırmak amacı ile yapıldı. (bu kısmı İngilizce anlamıyorsanız sizlik bir şey söz konusu değil
-geçebilirsiniz)
-# It is periodically executed by the is_charging function -- which is called regularly, within the main accd loop.
-# The boolean isCharging is available.
-# Refer back to COMMAND EXAMPLES.
 
 # prioritize_batt_idle_mode (pbim) #
 # Eğer aktif edilirse Idle mod desteklenmesi durumunda ona öncelik verilir.
