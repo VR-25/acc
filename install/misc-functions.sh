@@ -279,7 +279,6 @@ flip_sw() {
 
     if [ $flip = on ]; then
       on="$(parse_value "$2")"
-      rm $TMPDIR/.forceoff 2>/dev/null || :
     else
       if [ $3 = voltage_now ]; then
         off=$(cat $1)

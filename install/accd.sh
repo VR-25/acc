@@ -82,6 +82,7 @@ if ! $init; then
   exxit() {
     exitCode=$?
     $persistLog && set +eu || set +eux
+    rm $TMPDIR/.forceoff* 2>/dev/null
     trap - EXIT
     [ -n "$1" ] && exitCode=$1
     [ -n "$2" ] && print "$2"
@@ -336,9 +337,9 @@ if ! $init; then
         fi
 
         # enable charging under <conditions>
-        if _le_resume_cap; then
-          [ ! $(cat $temp) -lt $(( ${temperature[1]} * 10 )) ] \
-            || enable_charging
+        if _le_resume_cap && [ $(cat $temp) -lt $(( ${temperature[1]} * 10 )) ]; then
+          rm $TMPDIR/.forceoff* 2>/dev/null && sleep ${loopDelay[0]} || :
+          enable_charging
         fi
 
         # auto-shutdown
@@ -372,19 +373,17 @@ if ! $init; then
 
 
   force_off() {
-    [ -z "${forceOff-}" ] || {
-      [ ! -f $TMPDIR/.forceoff ] || {
-        rm $TMPDIR/.forceoff
-        sleep 10
-      }
-      touch $TMPDIR/.forceoff
-      set +x
-      while [ -f $TMPDIR/.forceoff ]; do
-        flip_sw off
-        sleep $forceOff
-      done &
-      set -x
-    }
+    local f=$TMPDIR/.forceoff
+    rm $f* 2>/dev/null || :
+    $forceOff || return 0
+    f=$f.$(date +%s)
+    touch $f
+    set +x
+    while [ -f $f ] && _gt_resume_cap; do
+      flip_sw off || break
+      sleep 1
+    done &
+    set -x
   }
 
 

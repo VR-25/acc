@@ -7,12 +7,16 @@ if (set +x; . $config) > /dev/null 2>&1; then
   configVer=0$(_get_prop configVerCode)
   defaultConfVer=0$(cat $TMPDIR/.config-ver)
   [ $configVer -eq $defaultConfVer ] || {
-    if [ $configVer -lt 202109230 ]; then
-      $TMPDIR/acca --set loop_cmd=
+    if [ $configVer -lt 202207160 ]; then
+      rm $dataDir/logs/write.log 2>/dev/null || :
+      if [ $configVer -lt 202109230 ]; then
+        $TMPDIR/acca --set force_off=false loop_cmd=
+      else
+        $TMPDIR/acca --set force_off=false
+      fi
     else
       $TMPDIR/acca --set dummy=
     fi
-    [ $configVer -lt 202203150 ] && sed -i '/^#/d' $dataDir/logs/write.log 2>/dev/null || :
   }
 else
   cat $execDir/default-config.txt > $config

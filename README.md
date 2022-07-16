@@ -237,7 +237,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202207040
+configVerCode=202207160
 
 capacity=(-1 60 70 75 false false)
 
@@ -367,7 +367,7 @@ tempLevel=0
 
 # offMid=off_mid=BOOLEAN
 
-# forceOff=force_off=INT NULLABLE
+# forceOff=force_off=BOOLEAN
 
 # tempLevel=temp_level=PERCENT (0-100)
 
@@ -619,9 +619,7 @@ tempLevel=0
 # Whether to turn off charging after rebooting or restarting accd, if capacity is within resume_capacity and pause_capacity (default: true).
 
 # force_off (fo) #
-# Repeatedly call "flip_sw off" after disabling charging, until enable_charging is called.
-# This is needed when the set charging switch is stubbornly reset by the system.
-# The value (integer == enabled, null == disabled) dictates the number of seconds to wait between "flip_sw off" calls. While decimals are supported, anything less than 1 is overkill. Probably the optimal value is somewhere between 2 and 5.
+# Enable this only if the set charging switch is stubbornly reset by the system.
 
 # temp_level (tl) #
 # This is a current limiting hack.
