@@ -237,7 +237,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202207160
+configVerCode=202207170
 
 capacity=(-1 60 70 75 false false)
 
@@ -270,8 +270,6 @@ prioritizeBattIdleMode=false
 currentWorkaround=false
 battStatusWorkaround=true
 
-schedule=''
-
 battStatusOverride=''
 
 rebootResume=false
@@ -283,8 +281,6 @@ offMid=true
 forceOff=
 
 tempLevel=0
-
-: one-line script sample; echo nothing >/dev/null
 
 
 # WARNINGS
@@ -351,10 +347,6 @@ tempLevel=0
 
 # battStatusWorkaround=batt_status_workaround=BOOLEAN
 
-# schedule=sched='HHMM COMMAND...
-# HHMM COMMAND...
-# ...' NULLABLE
-
 # battStatusOverride=batt_status_override=Idle|Discharging|'code to PRINT value for _status' NULLABLE
 
 # rebootResume=reboot_resume=BOOLEAN
@@ -410,8 +402,6 @@ tempLevel=0
 # pbim prioritize_batt_idle_mode
 # cw current_workaround
 # bsw batt_status_workaround
-
-# sd sched
 
 # bso batt_status_override
 # rr reboot_resume
@@ -554,29 +544,6 @@ tempLevel=0
 # On the other hand, the user may observe charging control inconsistencies on devices that report wrong current values or major current fluctuations.
 # Oftentimes, charging control issues are related to the power adapter.
 
-# sched (sd) #
-# Command/script schedules, in the following format:
-#
-# sched="HHMM command...
-# HHMM command...
-# ..."
-#
-# e.g., 3900 mV at 22:00, and 4100 mV at 6:00, daily:
-# sched="2200 acc -s mcv=3900
-# 0600 acc -s mcv=4100"
-#
-# 12 hour format is not supported.
-# Each schedule must be on its own line.
-# Each line is daemonized.
-# This is not limited to acc commands. It can run anything.
-#
-# Commands:
-#   -s|--set [sd|sched]="[+-]schedule to add or pattern to delete"
-#     e.g.,
-#       acc -s sd=-2050 (delete schedules that match 2050)
-#       acc -s sd="+2200 acc -s mcv=3900 mcc=500; acc -n "Switched to \"sleep\" profile" (append schedule)
-#     Note: "acc -s sd=" behaves just like similar commands (restores default value; for schedules, it's null)
-
 # batt_status_override (bso) #
 # Overrides the battery status determined by the not_charging function.
 # It can be Idle, Discharging (both case sensitive), or logic to PRINT the desired value for the _status variable.
@@ -602,6 +569,8 @@ tempLevel=0
 # All script lines are executed whenever the config is loaded/sourced.
 # This happens regularly while the daemon is running, and at least once per command run.
 # Warning: all files used in one-line scripts must reside somewhere in /data/adb/, just like acc's own data files.
+# One can schedule tasks with the following construct:
+# : sleep profile; at 22:00 "acc -s pc=50 mcc=500 mcv=3900; acc -n 'Switched to night profile'"
 
 # off_mid (om) #
 # Whether to turn off charging after rebooting or restarting accd, if capacity is within resume_capacity and pause_capacity (default: true).
@@ -682,6 +651,11 @@ Options
       acc -c less
       acc -c cat
 
+  -c|--config a|d string|regex   Append (a) or delete (d) string/pattern to/from config
+    e.g.,
+      acc -c a ": sleep profile; at 22:00 acc -s pc=50 mcc=500 mcv=3900" (append a schedule)
+      acc -c d sleep (remove all lines matching "sleep")
+
   -d|--disable [#%, #s, #m, #h or #mv (optional)]   Disable charging
     e.g.,
       acc -d 70% (do not recharge until capacity <= 70%)
@@ -761,12 +735,6 @@ Options
       acc -s pause_capacity=60 resume_capacity=55 (shortcuts: acc -s pc=60 rc=55, acc 60 55)
       acc -s "charging_switch=battery/charging_enabled 1 0" resume_capacity=55 pause_capacity=60
     Note: all properties have short aliases for faster typing; run "acc -c cat" to see them
-
-  -s|--set [sd|sched]="[+-]schedule to add or pattern to delete"
-    e.g.,
-      acc -s sd=-2050 (delete schedules that match 2050)
-      acc -s sd="+2200 acc -s mcv=3900 mcc=500; acc -n "Switched to \"sleep\" profile" (append schedule)
-    Note: "acc -s sd=" behaves just like similar commands (restores default value; for schedules, it's null)
 
   -s|--set c|--current [milliamps|-]   Set/print/restore_default max charging current (range: 0-9999 Milliamps)
     e.g.,
@@ -886,9 +854,10 @@ Tips
   Commands can be chained for extended functionality.
     e.g., charge for 30 minutes, pause charging for 6 hours, charge to 85% and restart the daemon
     acc -e 30m && acc -d 6h && acc -e 85 && accd
+  One can take advantage of one-line scripts and the built-in "at" function to schedule profiles (refer back to -c|--config).
 
   Sample profile
-    acc -s pc=60 rc=55 mcc=500 mcv=3900
+    acc -s pc=60 mcc=500 mcv=3900
       This keeps battery capacity between 55-60%, limits charging current to 500 mA and voltage to 3900 millivolts.
       It's great for nighttime and "forever-plugged".
 

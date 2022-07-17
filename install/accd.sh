@@ -121,20 +121,7 @@ if ! $init; then
       capacitySync=false
     fi
 
-    # schedules and custom loops
-      (set +eu
-
-      schedTime=$(date +%H%M)
-      schedScript=$TMPDIR/.${schedTime}_schedScript.sh
-      if [ ! -f $schedScript ] && echo "${schedules-}" | grep "$schedTime " >/dev/null; then
-        echo "$schedules" | sed -n "s|^$schedTime |#!/system/bin/sh\n|p" > $schedScript
-        echo "sleep 60; rm $schedScript; exit" >> $schedScript
-        chmod +x $schedScript
-        start-stop-daemon -bx $schedScript -S --
-      fi
-
-      set +x
-      eval '${loopCmd-}') || :
+    (set +eu; eval '${loopCmd-}') || :
 
     # shutdown if battery temp >= shutdown_temp
     [ $(cat $temp) -lt $(( ${temperature[3]} * 10 )) ] || shutdown

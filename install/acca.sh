@@ -1,7 +1,10 @@
 #!/system/bin/sh
 # acca: acc for front-ends (faster and more efficient than acc)
-# Copyright 2020, VR25
+# Copyright 2020-2022, VR25
 # License: GPLv3+
+
+
+at() { :; }
 
 
 daemon_ctrl() {

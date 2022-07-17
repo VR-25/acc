@@ -123,6 +123,11 @@ Options
       acc -c less
       acc -c cat
 
+  -c|--config a|d string|regex   Append (a) or delete (d) string/pattern to/from config
+    e.g.,
+      acc -c a ": sleep profile; at 22:00 acc -s pc=50 mcc=500 mcv=3900" (append a schedule)
+      acc -c d sleep (remove all lines matching "sleep")
+
   -d|--disable [#%, #s, #m, #h or #mv (optional)]   Disable charging
     e.g.,
       acc -d 70% (do not recharge until capacity <= 70%)
@@ -202,12 +207,6 @@ Options
       acc -s pause_capacity=60 resume_capacity=55 (shortcuts: acc -s pc=60 rc=55, acc 60 55)
       acc -s "charging_switch=battery/charging_enabled 1 0" resume_capacity=55 pause_capacity=60
     Note: all properties have short aliases for faster typing; run "acc -c cat" to see them
-
-  -s|--set [sd|sched]="[+-]schedule to add or pattern to delete"
-    e.g.,
-      acc -s sd=-2050 (delete schedules that match 2050)
-      acc -s sd="+2200 acc -s mcv=3900 mcc=500; acc -n "Switched to \"sleep\" profile" (append schedule)
-    Note: "acc -s sd=" behaves just like similar commands (restores default value; for schedules, it's null)
 
   -s|--set c|--current [milliamps|-]   Set/print/restore_default max charging current (range: 0-9999$(print_mA))
     e.g.,
@@ -327,9 +326,10 @@ Tips
   Commands can be chained for extended functionality.
     e.g., charge for 30 minutes, pause charging for 6 hours, charge to 85% and restart the daemon
     acc -e 30m && acc -d 6h && acc -e 85 && accd
+  One can take advantage of one-line scripts and the built-in "at" function to schedule profiles (refer back to -c|--config).
 
   Sample profile
-    acc -s pc=60 rc=55 mcc=500 mcv=3900
+    acc -s pc=60 mcc=500 mcv=3900
       This keeps battery capacity between 55-60%, limits charging current to 500 mA and voltage to 3900 millivolts.
       It's great for nighttime and "forever-plugged".
 
@@ -523,7 +523,8 @@ print_acct_info() {
 
 print_panic() {
   printf "\nWARNING: experimental feature, dragons ahead!
-Some problematic control files are blacklisted automatically, based on known patterns.
+Some problematic control files are excluded, based on known patterns.
+Control files that trigger a reboot are automatically blacklisted.
 Do you want to see/edit the list of potential switches before testing?
 a: abort operation | n: no | y: yes (default) "
 }
@@ -534,6 +535,6 @@ print_resume() {
   Waiting for charging to resume...
   If it doesn't happen after a few seconds, try re-plugging the charger.
   If it's taking too long, unplug the charger, stop the test with CTRL-C, run accd -i, wait a few seconds, and retest.
-  In extreme cases, one shall comment out (blacklist) this switch in $dataDir/logs/write.log, reboot, and re-run the test.
+  In extreme cases, one shall comment out (blacklist) this switch in $dataDir/logs/write.log, reboot (to enable charging), and re-run the test.
   ##########"
 }

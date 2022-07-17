@@ -7,8 +7,9 @@ if (set +x; . $config) > /dev/null 2>&1; then
   configVer=0$(_get_prop configVerCode)
   defaultConfVer=0$(cat $TMPDIR/.config-ver)
   [ $configVer -eq $defaultConfVer ] || {
-    if [ $configVer -lt 202207160 ]; then
+    if [ $configVer -lt 202207170 ]; then
       rm $dataDir/logs/write.log 2>/dev/null || :
+      sed -i '/^: one-line script sample/d' $config
       $TMPDIR/acca --set force_off=false
     else
       $TMPDIR/acca --set dummy=

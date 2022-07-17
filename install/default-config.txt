@@ -1,4 +1,4 @@
-configVerCode=202207160
+configVerCode=202207170
 
 capacity=(-1 60 70 75 false false)
 
@@ -31,8 +31,6 @@ prioritizeBattIdleMode=false
 currentWorkaround=false
 battStatusWorkaround=true
 
-schedule=''
-
 battStatusOverride=''
 
 rebootResume=false
@@ -44,8 +42,6 @@ offMid=true
 forceOff=
 
 tempLevel=0
-
-: one-line script sample; echo nothing >/dev/null
 
 
 # WARNINGS
@@ -112,10 +108,6 @@ tempLevel=0
 
 # battStatusWorkaround=batt_status_workaround=BOOLEAN
 
-# schedule=sched='HHMM COMMAND...
-# HHMM COMMAND...
-# ...' NULLABLE
-
 # battStatusOverride=batt_status_override=Idle|Discharging|'code to PRINT value for _status' NULLABLE
 
 # rebootResume=reboot_resume=BOOLEAN
@@ -171,8 +163,6 @@ tempLevel=0
 # pbim prioritize_batt_idle_mode
 # cw current_workaround
 # bsw batt_status_workaround
-
-# sd sched
 
 # bso batt_status_override
 # rr reboot_resume
@@ -315,29 +305,6 @@ tempLevel=0
 # On the other hand, the user may observe charging control inconsistencies on devices that report wrong current values or major current fluctuations.
 # Oftentimes, charging control issues are related to the power adapter.
 
-# sched (sd) #
-# Command/script schedules, in the following format:
-#
-# sched="HHMM command...
-# HHMM command...
-# ..."
-#
-# e.g., 3900 mV at 22:00, and 4100 mV at 6:00, daily:
-# sched="2200 acc -s mcv=3900
-# 0600 acc -s mcv=4100"
-#
-# 12 hour format is not supported.
-# Each schedule must be on its own line.
-# Each line is daemonized.
-# This is not limited to acc commands. It can run anything.
-#
-# Commands:
-#   -s|--set [sd|sched]="[+-]schedule to add or pattern to delete"
-#     e.g.,
-#       acc -s sd=-2050 (delete schedules that match 2050)
-#       acc -s sd="+2200 acc -s mcv=3900 mcc=500; acc -n "Switched to \"sleep\" profile" (append schedule)
-#     Note: "acc -s sd=" behaves just like similar commands (restores default value; for schedules, it's null)
-
 # batt_status_override (bso) #
 # Overrides the battery status determined by the not_charging function.
 # It can be Idle, Discharging (both case sensitive), or logic to PRINT the desired value for the _status variable.
@@ -363,6 +330,8 @@ tempLevel=0
 # All script lines are executed whenever the config is loaded/sourced.
 # This happens regularly while the daemon is running, and at least once per command run.
 # Warning: all files used in one-line scripts must reside somewhere in /data/adb/, just like acc's own data files.
+# One can schedule tasks with the following construct:
+# : sleep profile; at 22:00 "acc -s pc=50 mcc=500 mcv=3900; acc -n 'Switched to night profile'"
 
 # off_mid (om) #
 # Whether to turn off charging after rebooting or restarting accd, if capacity is within resume_capacity and pause_capacity (default: true).

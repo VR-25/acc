@@ -100,7 +100,15 @@ edit() {
   local file="$1"
   shift
   if [ -n "${1-}" ]; then
-    IFS="$(printf ' \t\n')" eval "$* $file"
+    if [ "$1" = a ]; then
+      shift
+      echo >> $file
+      echo "$@" >> $file
+    elif [ "$1" = d ]; then
+      sed -Ei "\#$2#d" $file
+    else
+      IFS="$(printf ' \t\n')" eval "$* $file"
+    fi
   else
     ! ${verbose:-true} || {
       case $file in

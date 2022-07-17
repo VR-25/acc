@@ -45,8 +45,6 @@ prioritize_batt_idle_mode=$prioritizeBattIdleMode
 current_workaround=$currentWorkaround
 batt_status_workaround=$battStatusWorkaround
 
-sched='$schedule'
-
 batt_status_override='$battStatusOverride'
 
 reboot_resume=$rebootResume
@@ -57,7 +55,6 @@ off_mid=$offMid
 
 force_off=$forceOff
 
-temp_level=$tempLevel
-"
+temp_level=$tempLevel"
 
-sed -n '/^: /p' $config
+sed -n 's/^: /\n: /p' $config

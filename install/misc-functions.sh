@@ -49,6 +49,24 @@ apply_on_plug() {
 }
 
 
+at() {
+  local one=$1
+  local time=$(date +%H:%M)
+  local file=$TMPDIR/schedules/$one
+  shift
+  if [ ! -f $file ] && [ ${one#0} = ${time#0} ]; then
+    mkdir -p ${file%/*}
+    echo "#!/system/bin/sh
+      sleep 60
+      rm $file
+      exit" > $file
+    chmod u+x $file
+    start-stop-daemon -bx $file -S --
+    eval "$@"
+  fi
+}
+
+
 calc() {
   awk "BEGIN {print $*}" | tr , .
 }

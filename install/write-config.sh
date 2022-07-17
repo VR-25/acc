@@ -44,8 +44,6 @@ cw=${current_workaround-${cw-$currentWorkaround}}
 
 bsw=${batt_status_workaround-${bsw-$battStatusWorkaround}}
 
-sd=${sched-${sd-$schedule}}
-
 bso="${batt_status_override-${bso-$battStatusOverride}}"
 
 rr="${reboot_resume-${rr-$rebootResume}}"
@@ -59,29 +57,16 @@ fo="${force_off-${fo-$forceOff}}"
 tl="${temp_level-${tl-$tempLevel}}"
 
 
-# schedule -- append/delete
-case "$sd" in
-  +*)
-    sd="${schedule-}
-${sd#+}"
-    sd="$(echo "$sd" | sed '/^$/d')"
-  ;;
-  -*)
-    sd="$(echo "${schedule-}" | sed "\%${sd#-}%d")"
-  ;;
-esac
+# backup scripts
+touch $TMPDIR/.scripts
+grep '^: ' $config > $TMPDIR/.scripts 2>/dev/null || :
+sed -i 's/^: /\n: /' $TMPDIR/.scripts
+printf "\n\n" >> $TMPDIR/.scripts
 
 
 # enforce valid pc and rc difference
 [ $rc -lt $pc ] || {
   [ $pc -gt 3000 ] && rc=$((pc - 50)) || rc=$((pc - 5))
-}
-
-
-# backup scripts
-! grep '^: ' $config > $TMPDIR/.scripts 2>/dev/null && echo > $TMPDIR/.scripts || {
-  sed -i '/: one-line script sample/d; /:/s/$/\n/' $TMPDIR/.scripts
-  echo >> $TMPDIR/.scripts
 }
 
 
@@ -118,8 +103,6 @@ prioritizeBattIdleMode=${pbim:-false}
 currentWorkaround=${cw:-false}
 battStatusWorkaround=${bsw:-true}
 
-schedule='$sd'
-
 battStatusOverride='$bso'
 
 rebootResume=${rr:-false}
@@ -130,10 +113,8 @@ offMid=${om:-true}
 
 forceOff=${fo:-false}
 
-tempLevel=${tl:-0}
-
-: one-line script sample; echo nothing >/dev/null
-" > $config
+tempLevel=${tl:-0}" > $config
 
 cat $TMPDIR/.scripts $TMPDIR/.config-help >> $config
+rm $TMPDIR/.scripts
 set -u
