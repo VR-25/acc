@@ -102,7 +102,7 @@ ACC manipulates Android low level ([kernel](https://duckduckgo.com/lite/?q=kerne
 The author assumes no responsibility under anything that might break due to the use/misuse of this software.
 By choosing to use/misuse it, you agree to do so at your own risk!
 
-Some devices, notably Xiaomi phones, have a buggy PMIC (Power Management Integrated Circuit) that can be triggered by acc.
+Some devices, notably Xiaomi devices, have a buggy PMIC (Power Management Integrated Circuit) that can be triggered by acc.
 The issue blocks charging.
 Ensure your battery does not discharge too low.
 Using acc's auto shutdown feature is highly recommended.
@@ -417,7 +417,7 @@ tempLevel=0
 # This is checked during updates to determine whether config should be patched. Do NOT modify.
 
 # shutdown_capacity (sc) #
-# When the battery is discharging and its capacity/voltage_now_millivolts <= sc and phone has been running for 15 minutes or more, acc daemon turns the phone off to reduce the discharge rate and protect the battery from potential damage induced by voltage below the operating range.
+# When the battery is discharging and its capacity/voltage_now_millivolts <= sc and device has been running for 15 minutes or more, acc daemon turns the device off to reduce the discharge rate and protect the battery from potential damage induced by voltage below the operating range.
 # sc=-1 disables it.
 
 # cooldown_capacity (cc) #
@@ -986,9 +986,9 @@ Most of the lines are either unnecessary (e.g., type: everyone knows that alread
 
 Here's what one should focus on:
 
+BATT_HEALTH=92.00% # Estimated battery health, based on data provided by the kernel (not available on all systems)
 CAPACITY=50 # Battery level, 0-100
 CURRENT_NOW=0 # Charging current (Amps)
-HEALTH=92.00% # Battery health reported by the kernel (not available on all systems)
 POWER_NOW=0 # (CURRENT_NOW * VOLTAGE_NOW) (Watts)
 STATUS=Charging # Charging, Discharging or Idle (Not charging)
 TEMP=281 # Always in (ºC * 10)
@@ -1097,7 +1097,7 @@ Kernel level permissions forbid write access to certain interfaces.
 Sometimes, restoring the default current may not work without a system reboot.
 A workaround is setting the default max current value or any arbitrary high number (e.g., 9000 mA).
 Don't worry about frying things.
-The phone will only draw the max it can take.
+The device will only draw the max it can take.
 
 **WARNING**: limiting voltage causes battery state of charge (SoC) deviation on some devices.
 The  battery management system self-calibrates constantly, though.
@@ -1322,7 +1322,7 @@ But is it typically safer to let charging keep running, or to have the circuits 
 It's not much about which method is safer.
 It's specifically about electron stability: optimizing the pressure (voltage) and current flow.
 
-As long as you don't set a voltage limit higher than 4200 mV, and don't leave the phone plugged in for extended periods of time, you're good with that limitation alone.
+As long as you don't set a voltage limit higher than 4200 mV, and don't leave the device plugged in for extended periods of time, you're good with that limitation alone.
 Otherwise, the other option is actually more beneficial - since it mitigates high pressure (voltage) exposure/time to a greater extent.
 If you use both, simultaneously - you get the best of both worlds.
 On top of that, if you enable the cooldown cycle, it'll give you even more benefits.
@@ -1332,7 +1332,7 @@ Keeping a battery fully drained, almost fully drained or 70%+ charged for a long
 
 Putting it all together in practice...
 
-Night/heavy-duty/forever-plugged profile: keep capacity within 40-60% (e.g., acc 60 55) and/or voltage around ~3900 mV
+Night/heavy-duty/forever-plugged profile: keep capacity within 40-60% (e.g., acc 50 45) and/or voltage around ~3900 mV
 
 Day/regular profile: max capacity: 75-80% and/or voltage no higher than 4100 mV
 
@@ -1347,17 +1347,10 @@ Consider the following situation:
 
 You're almost late for an important event.
 You recall that I stole your power bank and sold it on Ebay.
-You need your phone and a good battery backup.
+You need your device and a good battery backup.
 The event will take the whole day and you won't have access to an external power supply in the middle of nowhere.
 You need your battery charged fast and as much as possible.
 However, you don't want to modify ACC config nor manually stop/restart the daemon.
-
-
-> What's DJS?
-
-It's a standalone program: Daily Job Scheduler.
-As the name suggests, it's meant for scheduling "jobs" - in this context, acc profiles/settings.
-Underneath, it runs commands/scripts at specified times - either once, daily and/or on boot.
 
 
 > Do I have to install/upgrade both ACC and AccA?
@@ -1394,10 +1387,34 @@ Refer back to `TROUBLESHOOTING > Charging Switch`.
 A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resume_capacity=74, pause_capacity=75.
 
 
+> What's idle mode, and how do I set it up?
+
+It's the ability of running off the charger.
+The battery behaves as if it were physically disconnected from the device.
+The primary indicator of idle mode is charging current within [-10,10] mA.
+
+Not all devices support the "native" idle mode. Hence, variants of "emulated" idle mode are available:
+
+1. Limit the charging voltage (e.g., acc -sv 3900, requires kernel support);
+2. Pause/resume charging based on voltage thresholds (e.g., acc 3900 keeps voltage within 3850 and 3900 millivolts);
+3. Set resume_capacity to (pause_capacity - 1), e.g., acc 50 49.
+
+Notes
+
+- In idle mode, the battery does discharge, although very slowly. The same happens to a battery that is sitting on a shelf.
+- In emulated idle mode, the battery tends to hold its charge, since it works as a "passthrough" device. Imagine pouring water into a glass that is already full.
+- Regardless of the variant, idle mode is not recommended for highly charged batteries. Ideally, battery level shall be around 40-60%, and/or voltage between 3.7-3.9ish Volts.
+
+
+> How do I enable "smart charging"?
+
+Configure day and night profiles:
+
+`acc -c a ": day profile; at 6:00 \"acc -s pc=75 mcc= mcv=4100; acc -n 'Switched to day profile'\""; acc -c a ": night profile; at 22:00 \"acc -s pc=50 mcc=500 mcv=3900; acc -n 'Switched to night profile'\""`
+
+
 ---
 ## LINKS
-
-- [Daily Job Scheduler](https://github.com/VR-25/djs)
 
 - [Donate - Zelle: iprj25 @ gmail . com](https://enroll.zellepay.com/qr-codes?data=eyJuYW1lIjoiSVZBTkRSTyIsInRva2VuIjoiaXByajI1QGdtYWlsLmNvbSIsImFjdGlvbiI6InBheW1lbnQifQ==)
 - [Donate - Airtm, username: ivandro863auzqg](https://app.airtm.com/send-or-request/send)
