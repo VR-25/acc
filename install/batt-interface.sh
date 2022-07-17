@@ -16,7 +16,7 @@ not_charging() {
   local i=
   local switch=${flip-}; flip=
   local curThen=$(cat $curThen)
-  local ncTimeout=${ncTimeout:-10}
+  local nci=${nci:-7}
   local battStatusOverride="${battStatusOverride-}"
   local battStatusWorkaround=${battStatusWorkaround-}
 
@@ -24,15 +24,15 @@ not_charging() {
   [ $currFile != $TMPDIR/.dummy-curr ] || battStatusWorkaround=false
 
   if [ -z "${battStatusOverride-}" ] && [ "$switch" = off ]; then
-    for i in $(seq $ncTimeout); do
+    for i in $(seq $nci); do
       ! status ${1-} || return 0
-      [ $i = $ncTimeout ] || sleep 3
+      [ $i = $nci ] || sleep 3
     done
     return 1
   elif ! ${isAccd:-false} && [ "$switch" = on ]; then
-    for i in $(seq $ncTimeout); do
+    for i in $(seq $nci); do
       status ${1-} || return 1
-      [ $i = $ncTimeout ] || sleep 3
+      [ $i = $nci ] || sleep 3
     done
   else
     status ${1-}
