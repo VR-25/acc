@@ -237,7 +237,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202207170
+configVerCode=202207180
 
 capacity=(-1 60 70 75 false false)
 
@@ -423,7 +423,7 @@ tempLevel=0
 # cooldown_capacity (cc) #
 # Capacity/voltage_now_millivolts at which the cooldown cycle starts.
 # Cooldown reduces battery stress induced by prolonged exposure to high temperature and high charging voltage.
-# It does so through periodically pausing charging for a few seconds (more details below).
+# It does so through periodically pausing charging for a few seconds (cooldown_pause, more details below).
 
 # resume_capacity (rc) #
 # Capacity or voltage_now_millivolts at which charging should resume.
@@ -471,7 +471,8 @@ tempLevel=0
 # It takes precedence over the regular cooldown settings.
 
 # cooldown_current (cdc) #
-# Instead of pausing charging periodically during the cooldown phase, limit the max charging current (e.g., to 500 mA)
+# Instead of pausing charging for cooldown_pause seconds, limit the max charging current (e.g., to 500 mA).
+# cooldown_charge can be 0.
 
 # reset_batt_stats_on_pause (rbsp) #
 # Reset battery stats after pausing charging.

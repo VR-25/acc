@@ -253,33 +253,26 @@ if ! $init; then
 
         # cooldown cycle
         while [ -n "${cooldownRatio[0]-}${cooldownCustom[0]-}" ] \
-          && _lt_pause_cap \
-          && is_charging
+          && _lt_pause_cap && is_charging
         do
           if [ $(cat $temp) -ge $(( ${temperature[0]} * 10 )) ] \
             || _ge_cooldown_cap \
             || [ $(sed s/-// ${cooldownCustom[0]:-cooldownCustom} 2>/dev/null || echo 0) -ge ${cooldownCustom[1]:-1} ]
           then
             cooldown=true
-            if [ -n "${cooldownCurrent-}" ] && grep -q / $TMPDIR/ch-curr-ctrl-files 2>/dev/null
-            then
+            if [ -n "${cooldownCurrent-}" ] && grep -q / $TMPDIR/ch-curr-ctrl-files 2>/dev/null; then
               # cooldown by limiting current
-              cmd_batt set status $chgStatusCode # to prevent unwanted display wakeups
-              set +e
               maxChargingCurrent0=${maxChargingCurrent[0]-}
-              set_ch_curr ${cooldownCurrent:-0}
+              set_ch_curr ${cooldownCurrent:-500} || :
               sleep ${cooldownRatio[1]:-1}
-              set_ch_curr ${maxChargingCurrent0:--}
-              set -e
-              $capacitySync || cmd_batt reset
-              count=0
-              while [ $count -lt ${cooldownRatio[0]:-1} ]
-              do
-                sleep ${loopDelay[0]}
-                _lt_pause_cap \
-                  && count=$(( count + ${loopDelay[0]} )) \
-                  || break
-              done
+              [ ${cooldownRatio[0]:-0} -eq 0 ] || {
+                set_ch_curr ${maxChargingCurrent0:--} || :
+                count=0
+                while [ $count -lt ${cooldownRatio[0]:-1} ]; do
+                  sleep ${loopDelay[0]}
+                  _lt_pause_cap && count=$(( count + ${loopDelay[0]} )) || break
+                done
+              }
             else
               # regular cooldown
               cmd_batt set status $chgStatusCode
@@ -304,6 +297,7 @@ if ! $init; then
           fi
         done
 
+        $cooldown && set_ch_curr ${maxChargingCurrent0:--} || :
         cooldown=false
         sleep ${loopDelay[0]}
 
