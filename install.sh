@@ -286,4 +286,15 @@ rm $data_dir/${id}-uninstaller.zip $data_dir/logs/*.tar.gz $data_dir/curr 2>/dev
 # initialize $id
 /data/adb/$domain/$id/service.sh --init
 
+# disable mi_thermald
+miThermald=/vendor/bin/mi_thermald
+miThermald_=$miThermald
+if [ -f $miThermald ] && [ -f $magiskModDir/$id/module.prop ]; then
+  miThermald=$magiskModDir/$id/system$miThermald
+  mkdir -p ${miThermald%/*}
+  echo "#dummy" > $miThermald
+  magisk --clone-attr $miThermald_ $miThermald 2>/dev/null
+  grep -q "^#dummy$" $miThermald_ || printf "\nmi_thermald has been disabled. Reboot to apply change.\n"
+fi
+
 exit 0
