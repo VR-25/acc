@@ -523,8 +523,8 @@ print_acct_info() {
 
 print_panic() {
   printf "\nWARNING: experimental feature, dragons ahead!
-Some problematic control files are excluded, based on known patterns.
-Control files that trigger a reboot are automatically blacklisted.
+Potentially problematic control files are excluded based on known patterns.
+Some control files that trigger a reboot are automatically blacklisted.
 Do you want to see/edit the list of potential switches before testing?
 a: abort operation | n: no | y: yes (default) "
 }

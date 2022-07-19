@@ -1,5 +1,6 @@
 idle_discharging() {
   [ $curThen != null ] && [ ${curNow#-} -le $idleThreshold ] && _status=Idle || {
+    [ $_status != Discharging ] || return 0
     case "${dischargePolarity-}" in
       +) [ $curNow -ge 0 ] && _status=Discharging || _status=Charging;;
       -) [ $curNow -lt 0 ] && _status=Discharging || _status=Charging;;
@@ -14,9 +15,9 @@ idle_discharging() {
 not_charging() {
 
   local i=
+  local nci=${nci:-5}
   local switch=${flip-}; flip=
   local curThen=$(cat $curThen)
-  local nci=${nci:-7}
   local battStatusOverride="${battStatusOverride-}"
   local battStatusWorkaround=${battStatusWorkaround-}
 
@@ -48,8 +49,8 @@ online() {
 read_status() {
   local status="$(cat $battStatus)"
   case "$status" in
-    Charging|Discharging) printf %s $status;;
-    Not?charging) printf Idle;;
+    *Charging*) printf Charging;;
+    *Not*) printf Idle;;
     *) printf Discharging;;
   esac
 }
@@ -76,7 +77,7 @@ status() {
 
   _status=$(read_status)
 
-  [ -z "${exitCode_-}" ] || echo "  switch:${switch:-on} status:$_status curr:$curThen,$curNow"
+  [ -z "${exitCode_-}" ] || echo "  switch_state:${switch:-on} batt_status:$_status current_on_off:$curThen,$curNow"
 
   if [ -n "${battStatusOverride-}" ]; then
     if tt "$battStatusOverride" "Discharging|Idle"; then
@@ -143,7 +144,7 @@ if ${init:-false}; then
   }
 
 
-  idleThreshold=95 # mA
+  idleThreshold=25 # mA
   ampFactor=$(sed -n 's/^ampFactor=//p' $dataDir/config.txt 2>/dev/null || :)
   ampFactor_=${ampFactor:-1000}
 

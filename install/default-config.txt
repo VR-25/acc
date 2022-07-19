@@ -1,4 +1,4 @@
-configVerCode=202207180
+configVerCode=202207191
 
 capacity=(-1 60 70 75 false false)
 

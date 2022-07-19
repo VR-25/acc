@@ -345,11 +345,7 @@ notif() {
 
 
 parse_value() {
-  local i=
-  case $1 in
-    */*) i="$(sed 's/ /::/g' $1 2>/dev/null || :)"; [ -z "$i" ] || echo $i;;
-    *) echo $1;;
-  esac
+  [ -f "$1" ] && cat $1 || echo "$1" | sed 's/::/ /g'
 }
 
 
@@ -406,31 +402,19 @@ wait_plug() {
 
 
 write() {
-  local i=
+  local i=y
   local l=$dataDir/logs/write.log
-  local s=
   local f=$TMPDIR/.unblacklist.$(date +%s)
   blacklisted=false
   [ -f "$2" ] && chmod u+w "$2" || return ${3-1}
-  s="$(grep -E "^(#$2|$2)$" $l 2>/dev/null || :)"
-  case "$s" in
+  case "$(grep -E "^(#$2|$2)$" $l 2>/dev/null || :)" in
     \#*) blacklisted=true; return ${3-1};;
-    "") echo "#$2" >> $l; s=x;;
+    */*) eval echo "$1" > "$2" || return ${3-1};;
+    *) echo \#$2 >> $l
+       eval echo "$1" > "$2" || i=x
+       sed -i "s|^#$2$|$2|" $l
+       [ $i = y ] || return ${3-1};;
   esac
-  for i in 1 2; do
-    eval echo "$1" > "$2" || { i=x; break; }
-    sleep 0.5
-  done
-  [ $s != x ] || {
-    echo "#!/system/bin/sh
-    sleep 15
-    sed -i \"\|^#$2$|s|^#||\" $l
-    rm $f
-    exit" > $f
-    chmod u+x $f
-    start-stop-daemon -bx $f -S --
-  }
-  [ $i != x ] || return ${3-1}
 }
 
 
@@ -459,7 +443,6 @@ trap exxit EXIT
 device=$(getprop ro.product.device | grep .. || getprop ro.build.product)
 
 cd /sys/class/power_supply/
-
 . $execDir/batt-interface.sh
 
 # cmd and dumpsys wrappers for Termux and recovery

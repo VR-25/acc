@@ -489,7 +489,7 @@ case "${1-}" in
       echo "#!/system/bin/sh
         sleep 2
         exec $TMPDIR/accd $config_" > $TMPDIR/.accdt
-      chmod +x $TMPDIR/.accdt
+      chmod u+x $TMPDIR/.accdt
     }
 
     . $execDir/acquire-lock.sh
@@ -497,7 +497,6 @@ case "${1-}" in
     grep -Ev '^$|^#' $config > $TMPDIR/.config
     config=$TMPDIR/.config
 
-    set +e
     exxit() {
       [ -z "$parsed" ] || {
         cat $TMPDIR/ch-switches $_parsed 2>/dev/null > $parsed \
@@ -512,8 +511,9 @@ case "${1-}" in
       ! $daemonWasUp || start-stop-daemon -bx $TMPDIR/.accdt -S --
       exit $exitCode
     }
-    trap exxit EXIT
 
+    set +e
+    trap exxit EXIT
     not_charging && enable_charging > /dev/null
 
     not_charging && {

@@ -1180,7 +1180,7 @@ Refer back to the [warnings](#warnings) section above.
 ### Unexpected Reboots
 
 Wrong/troublesome charging control files may trigger unwanted reboots.
-ACC blacklist these automatically (registered in `/data/adb/vr25/acc-data/logs/write.log`, with a leading hashtag).
+ACC blacklist some of these automatically (registered in `/data/adb/vr25/acc-data/logs/write.log`, with a leading hashtag).
 Sometimes, there may be false positives in there - i.e., due to unexpected reboots caused by something else. Thus, if a control file that used to work, suddenly does not, see if it was blacklisted (`acc -t` also reveals blacklisted switches).
 Send `write.log` to the developer once the reboots have stopped.
 

@@ -655,7 +655,7 @@ else
 
   # prepare bg-dexopt-job wrapper
   printf "#!/system/bin/sh\n/system/bin/cmd package bg-dexopt-job < /dev/null > /dev/null 2>&1" > $TMPDIR/.bg-dexopt-job.sh
-  chmod +x $TMPDIR/.bg-dexopt-job.sh
+  chmod u+x $TMPDIR/.bg-dexopt-job.sh
 
   # start $id daemon
   rm $TMPDIR/.ghost-charging 2>/dev/null
