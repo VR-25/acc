@@ -1,6 +1,6 @@
 ls_ch_switches() {
   echo "
-*/*charging_enabled 1 0
+*/*charging_enable* 1 0
 */*disable_charg* 0 1
 */charge_disable 0 1
 */charge_enabled 1 0
