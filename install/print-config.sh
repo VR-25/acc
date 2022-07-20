@@ -55,6 +55,8 @@ off_mid=$offMid
 
 force_off=$forceOff
 
-temp_level=$tempLevel"
+temp_level=$tempLevel
+
+loop_cmd=" #legacy, AccSettings
 
 sed -n 's/^: /\n: /p' $config
