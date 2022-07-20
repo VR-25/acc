@@ -12,16 +12,19 @@ apply_on_boot() {
 
   ! tt "${applyOnBoot[@]-}${maxChargingVoltage[@]-}" "*--exit*" || exitCmd=true
 
-  for entry in "${applyOnBoot[@]-}" "${maxChargingVoltage[@]-}"; do
-    [ "$entry" != --exit ] || continue
+  for entry in ${applyOnBoot[@]-} ${maxChargingVoltage[@]-}; do
     set -- ${entry//::/ }
+    [ -f ${1-//} ] || continue
     file=${1-}
     value=${2-}
-    { $exitCmd && ! $force; } && default=${2-} || default=${3:-${2-}}
-    write \$$arg $file 0 &
+    if $exitCmd && ! $force; then
+      default=${2-}
+    else
+      default=${3:-${2-}}
+    fi
+    write \$$arg $file 0
   done
 
-  wait
   $exitCmd && [ $arg = value ] && exit 0 || :
 }
 
@@ -34,18 +37,16 @@ apply_on_plug() {
   local default=
   local arg=${1:-value}
 
-  for entry in "${applyOnPlug[@]-}" \
-    "${maxChargingCurrent[@]:-$([ .$arg != .default ] || cat $TMPDIR/ch-curr-ctrl-files 2>/dev/null)}" \
-    "${maxChargingVoltage[@]-}"
+  for entry in ${applyOnPlug[@]-} ${maxChargingVoltage[@]-} \
+    ${maxChargingCurrent[@]:-$([ .$arg != .default ] || cat $TMPDIR/ch-curr-ctrl-files 2>/dev/null || :)}
   do
     set -- ${entry//::/ }
+    [ -f ${1-//} ] || continue
     file=${1-}
     value=${2-}
     default=${3:-${2-}}
-    write \$$arg $file 0 &
+    write \$$arg $file 0
   done
-
-  wait
 }
 
 
@@ -404,7 +405,6 @@ wait_plug() {
 write() {
   local i=y
   local l=$dataDir/logs/write.log
-  local f=$TMPDIR/.unblacklist.$(date +%s)
   blacklisted=false
   [ -f "$2" ] && chmod u+w "$2" || return ${3-1}
   case "$(grep -E "^(#$2|$2)$" $l 2>/dev/null || :)" in
