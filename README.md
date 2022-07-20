@@ -317,7 +317,7 @@ tempLevel=0
 
 # cooldownRatio=(cooldown_charge cooldown_pause) SECONDS,NULLABLE
 
-# cooldownCustom=cooldown_custom=(FILE RAW_VALUE CHARGE_SECONDS PAUSE_SECONDS) NULLABLE
+# cooldownCustom=cooldown_custom=(FILE THRESHOLD CHARGE_SECONDS PAUSE_SECONDS) NULLABLE
 
 # cooldownCurrent=cooldown_current=MILLIAMPS NULLABLE
 
@@ -987,7 +987,7 @@ Most of the lines are either unnecessary (e.g., type: everyone knows that alread
 
 Here's what one should focus on:
 
-BATT_HEALTH=92.00% # Estimated battery health, based on data provided by the kernel (not available on all systems)
+HEALTH=Good # Battery health
 CAPACITY=50 # Battery level, 0-100
 CURRENT_NOW=0 # Charging current (Amps)
 POWER_NOW=0 # (CURRENT_NOW * VOLTAGE_NOW) (Watts)

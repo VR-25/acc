@@ -78,7 +78,7 @@ tempLevel=0
 
 # cooldownRatio=(cooldown_charge cooldown_pause) SECONDS,NULLABLE
 
-# cooldownCustom=cooldown_custom=(FILE RAW_VALUE CHARGE_SECONDS PAUSE_SECONDS) NULLABLE
+# cooldownCustom=cooldown_custom=(FILE THRESHOLD CHARGE_SECONDS PAUSE_SECONDS) NULLABLE
 
 # cooldownCurrent=cooldown_current=MILLIAMPS NULLABLE
 
