@@ -32,11 +32,10 @@ _batt_info() {
         echo "$dsys"
       fi
 
-    } | grep -Ei "${1-.*}" \
-        | sed -e '1s/.*/Battery Service/' && echo
+    } | grep -Ei "${1-.*}" | sed -e '1s/.*/Battery Service\n/' && echo
 
     . $execDir/batt-info.sh
-    echo Uevent
+    printf "Uevent\n\n"
     batt_info "${1-}" | sed 's/^/  /'
 
   } | more

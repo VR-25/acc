@@ -31,10 +31,10 @@ batt_info() {
     cat $batt/uevent *bms*/uevent 2>/dev/null \
       | sort -u \
       | sed -E -e 's/^POWER_SUPPLY_//' \
-          -e 's/^BATT_VOL=/VOLTAGE_NOW=/' \
-          -e 's/^BATT_TEMP=/TEMP=/' \
-          -e '/^(HEALTH|CHARGE_TYPE|NAME)=/d'\
-          -e "/^CAPACITY=/s/=.*/=$(cat $battCapacity)/"
+        -e 's/^BATT_VOL=/VOLTAGE_NOW=/' \
+        -e 's/^BATT_TEMP=/TEMP=/' \
+        -e '/^(CHARGE_TYPE|NAME)=/d'\
+        -e "/^CAPACITY=/s/=.*/=$(cat $battCapacity)/"
   )"
 
 
@@ -93,6 +93,7 @@ CURRENT_NOW=$currNow$(print_A 2>/dev/null || :)
 VOLTAGE_NOW=$voltNow$(print_V 2>/dev/null || :)
 POWER_NOW=$powerNow$(print_W 2>/dev/null || :)"
 
+
   # power supply info
   for i in */online; do
     ! tt "$i" "*[bB][mM][sS]*" || continue
@@ -101,29 +102,24 @@ POWER_NOW=$powerNow$(print_W 2>/dev/null || :)"
       POWER_SUPPLY_TYPE=$(cat $i/real_type 2>/dev/null || echo $i | tr [a-z] [A-Z])
 
       echo "
-POWER_SUPPLY_TYPE=$POWER_SUPPLY_TYPE"
+CHARGE_TYPE=$POWER_SUPPLY_TYPE"
 
-      POWER_SUPPLY_AMPS=$(calc2 $(grep -o '^....' $i/*current_now | tail -n1) / 1000)
-      [ $POWER_SUPPLY_AMPS = 0.00 ] || {
-        POWER_SUPPLY_VOLTS=$(calc2 $(grep -o '^....' $i/voltage_now) / 1000)
+      POWER_SUPPLY_AMPS=$(dtr_conv_factor $(cat $i/*current_now | tail -n 1) ${ampFactor:-$ampFactor_})
+
+      if [ 0${POWER_SUPPLY_AMPS%.*} -gt 0 ]; then
+        POWER_SUPPLY_VOLTS=$(dtr_conv_factor $(cat $i/voltage_now) ${voltFactor-})
         POWER_SUPPLY_WATTS=$(calc2 $POWER_SUPPLY_AMPS \* $POWER_SUPPLY_VOLTS)
+        CONSUMED_WATTS=$(calc2 $POWER_SUPPLY_WATTS - $powerNow)
 
-      echo "POWER_SUPPLY_AMPS=$POWER_SUPPLY_AMPS
+        echo "POWER_SUPPLY_AMPS=$POWER_SUPPLY_AMPS
 POWER_SUPPLY_VOLTS=$POWER_SUPPLY_VOLTS
-POWER_SUPPLY_WATTS=$POWER_SUPPLY_WATTS"
+POWER_SUPPLY_WATTS=$POWER_SUPPLY_WATTS
+CONSUMED_WATTS=$CONSUMED_WATTS"
+      fi
 
-}
       break
     fi
   done 2>/dev/null || :
-
-  # battery health
-  for i in */charge_full_design; do
-    if [ -f $i ] && [ -f ${i%/*}/charge_counter ]; then
-      printf "\n%s\n" BATT_HEALTH=$(calc2 "100 - (($(cat $i) * $(cat $battCapacity) / 100) / $(cat ${i%/*}/charge_counter))")%
-      break
-    fi
-  done
 
   } | grep -Ei "${1:-.*}" || :
 }
