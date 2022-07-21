@@ -488,7 +488,7 @@ case "${1-}" in
       echo "#!/system/bin/sh
         sleep 2
         exec $TMPDIR/accd $config_" > $TMPDIR/.accdt
-      chmod u+x $TMPDIR/.accdt
+      chmod 0700 $TMPDIR/.accdt
     }
 
     . $execDir/acquire-lock.sh
@@ -527,58 +527,55 @@ case "${1-}" in
     . $execDir/read-ch-curr-ctrl-files-p2.sh
     : > /sdcard/Download/acc-t_output-${device}.log
 
-    case "${1-}" in
-      ""|p|parse)
-        ! tt "${1-}" "p|parse" || parsed=$TMPDIR/.parsed
-        [ -z "$parsed" ] || {
-          _parsed=$dataDir/logs/parsed.log
-          if parse_switches > $parsed; then
-            set -- $parsed
-            ! ${verbose:-true} || {
-              print_panic
-              read -n 1 a
-              echo
-              case "$a" in
-                ""|y) edit $parsed;;
-                a) exit;;
-              esac
-            }
-          else
+    if [ -z "${2-}" ]; then
+      ! tt "${1-}" "p|parse" || parsed=$TMPDIR/.parsed
+      [ -z "$parsed" ] || {
+        _parsed=$dataDir/logs/parsed.log
+        if parse_switches > $parsed; then
+          set -- $parsed
+          ! ${verbose:-true} || {
+            print_panic
+            read -n 1 a
             echo
-            exit
-          fi
-        }
-        swCount=1
-        swTotal=$(wc -l ${1-$TMPDIR/ch-switches} | cut -d ' ' -f 1)
-        while read _chargingSwitch; do
-          echo "x$_chargingSwitch" | grep -Eq '^x$|^x#' && continue
-          [ -f "$(echo "$_chargingSwitch" | cut -d ' ' -f 1)" ] && {
-            { test_charging_switch $_chargingSwitch; echo $? > $TMPDIR/.exitCode; } \
-              | tee -a /sdcard/Download/acc-t_output-${device}.log
-            rm $TMPDIR/.sw 2>/dev/null || :
-            swCount=$((swCount + 1))
-            exitCode_=$(cat $TMPDIR/.exitCode)
-            if [ -n "$parsed" ] && [ $exitCode_ -ne 10 ]; then
-              grep -q "^$_chargingSwitch$" $_parsed 2>/dev/null \
-                || echo "$_chargingSwitch" >> $_parsed
-            fi
-            case $exitCode in
-              15) ;;
-              0) [ $exitCode_ -eq 15 ] && exitCode=15;;
-              *) exitCode=$exitCode_;;
+            case "$a" in
+              ""|y) edit $parsed;;
+              a) exit;;
             esac
           }
-        done < ${1-$TMPDIR/ch-switches}
-        echo
-      ;;
-      *)
-        { test_charging_switch "$@"; echo $? > $TMPDIR/.exitCode; } \
-          | tee -a /sdcard/Download/acc-t_output-${device}.log
-        rm $TMPDIR/.sw 2>/dev/null || :
-        exitCode=$(cat $TMPDIR/.exitCode)
-        echo
-      ;;
-    esac
+        else
+          echo
+          exit
+        fi
+      }
+      swCount=1
+      swTotal=$(wc -l ${1-$TMPDIR/ch-switches} | cut -d ' ' -f 1)
+      while read _chargingSwitch; do
+        echo "x$_chargingSwitch" | grep -Eq '^x$|^x#' && continue
+        [ -f "$(echo "$_chargingSwitch" | cut -d ' ' -f 1)" ] && {
+          { test_charging_switch $_chargingSwitch; echo $? > $TMPDIR/.exitCode; } \
+            | tee -a /sdcard/Download/acc-t_output-${device}.log
+          rm $TMPDIR/.sw 2>/dev/null || :
+          swCount=$((swCount + 1))
+          exitCode_=$(cat $TMPDIR/.exitCode)
+          if [ -n "$parsed" ] && [ $exitCode_ -ne 10 ]; then
+            grep -q "^$_chargingSwitch$" $_parsed 2>/dev/null \
+              || echo "$_chargingSwitch" >> $_parsed
+          fi
+          case $exitCode in
+            15) ;;
+            0) [ $exitCode_ -eq 15 ] && exitCode=15;;
+            *) exitCode=$exitCode_;;
+          esac
+        }
+      done < ${1-$TMPDIR/ch-switches}
+      echo
+    else
+      { test_charging_switch "$@"; echo $? > $TMPDIR/.exitCode; } \
+        | tee -a /sdcard/Download/acc-t_output-${device}.log
+      rm $TMPDIR/.sw 2>/dev/null || :
+      exitCode=$(cat $TMPDIR/.exitCode)
+      echo
+    fi
 
     print_acct_info
     echo
