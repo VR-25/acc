@@ -1285,7 +1285,7 @@ There are no negative consequences when it doesn't.
 
 If your battery's thermistor always reports a negative value, and charging is very slow or even off, see if the following helps:
 
-`echo ': ; if ${isAccd:-false} && online; then (for i in */temp_cool */temp_cold; do [ -f $i ] || continue; chmod u+w $i && echo "-999" > $i; done); fi || :' >> $(acca -c echo)`
+`echo ': ; if ${isAccd:-false} && online; then (for i in */temp_cool */temp_cold; do [ -f $i ] || continue; chown 0:0 $i; chmod 0644 $i; echo "-999" > $i; done); fi || :' >> $(acca -c echo)`
 
 
 ---

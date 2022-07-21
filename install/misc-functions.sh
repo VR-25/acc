@@ -61,7 +61,7 @@ at() {
       sleep 60
       rm $file
       exit" > $file
-    chmod u+x $file
+    chmod 0700 $file
     start-stop-daemon -bx $file -S --
     eval "$@"
   fi
@@ -406,7 +406,7 @@ write() {
   local i=y
   local l=$dataDir/logs/write.log
   blacklisted=false
-  [ -f "$2" ] && chmod u+w "$2" || return ${3-1}
+  [ -f "$2" ] && chown 0:0 "$2" && chmod 0644 "$2" || return ${3-1}
   case "$(grep -E "^(#$2|$2)$" $l 2>/dev/null || :)" in
     \#*) blacklisted=true; return ${3-1};;
     */*) eval echo "$1" > "$2" || return ${3-1};;

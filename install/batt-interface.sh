@@ -1,6 +1,5 @@
 idle_discharging() {
   [ $curThen != null ] && [ ${curNow#-} -le $idleThreshold ] && _status=Idle || {
-    [ $_status != Discharging ] || return 0
     case "${dischargePolarity-}" in
       +) [ $curNow -ge 0 ] && _status=Discharging || _status=Charging;;
       -) [ $curNow -lt 0 ] && _status=Discharging || _status=Charging;;
@@ -15,7 +14,7 @@ idle_discharging() {
 not_charging() {
 
   local i=
-  local nci=${nci:-5}
+  local nci=${nci:-15}
   local switch=${flip-}; flip=
   local curThen=$(cat $curThen)
   local battStatusOverride="${battStatusOverride-}"
@@ -65,7 +64,7 @@ set_temp_level() {
     if [ ! -f $a ] || [ ! -f $b ]; then
       continue
     fi
-    chmod u+w $b && echo $(( ($(cat $a) * l) / 100 )) > $b || :
+    chown 0:0 $b && chmod 0644 $b && echo $(( ($(cat $a) * l) / 100 )) > $b || :
   done
 }
 
@@ -77,7 +76,7 @@ status() {
 
   _status=$(read_status)
 
-  [ -z "${exitCode_-}" ] || echo "  switch_state:${switch:-on} batt_status:$_status current_on_off:$curThen,$curNow"
+  [ -z "${exitCode_-}" ] || echo "  switch:${switch:-on} current:$curThen,$curNow"
 
   if [ -n "${battStatusOverride-}" ]; then
     if tt "$battStatusOverride" "Discharging|Idle"; then
@@ -144,7 +143,7 @@ if ${init:-false}; then
   }
 
 
-  idleThreshold=25 # mA
+  idleThreshold=21 # mA
   ampFactor=$(sed -n 's/^ampFactor=//p' $dataDir/config.txt 2>/dev/null || :)
   ampFactor_=${ampFactor:-1000}
 

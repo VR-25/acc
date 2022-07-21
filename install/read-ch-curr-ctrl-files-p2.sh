@@ -14,7 +14,7 @@ then
 
   ls -1 $(ls_curr_ctrl_files_dynamic | grep -Ev '^#|^$') 2>/dev/null | \
     while read file; do
-      chmod u+w $file || continue
+      chmod +r $file || continue
       defaultValue=$(cat $file)
       [ -n "$defaultValue" ] || continue
       [ $defaultValue -eq 0 ] && continue
