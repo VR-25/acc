@@ -76,6 +76,19 @@ print_not_found() {
   echo "$1 not found"
 }
 
+print_ext_app() {
+  case $1 in
+    e) act=editor ;;
+    v) act=viewer ;;
+  esac
+  cat << EOF
+  Opening external text $act app choosing
+  dialog and select any root-compatible
+  text $act app.
+ 
+  e.g., MiXplorer, QuickEdit, etc.
+EOF
+}
 
 print_help() {
   cat << EOF
