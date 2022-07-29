@@ -40,8 +40,7 @@ set_ch_curr() {
 
       apply_current() {
         eval "
-          if [ $1 -ne 0 ]
-          then
+          if [ $1 -ne 0 ]; then
             maxChargingCurrent=($1 $(sed "s|::v|::$1|" $TMPDIR/ch-curr-ctrl-files))
           else
             maxChargingCurrent=($1 $(sed "s|::v.*::|::$1::|" $TMPDIR/ch-curr-ctrl-files))
@@ -50,7 +49,6 @@ set_ch_curr() {
           && unset max_charging_current mcc \
           && apply_on_plug \
           && {
-            #noEcho=true
             ! $verbose || print_curr_set $1
           } || return 1
       }

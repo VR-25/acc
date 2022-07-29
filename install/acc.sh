@@ -140,7 +140,6 @@ test_charging_switch() {
 
   local idleMode=false
   local failed=false
-  local testingSwitch=true
   chargingSwitch=($@)
 
   echo
@@ -152,7 +151,7 @@ test_charging_switch() {
   echo "chargingSwitch=($*)" > $TMPDIR/.sw
   flip_sw off
 
-  $blacklisted && {
+  ${blacklisted:-false} && {
     print_blacklisted
     return 10
   }

@@ -20,7 +20,6 @@ set_ch_volt() {
           && unset max_charging_voltage mcv \
           && apply_on_boot \
           && {
-            #noEcho=true
             ! ${verbose:-true} || print_volt_set $1
           } || return 1
       }

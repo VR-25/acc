@@ -23,17 +23,17 @@ not_charging() {
   tt "${chargingSwitch[$*]-}" "*\ --" || battStatusOverride=
   [ $currFile != $TMPDIR/.dummy-curr ] || battStatusWorkaround=false
 
-  if [ -z "${battStatusOverride-}" ] && [ "$switch" = off ]; then
+  if [ -z "${battStatusOverride-}" ] && [ -n "$switch" ]; then
     for i in $(seq $nci); do
-      ! status ${1-} || return 0
+      if [ "$switch" = off ]; then
+        ! status ${1-} || return 0
+      else
+        status ${1-} || return 1
+      fi
+      [ ! -f $TMPDIR/.nowrite ] || { rm $TMPDIR/.nowrite 2>/dev/null || :; break; }
       [ $i = $nci ] || sleep 3
     done
-    return 1
-  elif ! ${isAccd:-false} && [ "$switch" = on ]; then
-    for i in $(seq $nci); do
-      status ${1-} || return 1
-      [ $i = $nci ] || sleep 3
-    done
+    [ "$switch" = on ] || return 1
   else
     status ${1-}
   fi
@@ -48,8 +48,8 @@ online() {
 read_status() {
   local status="$(cat $battStatus)"
   case "$status" in
-    *Charging*) printf Charging;;
-    *Not*) printf Idle;;
+    Charging|Discharging) printf %s $status;;
+    Not?charging) printf Idle;;
     *) printf Discharging;;
   esac
 }
@@ -76,8 +76,6 @@ status() {
 
   _status=$(read_status)
 
-  [ -z "${exitCode_-}" ] || echo "  switch:${switch:-on} current:$curThen,$curNow"
-
   if [ -n "${battStatusOverride-}" ]; then
     if tt "$battStatusOverride" "Discharging|Idle"; then
       [ $(cat ${chargingSwitch[0]}) != ${chargingSwitch[2]} ] || _status=$battStatusOverride
@@ -87,6 +85,8 @@ status() {
   elif $battStatusWorkaround; then
     [ $_status = Idle ] || idle_discharging
   fi
+
+  [ -z "${exitCode_-}" ] || echo -e "  switch: ${switch:--} (${swValue:-N/A})\tcurrent: $(calc $curNow \* 1000 / ${ampFactor:-$ampFactor_} | xargs printf %.f)mA ($_status)"
 
   for i in Discharging DischargingDischarging Idle IdleIdle; do
     [ $i != ${1-}$_status ] || return 0
@@ -143,7 +143,7 @@ if ${init:-false}; then
   }
 
 
-  idleThreshold=21 # mA
+  idleThreshold=11 # mA
   ampFactor=$(sed -n 's/^ampFactor=//p' $dataDir/config.txt 2>/dev/null || :)
   ampFactor_=${ampFactor:-1000}
 
