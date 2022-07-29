@@ -136,6 +136,18 @@ edit() {
 get_prop() { sed -n "s|^$1=||p" ${2:-$config}; }
 
 
+switch_fails() {
+  print_switch_fails
+  ! not_charging >/dev/null || {
+    print_resume
+    while not_charging; do
+      sleep 1
+    done
+  }
+  return 10
+}
+
+
 test_charging_switch() {
 
   local idleMode=false
@@ -150,6 +162,11 @@ test_charging_switch() {
 
   echo "chargingSwitch=($*)" > $TMPDIR/.sw
   flip_sw off
+  ! [ $? -eq 2 ] || {
+    flip_sw on
+    switch_fails
+    return 10
+  }
 
   ${blacklisted:-false} && {
     print_blacklisted
@@ -167,14 +184,7 @@ test_charging_switch() {
     echo "- battIdleMode=$idleMode"
     $idleMode && return 15 || return 0
   else
-    print_switch_fails
-    ! not_charging >/dev/null || {
-      print_resume
-      while not_charging; do
-        sleep 1
-      done
-    }
-    return 10
+    switch_fails
   fi
 }
 

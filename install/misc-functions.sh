@@ -297,7 +297,7 @@ flip_sw() {
   local oppositeValue=
 
   set -- ${chargingSwitch[@]-}
-  [ -f ${1:-//} ] || return 1
+  [ -f ${1:-//} ] || return 2
   swValue=
 
   while [ -f ${1:-//} ]; do
