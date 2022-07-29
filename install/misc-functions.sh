@@ -414,13 +414,12 @@ write() {
   local i=y
   local f=$dataDir/logs/write.log
   blacklisted=false
-  eval set -- "$@"
   if [ -f "$2" ] && chown 0:0 $2 && chmod 0644 $2; then
     case "$(grep -E "^(#$2|$2)$" $f 2>/dev/null || :)" in
       \#*) blacklisted=true;;
-      */*) printf %s "$1" > $2 || i=x;;
+      */*) eval "echo $1 > $2" || i=x;;
       *) echo \#$2 >> $f
-         printf %s "$1" > $2 || i=x
+         eval "echo $1 > $2" || i=x
          sed -i "s|^#$2$|$2|" $f;;
     esac
   else
