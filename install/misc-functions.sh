@@ -290,24 +290,23 @@ flip_sw() {
   flip=$1
   local on=
   local off=
+  local oppositeValue=
 
   set -- ${chargingSwitch[@]-}
   [ -f ${1:-//} ] || return 1
+  swValue=
 
   while [ -f ${1:-//} ]; do
 
-    if [ $flip = on ]; then
-      on="$(parse_value "$2")"
+    on="$(parse_value "$2")"
+    if [ $3 = 3600mV ]; then
+      off=$(cat $1)
+      [ $off -lt 10000 ] && off=3600 || off=3600000
     else
-      if [ $3 = voltage_now ]; then
-        off=$(cat $1)
-        [ $off -lt 10000 ] && off=$((off - ${voltOff:-200})) || off=$((off - ${voltOff:-200}000))
-      else
-        off="$(parse_value "$3")"
-      fi
-      cat $currFile > $curThen
+      off="$(parse_value "$3")"
     fi
 
+    [ $flip = on ] && oppositeValue="$off" || { oppositeValue="$on"; cat $currFile > $curThen; }
     write \$$flip $1 || return 1
 
     [ $# -lt 3 ] || shift 3

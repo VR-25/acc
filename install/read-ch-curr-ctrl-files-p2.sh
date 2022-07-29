@@ -37,7 +37,7 @@ then
   # add curr and volt ctrl files to charging switches list
   sed -e 's/::.*::/ /' -e 's/$/ 0/' $TMPDIR/ch-curr-ctrl-files_ > $TMPDIR/.ctrl
   sed -E 's/(.*)(::v.*::)(.*)/\1 \3 \2/; s/::v/50/; s/:://' $TMPDIR/ch-curr-ctrl-files_ >> $TMPDIR/.ctrl
-  sed -Ee 's/::.*::/ /' -e 's/([0-9])$/\1 voltage_now/' $TMPDIR/ch-volt-ctrl-files >> $TMPDIR/.ctrl
+  sed -Ee 's/::.*::/ /' -e 's/([0-9])$/\1 3600mV/' $TMPDIR/ch-volt-ctrl-files >> $TMPDIR/.ctrl
 
   grep / $TMPDIR/.ctrl >> $TMPDIR/ch-switches
   rm $TMPDIR/.ctrl
