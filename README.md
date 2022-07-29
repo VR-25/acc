@@ -51,6 +51,7 @@
   - [Current and Voltage Based Charging Control](#current-and-voltage-based-charging-control)
   - [Generic](#generic)
   - [Google Pixel Devices](#google-pixel-devices)
+  - [Override Battery mAh Capacity](override_battery_mah_capacity)
   - [Override Broken Temperature Sensor](override_broken_temperature_sensor)
 - [FREQUENTLY ASKED QUESTIONS (FAQ)](#frequently-asked-questions-faq)
 - [LINKS](#links)
@@ -102,7 +103,7 @@ ACC manipulates Android low level ([kernel](https://duckduckgo.com/lite/?q=kerne
 The author assumes no responsibility under anything that might break due to the use/misuse of this software.
 By choosing to use/misuse it, you agree to do so at your own risk!
 
-Some devices, notably Xiaomi devices, have a buggy PMIC (Power Management Integrated Circuit) that can be triggered by acc.
+Some devices, notably from Xiaomi, have a buggy PMIC (Power Management Integrated Circuit) that can be triggered by acc.
 The issue blocks charging.
 Ensure your battery does not discharge too low.
 Using acc's auto shutdown feature is highly recommended.
@@ -146,13 +147,14 @@ Other executables or static binaries can also be placed in /data/adb/vr25/bin/ (
 1. Install/upgrade: flash\* the zip or use a front-end app.
 There are two additional ways of upgrading: `acc --upgrade` (online) and `acc --flash` (zip flasher).
 Rebooting after installation/removal is generally unnecessary.
+Manual uninstall before upgrade is unnecessary.
 
-2. [Optional] run `acc` (wizard). That's the only command you need to remember.
+2. [Optional] run `acc` (wizard). That's the main command to remember.
 
 3. [Optional] run `acc pause_capacity resume_capacity` (default `75 70`) to set the battery levels at which charging should pause and resume, respectively.
 
 4. If you come across any issues, refer to the [troubleshooting](#troubleshooting), [tips](#tips) and [FAQ](#frequently-asked-questions-faq) sections below.
-Read as much as you can prior to reporting issues and/or asking questions.
+Read as much as you can, prior to reporting issues and/or asking questions.
 Oftentimes, solutions/answers will be right before your eyes.
 
 
@@ -1364,6 +1366,12 @@ This may not work on all Pixel devices.
 There are no negative consequences when it doesn't.
 
 
+### Override Battery mAh Capacity
+
+An "extended" battery won't change fully if the kernel still has the stock `charge_full_design` value.
+Some devices allow that to be modified. If that's the case for you, use `apply_on_boot` to set the desired value(s) in `/sys/class/power_supply/*/charge_full_design`.
+
+
 ### Override Broken Temperature Sensor
 
 If your battery's thermistor always reports a negative value, and charging is very slow or even off, see if the following helps:
@@ -1475,12 +1483,12 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 
 It's the ability of running off the charger.
 The battery behaves as if it were physically disconnected from the device.
-The primary indicator of idle mode is charging current within [-10,10] mA.
+The primary indicator of idle mode is charging current within -11 and 11 milliamps.
 
 Not all devices support the "native" idle mode. Hence, variants of "emulated" idle mode are available:
 
-1. Limit the charging voltage (e.g., acc -sv 3900, requires kernel support);
-2. Pause/resume charging based on voltage thresholds (e.g., acc 3900 keeps voltage within 3850 and 3900 millivolts);
+1. Limit the charging voltage (requires kernel support) to a value that gets you close to the desired battery level. To avoid false positives, determine the value only after the device has been unplugged for a minute or so.
+2. Pause/resume charging based on voltage thresholds (e.g., acc 3900 keeps voltage within 3850 and 3900 millivolts).
 3. Set resume_capacity to (pause_capacity - 1), e.g., acc 50 49.
 
 Notes

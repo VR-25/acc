@@ -514,8 +514,7 @@ print_acct_info() {
   To set charging switches, run acc -ss (wizard) or acc -s s=\"switches go here --\".
 
   battIdleMode: whether the device can run directly off the charger.
-
-  Instead of setting a voltage switch, set a voltage value that translates to your desired pause_capacity (e.g., acc -s s=3900). This is recommended for idle mode.
+  If it's not supported, you still have options. Refer to \"README > FAQ > What's idle mode, and how do I set it up?\"
 
   The output of this command is saved to /sdcard/Download/acc-t_output-${device}.log."
 }
