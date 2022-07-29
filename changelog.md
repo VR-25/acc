@@ -1,4 +1,6 @@
 **v2022.7.29-dev (202207290)**
+* 30aacc2 Add new switch group for Sony Xperia devices
+* 3575483 Merge pull request #161 from MrCarb0n/scrap (17fd1c4 prep for external editor app support)
 * f93098e --test shall skip missing ctrl files
 * 04bf46f Fix ctrl file write function
 * 3b96bae Rewrite ctrl file write logic
