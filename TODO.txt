@@ -6,4 +6,26 @@ allow any current and voltage values
 kindle e-readers support
   /mnt/us
 
-scheduled bms calibration
+scheduled bms recalibration
+
+improve debug messages
+
+
+wizard
+  profiles and schedules
+  configure charging switch
+  toggle disable thermald
+
+
+backup/restore config
+
+
+simplify mcc and mcv variables
+auto-set mcc and mcv ctrl files if parameter 2 is missing
+
+
+avoid accd restart
+  last_volt
+  las_curr
+  last_switch
+  last_current_workaround

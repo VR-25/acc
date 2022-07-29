@@ -1,3 +1,26 @@
+**v2022.7.29-dev (202207290)**
+* f93098e --test shall skip missing ctrl files
+* 04bf46f Fix ctrl file write function
+* 3b96bae Rewrite ctrl file write logic
+* b7583e5 Fix & optimize capacity_sync
+* d55cd89 Optimize --force
+* 142d160 Miscellaneous fixes
+* f740feb Fix --parse issues
+* 171ec2f Use 3600mV to stop charging with voltage regulators, and don't mask status as "Idle"
+* 294297c Print "Hang on..." to make "Terminated" messages less obscure
+* a035559 Update documentation
+* d08ad09 Update default config layout and comments
+* 622dd59 [Wizard] change "exit" option from "g" to "z"
+* a8378b0 Additional charging switches
+* 7d5f899 Add adb push helper
+* 1228f3d Undo "disable mi_thermald"
+* 54a8f53 Misc charging control fixes
+* bcfc477 Fix "acc -t file"
+* d2711ef Fix battery info issues
+* d601bce Current and voltage control fixes
+* 18485bf Fix AccSettings
+* 6cf01cd Fix & optimize cooldown
+
 **v2022.7.19-dev (202207190)**
 * Bump version
 * 423fadb Misc charging control fixes and optimizations
