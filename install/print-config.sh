@@ -1,61 +1,55 @@
 set +u
 
-echo "shutdown_capacity=${capacity[0]}
-resume_capacity=${capacity[2]}
-pause_capacity=${capacity[3]}
-capacity_sync=${capacity[4]}
+echo "amp_factor=$ampFactor
+batt_status_workaround=$battStatusWorkaround
+
 capacity_mask=${capacity[5]}
+capacity_sync=${capacity[4]}
 
 cooldown_capacity=${capacity[1]}
-cooldown_temp=${temperature[0]}
 cooldown_charge=${cooldownRatio[0]}
+cooldown_current=$cooldownCurrent
 cooldown_pause=${cooldownRatio[1]}
+cooldown_temp=${temperature[0]}
+
+current_workaround=$currentWorkaround
+discharge_polarity=$dischargePolarity
+force_off=$forceOff
+lang=$language
 
 max_temp=${temperature[1]}
 max_temp_pause=${temperature[2]}
 
-shutdown_temp=${temperature[3]}
-
-cooldown_current=$cooldownCurrent
-
-cooldown_custom=${cooldownCustom[@]}
+off_mid=$offMid
+pause_capacity=${capacity[3]}
+prioritize_batt_idle_mode=$prioritizeBattIdleMode
+reboot_resume=$rebootResume
 
 reset_batt_stats_on_pause=${resetBattStats[0]}
-reset_batt_stats_on_unplug=${resetBattStats[1]}
 reset_batt_stats_on_plug=${resetBattStats[2]}
+reset_batt_stats_on_unplug=${resetBattStats[1]}
 
-charging_switch=${chargingSwitch[@]}
+resume_capacity=${capacity[2]}
+shutdown_capacity=${capacity[0]}
+shutdown_temp=${temperature[3]}
+temp_level=$tempLevel
+volt_factor=$voltFactor
 
 apply_on_boot=${applyOnBoot[@]}
 
 apply_on_plug=${applyOnPlug[@]}
 
+batt_status_override=$battStatusOverride
+
+charging_switch=${chargingSwitch[@]}
+
+cooldown_custom=${cooldownCustom[@]}
+
 max_charging_current=${maxChargingCurrent[0]}
 
 max_charging_voltage=${maxChargingVoltage[0]}
 
-lang=$language
-
-run_cmd_on_pause='$runCmdOnPause'
-
-amp_factor=$ampFactor
-volt_factor=$voltFactor
-
-prioritize_batt_idle_mode=$prioritizeBattIdleMode
-current_workaround=$currentWorkaround
-batt_status_workaround=$battStatusWorkaround
-
-batt_status_override='$battStatusOverride'
-
-reboot_resume=$rebootResume
-
-discharge_polarity=$dischargePolarity
-
-off_mid=$offMid
-
-force_off=$forceOff
-
-temp_level=$tempLevel
+run_cmd_on_pause=$runCmdOnPause
 
 loop_cmd=" #legacy, AccSettings
 

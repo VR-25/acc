@@ -1,68 +1,47 @@
 set +u
 
-sc=${shutdown_capacity-${sc-${capacity[0]}}}
-cc=${cooldown_capacity-${cc-${capacity[1]}}}
-rc=${resume_capacity-${rc-${capacity[2]}}}
-pc=${pause_capacity-${pc-${capacity[3]}}}
-cs=${capacity_sync-${cs-${capacity[4]}}}
-cm=${capacity_mask-${cm-${capacity[5]}}}
-
-ct=${cooldown_temp-${ct-${temperature[0]}}}
-mt=${max_temp-${mt-${temperature[1]}}}
-mtp=${max_temp_pause-${mtp-${temperature[2]}}}
-st=${shutdown_temp-${st-${temperature[3]}}}
-
-cdc=${cooldown_current-${cdc-$cooldownCurrent}}
-
-ccu="${cooldown_custom-${ccu-${cooldownCustom[@]}}}"
-
-cch=${cooldown_charge-${cch-${cooldownRatio[0]}}}
-cp=${cooldown_pause-${cp-${cooldownRatio[1]}}}
-
-rbsp=${reset_batt_stats_on_pause-${rbsp-${resetBattStats[0]}}}
-rbsu=${reset_batt_stats_on_unplug-${rbsu-${resetBattStats[1]}}}
-rbspl=${reset_batt_stats_on_plug-${rbspl-${resetBattStats[2]}}}
-
-s="${charging_switch-${s-${chargingSwitch[@]}}}"
-
 ab="${apply_on_boot-${ab-${applyOnBoot[@]}}}"
+af=${amp_factor-${af-$ampFactor}}
 ap="${apply_on_plug-${ap-${applyOnPlug[@]}}}"
-
+bso="${batt_status_override-${bso-$battStatusOverride}}"
+bsw=${batt_status_workaround-${bsw-$battStatusWorkaround}}
+cc=${cooldown_capacity-${cc-${capacity[1]}}}
+cch=${cooldown_charge-${cch-${cooldownRatio[0]}}}
+ccu="${cooldown_custom-${ccu-${cooldownCustom[@]}}}"
+cdc=${cooldown_current-${cdc-$cooldownCurrent}}
+cm=${capacity_mask-${cm-${capacity[5]}}}
+cp=${cooldown_pause-${cp-${cooldownRatio[1]}}}
+cs=${capacity_sync-${cs-${capacity[4]}}}
+ct=${cooldown_temp-${ct-${temperature[0]}}}
+cw=${current_workaround-${cw-$currentWorkaround}}
+dp="${discharge_polarity-${dp-$dischargePolarity}}"
+fo="${force_off-${fo-$forceOff}}"
+l=${lang-${l-${language}}}
 mcc="${max_charging_current-${mcc-${maxChargingCurrent[@]}}}"
 mcv="${max_charging_voltage-${mcv-${maxChargingVoltage[@]}}}"
-
-l=${lang-${l-${language}}}
-
-rcp="${run_cmd_on_pause-${rcp-${runCmdOnPause[@]}}}"
-
-af=${amp_factor-${af-$ampFactor}}
-vf=${volt_factor-${vf-$voltFactor}}
-
-pbim=${prioritize_batt_idle_mode-${pbim-$prioritizeBattIdleMode}}
-
-cw=${current_workaround-${cw-$currentWorkaround}}
-
-bsw=${batt_status_workaround-${bsw-$battStatusWorkaround}}
-
-bso="${batt_status_override-${bso-$battStatusOverride}}"
-
-rr="${reboot_resume-${rr-$rebootResume}}"
-
-dp="${discharge_polarity-${dp-$dischargePolarity}}"
-
+mt=${max_temp-${mt-${temperature[1]}}}
+mtp=${max_temp_pause-${mtp-${temperature[2]}}}
 om="${off_mid-${om-$offMid}}"
-
-fo="${force_off-${fo-$forceOff}}"
-
+pbim=${prioritize_batt_idle_mode-${pbim-$prioritizeBattIdleMode}}
+pc=${pause_capacity-${pc-${capacity[3]}}}
+rbsp=${reset_batt_stats_on_pause-${rbsp-${resetBattStats[0]}}}
+rbspl=${reset_batt_stats_on_plug-${rbspl-${resetBattStats[2]}}}
+rbsu=${reset_batt_stats_on_unplug-${rbsu-${resetBattStats[1]}}}
+rc=${resume_capacity-${rc-${capacity[2]}}}
+rcp="${run_cmd_on_pause-${rcp-${runCmdOnPause[@]}}}"
+rr="${reboot_resume-${rr-$rebootResume}}"
+s="${charging_switch-${s-${chargingSwitch[@]}}}"
+sc=${shutdown_capacity-${sc-${capacity[0]}}}
+st=${shutdown_temp-${st-${temperature[3]}}}
 tl="${temp_level-${tl-$tempLevel}}"
+vf=${volt_factor-${vf-$voltFactor}}
 
 
 # backup scripts
 touch $TMPDIR/.scripts
 grep '^: ' $config > $TMPDIR/.scripts 2>/dev/null || :
 sed -i 's/^: /\n: /' $TMPDIR/.scripts
-printf "\n\n" >> $TMPDIR/.scripts
-
+printf "\n\n\n" >> $TMPDIR/.scripts
 
 # enforce valid pc and rc difference
 [ $rc -lt $pc ] || {
@@ -72,48 +51,39 @@ printf "\n\n" >> $TMPDIR/.scripts
 
 echo "configVerCode=$(cat $TMPDIR/.config-ver)
 
-capacity=(${sc:--1} ${cc:-60} ${rc:-70} ${pc:-75} ${cs:-false} ${cm:-false})
-
-temperature=(${ct:-40} ${mt:-60} ${mtp:-90} ${st:-65})
-
-cooldownRatio=($cch $cp)
+ampFactor=$af
+battStatusWorkaround=${bsw:-true}
+capacity=(${sc:-5} ${cc:-50} ${rc:-15} ${pc:-75} ${cs:-auto} ${cm:-false})
 cooldownCurrent=$cdc
-cooldownCustom=($ccu)
-
+cooldownRatio=($cch $cp)
+currentWorkaround=${cw:-false}
+dischargePolarity=$dp
+forceOff=${fo:-false}
+language=${lang:-en}
+offMid=${om:-true}
+prioritizeBattIdleMode=${pbim:-true}
+rebootResume=${rr:-false}
 resetBattStats=(${rbsp:-false} ${rbsu:-false} ${rbspl:-false})
-
-chargingSwitch=($(echo "$s" | sed 's/ m[AV]//'))
+temperature=(${ct:-35} ${mt:-45} ${mtp:-90} ${st:-55})
+tempLevel=${tl:-0}
+voltFactor=$vf
 
 applyOnBoot=($ab)
 
 applyOnPlug=($ap)
 
+battStatusOverride='$bso'
+
+chargingSwitch=($(echo "$s" | sed 's/ m[AV]//'))
+
+cooldownCustom=($ccu)
+
 maxChargingCurrent=($mcc)
 
 maxChargingVoltage=($mcv)
 
-language=$lang
+runCmdOnPause='$rcp'" > $config
 
-runCmdOnPause='$rcp'
-
-ampFactor=$af
-voltFactor=$vf
-
-prioritizeBattIdleMode=${pbim:-false}
-currentWorkaround=${cw:-false}
-battStatusWorkaround=${bsw:-true}
-
-battStatusOverride='$bso'
-
-rebootResume=${rr:-false}
-
-dischargePolarity=$dp
-
-offMid=${om:-true}
-
-forceOff=${fo:-false}
-
-tempLevel=${tl:-0}" > $config
 
 cat $TMPDIR/.scripts $TMPDIR/.config-help >> $config
 rm $TMPDIR/.scripts
