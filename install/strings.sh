@@ -537,3 +537,8 @@ print_resume() {
   In extreme cases, one shall comment out (blacklist) this switch in $dataDir/logs/write.log, reboot (to enable charging), and re-run the test.
   ##########"
 }
+
+
+print_hang() {
+  echo "Hang on..."
+}
