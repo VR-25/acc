@@ -96,6 +96,16 @@ daemon_ctrl() {
 
 
 edit() {
+  ext_app() {
+    case $1 in
+      e) ACT=EDIT; print_ext_app e ;;
+      v) ACT=VIEW; print_ext_app v ;;
+    esac
+    sleep 2.5
+    am start -a android.intent.action.$ACT \
+             -t 'text/plain' \
+             -d file://$2 &>/dev/null
+  }
   local file="$1"
   shift
   if [ -n "${1-}" ]; then
@@ -105,6 +115,9 @@ edit() {
       echo "$@" >> $file
     elif [ "$1" = d ]; then
       sed -Ei "\#$2#d" $file
+    elif [ "$1" = app ]; then
+      shift
+      ext_app e $file
     else
       IFS="$(printf ' \t\n')" eval "$* $file"
     fi
@@ -114,8 +127,10 @@ edit() {
         *.txt)
           if which nano > /dev/null; then
             print_quit CTRL-X
-          else
+          elif which vim vi > /dev/null; then
             print_quit "[esc] :q! [enter]" "[esc] :wq [enter]"
+          else
+            print_ext_app e
           fi
         ;;
         *.log|*.md|*.help)
@@ -127,7 +142,7 @@ edit() {
     }
     case $file in
      *.log|*.md|*.help) less $file;;
-     *) nano -$ $file || vim $file || vi $file;;
+     *) nano -$ $file || vim $file || vi $file || ext_app e $file ;;
     esac 2>/dev/null
   fi
 }
