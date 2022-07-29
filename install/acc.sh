@@ -368,23 +368,25 @@ case "${1-}" in
 
   -f|--force|--full)
 
-    cooldown_charge=
-    cooldown_pause=
-    max_temp=
-    cooldown_custom=
     apply_on_boot=
     apply_on_plug=
+    cooldown_charge=
+    cooldown_current=
+    cooldown_custom=
+    cooldown_pause=
     max_charging_current=
     max_charging_voltage=
+    max_temp=55
     pause_capacity=${2:-100}
     resume_capacity=$((pause_capacity - 1))
+    temp_level=0
 
-    cp -f $config $TMPDIR/.acc-f-config
+    cp -f $defaultConfig $TMPDIR/.acc-f-config
     config=$TMPDIR/.acc-f-config
     . $execDir/write-config.sh
     print_charging_enabled_until ${2:-100}%
     echo
-    echo ": ; accf=\"exec $TMPDIR/accd\"" >> $config
+    echo ": ; accf='exec $TMPDIR/accd'" >> $config
     exec $TMPDIR/accd $config
   ;;
 
