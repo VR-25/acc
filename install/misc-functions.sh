@@ -7,6 +7,7 @@ apply_on_boot() {
   local arg=${1:-value}
   local exitCmd=false
   local force=false
+  local oppositeValue=
 
   [ ${2:-x} != force ] || force=true
 
@@ -22,7 +23,8 @@ apply_on_boot() {
     else
       default=${3:-${2-}}
     fi
-    write \$$arg $file 0
+    [ $arg = default ] && oppositeValue="$value" || oppositeValue="$default"
+    write \$$arg $file 0 || :
   done
 
   $exitCmd && [ $arg = value ] && exit 0 || :
@@ -36,6 +38,7 @@ apply_on_plug() {
   local value=
   local default=
   local arg=${1:-value}
+  local oppositeValue=
 
   for entry in ${applyOnPlug[@]-} ${maxChargingVoltage[@]-} \
     ${maxChargingCurrent[@]:-$([ .$arg != .default ] || cat $TMPDIR/ch-curr-ctrl-files 2>/dev/null || :)}
@@ -45,7 +48,8 @@ apply_on_plug() {
     file=${1-}
     value=${2-}
     default=${3:-${2-}}
-    write \$$arg $file 0
+    [ $arg = default ] && oppositeValue="$value" || oppositeValue="$default"
+    write \$$arg $file 0 || :
   done
 }
 
@@ -345,7 +349,12 @@ notif() {
 
 
 parse_value() {
-  [ -f "$1" ] && cat $1 || echo "$1" | sed 's/::/ /g'
+  if [ -f "$1" ]; then
+    chmod a+r $1 2>/dev/null || :
+    cat $1
+  else
+    echo "$1" | sed 's/::/ /g'
+  fi
 }
 
 
@@ -403,17 +412,29 @@ wait_plug() {
 
 write() {
   local i=y
-  local l=$dataDir/logs/write.log
+  local f=$dataDir/logs/write.log
   blacklisted=false
-  [ -f "$2" ] && chown 0:0 "$2" && chmod 0644 "$2" || return ${3-1}
-  case "$(grep -E "^(#$2|$2)$" $l 2>/dev/null || :)" in
-    \#*) blacklisted=true; return ${3-1};;
-    */*) eval echo "$1" > "$2" || return ${3-1};;
-    *) echo \#$2 >> $l
-       eval echo "$1" > "$2" || i=x
-       sed -i "s|^#$2$|$2|" $l
-       [ $i = y ] || return ${3-1};;
-  esac
+  eval set -- "$@"
+  if [ -f "$2" ] && chown 0:0 $2 && chmod 0644 $2; then
+    case "$(grep -E "^(#$2|$2)$" $f 2>/dev/null || :)" in
+      \#*) blacklisted=true;;
+      */*) printf %s "$1" > $2 || i=x;;
+      *) echo \#$2 >> $f
+         printf %s "$1" > $2 || i=x
+         sed -i "s|^#$2$|$2|" $f;;
+    esac
+  else
+    i=x
+  fi
+  f="$(cat $2)" 2>/dev/null || :
+  rm $TMPDIR/.nowrite 2>/dev/null || :
+  if [ -n "$f" ]; then
+    [ "$f" != "$oppositeValue" ] || { touch $TMPDIR/.nowrite; i=x; }
+  fi
+  if [ -n "${exitCode_-}" ]; then
+    [ -n "${swValue-}" ] && swValue="$swValue, $(cat $2)" || swValue="$(cat $2)"
+  fi
+  [ $i = y ] || return ${3-1}
 }
 
 
