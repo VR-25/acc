@@ -431,9 +431,14 @@ write() {
     [ "$f" != "$oppositeValue" ] || { touch $TMPDIR/.nowrite; i=x; }
   fi
   if [ -n "${exitCode_-}" ]; then
-    [ -n "${swValue-}" ] && swValue="$swValue, $(cat $2)" || swValue="$(cat $2)"
+    [ -n "${swValue-}" ] && swValue="$swValue, $f" || swValue="$f"
   fi
-  [ $i = y ] || return ${3-1}
+  [ $i = x ] && return ${3-1} || {
+    for i in 1 2 3; do
+      usleep 330000
+      eval "echo $1 > $2" || :
+    done
+  }
 }
 
 
