@@ -1,3 +1,9 @@
+**v2022.7.30-dev (202207300)**
+* e4159d5 Improve ctrl file write logic
+* f440010 Use usleep for float seconds
+* 305db14 Add configurable idleThreshold, and update idle mode information
+* 31c96ff Update Idle mode support for Sony Xperia devices
+
 **v2022.7.29-dev (202207290)**
 * 30aacc2 Add new switch group for Sony Xperia devices
 * 3575483 Merge pull request #161 from MrCarb0n/scrap (17fd1c4 prep for external editor app support)

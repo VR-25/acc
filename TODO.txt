@@ -29,3 +29,5 @@ avoid accd restart
   las_curr
   last_switch
   last_current_workaround
+
+dynamically adjust voltage for idle mode?
