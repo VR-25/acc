@@ -27,13 +27,16 @@ fi
 ! _grep '^chargingSwitch=./sys/module/lge_battery/parameters/charge_stop_level' \
   || loopCmd='[ $(cat battery/input_suspend) != 1 ] || echo 0 > battery/input_suspend'
 
-# bttery idle mode for certain mtk devices
+# battery idle mode for certain mtk devices
 # ! _grep '^chargingSwitch=.battery/input_suspend 0 1 /proc/mtk_battery_cmd/en_power_path 1 1' \
 #   || loopCmd='
 #     if [ $(cat /proc/mtk_battery_cmd/en_power_path) -eq 0 ] && [ $(cat battery/status) = Discharging ]; then
 #       echo 0 > battery/input_suspend
 #     fi
 #   '
+
+# idle mode - sony xperia
+echo 1 > battery_ext/smart_charging_activation 2>/dev/null || :
 
 # block "ghost charging on steroids" (Xiaomi Redmi 3 - ido)
 [ ! -f $TMPDIR/accd-ido.log ] || touch $TMPDIR/.ghost-charging
