@@ -101,7 +101,7 @@ edit() {
       e) ACT=EDIT; print_ext_app e ;;
       v) ACT=VIEW; print_ext_app v ;;
     esac
-    sleep 2.5
+    usleep 2500000
     am start -a android.intent.action.$ACT \
              -t 'text/plain' \
              -d file://$2 &>/dev/null
