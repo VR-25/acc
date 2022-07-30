@@ -15,6 +15,7 @@ cooldown_temp=${temperature[0]}
 current_workaround=$currentWorkaround
 discharge_polarity=$dischargePolarity
 force_off=$forceOff
+idle_threshold=$idleThreshold
 lang=$language
 
 max_temp=${temperature[1]}

@@ -1,13 +1,15 @@
 idle_discharging() {
-  [ $curThen != null ] && [ ${curNow#-} -le $idleThreshold ] && _status=Idle || {
-    case "${dischargePolarity-}" in
-      +) [ $curNow -ge 0 ] && _status=Discharging || _status=Charging;;
-      -) [ $curNow -lt 0 ] && _status=Discharging || _status=Charging;;
-      *) [ $curThen = null ] || {
-           tt "$curThen,$curNow" "-*,[0-9]*|[0-9]*,-*" && _status=Discharging || _status=Charging
-         };;
-    esac
+  [ ${curNow#-} -gt $idleThreshold ] || {
+    _status=Idle
+    return 0
   }
+  case "${dischargePolarity-}" in
+    +) [ $curNow -ge 0 ] && _status=Discharging || _status=Charging;;
+    -) [ $curNow -lt 0 ] && _status=Discharging || _status=Charging;;
+    *) [ $curThen = null ] || {
+         tt "$curThen,$curNow" "-*,[0-9]*|[0-9]*,-*" && _status=Discharging || _status=Charging
+       };;
+  esac
 }
 
 
@@ -17,11 +19,15 @@ not_charging() {
   local nci=${nci:-15}
   local switch=${flip-}; flip=
   local curThen=$(cat $curThen)
+  local idleThreshold=$idleThreshold
   local battStatusOverride="${battStatusOverride-}"
   local battStatusWorkaround=${battStatusWorkaround-}
 
   tt "${chargingSwitch[$*]-}" "*\ --" || battStatusOverride=
-  [ $currFile != $TMPDIR/.dummy-curr ] || battStatusWorkaround=false
+
+  [ $currFile = $TMPDIR/.dummy-curr ] && battStatusWorkaround=false || {
+    [ ${ampFactor:-$ampFactor_} -eq 1000 ] || idleThreshold=${idleThreshold}000
+  }
 
   if [ -z "${battStatusOverride-}" ] && [ -n "$switch" ]; then
     for i in $(seq $nci); do
@@ -143,13 +149,11 @@ if ${init:-false}; then
   }
 
 
-  idleThreshold=11 # mA
   ampFactor=$(sed -n 's/^ampFactor=//p' $dataDir/config.txt 2>/dev/null || :)
   ampFactor_=${ampFactor:-1000}
 
   if [ $ampFactor_ -eq 1000000 ] || [ $(sed s/-// $currFile) -ge 16000 ]; then
     ampFactor_=1000000
-    idleThreshold=${idleThreshold}000
   fi
 
   curThen=$TMPDIR/.curr
@@ -162,7 +166,6 @@ battCapacity=$batt/capacity
 battStatus=$battStatus
 currFile=$currFile
 curThen=$curThen
-idleThreshold=$idleThreshold
 temp=$temp
 voltNow=$voltNow" > $TMPDIR/.batt-interface.sh
 

@@ -239,7 +239,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202207250
+configVerCode=202207300
 
 ampFactor=
 battStatusWorkaround=true
@@ -249,6 +249,7 @@ cooldownRatio=()
 currentWorkaround=false
 dischargePolarity=
 forceOff=false
+idleThreshold=40
 language=en
 offMid=true
 prioritizeBattIdleMode=true
@@ -377,6 +378,8 @@ runCmdOnPause=''
 
 # forceOff=force_off=BOOLEAN
 
+# idleThreshold=idle_threshold=MILLIAMPS
+
 # language=lang=LANGUAGE_CODE NULLABLE
 
 # maxChargingCurrent=max_charging_current=(MILLIAMPS CTRL_FILE1::RAW_VALUE::DEFAULT CTRL_FILE2::RAW_VALUE::DEFAULT...)
@@ -420,6 +423,7 @@ runCmdOnPause=''
 # current_workaround cw
 # discharge_polarity dp
 # force_off fo
+# idle_threshold it
 # lang l
 # max_charging_current mcc
 # max_charging_voltage mcv
@@ -574,6 +578,10 @@ runCmdOnPause=''
 # Enable this only if the set charging switch is stubbornly reset by the system.
 # Oftentimes, userspace thermal management daemons (e.g., mi_thermald) and/or driver issues are behind charging control issues.
 # Some people "systemlessly" disable certain thermal daemons with Magisk. While this is not a general recommendation, they swear by it.
+
+
+# idle_threshold (it) # Default: 40
+# Current threshold (absolute value) in milliamps to consider _status=Idle.
 
 
 # lang (l) # Default: en
@@ -1483,7 +1491,11 @@ A common workaround is having `resume_capacity = pause_capacity - 1`. e.g., resu
 
 It's the ability of running off the charger.
 The battery behaves as if it were physically disconnected from the device.
-The primary indicator of idle mode is charging current within -11 and 11 milliamps.
+The primary indicator of idle mode is charging current around 0 mA. One can customize idleThreshold (absolute value).
+
+Idle mode is great for extended device use (e.g., GPS navigation, gaming, server). Use it when the charger must be plugged for a long time (or permanently).
+
+IMPORTANT: lithium batteries have the longest lifespan when kept about 40-60% charged (about 3.7-3.9ish Volts). That said, try not to use idle mode above 60% too often.
 
 Not all devices support the "native" idle mode. Hence, variants of "emulated" idle mode are available:
 
@@ -1495,7 +1507,6 @@ Notes
 
 - In idle mode, the battery does discharge, although very slowly. The same happens to a battery that is sitting on a shelf.
 - In emulated idle mode, the battery tends to hold its charge, since it works as a "passthrough" device. Imagine pouring water into a glass that is already full.
-- Regardless of the variant, idle mode is not recommended for highly charged batteries. Ideally, battery level shall be around 40-60%, and/or voltage between 3.7-3.9ish Volts.
 
 
 > How do I enable "smart charging"?
