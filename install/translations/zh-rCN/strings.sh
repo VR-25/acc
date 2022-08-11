@@ -241,10 +241,32 @@ print_blacklisted() {
 }
 
 
-# print_acct_info() {
+print_acct_info() {
+  echo "
+💡注意/提示：
+
+  一些开关——特别是那些控制电流和电压的开关——很容易出现不一致的情况。如果一个开关至少工作了两次，那么就认为它是正常的。
+
+  结果可能会因不同的电源和条件而不同，如 \"readme > troubleshooting > charging switch\" 中所述。
+
+  想测试所有潜在的开关吗？使用 \"acc -t p\" 来从电源日志中分析它们（或 \"acc -p\"），测试所有的，并将工作的添加到已知开关的列表中。
+
+  要设置充电开关，请运行 acc -ss（向导）或 acc -s s=\"开关放在这儿——\"。
+
+  battIdleMode：设备是否可以直接从充电器上运行。
+  如果不支持，你仍然有选择。参考 \"README > FAQ > What's idle mode, and how do I set it up?\"
+
+  这个命令的输出被保存到 /sdcard/Download/acc-t_output-${device}.log。"
+}
 
 
-# print_panic() {
+print_panic() {
+  printf "\n警告：实验性功能！
+有潜在问题的控制文件已被已知模式禁用。
+一些会导致重启的控制文件已被自动添加到黑名单。
+你想在测试前查看/编辑潜在的开关列表吗？
+a: 终止操作 | n: 否 | y: 是 (默认) "
+}
 
 
 print_resume() {
