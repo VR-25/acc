@@ -29,7 +29,7 @@ print_config_reset() {
 }
 
 print_invalid_switch() {
-  echo "无效充电开关, [${chargingSwitch[@]-}]"
+  echo "无效充电开关，[${chargingSwitch[@]-}]"
 }
 
 print_charging_disabled_until() {
@@ -85,7 +85,7 @@ print_exit() {
 }
 
 print_choice_prompt() {
-  echo "(?) 请选择, 回车键结束: "
+  echo "(?) 请选择，回车键结束："
 }
 
 print_auto() {
@@ -127,7 +127,7 @@ print_wip() {
 }
 
 print_press_key() {
-  printf "按任意键继续..."
+  printf "按任意键继续……"
 }
 
 print_lang() {
@@ -155,11 +155,11 @@ print_export_logs() {
 }
 
 print_1shot() {
-  echo "不受限制地一次性冲到指定电量 (默认: 100%)"
+  echo "不受限制地一次性充到指定电量（默认：100%）"
 }
 
 print_charge_once() {
-  echo "一次性冲到 #%"
+  echo "一次性充到 #%"
 }
 
 print_mA() {
@@ -207,7 +207,7 @@ print_available() {
 }
 
 print_install_prompt() {
-  printf "- 我应该下载并安装它吗? ([回车]: 是, CTRL-C: 否) "
+  printf "- 我应该下载并安装它吗? （[回车]：是，CTRL-C：否）"
 }
 
 print_no_update() {
@@ -221,11 +221,11 @@ print_A() {
 # print_only() {
 
 print_wait() {
-  echo "这可能需要一些时间... ⏳"
+  echo "这可能需要一些时间…… ⏳"
 }
 
 print_as_warning() {
-  echo "⚠️ 警告: 如果你不充电，我将在 ${1}% 的电量时关机!"
+  echo "⚠️ 警告：如果你不充电，我将在 ${1}% 的电量时关机!"
 }
 
 print_i() {
@@ -237,7 +237,7 @@ print_undo() {
 }
 
 print_blacklisted() {
-  echo "  开关已被加入黑名单; 不会对其进行测试 🚫"
+  echo "  开关已被加入黑名单；不会对其进行测试 🚫"
 }
 
 
@@ -249,14 +249,14 @@ print_blacklisted() {
 
 print_resume() {
   echo "  ##########
-  等待恢复充电...
-  如果几秒钟后并未恢复,请尝试重新插上充电器。
-  如果等得太久了,请拔掉充电器,使用 CTRL-C 停止测试,运行 accd -i,并等待几秒,然后重启。
+  等待恢复充电……
+  如果几秒钟后并未恢复，请尝试重新插上充电器。
+  如果等得太久了，请拔掉充电器，使用 CTRL-C 停止测试，运行 accd -i，并等待几秒，然后重启。
   在极端情况下，应在 $dataDir/logs/write.log 中注释掉（blacklist）这个开关，重启（以启用充电），并重新进行测试。
   ##########"
 }
 
 
 print_hang() {
-  echo "稍等..."
+  echo "稍等……"
 }
