@@ -189,56 +189,7 @@ if ! $init; then
       }
     fi
 
-
-    # capacitySync
-
-    if [ ${capacity[4]} = true ] || ${capacity[5]} || \
-      { [ ${capacity[4]} = auto ] \
-      && [ $(dumpsys battery 2>/dev/null | sed -n 's/^  level: //p') -ne $(cat $battCapacity) ] \
-      && sleep 2 \
-      &&  [ $(dumpsys battery 2>/dev/null | sed -n 's/^  level: //p') -ne $(cat $battCapacity) ]; }
-    then
-      capacitySync=true
-      isCharging=${isCharging:-false}
-      local isCharging_=$isCharging
-      local battCap=$(cat $battCapacity)
-
-      ! ${capacity[5]} || {
-        if [ ${capacity[3]} -gt 3000 ]; then
-          local maskedCap=$battCap
-        else
-          local capFactor=$(calc 100 / ${capacity[3]})
-          local maskedCap=$(calc $battCap \* $capFactor | xargs printf %.f)
-          [ $maskedCap -le 100 ] || maskedCap=100
-        fi
-      }
-
-      ! $cooldown || isCharging=true
-
-      if $isCharging; then
-        cmd_batt set ac 1
-        cmd_batt set status $chgStatusCode
-      else
-        cmd_batt unplug
-        cmd_batt set status $dischgStatusCode
-      fi
-
-      isCharging=$isCharging_
-
-      [ $battCap -lt 2 ] || {
-        if ${capacity[5]}; then
-          cmd_batt set level $maskedCap
-        else
-          cmd_batt set level $battCap
-        fi
-      }
-    else
-      ! $capacitySync || {
-        cmd_batt reset
-        capacitySync=false
-      }
-    fi
-
+    sync_capacity
 
     # log buffer reset
     [ $(du -k $log | cut -f 1) -lt 256 ] || : > $log
@@ -407,6 +358,56 @@ if ! $init; then
     /system/bin/am start -n android/com.android.internal.app.ShutdownActivity < /dev/null > /dev/null 2>&1 \
       || /system/bin/reboot -p \
       || reboot -p || :
+  }
+
+
+  sync_capacity() {
+    if [ ${capacity[4]} = true ] || ${capacity[5]} || \
+      { [ ${capacity[4]} = auto ] \
+      && [ $(dumpsys battery 2>/dev/null | sed -n 's/^  level: //p') -ne $(cat $battCapacity) ] \
+      && sleep 2 \
+      &&  [ $(dumpsys battery 2>/dev/null | sed -n 's/^  level: //p') -ne $(cat $battCapacity) ]; }
+    then
+      capacitySync=true
+      isCharging=${isCharging:-false}
+      local isCharging_=$isCharging
+      local battCap=$(cat $battCapacity)
+
+      ! ${capacity[5]} || {
+        if [ ${capacity[3]} -gt 3000 ]; then
+          local maskedCap=$battCap
+        else
+          local capFactor=$(calc 100 / ${capacity[3]})
+          local maskedCap=$(calc $battCap \* $capFactor | xargs printf %.f)
+          [ $maskedCap -le 100 ] || maskedCap=100
+        fi
+      }
+
+      ! $cooldown || isCharging=true
+
+      if $isCharging; then
+        cmd_batt set ac 1
+        cmd_batt set status $chgStatusCode
+      else
+        cmd_batt unplug
+        cmd_batt set status $dischgStatusCode
+      fi
+
+      isCharging=$isCharging_
+
+      [ $battCap -lt 2 ] || {
+        if ${capacity[5]}; then
+          cmd_batt set level $maskedCap
+        else
+          cmd_batt set level $battCap
+        fi
+      }
+    else
+      ! $capacitySync || {
+        cmd_batt reset
+        capacitySync=false
+      }
+    fi
   }
 
 

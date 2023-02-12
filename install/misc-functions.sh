@@ -403,7 +403,7 @@ wait_plug() {
   }
   (while ! online; do
     sleep ${loopDelay[1]}
-    ! $isAccd || sync_capacity
+    ! $isAccd || sync_capacity 2>/dev/null || :
     set +x
   done)
   enable_charging "$@"
