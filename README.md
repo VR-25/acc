@@ -239,11 +239,11 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202207300
+configVerCode=202302120
 
 ampFactor=
 battStatusWorkaround=true
-capacity=(5 50 15 75 auto false)
+capacity=(5 50 70 75 auto false)
 cooldownCurrent=
 cooldownRatio=()
 currentWorkaround=false

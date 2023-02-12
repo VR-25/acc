@@ -54,7 +54,7 @@ echo "configVerCode=$(cat $TMPDIR/.config-ver)
 
 ampFactor=$af
 battStatusWorkaround=${bsw:-true}
-capacity=(${sc:-5} ${cc:-50} ${rc:-15} ${pc:-75} ${cs:-auto} ${cm:-false})
+capacity=(${sc:-5} ${cc:-50} ${rc:-70} ${pc:-75} ${cs:-auto} ${cm:-false})
 cooldownCurrent=$cdc
 cooldownRatio=($cch $cp)
 currentWorkaround=${cw:-false}
