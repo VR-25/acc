@@ -72,7 +72,7 @@ batt_info() {
 
 
   # parse VOLTAGE_NOW & convert to Volts
-  voltNow=$(echo "$info" | sed -n "s/^VOLTAGE_NOW=//p")
+  voltNow=$(echo "$info" | sed -n "s/^VOLTAGE_NOW=//p" | head -n1)
   dtr_conv_factor $voltNow ${voltFactor-}
   voltNow=$(calc2 ${voltNow:-0} / $factor)
 
