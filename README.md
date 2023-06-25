@@ -239,7 +239,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202302120
+configVerCode=202306250
 
 ampFactor=
 battStatusWorkaround=true
@@ -495,9 +495,9 @@ runCmdOnPause=''
 
 # capacity_mask (cm) # Default: false
 # Implies capacity_sync.
-# This forces Android to report "capacity = capacity * 100 / pause_capacity", effectively masking capacity limits.
+# This forces Android to report "capacity = capacity * 100 / (pause_capacity - shutdown_capacity)", effectively masking capacity limits.
 # It also prevents Android from getting capacity readings below 2%, since some systems shutdown before battery level actually drops to 0%.
-# Use case: secretly install acc on a relative's device, and enable this, so that they see pause_capacity as 100%.
+# Use case: secretly install acc on a relative's device, and enable this, so that they always see the regular 0-100% battery level scale.
 
 
 # capacity_sync (cs) # Default: auto
