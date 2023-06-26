@@ -1,6 +1,6 @@
 #!/system/bin/sh
 # Advanced Charging Controller Daemon (accd)
-# Copyright 2017-2022, VR25
+# Copyright 2017-2023, VR25
 # License: GPLv3+
 
 
@@ -381,7 +381,7 @@ if ! $init; then
           if [ ${capacity[0]} -le 0 ]; then
             capFactor=$(calc 100 / ${capacity[3]})
           else
-            capFactor=$(calc 100 / (${capacity[3]} - ${capacity[0]}) )
+            capFactor=$(calc "100 / (${capacity[3]} - ${capacity[0]})")
           fi
           local maskedCap=$(calc $battCap \* $capFactor | xargs printf %.f)
           [ $maskedCap -le 100 ] || maskedCap=100

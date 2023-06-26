@@ -69,7 +69,7 @@ Regardless of whether the system is rooted with Magisk, the installation is alwa
 ---
 ## LICENSE
 
-Copyright 2017-2022, VR25
+Copyright 2017-2023, VR25
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

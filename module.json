@@ -2,9 +2,9 @@
     "busybox": "https://github.com/Magisk-Modules-Repo/busybox-ndk",
     "changelog": "https://raw.githubusercontent.com/VR-25/acc/master/changelog.md",
     "curl": "https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/tree/master/curl",
-    "tgz": "https://github.com/VR-25/acc/releases/download/v2022.7.30-dev/acc_v2022.7.30-dev_202207300.tgz",
-    "tgzInstaller": "https://github.com/VR-25/acc/releases/download/v2022.7.30-dev/install-tarball.sh",
-    "version": "v2022.7.30-dev",
-    "versionCode": 202207300,
-    "zipUrl": "https://github.com/VR-25/acc/releases/download/v2022.7.30-dev/acc_v2022.7.30-dev_202207300.zip"
+    "tgz": "https://github.com/VR-25/acc/releases/download/v2023.6.26/acc_v2023.6.26_202306260.tgz",
+    "tgzInstaller": "https://github.com/VR-25/acc/releases/download/v2023.6.26/install-tarball.sh",
+    "version": "v2023.6.26",
+    "versionCode": 202306260,
+    "zipUrl": "https://github.com/VR-25/acc/releases/download/v2023.6.26/acc_v2023.6.26_202306260.zip"
 }

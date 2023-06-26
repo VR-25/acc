@@ -1,5 +1,5 @@
 # Busybox Setup
-# Copyright 2019-2022, VR25
+# Copyright 2019-2023, VR25
 # License: GPLv3+
 #
 # Usage: . $0
@@ -7,7 +7,7 @@
 
 bin_dir=/data/adb/vr25/bin
 busybox_dir=/dev/.vr25/busybox
-magisk_busybox=/data/adb/magisk/busybox
+magisk_busybox="/data/adb/magisk/busybox /data/adb/ksu/busybox"
 
 [ -x $busybox_dir/ls ] || {
   mkdir -p $busybox_dir

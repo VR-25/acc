@@ -172,6 +172,7 @@ voltNow=$voltNow" > $TMPDIR/.batt-interface.sh
   init=false
 
 else
+  touch $TMPDIR/.batt-interface.sh
   . $TMPDIR/.batt-interface.sh
 fi
 

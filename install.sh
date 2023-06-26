@@ -1,6 +1,6 @@
 #!/system/bin/sh
 # $id Installer/Upgrader
-# Copyright 2019-2022, VR25
+# Copyright 2019-2023, VR25
 # License: GPLv3+
 #
 # devs: triple hashtags (###) mark non-generic code
@@ -39,7 +39,7 @@ trap exxit EXIT
 #BB#
 bin_dir=/data/adb/vr25/bin
 busybox_dir=/dev/.vr25/busybox
-magisk_busybox=/data/adb/magisk/busybox
+magisk_busybox="/data/adb/magisk/busybox /data/adb/ksu/busybox"
 [ -x $busybox_dir/ls ] || {
   mkdir -p $busybox_dir
   chmod 0700 $busybox_dir
@@ -150,7 +150,7 @@ fi
 
 ###
 echo "$name $version ($versionCode)
-Copyright 2017-2022, $author
+Copyright 2017-2023, $author
 GPLv3+
 
 Installing in $installDir/$id/..."
