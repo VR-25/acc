@@ -22,7 +22,7 @@ set -x
 #BB#
 bin_dir=/data/adb/vr25/bin
 busybox_dir=/dev/.vr25/busybox
-magisk_busybox="/data/adb/magisk/busybox /data/adb/ksu/busybox"
+magisk_busybox="/data/adb/ksu/bin/busybox /data/adb/magisk/busybox"
 [ -x $busybox_dir/ls ] || {
   mkdir -p $busybox_dir
   chmod 0700 $busybox_dir
