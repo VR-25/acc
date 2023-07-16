@@ -1,4 +1,4 @@
-configVerCode=202306250
+configVerCode=202307160
 
 ampFactor=
 battStatusWorkaround=true
@@ -434,5 +434,6 @@ runCmdOnPause=''
 # temp_level (tl) # Default: 0
 # This is a current limiting hack.
 # Some devices have adjustable "temperature levels". At the highest level, charging current is blocked.
-# The stock values are generally integers, ranging from 0 to 6, 7 or slightly more.
+# The stock values are generally integers, ranging from 0 to 6, 7 or slightly above.
 # For greater flexibility, this variable stores a percentage value -- which is internally converted to the system's scales.
+# On Samsung devices, battery/siop_level is used instead (if available).

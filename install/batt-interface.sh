@@ -63,15 +63,19 @@ read_status() {
 
 set_temp_level() {
   local a=
-  local b=
+  local b=battery/siop_level
   local l=${1:-$tempLevel}
-  for a in */num_system_temp*levels; do
-    b=$(echo $a | sed 's/\/num_/\//; s/s$//')
-    if [ ! -f $a ] || [ ! -f $b ]; then
-      continue
-    fi
-    chown 0:0 $b && chmod 0644 $b && echo $(( ($(cat $a) * l) / 100 )) > $b || :
-  done
+  if [ -f $b ]; then
+    chown 0:0 $b && chmod 0644 $b && echo $l > $b || :
+  else
+    for a in */num_system_temp*levels; do
+      b=$(echo $a | sed 's/\/num_/\//; s/s$//')
+      if [ ! -f $a ] || [ ! -f $b ]; then
+        continue
+      fi
+      chown 0:0 $b && chmod 0644 $b && echo $(( ($(cat $a) * l) / 100 )) > $b || :
+    done
+  fi
 }
 
 
