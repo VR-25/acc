@@ -411,7 +411,7 @@ case "${1-}" in
     . $execDir/write-config.sh
     print_charging_enabled_until ${2:-100}%
     echo
-    echo ": ; accf='exec $TMPDIR/accd'" >> $config
+    echo ": ; accf='online || exec $TMPDIR/accd'" >> $config
     exec $TMPDIR/accd $config
   ;;
 
