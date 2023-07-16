@@ -25,10 +25,9 @@ busybox_dir=/dev/.vr25/busybox
 magisk_busybox="/data/adb/ksu/bin/busybox /data/adb/magisk/busybox"
 [ -x $busybox_dir/ls ] || {
   mkdir -p $busybox_dir
-  chmod 0700 $busybox_dir
+  chmod 0755 $busybox_dir $bin_dir/busybox 2>/dev/null || :
   for f in $bin_dir/busybox $magisk_busybox /system/*bin/busybox*; do
-    [ -f $f ] && {
-      [ -x $f ] || chmod 0755 $f 2>/dev/null
+    [ ! -f $f ] || {
       $f --install -s $busybox_dir/
       break
     }

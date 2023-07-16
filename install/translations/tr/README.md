@@ -126,7 +126,7 @@ Proje büyüyüp popülerleştikçe, kahveye olan ihtiyaç artıyor :)
 - Text editor (opsiyonel)
 
 \* Busybox binaryleri /data/adb/vr25/bin/ dizinine konabilir.
-İzinler (0700), otomatik olarak ayarlanır.
+İzinler (0755), otomatik olarak ayarlanır.
 Öncelik sıralaması: /data/adb/vr25/bin/busybox > Magisk's busybox > system's busybox
 
 Diğer çalıştırılabilir veya statik binary'ler de /data/adb/vr25/bin/ dizinine (gerekli izinlerle birlikte) konabilir.
@@ -553,7 +553,7 @@ hale getirilebilir.
 #
 # e.g., 3900 mV at 22:00, and 4100 mV at 6:00, daily:
 # sched="2200 acc -s mcv=3900
-# 0600 acc -s mcv=4100"
+# 0644 acc -s mcv=4100"
 #
 # 12 saat formatı desteklenmiyor.
 # Her bir profil(schedule) kendi satırında olmalı.

@@ -65,7 +65,7 @@ at() {
       sleep 60
       rm $file
       exit" > $file
-    chmod 0700 $file
+    chmod 0755 $file
     start-stop-daemon -bx $file -S --
     eval "$@"
   fi

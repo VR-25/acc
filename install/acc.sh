@@ -514,7 +514,7 @@ case "${1-}" in
       echo "#!/system/bin/sh
         sleep 2
         exec $TMPDIR/accd $config_" > $TMPDIR/.accdt
-      chmod 0700 $TMPDIR/.accdt
+      chmod 0755 $TMPDIR/.accdt
     }
 
     . $execDir/acquire-lock.sh
@@ -651,7 +651,7 @@ case "${1-}" in
 
     ! test -f /data/adb/vr25/bin/curl || {
       test -x /data/adb/vr25/bin/curl \
-        || chmod -R 0700 /data/adb/vr25/bin
+        || chmod -R 0755 /data/adb/vr25/bin
     }
 
     if which curl >/dev/null; then

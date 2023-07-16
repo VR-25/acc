@@ -132,7 +132,7 @@ As the project gets bigger and more popular, the need for coffee goes up as well
 - Text editor (optional)
 
 \* A busybox binary can simply be placed in /data/adb/vr25/bin/.
-Permissions (0700) are set automatically, as needed.
+Permissions (0755) are set automatically, as needed.
 Precedence: /data/adb/vr25/bin/busybox > Magisk's busybox > system's busybox
 
 Other executables or static binaries can also be placed in /data/adb/vr25/bin/ (with proper permissions) instead of being installed system-wide.

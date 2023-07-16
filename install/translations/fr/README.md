@@ -131,7 +131,7 @@ Avec le projet qui grandit et qui devient plus populaire, le besoin de café aug
 - Un éditeur de texte (optionnel)
 
 \* un binaire busybox peut simplement être placé dans /data/adb/vr25/bin/.
-Permissions (0700) sont mises automatiquement si besoin.
+Permissions (0755) sont mises automatiquement si besoin.
 Priorité: /data/adb/vr25/bin/busybox > busybox Magisk > busybox système
 
 D'autres exécutables ou binaires statiques peuvent aussi être placés dans /data/adb/vr25/bin/ (avec des autorisations appropriés) au lieu d'être installé à l'échelle du système.
@@ -555,7 +555,7 @@ dischargePolarity=
 #
 # e.g., 3900 mV at 22:00, and 4100 mV at 6:00, daily:
 # sched="2200 acc -s mcv=3900
-# 0600 acc -s mcv=4100"
+# 0644 acc -s mcv=4100"
 #
 # 12 hour format is not supported.
 # Each schedule must be on its own line.

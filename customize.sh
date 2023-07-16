@@ -26,8 +26,11 @@ set -x
 exxit() {
   local e=$?
   set +eu
-  rm -rf /dev/.$domain.${id}-install /data/adb/modules_update/$id
-  (abort) > /dev/null
+  rm -rf /dev/.$domain.${id}-install
+  $KSU || {
+    rm -rf /data/adb/modules_update/$id
+   (abort) > /dev/null
+  }
   echo
   exit $e
 } 2>/dev/null
@@ -42,10 +45,9 @@ busybox_dir=/dev/.vr25/busybox
 magisk_busybox="/data/adb/ksu/bin/busybox /data/adb/magisk/busybox"
 [ -x $busybox_dir/ls ] || {
   mkdir -p $busybox_dir
-  chmod 0700 $busybox_dir
+  chmod 0755 $busybox_dir $bin_dir/busybox 2>/dev/null || :
   for f in $bin_dir/busybox $magisk_busybox /system/*bin/busybox*; do
-    [ -f $f ] && {
-      [ -x $f ] || chmod 0755 $f 2>/dev/null
+    [ ! -f $f ] || {
       $f --install -s $busybox_dir/
       break
     }
@@ -75,10 +77,10 @@ get_prop() { sed -n "s|^$1=||p" ${2:-$srcDir/module.prop}; }
 
 set_perms() {
   local owner=${2:-0}
-  local perms=0600
+  local perms=0644
   local target=
   target=$(readlink -f $1)
-  if echo $target | grep -q '.*\.sh$' || [ -d $target ]; then perms=0700; fi
+  if echo $target | grep -q '.*\.sh$' || [ -d $target ]; then perms=0755; fi
   chmod $perms $target
   chown $owner:$owner $target
   chcon u:object_r:system_file:s0 $target 2>/dev/null || :
@@ -163,6 +165,8 @@ cp -aH /data/adb/$domain/$id/* $config $data_dir/backup/ 2>/dev/null || :
 
 
 /system/bin/sh $srcDir/install/uninstall.sh install
+KSU=${KSU:-false}
+$KSU || { [ ! -f /data/adb/ksu/bin/busybox ] || KSU=true; }
 cp -R $srcDir/install/ $installDir/$id
 installDir=$(readlink -f $installDir/$id)
 cp $srcDir/module.prop $installDir/
@@ -207,7 +211,7 @@ if $acca; then
       [ -e $accaFiles/$id ] || rm -rf \$0 /data/adb/$domain/$id /data/adb/modules/$id 2>/dev/null
 
       exit 0" | sed 's/^      //' > /data/adb/service.d/${id}-cleanup.sh
-    chmod 0700 /data/adb/service.d/${id}-cleanup.sh
+    chmod 0755 /data/adb/service.d/${id}-cleanup.sh
   }
 fi
 
@@ -254,6 +258,14 @@ case $installDir in
 esac
 
 
+! $KSU || {
+  upModDir=${magiskModDir}_update
+  rm -rf $upModDir/$id 2>/dev/null || :
+  cp -a $installDir $upModDir
+  touch $installDir/update
+}
+
+
 set +eu
 printf "- Done\n\n\n"
 
@@ -274,7 +286,7 @@ echo "Rebooting is unnecessary.
 
 case $installDir in
   /data/adb/modules*) ;;
-  *) echo "
+  *) $KSU || echo "
 Non-Magisk users can enable $id auto-start by running /data/adb/$domain/$id/service.sh, a copy of, or a link to it - with init.d or an app that emulates it.";;
 esac
 

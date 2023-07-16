@@ -15,13 +15,6 @@ case "$*" in
 esac
 
 
-# wait until Android has fully booted
-
-until [ .$(getprop sys.boot_completed 2>/dev/null) = .1 ]; do
-  sleep 10
-done
-
-
 if ! $init; then
 
 
@@ -643,7 +636,7 @@ else
 
   # prepare bg-dexopt-job wrapper
   printf "#!/system/bin/sh\n/system/bin/cmd package bg-dexopt-job < /dev/null > /dev/null 2>&1" > $TMPDIR/.bg-dexopt-job.sh
-  chmod 0700 $TMPDIR/.bg-dexopt-job.sh
+  chmod 0755 $TMPDIR/.bg-dexopt-job.sh
 
   # start $id daemon
   rm $TMPDIR/.ghost-charging 2>/dev/null
