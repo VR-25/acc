@@ -137,5 +137,7 @@ ls_volt_ctrl_files() {
 */constant_charge_voltage*
 */fg_full_voltage
 */voltage_max
+/sys/d/charger/vfloat_uv
+/sys/d/smb*/vfloat_mv
 "
 }
