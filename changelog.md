@@ -1,3 +1,10 @@
+**v2023.7.17 (202307170)**
+- Do not disengage "charge once to %" until unplugged (requires "plug state" API)
+- Fixed capacity_mask miscalculations (@kaljade)
+- KernelSu support (#197)
+- Support Samsung's battery/siop_level by default
+- XDA S-trace's vFloat kernel patch support (voltage control for SDM660 devices)
+
 **v2023.6.26 (202306260)**
 * A bunch of new features and bug fixes
 * Updated logic
@@ -29,8 +36,3 @@
 - Tuning variables for not_charging() timeout (seqCount) and voltage-based idle mode (voltOff);
 - Updated documentation;
 - Updates can be downloaded with busybox's wget as well (may not work on all systems). Try upgrading with `acc -u`.
-
-**v2022.2.22.1 (202202221)**
-- acc -ss and -t show more info/hints;
-- Fixed `acc: inaccessible or not found` following acc -t execution;
-- Minor additions to readme.
