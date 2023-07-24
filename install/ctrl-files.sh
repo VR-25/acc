@@ -18,6 +18,7 @@ battery/store_mode 0 1
 battery/test_mode 2 1
 battery_ext/smart_charging_interruption 0 1
 idt/pin_enabled 1 0
+battery/siop_level 100 0
 
 battery/charging_enabled 0 0 battery/op_disable_charge 0 1 battery/charging_enabled 1 1
 battery/input_suspend 0 1 /proc/mtk_battery_cmd/en_power_path 1 1
@@ -43,16 +44,16 @@ battery/input_suspend 0 1 /proc/mtk_battery_cmd/en_power_path 1 1
 /sys/kernel/debug/google_charger/input_suspend 0 1
 /sys/module/pm*_charger/parameters/disabled 0 1
 
-/proc/driver/charger_limit_enable 0 1 /proc/driver/charger_limit 100 1
+/proc/driver/charger_limit_enable 0 1 /proc/driver/charger_limit 100 battery/capacity
 /proc/mtk_battery_cmd/current_cmd 0::0 0::1
 /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0
-/sys/module/lge_battery/parameters/charge_stop_level 100 5 battery/input_suspend 0 0
+/sys/module/lge_battery/parameters/charge_stop_level 100 battery/capacity battery/input_suspend 0 0
 
 # experimental
 /sys/class/qcom-battery/cool_mode 0 1
 /sys/class/qcom-battery/restricted_charging 0 1
-/sys/devices/platform/battery_meter/FG_suspend_current_threshold 100 5
-/sys/devices/platform/google,charger/charge_stop_level 100 5
+/sys/devices/platform/battery_meter/FG_suspend_current_threshold 100 battery/capacity
+/sys/devices/platform/google,charger/charge_stop_level 100 battery/capacity
 /sys/kernel/debug/google_charger/chg_mode 0 1
 /sys/kernel/fast_charge/force_fast_charge 1 0
 #/sys/module/qpnp_fg/parameters/batt_range_pct 0 1
