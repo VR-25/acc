@@ -40,8 +40,8 @@ vf=${volt_factor-${vf-$voltFactor}}
 
 # backup scripts
 touch $TMPDIR/.scripts
-grep '^: ' $config > $TMPDIR/.scripts 2>/dev/null || :
-sed -i 's/^: /\n: /' $TMPDIR/.scripts
+grep '^:' $config > $TMPDIR/.scripts 2>/dev/null || :
+sed -i 's/^:/\n:/' $TMPDIR/.scripts
 printf "\n\n\n" >> $TMPDIR/.scripts
 
 # enforce valid pc and rc difference

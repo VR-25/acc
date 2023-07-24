@@ -612,7 +612,7 @@ runCmdOnPause=''
 
 # one-line scripts # Default: none
 
-# Every line that begins with ": " is interpreted as a shell (mksh) script.
+# Every line that begins with ":" is interpreted as a shell script.
 # This feature can be useful for many things, including setting up persistent config profiles (source a file that overrides the main config).
 # All script lines are executed whenever the config is loaded/sourced.
 # This happens regularly while the daemon is running, and at least once per command run.
