@@ -64,7 +64,8 @@ read_status() {
 set_temp_level() {
   local a=
   local b=battery/siop_level
-  local l=${1:-$tempLevel}
+  local l=${1:-${tempLevel-}}
+  [ -n "$l" ] || return 0
   if [ -f $b ]; then
     chown 0:0 $b && chmod 0644 $b && echo $l > $b || :
   else
