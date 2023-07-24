@@ -446,7 +446,7 @@ write() {
 
 id=acc
 domain=vr25
-isAccd=false
+: ${isAccd:=false}
 loopDelay=(5 10)
 execDir=/data/adb/$domain/acc
 export TMPDIR=/dev/.vr25/acc
