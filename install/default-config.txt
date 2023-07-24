@@ -1,4 +1,4 @@
-configVerCode=202307161
+configVerCode=202307240
 
 ampFactor=
 battStatusWorkaround=true
@@ -15,7 +15,7 @@ prioritizeBattIdleMode=true
 rebootResume=false
 resetBattStats=(false false false)
 temperature=(35 45 90 55)
-tempLevel=0
+tempLevel=
 voltFactor=
 
 applyOnBoot=()
@@ -371,7 +371,7 @@ runCmdOnPause=''
 
 # one-line scripts # Default: none
 
-# Every line that begins with ": " is interpreted as a shell (mksh) script.
+# Every line that begins with ":" is interpreted as a shell script.
 # This feature can be useful for many things, including setting up persistent config profiles (source a file that overrides the main config).
 # All script lines are executed whenever the config is loaded/sourced.
 # This happens regularly while the daemon is running, and at least once per command run.
@@ -431,9 +431,9 @@ runCmdOnPause=''
 # Shutdown the system if battery temperature is at or below this value.
 
 
-# temp_level (tl) # Default: 0
+# temp_level (tl) # Default: null
 # This is a current limiting hack.
 # Some devices have adjustable "temperature levels". At the highest level, charging current is blocked.
 # The stock values are generally integers, ranging from 0 to 6, 7 or slightly above.
 # For greater flexibility, this variable stores a percentage value -- which is internally converted to the system's scales.
-# On Samsung devices, battery/siop_level (0-100%) is used instead (if available).
+# On Samsung devices, battery/siop_level (0-100%, default 100) is used instead (if available).

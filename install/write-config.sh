@@ -67,7 +67,7 @@ prioritizeBattIdleMode=${pbim:-true}
 rebootResume=${rr:-false}
 resetBattStats=(${rbsp:-false} ${rbsu:-false} ${rbspl:-false})
 temperature=(${ct:-35} ${mt:-45} ${mtp:-90} ${st:-55})
-tempLevel=${tl:-0}
+tempLevel=$tl
 voltFactor=$vf
 
 applyOnBoot=($ab)

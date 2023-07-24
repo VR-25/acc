@@ -239,7 +239,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202307161
+configVerCode=202307240
 
 ampFactor=
 battStatusWorkaround=true
@@ -256,7 +256,7 @@ prioritizeBattIdleMode=true
 rebootResume=false
 resetBattStats=(false false false)
 temperature=(35 45 90 55)
-tempLevel=0
+tempLevel=
 voltFactor=
 
 applyOnBoot=()
@@ -672,12 +672,12 @@ runCmdOnPause=''
 # Shutdown the system if battery temperature is at or below this value.
 
 
-# temp_level (tl) # Default: 0
+# temp_level (tl) # Default: null
 # This is a current limiting hack.
 # Some devices have adjustable "temperature levels". At the highest level, charging current is blocked.
 # The stock values are generally integers, ranging from 0 to 6, 7 or slightly above.
 # For greater flexibility, this variable stores a percentage value -- which is internally converted to the system's scales.
-# On Samsung devices, battery/siop_level (0-100%) is used instead (if available).
+# On Samsung devices, battery/siop_level (0-100%, default 100) is used instead (if available).
 
 #/DC#
 ```

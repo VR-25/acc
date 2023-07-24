@@ -10,7 +10,13 @@ if (set +x; . $config) > /dev/null 2>&1; then
     if [ $configVer -lt 202207191 ]; then
       rm $dataDir/logs/write.log 2>/dev/null || :
       sed -i '/^: one-line script sample/d' $config
-      $TMPDIR/acca --set force_off=false
+      if [ -f battery/siop_level ]; then
+        $TMPDIR/acca --set temp_level= force_off=false
+      else
+        $TMPDIR/acca --set force_off=false
+      fi
+    elif [ $configVer -lt 202307240 ]; then
+      [ ! -f battery/siop_level ] || $TMPDIR/acca --set temp_level=
     else
       $TMPDIR/acca --set dummy=
     fi
