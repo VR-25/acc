@@ -209,9 +209,7 @@ if ! $init; then
         fi
 
         # disable charging under <conditions>
-        test $(cat $temp) -ge $(( ${temperature[1]} * 10 )) \
-          && maxTempPause=true || maxTempPause=false
-        if $maxTempPause || _ge_pause_cap; then
+        if [ $(cat $temp) -ge $(( ${temperature[1]} * 10 )) ] || _ge_pause_cap; then
           if [ $(cat $battCapacity) -gt ${capacity[3]} ]; then
             # if possible, avoid idle mode when capacity > pause_capacity
             (cat $config > $TMPDIR/.cfg
@@ -227,7 +225,7 @@ if ! $init; then
             dumpsys batterystats --reset < /dev/null > /dev/null 2>&1 || :
             rm /data/system/batterystats* 2>/dev/null || :
           }
-          $maxTempPause && sleep ${temperature[2]} || sleep ${loopDelay[1]}
+          sleep ${loopDelay[1]}
           rm $TMPDIR/.minCapMax 2>/dev/null || :
           continue
         fi
@@ -297,13 +295,13 @@ if ! $init; then
         fi
 
         # enable charging under <conditions>
-        if _le_resume_cap && [ $(cat $temp) -lt $(( ${temperature[1]} * 10 )) ]; then
+        if _le_resume_cap && [ $(cat $temp) -le $(( ${temperature[2]} * 10 )) ]; then
           rm $TMPDIR/.forceoff* 2>/dev/null && sleep ${loopDelay[0]} || :
           enable_charging
         fi
 
         # auto-shutdown
-        if ! $maxTempPause && _uptime 900 && not_charging Discharging; then
+        if _uptime 900 && not_charging Discharging; then
           if [ ${capacity[0]} -ge 1 ]; then
             # warnings
             ! $shutdownWarnings || {
@@ -423,7 +421,6 @@ if ! $init; then
   chgStatusCode=""
   capacitySync=false
   dischgStatusCode=""
-  maxTempPause=false
   shutdownWarnings=true
   resetBattStatsOnPlug=false
   resetBattStatsOnUnplug=false

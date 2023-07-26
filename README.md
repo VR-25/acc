@@ -239,7 +239,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202307240
+configVerCode=202307260
 
 ampFactor=
 battStatusWorkaround=true
@@ -255,7 +255,7 @@ offMid=true
 prioritizeBattIdleMode=true
 rebootResume=false
 resetBattStats=(false false false)
-temperature=(35 45 90 55)
+temperature=(35 50 45 55)
 tempLevel=
 voltFactor=
 
@@ -295,7 +295,8 @@ runCmdOnPause=''
 
 # The daemon does not have to be restarted after making changes to this file - unless one of the changes is charging_switch.
 
-# A change to current_workaround (cw) only takes effect after an acc [re]initialization. Install, upgrade, "accd --init" and system reboot actions do it.
+# A change to current_workaround (cw) only takes effect after an acc [re]initialization.
+# Install, upgrade, "accd --init" and system reboot actions always [re]initialize acc.
 
 # If those 2 variables are updated with "acc --set" (does NOT apply to acca --set), accd is restarted automatically (--init is implied, as needed).
 
@@ -323,7 +324,7 @@ runCmdOnPause=''
 # $battStatus   $batt/status file
 # $currFile   current_now file
 # $temp   temperature reporting file
-# ${isAccd:-false}   true|false (whether accd in running)
+# $isAccd   true|false (whether accd in running)
 # _$status   Charging|Discharging|Idle
 
 
@@ -396,7 +397,7 @@ runCmdOnPause=''
 
 # runCmdOnPause=run_cmd_on_pause='COMMAND...' NULLABLE
 
-# temperature=(cooldown_temp=ºC max_temp=ºC max_temp_pause=SECONDS shutdown_temp=ºC)
+# temperature=(cooldown_temp=ºC max_temp=ºC resume_temp=ºC shutdown_temp=ºC)
 
 # tempLevel=temp_level=PERCENT (0-100)
 
@@ -428,7 +429,7 @@ runCmdOnPause=''
 # max_charging_current mcc
 # max_charging_voltage mcv
 # max_temp mt
-# max_temp_pause mtp
+# resume_temp rt
 # off_mid om
 # pause_capacity pc
 # prioritize_batt_idle_mode pbim
@@ -487,7 +488,7 @@ runCmdOnPause=''
 
 
 # batt_status_workaround (bsw) # Default: true
-# With this enabled, in addition to just reading POWER_SUPPLY_STATUS, if the battery is "Charging" and current is within -11 and 11 mA (inclusive), battery status is considered "Idle".
+# With this enabled, in addition to just reading POWER_SUPPLY_STATUS, if the battery is "Charging" and current is within idle_threshold (inclusive), battery status is considered "Idle".
 # Status is considered "Discharging", if current polarity changes after calling the disable_charging function.
 # By not relying solely on the information provided by POWER_SUPPLY_STATUS, this approach dramatically boosts compatibility.
 # This must be disabled on systems that report wrong/misleading charging current values.
@@ -581,7 +582,7 @@ runCmdOnPause=''
 
 
 # idle_threshold (it) # Default: 40
-# Current threshold (absolute value) in milliamps to consider _status=Idle.
+# Current threshold (absolute value) in milliamps to consider _status=Idle (only relevant if batt_status_workaround=true).
 
 
 # lang (l) # Default: en
@@ -598,12 +599,12 @@ runCmdOnPause=''
 #   The maximum current that can be set via dedicated commands is 9999 mA. For voltage, the max is 4300 mV. One can override those by manually editing the config.
 
 
-# max_temp (mt) # Default: 45
-# max_temp_pause (mtp) # Default: 90
+# max_temp (mt) # Default: 50
+# resume_temp (rt) # Default: 45
 
 # Those two work together and are NOT tied to the cooldown cycle.
-# Think of max_temp as the cooldown plan B (for when the cooldown cycle doesn't help).
-# On max_temp (°C), charging is paused for max_temp_pause (seconds).
+# At max_temp, charging is paused and it only resumes at resume_temp
+# max_temp_pause is still supported for legacy frontends, but it's actually just a resume_temp alias.
 
 
 # off_mid (om) # Default: true
