@@ -96,55 +96,25 @@ daemon_ctrl() {
 
 
 edit() {
-  ext_app() {
-    case $1 in
-      e) ACT=EDIT; print_ext_app e ;;
-      v) ACT=VIEW; print_ext_app v ;;
-    esac
-    usleep 2500000
-    am start -a android.intent.action.$ACT \
-             -t 'text/plain' \
-             -d file://$2 &>/dev/null
-  }
   local file="$1"
   shift
-  if [ -n "${1-}" ]; then
-    if [ "$1" = a ]; then
-      shift
-      echo >> $file
-      echo "$@" >> $file
-    elif [ "$1" = d ]; then
-      sed -Ei "\#$2#d" $file
-    elif [ "$1" = app ]; then
-      shift
-      ext_app e $file
-    else
-      IFS="$(printf ' \t\n')" eval "$* $file"
-    fi
-  else
-    ! ${verbose:-true} || {
-      case $file in
-        *.txt)
-          if which nano > /dev/null; then
-            print_quit CTRL-X
-          elif which vim vi > /dev/null; then
-            print_quit "[esc] :q! [enter]" "[esc] :wq [enter]"
-          else
-            print_ext_app e
-          fi
-        ;;
-        *.log|*.md|*.help)
-          print_quit q
-        ;;
-      esac
-      sleep 2
-      echo
-    }
-    case $file in
-     *.log|*.md|*.help) less $file;;
-     *) nano -$ $file || vim $file || vi $file || ext_app e $file ;;
-    esac 2>/dev/null
-  fi
+  case "${1-}" in
+    a) echo >> $file; shift; echo "$@" >> $file;;
+    d) sed -Ei "\#$2#d" $file;;
+    g) ext_app $file;;
+    "") case $file in
+          *.log|*.md|*.help) less $file;;
+          *) nano -$ $file || vim $file || vi $file || ext_app $file;;
+        esac 2>/dev/null;;
+    *) IFS="$(printf ' \t\n')" eval "$* $file";;
+  esac
+}
+
+
+ext_app() {
+  am start -a android.intent.action.EDIT \
+           -t 'text/plain' \
+           -d file://$1 &>/dev/null
 }
 
 
@@ -610,10 +580,6 @@ case "${1-}" in
 
 
   -T|--logtail|-L) #legacy, AccA
-    if ${verbose:-true} && [ $1 != -L ]; then
-      print_quit CTRL-C
-      sleep 1
-    fi
     tail -F $TMPDIR/accd-*.log
   ;;
 
@@ -681,8 +647,6 @@ case "${1-}" in
     sleepSeconds=${sleepSeconds#*w}
     : ${sleepSeconds:=3}
     . $execDir/batt-info.sh
-    ! ${verbose:-true} || print_quit CTRL-C
-    sleep 1
     while :; do
       clear
       batt_info "${2-}"

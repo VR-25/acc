@@ -741,7 +741,7 @@ Options
 
   -b|--rollback   Undo upgrade
 
-  -c|--config [editor] [editor_opts]   Edit config (default editor: nano/vim/vi)
+  -c|--config [[editor] [editor_opts] | g for GUI]   Edit config (default editor: nano/vim/vi)
     e.g.,
       acc -c (edit w/ nano/vim/vi)
       acc -c less
@@ -791,7 +791,7 @@ Options
       acc -i volt
       acc -i 'volt\|curr'
 
-  -l|--log [-a|--acc] [editor] [editor_opts]   Print/edit accd log (default) or acc log (-a|--acc)
+  -l|--log [-a|--acc] [[editor] [editor_opts] | g for GUI]   Print/edit accd log (default) or acc log (-a|--acc)
     e.g.,
       acc -l (same as acc -l less)
       acc -l rm
@@ -814,7 +814,7 @@ Options
       acc -p /sdcard/power_supply-harpia.log   Parse the given file and print potential charging switches that are not already in /ch-switches
       acc -p /sdcard/charging-switches.txt /sdcard/power_supply-harpia.log   Parse /sdcard/power_supply-harpia.log and print potential charging switches absent from /sdcard/charging-switches.txt
 
-  -r|--readme [editor] [editor_opts]   Print/edit README.md
+  -r|--readme [[editor] [editor_opts] | g for GUI]   Print/edit README.md
     e.g.,
       acc -r (same as acc -r less)
       acc -r cat
