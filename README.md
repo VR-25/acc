@@ -277,408 +277,408 @@ runCmdOnPause=''
 
 
 
-# WARNINGS
+// WARNINGS
 
-# Do not edit this in Windows Notepad, ever!
-# It replaces LF (Linux/Unix) with CRLF (Windows) line endings.
+// Do not edit this in Windows Notepad, ever!
+// It replaces LF (Linux/Unix) with CRLF (Windows) line endings.
 
-# Nullifying values that should not be null causes unexpected behavior.
-# However, doing so with "--set var=" restores the default value of "var".
-# In other words, for regular users, "--set" is safer than modifying the config file directly.
+// Nullifying values that should not be null causes unexpected behavior.
+// However, doing so with "--set var=" restores the default value of "var".
+// In other words, for regular users, "--set" is safer than modifying the config file directly.
 
-# Do not feel like you must configure everything!
-# Do not change what you don't understand.
+// Do not feel like you must configure everything!
+// Do not change what you don't understand.
 
 
 
-# NOTES
+// NOTES
 
-# The daemon does not have to be restarted after making changes to this file - unless one of the changes is charging_switch.
+// The daemon does not have to be restarted after making changes to this file - unless one of the changes is charging_switch.
 
-# A change to current_workaround (cw) only takes effect after an acc [re]initialization.
-# Install, upgrade, "accd --init" and system reboot actions always [re]initialize acc.
+// A change to current_workaround (cw) only takes effect after an acc [re]initialization.
+// Install, upgrade, "accd --init" and system reboot actions always [re]initialize acc.
 
-# If those 2 variables are updated with "acc --set" (does NOT apply to acca --set), accd is restarted automatically (--init is implied, as needed).
+// If those 2 variables are updated with "acc --set" (does NOT apply to acca --set), accd is restarted automatically (--init is implied, as needed).
 
 
 
-# INTERNAL FUNCTIONS
+// INTERNAL FUNCTIONS
 
-# at H:MM 'command...'   scheduler
-# e.g.,
-#   at 2:14 acc --notif '2:14 AM now!'
-#   at 22:30 acc --notif '22:30 now!'
+// at H:MM 'command...'   scheduler
+// e.g.,
+//   at 2:14 acc --notif '2:14 AM now!'
+//   at 22:30 acc --notif '22:30 now!'
 
-# calc <operation...>   float  calculator
+// calc <operation...>   float  calculator
 
-# set_temp_level <0-100>   refer to temp_level (tl) below
+// set_temp_level <0-100>   refer to temp_level (tl) below
 
-# $(voltage_now)   prints the instantaneous charging voltage
+// $(voltage_now)   prints the instantaneous charging voltage
 
 
 
-# INTERNAL VARIABLES
+// INTERNAL VARIABLES
 
-# $batt   expands to the /sys/class/power_supply/battery (or equivalent) directory
-# $battCapacity   $batt/capacity file
-# $battStatus   $batt/status file
-# $currFile   current_now file
-# $temp   temperature reporting file
-# $isAccd   true|false (whether accd in running)
-# _$status   Charging|Discharging|Idle
+// $batt   expands to the /sys/class/power_supply/battery (or equivalent) directory
+// $battCapacity   $batt/capacity file
+// $battStatus   $batt/status file
+// $currFile   current_now file
+// $temp   temperature reporting file
+// $isAccd   true|false (whether accd in running)
+// _$status   Charging|Discharging|Idle
 
 
 
-# DATE
-# $(date +FORMAT)
-# FORMAT specifies display format string using strftime(3) syntax:
+// DATE
+// $(date +FORMAT)
+// FORMAT specifies display format string using strftime(3) syntax:
 
-# %% literal %             %n newline              %t tab
-# %S seconds (00-60)       %M minute (00-59)       %m month (01-12)
-# %H hour (0-23)           %I hour (01-12)         %p AM/PM
-# %y short year (00-99)    %Y year                 %C century
-# %a short weekday name    %A weekday name         %u day of week (1-7, 1=mon)
-# %b short month name      %B month name           %Z timezone name
-# %j day of year (001-366) %d day of month (01-31) %e day of month ( 1-31)
-# %N nanosec (output only)
+// %% literal %             %n newline              %t tab
+// %S seconds (00-60)       %M minute (00-59)       %m month (01-12)
+// %H hour (0-23)           %I hour (01-12)         %p AM/PM
+// %y short year (00-99)    %Y year                 %C century
+// %a short weekday name    %A weekday name         %u day of week (1-7, 1=mon)
+// %b short month name      %B month name           %Z timezone name
+// %j day of year (001-366) %d day of month (01-31) %e day of month ( 1-31)
+// %N nanosec (output only)
 
-# %U Week of year (0-53 start sunday)   %W Week of year (0-53 start monday)
-# %V Week of year (1-53 start monday, week < 4 days not part of this year)
+// %U Week of year (0-53 start sunday)   %W Week of year (0-53 start monday)
+// %V Week of year (1-53 start monday, week < 4 days not part of this year)
 
-# %F "%Y-%m-%d"     %R "%H:%M"        %T "%H:%M:%S"    %z numeric timezone
-# %D "%m/%d/%y"     %r "%I:%M:%S %p"  %h "%b"          %s unix epoch time
-# %x locale date    %X locale time    %c locale date/time
+// %F "%Y-%m-%d"     %R "%H:%M"        %T "%H:%M:%S"    %z numeric timezone
+// %D "%m/%d/%y"     %r "%I:%M:%S %p"  %h "%b"          %s unix epoch time
+// %x locale date    %X locale time    %c locale date/time
 
 
 
-# VALUES
+// VALUES
 
-# ampFactor=amp_factor=MULTIPLIER NULLABLE
+// ampFactor=amp_factor=MULTIPLIER NULLABLE
 
-# applyOnBoot=apply_on_boot=([CTRL_FILE1::RAW_VALUE[::DEFAULT]] [CTRL_FILE2::RAW_VALUE[::DEFAULT]...] [--exit]) NULLABLE
+// applyOnBoot=apply_on_boot=([CTRL_FILE1::RAW_VALUE[::DEFAULT]] [CTRL_FILE2::RAW_VALUE[::DEFAULT]...] [--exit]) NULLABLE
 
-# applyOnPlug=apply_on_plug=([CTRL_FILE1::RAW_VALUE[::DEFAULT]] [CTRL_FILE2::RAW_VALUE[::DEFAULT]...]) NULLABLE
+// applyOnPlug=apply_on_plug=([CTRL_FILE1::RAW_VALUE[::DEFAULT]] [CTRL_FILE2::RAW_VALUE[::DEFAULT]...]) NULLABLE
 
-# battStatusOverride=batt_status_override=Idle|Discharging|'code to PRINT value for _status' NULLABLE
+// battStatusOverride=batt_status_override=Idle|Discharging|'code to PRINT value for _status' NULLABLE
 
-# battStatusWorkaround=batt_status_workaround=BOOLEAN
+// battStatusWorkaround=batt_status_workaround=BOOLEAN
 
-# capacity=(shutdown_capacity=INT cooldown_capacity=INT resume_capacity=INT pause_capacity=INT capacity_sync=auto|true|false capacity_mask=BOOLEAN)
+// capacity=(shutdown_capacity=INT cooldown_capacity=INT resume_capacity=INT pause_capacity=INT capacity_sync=auto|true|false capacity_mask=BOOLEAN)
 
-# chargingSwitch=charging_switch=([CTRL_FILE1 ON OFF [CTRL_FILE2 ON OFF...] [--] | MILLIAMPS | 3700-4300 MILLIVOLTS]) NULLABLE
+// chargingSwitch=charging_switch=([CTRL_FILE1 ON OFF [CTRL_FILE2 ON OFF...] [--] | MILLIAMPS | 3700-4300 MILLIVOLTS]) NULLABLE
 
-# cooldownCurrent=cooldown_current=MILLIAMPS NULLABLE
+// cooldownCurrent=cooldown_current=MILLIAMPS NULLABLE
 
-# cooldownCustom=cooldown_custom=(FILE THRESHOLD CHARGE_SECONDS PAUSE_SECONDS) NULLABLE
+// cooldownCustom=cooldown_custom=(FILE THRESHOLD CHARGE_SECONDS PAUSE_SECONDS) NULLABLE
 
-# cooldownRatio=(cooldown_charge cooldown_pause) SECONDS,NULLABLE
+// cooldownRatio=(cooldown_charge cooldown_pause) SECONDS,NULLABLE
 
-# currentWorkaround=current_workaround=BOOLEAN
+// currentWorkaround=current_workaround=BOOLEAN
 
-# dischargePolarity=discharge_polarity=+|- NULLABLE
+// dischargePolarity=discharge_polarity=+|- NULLABLE
 
-# forceOff=force_off=BOOLEAN
+// forceOff=force_off=BOOLEAN
 
-# idleThreshold=idle_threshold=MILLIAMPS
+// idleThreshold=idle_threshold=MILLIAMPS
 
-# language=lang=LANGUAGE_CODE NULLABLE
+// language=lang=LANGUAGE_CODE NULLABLE
 
-# maxChargingCurrent=max_charging_current=(MILLIAMPS CTRL_FILE1::RAW_VALUE::DEFAULT CTRL_FILE2::RAW_VALUE::DEFAULT...)
+// maxChargingCurrent=max_charging_current=(MILLIAMPS CTRL_FILE1::RAW_VALUE::DEFAULT CTRL_FILE2::RAW_VALUE::DEFAULT...)
 
-# maxChargingVoltage=max_charging_voltage=(MILLIVOLTS CTRL_FILE1::RAW_VALUE::DEFAULT CTRL_FILE2::RAW_VALUE::DEFAULT... [--exit]) NULLABLE
+// maxChargingVoltage=max_charging_voltage=(MILLIVOLTS CTRL_FILE1::RAW_VALUE::DEFAULT CTRL_FILE2::RAW_VALUE::DEFAULT... [--exit]) NULLABLE
 
-# offMid=off_mid=BOOLEAN
+// offMid=off_mid=BOOLEAN
 
-# prioritizeBattIdleMode=prioritize_batt_idle_mode=BOOLEAN
+// prioritizeBattIdleMode=prioritize_batt_idle_mode=BOOLEAN
 
-# rebootResume=reboot_resume=BOOLEAN
+// rebootResume=reboot_resume=BOOLEAN
 
-# resetBattStats=(reset_batt_stats_on_pause reset_batt_stats_on_unplug reset_batt_stats_on_plug) BOOLEAN
+// resetBattStats=(reset_batt_stats_on_pause reset_batt_stats_on_unplug reset_batt_stats_on_plug) BOOLEAN
 
-# runCmdOnPause=run_cmd_on_pause='COMMAND...' NULLABLE
+// runCmdOnPause=run_cmd_on_pause='COMMAND...' NULLABLE
 
-# temperature=(cooldown_temp=ºC max_temp=ºC resume_temp=ºC shutdown_temp=ºC)
+// temperature=(cooldown_temp=ºC max_temp=ºC resume_temp=ºC shutdown_temp=ºC)
 
-# tempLevel=temp_level=PERCENT (0-100)
+// tempLevel=temp_level=PERCENT (0-100)
 
-# voltFactor=volt_factor=MULTIPLIER NULLABLE
+// voltFactor=volt_factor=MULTIPLIER NULLABLE
 
 
 
-# ALIASES (for use with --set only)
+// ALIASES (for use with --set only)
 
-# amp_factor af
-# apply_on_boot ab
-# apply_on_plug ap
-# batt_status_override bso
-# batt_status_workaround bsw
-# capacity_mask cm
-# capacity_sync cs
-# charging_switch s
-# cooldown_capacity cc
-# cooldown_charge cch
-# cooldown_current cdc
-# cooldown_custom ccu
-# cooldown_pause cp
-# cooldown_temp ct
-# current_workaround cw
-# discharge_polarity dp
-# force_off fo
-# idle_threshold it
-# lang l
-# max_charging_current mcc
-# max_charging_voltage mcv
-# max_temp mt
-# resume_temp rt
-# off_mid om
-# pause_capacity pc
-# prioritize_batt_idle_mode pbim
-# reboot_resume rr
-# reset_batt_stats_on_pause rbsp
-# reset_batt_stats_on_plug rbspl
-# reset_batt_stats_on_unplug rbsu
-# resume_capacity rc
-# run_cmd_on_pause rcp
-# shutdown_capacity sc
-# shutdown_temp st
-# temp_level tl
-# volt_factor vf
+// amp_factor af
+// apply_on_boot ab
+// apply_on_plug ap
+// batt_status_override bso
+// batt_status_workaround bsw
+// capacity_mask cm
+// capacity_sync cs
+// charging_switch s
+// cooldown_capacity cc
+// cooldown_charge cch
+// cooldown_current cdc
+// cooldown_custom ccu
+// cooldown_pause cp
+// cooldown_temp ct
+// current_workaround cw
+// discharge_polarity dp
+// force_off fo
+// idle_threshold it
+// lang l
+// max_charging_current mcc
+// max_charging_voltage mcv
+// max_temp mt
+// resume_temp rt
+// off_mid om
+// pause_capacity pc
+// prioritize_batt_idle_mode pbim
+// reboot_resume rr
+// reset_batt_stats_on_pause rbsp
+// reset_batt_stats_on_plug rbspl
+// reset_batt_stats_on_unplug rbsu
+// resume_capacity rc
+// run_cmd_on_pause rcp
+// shutdown_capacity sc
+// shutdown_temp st
+// temp_level tl
+// volt_factor vf
 
 
 
-# FINE, BUT WHAT DOES EACH OF THESE VARIABLES ACTUALLY MEAN?
+// FINE, BUT WHAT DOES EACH OF THESE VARIABLES ACTUALLY MEAN?
 
 
-# configVerCode #
-# This is checked during updates to determine whether the config should be patched. Do NOT modify.
-# The value is not necessarily the same as acc version code.
+// configVerCode #
+// This is checked during updates to determine whether the config should be patched. Do NOT modify.
+// The value is not necessarily the same as acc version code.
 
 
-# amp_factor (af) # Default: null
-# volt_factor (vf) #
-# Unit multiplier for conversion (e.g., 1V = 1000000 microvolts).
-# ACC can automatically determine the units, but the mechanism is not 100% foolproof.
-# Leave those properties alone, unless current/voltage info is wrong.
+// amp_factor (af) # Default: null
+// volt_factor (vf) #
+// Unit multiplier for conversion (e.g., 1V = 1000000 microvolts).
+// ACC can automatically determine the units, but the mechanism is not 100% foolproof.
+// Leave those properties alone, unless current/voltage info is wrong.
 
 
-# apply_on_boot (ab) # Default: null
-# Kernel settings to apply on boot and on daemon start/restart.
-# The --exit flag (refer back to applyOnBoot=...) tells the daemon to stop after applying settings.
-# If that flag is not included, default values are restored when the daemon stops.
+// apply_on_boot (ab) # Default: null
+// Kernel settings to apply on boot and on daemon start/restart.
+// The --exit flag (refer back to applyOnBoot=...) tells the daemon to stop after applying settings.
+// If that flag is not included, default values are restored when the daemon stops.
 
 
-# apply_on_plug (ap) # Default: null
-# Kernel settings to apply on plug.
-# This exists because certain devices reset control files (e.g., current_max) when the charger is re-plugged.
-# Default values are restored when the daemon stops.
+// apply_on_plug (ap) # Default: null
+// Kernel settings to apply on plug.
+// This exists because certain devices reset control files (e.g., current_max) when the charger is re-plugged.
+// Default values are restored when the daemon stops.
 
 
-# batt_status_override (bso) # Default: null
+// batt_status_override (bso) # Default: null
 
-# Overrides the battery status determined by the not_charging function.
-# It can be Idle, Discharging (both case sensitive), or logic to PRINT the desired value for the _status variable.
-# When set to Idle or Discharging, _status will be set to that value if the enforced* charging switch state is off.
-# It only works in conjunction with an enforced charging switch (set manually, has a trailing " --").
+// Overrides the battery status determined by the not_charging function.
+// It can be Idle, Discharging (both case sensitive), or logic to PRINT the desired value for the _status variable.
+// When set to Idle or Discharging, _status will be set to that value if the enforced* charging switch state is off.
+// It only works in conjunction with an enforced charging switch (set manually, has a trailing " --").
 
-# Usage scenario: the switch "main/cool_mode 0 1" supports idle mode. However, sometimes it does not respond soon enough (e.g., due to fast charging). The user can then enforce it with "acc -ss" and set "batt_status_override=Idle". This means, when "main/cool_mode" is "on" (0), _status will be determined by the not_charging function (as usual), but when it's off (1), _status will be Idle, bypassing the not_charging function.
+// Usage scenario: the switch "main/cool_mode 0 1" supports idle mode. However, sometimes it does not respond soon enough (e.g., due to fast charging). The user can then enforce it with "acc -ss" and set "batt_status_override=Idle". This means, when "main/cool_mode" is "on" (0), _status will be determined by the not_charging function (as usual), but when it's off (1), _status will be Idle, bypassing the not_charging function.
 
-# If the user were to write their own logic, it would be something like the following:
-# batt_status_override='[ $(cat main/cool_mode) -eq 1 ] && printf Idle || :'
-# The "|| :" part is mandatory to avoid issues with "set -e", which acc uses extensively.
+// If the user were to write their own logic, it would be something like the following:
+// batt_status_override='[ $(cat main/cool_mode) -eq 1 ] && printf Idle || :'
+// The "|| :" part is mandatory to avoid issues with "set -e", which acc uses extensively.
 
 
-# batt_status_workaround (bsw) # Default: true
-# With this enabled, in addition to just reading POWER_SUPPLY_STATUS, if the battery is "Charging" and current is within idle_threshold (inclusive), battery status is considered "Idle".
-# Status is considered "Discharging", if current polarity changes after calling the disable_charging function.
-# By not relying solely on the information provided by POWER_SUPPLY_STATUS, this approach dramatically boosts compatibility.
-# This must be disabled on systems that report wrong/misleading charging current values.
+// batt_status_workaround (bsw) # Default: true
+// With this enabled, in addition to just reading POWER_SUPPLY_STATUS, if the battery is "Charging" and current is within idle_threshold (inclusive), battery status is considered "Idle".
+// Status is considered "Discharging", if current polarity changes after calling the disable_charging function.
+// By not relying solely on the information provided by POWER_SUPPLY_STATUS, this approach dramatically boosts compatibility.
+// This must be disabled on systems that report wrong/misleading charging current values.
 
 
-# capacity_mask (cm) # Default: false
-# Implies capacity_sync.
-# This forces Android to report "capacity = (capacity - shutdown _capacity) * 100 / (pause_capacity - shutdown_capacity)", effectively masking capacity limits.
-# It also prevents Android from getting capacity readings below 2%, since some systems shutdown before battery level actually drops to 0%.
-# Use case: secretly install acc on a relative's device, and enable this, so that they always see the regular 0-100% battery level scale.
+// capacity_mask (cm) # Default: false
+// Implies capacity_sync.
+// This forces Android to report "capacity = (capacity - shutdown _capacity) * 100 / (pause_capacity - shutdown_capacity)", effectively masking capacity limits.
+// It also prevents Android from getting capacity readings below 2%, since some systems shutdown before battery level actually drops to 0%.
+// Use case: secretly install acc on a relative's device, and enable this, so that they always see the regular 0-100% battery level scale.
 
 
-# capacity_sync (cs) # Default: auto
-# Some devices, notably from the Pixel lineup, have a capacity discrepancy issue between Android's battery service and the kernel.
-# capacity_sync forces Android to report the actual battery capacity reported by the kernel.
-# Besides, it also prevents Android from getting capacity readings below 2%, since some systems shutdown before battery level actually drops to 0%.
+// capacity_sync (cs) # Default: auto
+// Some devices, notably from the Pixel lineup, have a capacity discrepancy issue between Android's battery service and the kernel.
+// capacity_sync forces Android to report the actual battery capacity reported by the kernel.
+// Besides, it also prevents Android from getting capacity readings below 2%, since some systems shutdown before battery level actually drops to 0%.
 
 
-# charging_switch (s) # Default: null (automatic)
+// charging_switch (s) # Default: null (automatic)
 
-# If unset, acc cycles through its database and sets the first switch/group that successfully disables charging.
-# If later the set switch/group fails, acc unsets it and repeats the above.
-# If all switches fail to disable charging, chargingSwitch is unset and acc/d exit with error code 7.
+// If unset, acc cycles through its database and sets the first switch/group that successfully disables charging.
+// If later the set switch/group fails, acc unsets it and repeats the above.
+// If all switches fail to disable charging, chargingSwitch is unset and acc/d exit with error code 7.
 
-# This automated process can be disabled by appending " --" to the switch/group.
-# e.g., acc -s s="battery/charging_enabled 1 0 --"
-# "acc -ss" always appends " --".
+// This automated process can be disabled by appending " --" to the switch/group.
+// e.g., acc -s s="battery/charging_enabled 1 0 --"
+// "acc -ss" always appends " --".
 
-# charging_switch=milliamps (e.g., 0-250) enables current-based charging control.
-# If charging switch is set to 3700-4300 (millivolts), acc stops charging by limiting voltage.
-# For details, refer to the readme's tips section.
+// charging_switch=milliamps (e.g., 0-250) enables current-based charging control.
+// If charging switch is set to 3700-4300 (millivolts), acc stops charging by limiting voltage.
+// For details, refer to the readme's tips section.
 
-# Unlike the original variant, this kind of switch is never unset automatically.
-# Thus, in this case, appending " --" to it leads to invalid syntax.
+// Unlike the original variant, this kind of switch is never unset automatically.
+// Thus, in this case, appending " --" to it leads to invalid syntax.
 
-# Unless charging is enabled first, a daemon restart is required after changing this setting (automated by "acc --set" (synchronous), but not by "acca --set" (asynchronous)).
+// Unless charging is enabled first, a daemon restart is required after changing this setting (automated by "acc --set" (synchronous), but not by "acca --set" (asynchronous)).
 
 
-# cooldown_capacity (cc) # Default: 50
-# Battery level or millivolts at which the cooldown cycle starts.
-# Cooldown reduces battery stress induced by prolonged exposure to high temperature and high charging voltage.
-# It does so through periodically pausing charging for a few seconds (cooldown_pause, more details below).
-# Requires cooldown_current or cooldown_charge and cooldown_pause, explained next.
+// cooldown_capacity (cc) # Default: 50
+// Battery level or millivolts at which the cooldown cycle starts.
+// Cooldown reduces battery stress induced by prolonged exposure to high temperature and high charging voltage.
+// It does so through periodically pausing charging for a few seconds (cooldown_pause, more details below).
+// Requires cooldown_current or cooldown_charge and cooldown_pause, explained next.
 
 
-# cooldown_charge (cch) # Default: null
-# cooldown_pause (cp) # Default: null
+// cooldown_charge (cch) # Default: null
+// cooldown_pause (cp) # Default: null
 
-# Those two dictate the cooldown cycle intervals (seconds).
-# When not set, the cycle is disabled, unless cooldown_current is set.
-# Suggested values are cch=50 and cp=10.
-# If charging gets a bit slower than desired, try cch=50 and cp=5.
-# Note that cooldown_capacity and cooldown_temp can be disabled individually by assigning them values that would never be reached under normal circumstances.
-# cooldown_current optionally works with ratios as well (cooldown_charge: regular current, cooldown_pause: cooldown_current).
+// Those two dictate the cooldown cycle intervals (seconds).
+// When not set, the cycle is disabled, unless cooldown_current is set.
+// Suggested values are cch=50 and cp=10.
+// If charging gets a bit slower than desired, try cch=50 and cp=5.
+// Note that cooldown_capacity and cooldown_temp can be disabled individually by assigning them values that would never be reached under normal circumstances.
+// cooldown_current optionally works with ratios as well (cooldown_charge: regular current, cooldown_pause: cooldown_current).
 
 
-# cooldown_current (cdc) # Default: null
-# Instead of pausing charging for cooldown_pause seconds, limit the max charging current (e.g., to 500 mA).
-# cooldown_pause and cooldown_charge are optional.
-# Note: devices don't support just about any current value. Multiples of 500 mA tend to have higher compatibility.
+// cooldown_current (cdc) # Default: null
+// Instead of pausing charging for cooldown_pause seconds, limit the max charging current (e.g., to 500 mA).
+// cooldown_pause and cooldown_charge are optional.
+// Note: devices don't support just about any current value. Multiples of 500 mA tend to have higher compatibility.
 
 
-# cooldown_custom (ccu) # Default: null
-# When cooldown_capacity and/or cooldown_temp don't suit your needs, this comes to the rescue.
-# It overrides the regular cooldown settings.
+// cooldown_custom (ccu) # Default: null
+// When cooldown_capacity and/or cooldown_temp don't suit your needs, this comes to the rescue.
+// It overrides the regular cooldown settings.
 
 
-# cooldown_temp (ct) # Default: 35
-# Temperature (°C) at which the cooldown cycle starts.
-# Cooldown reduces the battery degradation rate by lowering the device's temperature.
-# Requires cooldown_current or cooldown_charge and cooldown_pause, explained above.
+// cooldown_temp (ct) # Default: 35
+// Temperature (°C) at which the cooldown cycle starts.
+// Cooldown reduces the battery degradation rate by lowering the device's temperature.
+// Requires cooldown_current or cooldown_charge and cooldown_pause, explained above.
 
 
-# current_workaround (cw) # Default: false
-# Only use current control files whose paths match "batt".
-# This is necessary only if the current limit affects both input and charging current values (breaking idle mode when charging_switch=milliamps).
-# Try this if low current values don't work.
-# "accd --init" is required after changing this (automated by "acc --set").
+// current_workaround (cw) # Default: false
+// Only use current control files whose paths match "batt".
+// This is necessary only if the current limit affects both input and charging current values (breaking idle mode when charging_switch=milliamps).
+// Try this if low current values don't work.
+// "accd --init" is required after changing this (automated by "acc --set").
 
 
-# discharge_polarity (dp) # Default: null
-# This overrides the automatic current polarity (+|-) detection.
-# It's only relevant when batt_status_workaround=true.
-# Polarity may change with a kernel upgrade. If this setting is wrong, charging control won't work if batt_status_workaround is on.
+// discharge_polarity (dp) # Default: null
+// This overrides the automatic current polarity (+|-) detection.
+// It's only relevant when batt_status_workaround=true.
+// Polarity may change with a kernel upgrade. If this setting is wrong, charging control won't work if batt_status_workaround is on.
 
 
-# force_off (fo) # Default: false
-# Enable this only if the set charging switch is stubbornly reset by the system.
-# Oftentimes, userspace thermal management daemons (e.g., mi_thermald) and/or driver issues are behind charging control issues.
-# Some people "systemlessly" disable certain thermal daemons with Magisk. While this is not a general recommendation, they swear by it.
+// force_off (fo) # Default: false
+// Enable this only if the set charging switch is stubbornly reset by the system.
+// Oftentimes, userspace thermal management daemons (e.g., mi_thermald) and/or driver issues are behind charging control issues.
+// Some people "systemlessly" disable certain thermal daemons with Magisk. While this is not a general recommendation, they swear by it.
 
 
-# idle_threshold (it) # Default: 40
-# Current threshold (absolute value) in milliamps to consider _status=Idle (only relevant if batt_status_workaround=true).
+// idle_threshold (it) # Default: 40
+// Current threshold (absolute value) in milliamps to consider _status=Idle (only relevant if batt_status_workaround=true).
 
 
-# lang (l) # Default: en
-# Display language, when null, English (en) is assumed.
+// lang (l) # Default: en
+// Display language, when null, English (en) is assumed.
 
 
-# max_charging_current (mcc) # Default: null
-# max_charging_voltage (mcv) # Default: null
+// max_charging_current (mcc) # Default: null
+// max_charging_voltage (mcv) # Default: null
 
-# Control files are automatically added.
+// Control files are automatically added.
 
-# Notes:
-#   Devices don't support just about any current value. Multiples of 500 mA tend to have higher compatibility.
-#   The maximum current that can be set via dedicated commands is 9999 mA. For voltage, the max is 4300 mV. One can override those by manually editing the config.
+// Notes:
+//   Devices don't support just about any current value. Multiples of 500 mA tend to have higher compatibility.
+//   The maximum current that can be set via dedicated commands is 9999 mA. For voltage, the max is 4300 mV. One can override those by manually editing the config.
 
 
-# max_temp (mt) # Default: 50
-# resume_temp (rt) # Default: 45
+// max_temp (mt) # Default: 50
+// resume_temp (rt) # Default: 45
 
-# Those two work together and are NOT tied to the cooldown cycle.
-# At max_temp, charging is paused and it only resumes at resume_temp
-# max_temp_pause is still supported for legacy frontends, but it's actually just a resume_temp alias.
+// Those two work together and are NOT tied to the cooldown cycle.
+// At max_temp, charging is paused and it only resumes at resume_temp
+// max_temp_pause is still supported for legacy frontends, but it's actually just a resume_temp alias.
 
 
-# off_mid (om) # Default: true
-# Whether to turn off charging after rebooting the system or restarting accd, if capacity is within resume_capacity and pause_capacity.
+// off_mid (om) # Default: true
+// Whether to turn off charging after rebooting the system or restarting accd, if capacity is within resume_capacity and pause_capacity.
 
 
-# one-line scripts # Default: none
+// one-line scripts # Default: none
 
-# Every line that begins with ":" is interpreted as a shell script.
-# This feature can be useful for many things, including setting up persistent config profiles (source a file that overrides the main config).
-# All script lines are executed whenever the config is loaded/sourced.
-# This happens regularly while the daemon is running, and at least once per command run.
+// Every line that begins with ":" is interpreted as a shell script.
+// This feature can be useful for many things, including setting up persistent config profiles (source a file that overrides the main config).
+// All script lines are executed whenever the config is loaded/sourced.
+// This happens regularly while the daemon is running, and at least once per command run.
 
-# Note: due to user data encryption, files used in one-line scripts must reside somewhere in /data/adb/, just like acc's own data files. Ignore if your data isn't encrypted.
+// Note: due to user data encryption, files used in one-line scripts must reside somewhere in /data/adb/, just like acc's own data files. Ignore if your data isn't encrypted.
 
-# Tip: One can schedule tasks with the following construct:
-# : sleep profile; at 22:00 'acc -s pc=50 mcc=500 mcv=3900; acc -n "Switched to night profile"'
+// Tip: One can schedule tasks with the following construct:
+// : sleep profile; at 22:00 'acc -s pc=50 mcc=500 mcv=3900; acc -n "Switched to night profile"'
 
 
-# pause_capacity (pc) # Default: 75
-# Battery level or millivolts at which charging should pause.
+// pause_capacity (pc) # Default: 75
+// Battery level or millivolts at which charging should pause.
 
 
-# prioritize_batt_idle_mode (pbim) # Default: true
+// prioritize_batt_idle_mode (pbim) # Default: true
 
-# Battery idle mode, also called "standby mode" or "charging bypass", is the ability of running off the charger, as if the battery were disconnected from the device.
-# Not all devices support this, but there's also emulated idle mode (refer to the readme).
-# Emulated idle mode works on all devices.
+// Battery idle mode, also called "standby mode" or "charging bypass", is the ability of running off the charger, as if the battery were disconnected from the device.
+// Not all devices support this, but there's also emulated idle mode (refer to the readme).
+// Emulated idle mode works on all devices.
 
-# If enabled, charging switches that support battery idle mode take precedence.
-# This is only relevant when the switch is automatically determined -- i.e., charging_switch is not set or it has no trailing " --".
-# In other words, this variable is only used when acc is automatically testing charging switches.
+// If enabled, charging switches that support battery idle mode take precedence.
+// This is only relevant when the switch is automatically determined -- i.e., charging_switch is not set or it has no trailing " --".
+// In other words, this variable is only used when acc is automatically testing charging switches.
 
 
-# reboot_resume (rr) # Default: false
-# Reboot (when capacity capacity is at or below resume_capacity) to re-enable charging.
-# This is only for devices whose switches can't re-enable charging.
-# A warning notification is posted 60 seconds prior, for the user to block the action, if they so please.
+// reboot_resume (rr) # Default: false
+// Reboot (when capacity capacity is at or below resume_capacity) to re-enable charging.
+// This is only for devices whose switches can't re-enable charging.
+// A warning notification is posted 60 seconds prior, for the user to block the action, if they so please.
 
 
-# reset_batt_stats_on_pause (rbsp) # Default: false
-# Reset battery stats after pausing charging.
+// reset_batt_stats_on_pause (rbsp) # Default: false
+// Reset battery stats after pausing charging.
 
-# reset_batt_stats_on_plug (rbspl) # Default: false
-# Reset battery stats seconds after plugging the charger.
+// reset_batt_stats_on_plug (rbspl) # Default: false
+// Reset battery stats seconds after plugging the charger.
 
-# reset_batt_stats_on_unplug (rbsu) # Default: false
-# Reset battery stats seconds after unplugging the charger.
+// reset_batt_stats_on_unplug (rbsu) # Default: false
+// Reset battery stats seconds after unplugging the charger.
 
 
-# resume_capacity (rc) # Default: 15
-# Battery level or millivolts at which charging should resume.
+// resume_capacity (rc) # Default: 15
+// Battery level or millivolts at which charging should resume.
 
 
-# run_cmd_on_pause (rcp) # Default: null
-# Run commands* after pausing charging.
-# * Usually a script ("sh some_file" or ". some_file")
+// run_cmd_on_pause (rcp) # Default: null
+// Run commands* after pausing charging.
+// * Usually a script ("sh some_file" or ". some_file")
 
 
-# shutdown_capacity (sc) # Default: 5
-# When the battery is discharging, its level/millivolts is at or below shutdown_capacity, and the device has been running for 15 minutes or more, acc daemon turns the device off to reduce the discharge rate, and protect the battery from potential damage, induced by voltage below the operating range.
-# A value of -1 disables it.
+// shutdown_capacity (sc) # Default: 5
+// When the battery is discharging, its level/millivolts is at or below shutdown_capacity, and the device has been running for 15 minutes or more, acc daemon turns the device off to reduce the discharge rate, and protect the battery from potential damage, induced by voltage below the operating range.
+// A value of -1 disables it.
 
 
-# shutdown_temp (st) # Default: 55
-# Shutdown the system if battery temperature is at or below this value.
+// shutdown_temp (st) # Default: 55
+// Shutdown the system if battery temperature is at or below this value.
 
 
-# temp_level (tl) # Default: null
-# This is a current limiting hack.
-# Some devices have adjustable "temperature levels". At the highest level, charging current is blocked.
-# The stock values are generally integers, ranging from 0 to 6, 7 or slightly above.
-# For greater flexibility, this variable stores a percentage value -- which is internally converted to the system's scales.
-# On Samsung devices, battery/siop_level (0-100%, default 100) is used instead (if available).
+// temp_level (tl) # Default: null
+// This is a current limiting hack.
+// Some devices have adjustable "temperature levels". At the highest level, charging current is blocked.
+// The stock values are generally integers, ranging from 0 to 6, 7 or slightly above.
+// For greater flexibility, this variable stores a percentage value -- which is internally converted to the system's scales.
+// On Samsung devices, battery/siop_level (0-100%, default 100) is used instead (if available).
 
 #/DC#
 ```
@@ -816,10 +816,7 @@ Options
       acc -p /sdcard/power_supply-harpia.log   Parse the given file and print potential charging switches that are not already in /ch-switches
       acc -p /sdcard/charging-switches.txt /sdcard/power_supply-harpia.log   Parse /sdcard/power_supply-harpia.log and print potential charging switches absent from /sdcard/charging-switches.txt
 
-  -r|--readme [[editor] [editor_opts] | g for GUI]   Print/edit README.md
-    e.g.,
-      acc -r (same as acc -r less)
-      acc -r cat
+  -r|--readme   Open the manual
 
   -R|--resetbs   Reset battery stats
     e.g., acc -R

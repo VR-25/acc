@@ -73,11 +73,12 @@ done
 # update README
 
 if [ README.md -ot install/default-config.txt ] \
-  || [ README.md -ot install/strings.sh ]
+  || [ README.md -ot install/strings.sh ] \
+  || [ README.md -nt README.html ]
 then
 # default config
   set -e
-  { sed -n '1,/#DC#/p' README.md; echo; cat install/default-config.txt; \
+  { sed -n '1,/#DC#/p' README.md; echo; sed 's/^# /\/\/ /' install/default-config.txt; \
     echo; sed -n '/^#\/DC#/,$p' README.md; } > README.md.tmp
 # terminal commands
   { sed -n '1,/#TC#/p' README.md.tmp; \
@@ -85,6 +86,7 @@ then
     echo; sed -n '/^#\/TC#/,$p' README.md.tmp; } > README.md
     rm README.md.tmp
   set +e
+  markdown README.md > README.html
 fi
 
 

@@ -192,10 +192,7 @@ Options
       acc -p /sdcard/power_supply-harpia.log   Parse the given file and print potential charging switches that are not already in $TMPDIR/ch-switches
       acc -p /sdcard/charging-switches.txt /sdcard/power_supply-harpia.log   Parse /sdcard/power_supply-harpia.log and print potential charging switches absent from /sdcard/charging-switches.txt
 
-  -r|--readme [[editor] [editor_opts] | g for GUI]   Print/edit README.md
-    e.g.,
-      acc -r (same as acc -r less)
-      acc -r cat
+  -r|--readme   Open the manual
 
   -R|--resetbs   Reset battery stats
     e.g., acc -R

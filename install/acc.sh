@@ -112,9 +112,10 @@ edit() {
 
 
 ext_app() {
-  am start -a android.intent.action.EDIT \
-           -t 'text/plain' \
-           -d file://$1 &>/dev/null
+  am start -a android.intent.action.${2:-EDIT} \
+           -t "text/${3:-plain}" \
+           -d file://$1 &>/dev/null \
+           --grant-read-uri-permission
 }
 
 
@@ -303,8 +304,8 @@ if ${verbose:-true} && [ -f $execDir/translations/$language/strings.sh ]; then
   . $execDir/translations/$language/strings.sh
 fi
 grep -q .. $execDir/translations/$language/README.md 2>/dev/null \
-  && readMe=$execDir/translations/$language/README.md \
-  || readMe=$dataDir/README.md
+  && readMe=$execDir/translations/$language/README.html \
+  || readMe=$dataDir/README.html
 
 
 # aliases/shortcuts
@@ -434,7 +435,9 @@ case "${1-}" in
   ;;
 
   -r|--readme)
-    shift; edit $readMe "$@"
+    doc=/data/local/tmp/.${id}_manual.html
+    cp -f $readMe $doc
+    ext_app $doc VIEW html
   ;;
 
   -R|--resetbs)

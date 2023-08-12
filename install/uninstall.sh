@@ -63,7 +63,8 @@ pgrep -f "/($id|${id}a) (-|--)[det]|/${id}d" > /dev/null && { #legacy
 rm -rf /data/adb/$domain/$id \
   /data/adb/modules/$id \
   /data/adb/service.d/${id}-*.sh \
-  /data/data/mattecarra.accapp/files/$id
+  /data/data/mattecarra.accapp/files/$id \
+  /data/local/tmp/.${id}_manual.html
 
 [ "${1:-}" = install ] || rm -rf /data/adb/$domain/${id}-data
 rmdir /data/adb/$domain

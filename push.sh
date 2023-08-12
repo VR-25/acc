@@ -11,7 +11,7 @@ versionCode=${version#* }
 version=${version% *}
 zip=${id}_${version}_$versionCode
 zip=$(echo _builds/$zip/$zip*zip)
-dest=/sdcard/Download/${zip##*/}
+dest=/sdcard/Download/acc.zip
 
 adb $([ -z "${1-}" ] || echo "-s $1") push $zip $dest \
   && adb $([ -z "${1-}" ] || echo "-s $1") shell su -c magisk --install-module $dest || :
