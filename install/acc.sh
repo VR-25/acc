@@ -372,17 +372,19 @@ case "${1-}" in
     cooldown_pause=
     max_charging_current=
     max_charging_voltage=
-    max_temp=55
-    pause_capacity=${2:-100}
-    resume_capacity=$((pause_capacity - 1))
+    max_temp=
+    off_mid=false
+    resume_temp=
     temp_level=0
+    pause_capacity=${2:-100}
+    resume_capacity=$((pause_capacity - 2))
 
     cp -f $defaultConfig $TMPDIR/.acc-f-config
     config=$TMPDIR/.acc-f-config
     . $execDir/write-config.sh
     print_charging_enabled_until ${2:-100}%
     echo
-    echo ": ; accf='online || exec $TMPDIR/accd'" >> $config
+    echo ':; ! online && [ $(cat $battCapacity) -ge ${capacity[2]} ] && exec $TMPDIR/accd || :' >> $config
     exec $TMPDIR/accd $config
   ;;
 

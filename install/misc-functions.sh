@@ -162,7 +162,6 @@ disable_charging() {
     fi
 
     (set +eux; eval '${runCmdOnPause-}') || :
-    eval '${accf-}'
   }
 
   if [ -n "${1-}" ]; then
