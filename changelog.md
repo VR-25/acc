@@ -1,8 +1,14 @@
-**v2023.8.7-dev (202308070)**
+**v2023.8.12 (202308120)**
+- -H|--health <mAh>: Print estimated battery health
+- -r|--readme now sends intent to open README.html
 - Additional charging switches
-- Fixed random accd crash
+- Fix set_temp_level()
 - Fixed one-line scripts identifier
+- Fixed random accd crash
+- Implemented resume_temp; deprecated max_temp_pause
+- Refactored edit handler; use "g" (instead of "app") for GUI editor
 - Set default temp_level to null to accommodate battery/siop_level
+- Set list number width to 2 columns
 
 **v2023.7.17 (202307170)**
 - Do not disengage "charge once to %" until unplugged (requires "plug state" API)
