@@ -90,10 +90,6 @@ print_default() {
  echo "Predefinição"
 }
 
-print_quit() {
-  echo "Pressione $1 para sair/guardar"
-}
-
 print_curr_restored() {
   echo "Máxima corrente de recarga padrão restaurada"
 }

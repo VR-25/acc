@@ -367,7 +367,6 @@ GPLv3+"
 
 print_wait_plug() {
   print_unplugged
-  print_quit CTRL-C
 }
 
 

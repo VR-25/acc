@@ -353,11 +353,6 @@ print_default() {
  echo "Varsayılan"
 }
 
-print_quit() {
-  echo "Çıkmak içn $1 basın"
-  [ -z "${2-}" ] || echo "- veya kaydedip çıkmak için $2"
-}
-
 print_curr_restored() {
   echo "Varsayılan maksimum şarj akımı geri yüklendi"
 }

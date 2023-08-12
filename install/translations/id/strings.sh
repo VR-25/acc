@@ -92,11 +92,6 @@ print_default() {
  echo "Bawaan"
 }
 
-print_quit() {
-  echo "Tekan $1 untuk batal/keluar"
-  [ -z "${2-}" ] || echo "- Atau $2 untuk menyimpan dan keluar"
-}
-
 print_curr_restored() {
   echo "Maksimal pengisian daya bawaan dipulihkan"
 }

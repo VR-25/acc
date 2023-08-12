@@ -352,11 +352,6 @@ print_default() {
  echo "Défaut"
 }
 
-print_quit() {
-  echo "Presser $1 pour quitter"
-  [ -z "${2-}" ] || echo "- Ou $2 pour sauvegarder et quitter"
-}
-
 print_curr_restored() {
   echo "Courant de charge par défaut restauré"
 }

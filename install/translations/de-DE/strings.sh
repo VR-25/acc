@@ -269,11 +269,6 @@ print_default() {
  echo "Standart"
 }
 
-print_quit() {
-  echo "Drücke $1 um abzubrechen/beenden"
-  [ -z "${2-}" ] || echo "- Oder $2 um speichern und dann schließen"
-}
-
 print_curr_restored() {
     echo "Voreingestellter maximaler Ladestrom wiederhergestellt"
 }

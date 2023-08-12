@@ -73,7 +73,6 @@ z) $(print_exit)
       echo -n ""
       print_1shot
       echo
-      print_quit CTRL-C
       echo
       echo -n "%? "
       read level
@@ -83,7 +82,6 @@ z) $(print_exit)
     ;;
 
     8)
-      print_quit CTRL-C
       print_press_key
       read -n 1
       set +eu
