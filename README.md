@@ -239,7 +239,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202307260
+configVerCode=202308120
 
 ampFactor=
 battStatusWorkaround=true
@@ -670,7 +670,7 @@ runCmdOnPause=''
 
 
 // shutdown_temp (st) # Default: 55
-// Shutdown the system if battery temperature is at or below this value.
+// Shutdown the system if battery temperature >= this value.
 
 
 // temp_level (tl) # Default: null

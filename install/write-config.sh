@@ -21,7 +21,7 @@ l=${lang-${l-${language}}}
 mcc="${max_charging_current-${mcc-${maxChargingCurrent[@]}}}"
 mcv="${max_charging_voltage-${mcv-${maxChargingVoltage[@]}}}"
 mt=${max_temp-${mt-${temperature[1]}}}
-rt=${resume_temp-${rt-${max_temp_pause-${mtp-${temperature[2]}}}}}
+rt=${resume_temp-${rt-${temperature[2]}}}
 om="${off_mid-${om-$offMid}}"
 pbim=${prioritize_batt_idle_mode-${pbim-$prioritizeBattIdleMode}}
 pc=${pause_capacity-${pc-${capacity[3]}}}
@@ -66,7 +66,7 @@ offMid=${om:-true}
 prioritizeBattIdleMode=${pbim:-true}
 rebootResume=${rr:-false}
 resetBattStats=(${rbsp:-false} ${rbsu:-false} ${rbspl:-false})
-temperature=(${ct:-35} ${mt:-50} ${rt:-${mtp:-45}} ${st:-55})
+temperature=(${ct:-35} ${mt:-50} ${rt:-45} ${st:-55})
 tempLevel=$tl
 voltFactor=$vf
 
