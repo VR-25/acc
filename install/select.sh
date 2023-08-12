@@ -23,10 +23,10 @@ select_() {
     list="$(printf "$list\n$item")"
   done
 
-  list="$(echo "$list" | grep -v '^$' | nl -s ") " -w 1)"
+  list="$(echo "$list" | grep -v '^$' | nl -s ") " -w 2)"
   printf "$list\n\n${PS3:-#? }"
   read $n item
-  list="$(echo "$list" | sed -n "s|^${item}. ||p")"
+  list="$(echo "$list" | sed 's/^ //' | sed -n "s|^${item}. ||p")"
   list="$_var_=\"$list\""
   eval "$list"
 }
