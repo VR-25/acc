@@ -18,8 +18,7 @@ data_dir=/data/adb/$domain/${id}-data
 # log
 [ -z "${LINENO-}" ] || export PS4='$LINENO: '
 mkdir -p $data_dir/logs
-exec 2>$data_dir/logs/install-online.sh.log
-set -x
+set -x &>$data_dir/logs/install-online.sh.log
 
 trap 'e=$?; echo; exit $e' EXIT
 
@@ -93,7 +92,8 @@ installedVersion=$(get_ver /data/adb/$domain/$id/module.prop 2>/dev/null || :)
 onlineVersion=$(curl -L $insecure https://raw.githubusercontent.com/VR-25/$id/${commit}/module.prop | get_ver)
 
 
-[ -f $PWD/${0##*/} ] || cd ${0%/*}
+[ -f $PWD/${0##*/} ] || cd $(readlink -f ${0%/*})
+[ -z "${reference-}" ] || cd /dev/.$domain/$id
 rm -rf "./${id}-${commit}/" 2>/dev/null || :
 
 
