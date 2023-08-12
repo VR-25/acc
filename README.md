@@ -785,6 +785,8 @@ Options
       acc -F "file1" "file2" "fileN" ... (install multiple zips)
       acc -F "/sdcard/Download/Magisk-v20.0(20000).zip"
 
+  -H|--health <mAh>   Print estimated battery health
+
   -i|--info [case insensitive egrep regex (default: ".")]   Show battery info
     e.g.,
       acc -i

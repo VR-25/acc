@@ -1,6 +1,6 @@
 #!/system/bin/sh
 # Advanced Charging Controller
-# Copyright 2017-2022, VR25
+# Copyright 2017-2023, VR25
 # License: GPLv3+
 
 
@@ -391,6 +391,18 @@ case "${1-}" in
     set +eux
     trap - EXIT
     $execDir/flash-zips.sh "$@"
+  ;;
+
+  -H|--health)
+    mAh=${2-}
+    [ -n "$mAh" ] || { echo "$0 -H|--health <mAh>"; exit; }
+    dumpsys battery reset &>/dev/null
+    dumpsys battery > $TMPDIR/.dsys
+    counter=$(sed -n 's/^  Charge counter: //p' $TMPDIR/.dsys)
+    [ $counter -lt 10000 ] || counter=$(calc $counter / 1000)
+    level=$(sed -n 's/  level: //p' $TMPDIR/.dsys)
+    health=$(calc "$counter * 100 / $level * 100 / $mAh" | xargs printf %.1f)
+    [ ${health%.*} -le 99 ] && echo ${health}% || echo "!"
   ;;
 
   -i|--info)
