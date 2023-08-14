@@ -239,7 +239,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202308121
+configVerCode=202308140
 
 ampFactor=
 battStatusWorkaround=true
@@ -603,8 +603,8 @@ runCmdOnPause=''
 // resume_temp (rt) # Default: 45
 
 // Those two work together and are NOT tied to the cooldown cycle.
-// At max_temp, charging is paused and it only resumes at resume_temp
-// max_temp_pause is still supported for legacy frontends, but it's actually just a resume_temp alias.
+// At max_temp, charging is paused.
+// Charging resumes at resume_temp, as long as other conditions (e.g., resume_capacity) are also met.
 
 
 // off_mid (om) # Default: true

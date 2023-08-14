@@ -248,7 +248,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 
 <h1>DC</h1>
 
-<p>configVerCode=202308121</p>
+<p>configVerCode=202308140</p>
 
 <p>ampFactor=
 battStatusWorkaround=true
@@ -575,8 +575,8 @@ voltFactor=</p>
 // resume</em>temp (rt) # Default: 45</p>
 
 <p>// Those two work together and are NOT tied to the cooldown cycle.
-// At max<em>temp, charging is paused and it only resumes at resume</em>temp
-// max<em>temp</em>pause is still supported for legacy frontends, but it's actually just a resume_temp alias.</p>
+// At max<em>temp, charging is paused.
+// Charging resumes at resume</em>temp, as long as other conditions (e.g., resume_capacity) are also met.</p>
 
 <p>// off<em>mid (om) # Default: true
 // Whether to turn off charging after rebooting the system or restarting accd, if capacity is within resume</em>capacity and pause_capacity.</p>
