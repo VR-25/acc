@@ -116,7 +116,7 @@ ls_curr_ctrl_files_static() {
 #*/batt_tune_chg_limit_cur
 */car_charge
 */car_input
-*/constant_charge_current_max
+*/constant_charge_current*
 */dcp_charge
 */hv_charge
 */mhl_2000_charge
