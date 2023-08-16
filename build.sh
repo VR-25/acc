@@ -36,7 +36,7 @@ tmpDir=.tmp/META-INF/com/google/android
 
 
 # update module info
-grep -q "$versionCode" module.prop || {
+[ changelog.md -ot module.prop ] || {
   set_prop version $version
   set_prop versionCode $versionCode
   cat << EOF > module.json
