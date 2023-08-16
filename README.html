@@ -248,7 +248,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 
 <h1>DC</h1>
 
-<p>configVerCode=202308140</p>
+<p>configVerCode=202308170</p>
 
 <p>ampFactor=
 battStatusWorkaround=true
@@ -394,7 +394,7 @@ voltFactor=</p>
 
 <p>// runCmdOnPause=run<em>cmd</em>on_pause='COMMAND...' NULLABLE</p>
 
-<p>// temperature=(cooldown<em>temp=ºC max</em>temp=ºC resume<em>temp=ºC shutdown</em>temp=ºC)</p>
+<p>// temperature=(cooldown<em>temp=ºC max</em>temp=ºC resume<em>temp=ºC[r] shutdown</em>temp=ºC)</p>
 
 <p>// tempLevel=temp_level=PERCENT (0-100)</p>
 
@@ -576,7 +576,7 @@ voltFactor=</p>
 
 <p>// Those two work together and are NOT tied to the cooldown cycle.
 // At max<em>temp, charging is paused.
-// Charging resumes at resume</em>temp, as long as other conditions (e.g., resume_capacity) are also met.</p>
+// Charging resumes at resume</em>temp, as long as other conditions (e.g., resume<em>capacity) are also met. To always override resume</em>capacity add r, as in resume_temp=25r.</p>
 
 <p>// off<em>mid (om) # Default: true
 // Whether to turn off charging after rebooting the system or restarting accd, if capacity is within resume</em>capacity and pause_capacity.</p>

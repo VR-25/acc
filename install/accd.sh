@@ -55,6 +55,7 @@ if ! $init; then
 
 
   _le_resume_cap() {
+    ! tt ${temperature[2]%r} "*r" || return 0
     if t ${capacity[2]} -gt 3000; then
       t $(volt_now) -le ${capacity[2]}
     else
@@ -295,7 +296,7 @@ if ! $init; then
         fi
 
         # enable charging under <conditions>
-        if _le_resume_cap && [ $(cat $temp) -le $(( ${temperature[2]} * 10 )) ]; then
+        if _le_resume_cap && [ $(cat $temp) -le $(( ${temperature[2]%r} * 10 )) ]; then
           rm $TMPDIR/.forceoff* 2>/dev/null && sleep ${loopDelay[0]} || :
           enable_charging
         fi

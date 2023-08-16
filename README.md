@@ -239,7 +239,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202308140
+configVerCode=202308170
 
 ampFactor=
 battStatusWorkaround=true
@@ -397,7 +397,7 @@ runCmdOnPause=''
 
 // runCmdOnPause=run_cmd_on_pause='COMMAND...' NULLABLE
 
-// temperature=(cooldown_temp=ºC max_temp=ºC resume_temp=ºC shutdown_temp=ºC)
+// temperature=(cooldown_temp=ºC max_temp=ºC resume_temp=ºC[r] shutdown_temp=ºC)
 
 // tempLevel=temp_level=PERCENT (0-100)
 
@@ -604,7 +604,7 @@ runCmdOnPause=''
 
 // Those two work together and are NOT tied to the cooldown cycle.
 // At max_temp, charging is paused.
-// Charging resumes at resume_temp, as long as other conditions (e.g., resume_capacity) are also met.
+// Charging resumes at resume_temp, as long as other conditions (e.g., resume_capacity) are also met. To always override resume_capacity add r, as in resume_temp=25r.
 
 
 // off_mid (om) # Default: true
