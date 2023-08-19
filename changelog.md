@@ -1,3 +1,12 @@
+**v2023.8.19 (202308190)**
+- 1936210 Fix print_quit error
+- 28d68bd Fix -f and temp_level
+- 08e2c3f Fix --upgrade
+- 6f69b45 Add constant_charge_current* control files
+- 312a429 Update resume_temp information
+- 2744859 Fix module info updater
+- 6dac4a7 resume_temp with trailing r always overrides resume_capacity
+
 **v2023.8.12 (202308120)**
 - -H|--health <mAh>: Print estimated battery health
 - -r|--readme now sends intent to open README.html
