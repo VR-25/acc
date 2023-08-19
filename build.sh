@@ -44,6 +44,7 @@ tmpDir=.tmp/META-INF/com/google/android
     "busybox": "https://github.com/Magisk-Modules-Repo/busybox-ndk",
     "changelog": "https://raw.githubusercontent.com/VR-25/$id/master/changelog.md",
     "curl": "https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/tree/master/curl",
+    "onlineInstaller": "https://github.com/VR-25/$id/releases/download/$version/install-online.sh",
     "tgz": "https://github.com/VR-25/$id/releases/download/$version/${basename}.tgz",
     "tgzInstaller": "https://github.com/VR-25/$id/releases/download/$version/install-tarball.sh",
     "version": "$version",
@@ -129,7 +130,7 @@ fi
   rm -rf _builds/${basename}/ 2>/dev/null
   mkdir -p _builds/${basename}/${basename}
 
-  cp bin/${id}_flashable_uninstaller.zip _builds/${basename}/
+  cp bin/${id}_flashable_uninstaller.zip install-online.sh install-tarball.sh _builds/${basename}/
 
   # generate $id flashable zip
   case $version in
@@ -143,7 +144,6 @@ fi
   echo
 
   # prepare files to be included in $id installable tarball
-  cp install-tarball.sh _builds/${basename}/
   cp -R install install.sh License.md README.* module.prop bin/ \
     _builds/${basename}/${basename}/ 2>&1 \
     | grep -iv "can't preserve"
