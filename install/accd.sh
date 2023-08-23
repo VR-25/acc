@@ -585,40 +585,10 @@ else
     done
 
 
-  # read charging current control files (part 1)
-  # part 2 runs while charging only
-
-  rm $TMPDIR/.ch-curr-read 2>/dev/null
-  : > $TMPDIR/ch-curr-ctrl-files_
-  ls -1 $(ls_curr_ctrl_files_boolean | grep -Ev '^#|^$') 2>/dev/null | \
-    while read file; do
-      chmod a+r $file 2>/dev/null || continue
-      grep -q '^[01]$' $file && echo ${file}::1::0 >> $TMPDIR/ch-curr-ctrl-files
-    done
-
-  ls -1 $(ls_curr_ctrl_files_static | grep -Ev '^#|^$') 2>/dev/null | \
-    while read file; do
-      chmod a+r $file 2>/dev/null || continue
-      defaultValue=$(cat $file)
-      [ -n "$defaultValue" ] || continue
-      ampFactor=$(sed -n 's/^ampFactor=//p' $dataDir/config.txt 2>/dev/null)
-      [ -n "$ampFactor" -o $defaultValue -ne 0 ] || continue
-      if [ "${ampFactor:-1}" -eq 1000 -o ${defaultValue#-} -lt 10000 ]; then
-        # milliamps
-        echo ${file}::v::$defaultValue \
-          >> $TMPDIR/ch-curr-ctrl-files_
-      else
-        # microamps
-        echo ${file}::v000::$defaultValue \
-          >> $TMPDIR/ch-curr-ctrl-files_
-      fi
-    done
-
-
-  # exclude duplicates and parallel/ ctrl files
+  # exclude troublesome ctrl files
+  rm $TMPDIR/.ch-curr-read $TMPDIR/ch-curr-ctrl-files 2>/dev/null
   for file in $TMPDIR/ch-*_; do
-    sort -u $file | grep -iv parallel > ${file%_}
-    sed -i /::-/d ${file%_} # exclude ctrl files with negative values
+    sort -u $file | grep -Eiv 'parallel|::-|bq[0-9].*/current_max' > ${file%_}
     rm $file
   done
 

@@ -4,15 +4,24 @@
 
 (set +e
 
+currCtrl=$TMPDIR/ch-curr-ctrl-files
+
 if [ ! -f $TMPDIR/.ch-curr-read ] \
-  || ! grep -q / $TMPDIR/ch-curr-ctrl-files 2>/dev/null
+  || ! grep -q / ${currCtrl} 2>/dev/null
 then
 
   . $execDir/ctrl-files.sh
   plugins=/data/adb/vr25/acc-data/plugins
   [ -f $plugins/ctrl-files.sh ] && . $plugins/ctrl-files.sh
 
-  ls -1 $(ls_curr_ctrl_files_dynamic | grep -Ev '^#|^$') 2>/dev/null | \
+  : > ${currCtrl}_
+  ls -1 $(ls_curr_ctrl_files_boolean | grep -Ev '^#|^$') 2>/dev/null | \
+    while read file; do
+      chmod a+r $file 2>/dev/null || continue
+      grep -q '^[01]$' $file && echo ${file}::1::0 >> ${currCtrl}_
+    done
+
+  ls -1 $(ls_curr_ctrl_files | grep -Ev '^#|^$') 2>/dev/null | \
     while read file; do
       chmod a+r $file || continue
       defaultValue=$(cat $file)
@@ -21,35 +30,31 @@ then
       if [ ${defaultValue#-} -lt 10000 ]; then
         # milliamps
         echo ${file}::v::$defaultValue \
-          >> $TMPDIR/ch-curr-ctrl-files
+          >> ${currCtrl}_
       else
         # microamps
         echo ${file}::v000::$defaultValue \
-          >> $TMPDIR/ch-curr-ctrl-files
+          >> ${currCtrl}_
       fi
     done
 
-  sort -u $TMPDIR/ch-curr-ctrl-files > $TMPDIR/ch-curr-ctrl-files_
-
-  # exclude ctrl files with negative values
-  sed -i /::-/d $TMPDIR/ch-curr-ctrl-files_
-
-  # add curr and volt ctrl files to charging switches list
-  sed -e 's/::.*::/ /' -e 's/$/ 0/' $TMPDIR/ch-curr-ctrl-files_ > $TMPDIR/.ctrl
-  sed -E 's/(.*)(::v.*::)(.*)/\1 \3 \2/; s/::v/50/; s/:://' $TMPDIR/ch-curr-ctrl-files_ >> $TMPDIR/.ctrl
-  sed -Ee 's/::.*::/ /' -e 's/([0-9])$/\1 3600mV/' $TMPDIR/ch-volt-ctrl-files >> $TMPDIR/.ctrl
-
-  grep / $TMPDIR/.ctrl >> $TMPDIR/ch-switches
-  rm $TMPDIR/.ctrl
-
   # exclude troublesome ctrl files
-  sed -i '\|bq[0-9].*/current_max|d' $TMPDIR/ch-switches
+  sort -u ${currCtrl}_ \
+    | grep -Eiv 'parallel|::-|bq[0-9].*/current_max' > $TMPDIR/.ctrl
 
   # exclude non-batt control files
   $currentWorkaround \
-    && grep -i batt $TMPDIR/ch-curr-ctrl-files_ > $TMPDIR/ch-curr-ctrl-files \
-    || cat $TMPDIR/ch-curr-ctrl-files_ > $TMPDIR/ch-curr-ctrl-files
+    && grep -i batt $TMPDIR/.ctrl > ${currCtrl} \
+    || cat $TMPDIR/.ctrl > ${currCtrl}
+
+  # add curr and volt ctrl files to charging switches list
+  sed -e 's/::.*::/ /' -e 's/$/ 0/' $TMPDIR/.ctrl >> $TMPDIR/ch-switches
+  sed -E 's/(.*)(::v.*::)(.*)/\1 \3 \2/; s/::v/50/; s/:://' $TMPDIR/.ctrl >> $TMPDIR/ch-switches
+  sed -Ee 's/::.*::/ /' -e 's/([0-9])$/\1 3600mV/' $TMPDIR/ch-volt-ctrl-files >> $TMPDIR/ch-switches
+
+  cat $TMPDIR/ch-switches > $TMPDIR/.ctrl
+  grep / $TMPDIR/.ctrl | sort -u > $TMPDIR/ch-switches
 fi
 
-rm $TMPDIR/ch-curr-ctrl-files_ 2>/dev/null
+rm ${currCtrl}_ $TMPDIR/.ctrl 2>/dev/null
 touch $TMPDIR/.ch-curr-read) || :

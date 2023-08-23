@@ -91,22 +91,7 @@ battery/op_disable_charge 0 1 battery/input_suspend 0 0
 "
 }
 
-ls_curr_ctrl_files_boolean() {
-  echo "
-*/input_current_limited
-*/restrict*_ch*g*
-/sys/class/qcom-battery/restrict*_ch*g*
-"
-}
-
-ls_curr_ctrl_files_dynamic() {
-  echo "
-*/current_max
-*/input_current_max
-"
-}
-
-ls_curr_ctrl_files_static() {
+ls_curr_ctrl_files() {
   echo "
 */ac_charge
 */ac_input
@@ -117,8 +102,10 @@ ls_curr_ctrl_files_static() {
 */car_charge
 */car_input
 */constant_charge_current*
+*/current_max
 */dcp_charge
 */hv_charge
+*/input_current_max
 */mhl_2000_charge
 */mhl_2000_input
 */restrict*_cur*
@@ -130,6 +117,14 @@ ls_curr_ctrl_files_static() {
 */wc_input
 *dcp_input
 /sys/class/qcom-battery/restrict*_cur*
+"
+}
+
+ls_curr_ctrl_files_boolean() {
+  echo "
+*/input_current_limited
+*/restrict*_ch*g*
+/sys/class/qcom-battery/restrict*_ch*g*
 "
 }
 
