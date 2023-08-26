@@ -784,6 +784,8 @@ Options
       acc -F "file1" "file2" "fileN" ... (install multiple zips)
       acc -F "/sdcard/Download/Magisk-v20.0(20000).zip"
 
+  -h|--help [[editor] [editor_opts] | g for GUI]   Print this help text, plus the config
+
   -H|--health <mAh>   Print estimated battery health
 
   -i|--info [case insensitive egrep regex (default: ".")]   Show battery info

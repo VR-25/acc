@@ -19,6 +19,5 @@ print_help_() {
     ;;
   esac
 
-  edit $TMPDIR/.help
-  rm $TMPDIR/.help
+  edit $TMPDIR/.help "$@"
 }

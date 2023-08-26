@@ -674,7 +674,8 @@ case "${1-}" in
 
   *)
     . $execDir/print-help.sh
-    print_help_
+    shift
+    print_help_ "$@"
   ;;
 
 esac
