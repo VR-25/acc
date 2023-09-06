@@ -38,6 +38,14 @@ logf() {
       && echo /sdcard/Download/acc-logs-$device.tgz \
       || echo $dataDir/logs/acc-logs-$device.tgz
 
+    [ -z "${PS1-}" ] || {
+      ! install -m 666 $dataDir/logs/acc-logs-$device.tgz /data/local/tmp/acc-logs-$device.tgz \
+        || am start -a android.intent.action.SEND \
+                    -t application/x-compressed-tar \
+                    --eu android.intent.extra.STREAM \
+                    file:///data/local/tmp/acc-logs-$device.tgz
+    } &>/dev/null </dev/null
+
   else
     if tt "${1:-x}" "-*a*"; then
       shift
