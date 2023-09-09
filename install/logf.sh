@@ -41,7 +41,7 @@ logf() {
     [ -z "${PS1-}" ] || {
       ! install -m 666 $dataDir/logs/acc-logs-$device.tgz /data/local/tmp/acc-logs-$device.tgz \
         || am start -a android.intent.action.SEND \
-                    -t application/x-compressed-tar \
+                    -t application/x-gtar-compressed \
                     --eu android.intent.extra.STREAM \
                     file:///data/local/tmp/acc-logs-$device.tgz
     } &>/dev/null </dev/null
