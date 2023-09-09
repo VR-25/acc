@@ -120,14 +120,6 @@ ls_curr_ctrl_files() {
 "
 }
 
-ls_curr_ctrl_files_boolean() {
-  echo "
-*/input_current_limited
-*/restrict*_ch*g*
-/sys/class/qcom-battery/restrict*_ch*g*
-"
-}
-
 ls_volt_ctrl_files() {
   echo "
 */batt_tune_float_voltage

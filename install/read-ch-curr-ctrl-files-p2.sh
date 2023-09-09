@@ -14,19 +14,13 @@ then
   plugins=/data/adb/vr25/acc-data/plugins
   [ -f $plugins/ctrl-files.sh ] && . $plugins/ctrl-files.sh
 
-  : > ${currCtrl}_
-  ls -1 $(ls_curr_ctrl_files_boolean | grep -Ev '^#|^$') 2>/dev/null | \
-    while read file; do
-      chmod a+r $file 2>/dev/null || continue
-      grep -q '^[01]$' $file && echo ${file}::1::0 >> ${currCtrl}_
-    done
-
   ls -1 $(ls_curr_ctrl_files | grep -Ev '^#|^$') 2>/dev/null | \
     while read file; do
       chmod a+r $file || continue
-      defaultValue=$(cat $file)
-      [ -n "$defaultValue" ] || continue
-      [ $defaultValue -eq 0 ] && continue
+      defaultValue="$(cat $file)"
+      case "$defaultValue" in
+        ""|[01]) continue;;
+      esac
       if [ ${defaultValue#-} -lt 10000 ]; then
         # milliamps
         echo ${file}::v::$defaultValue \
@@ -49,7 +43,7 @@ then
 
   # add curr and volt ctrl files to charging switches list
   sed -e 's/::.*::/ /' -e 's/$/ 0/' $TMPDIR/.ctrl >> $TMPDIR/ch-switches
-  sed -E 's/(.*)(::v.*::)(.*)/\1 \3 \2/; s/::v/50/; s/:://' $TMPDIR/.ctrl >> $TMPDIR/ch-switches
+  sed -E 's/(.*)(::v.*::)(.*)/\1 \3 \2/; s/::v/10/; s/:://' $TMPDIR/.ctrl >> $TMPDIR/ch-switches
   sed -Ee 's/::.*::/ /' -e 's/([0-9])$/\1 3600mV/' $TMPDIR/ch-volt-ctrl-files >> $TMPDIR/ch-switches
 
   cat $TMPDIR/ch-switches > $TMPDIR/.ctrl
