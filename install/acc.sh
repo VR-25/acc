@@ -101,7 +101,13 @@ edit() {
   case "${1-}" in
     a) echo >> $file; shift; echo "$@" >> $file;;
     d) sed -Ei "\#$2#d" $file;;
-    g) ext_app $file;;
+
+    g) ! tt "$file" "$TMPDIR/*" || {
+         install -m 666 $file /data/local/tmp/
+         file=/data/local/tmp/${file##*/}
+       }
+       ext_app $file;;
+
     "") case $file in
           *.log|*.md|*.help) less $file;;
           *) nano -$ $file || vim $file || vi $file || ext_app $file;;
