@@ -44,7 +44,7 @@ set_prop() {
     # print default config
     d|--print-default)
       . $defaultConfig
-      . $execDir/print-config.sh | { grep -E "${2-.}" | more; } || :
+      . $execDir/print-config.sh ns | { grep -E "${2-.}" | more; } || :
       return 0
     ;;
 

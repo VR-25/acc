@@ -55,4 +55,4 @@ run_cmd_on_pause=$runCmdOnPause
 
 loop_cmd=" #legacy, AccSettings
 
-sed -n 's/^:/\n:/p' $config
+[ "${1-.}" = ns ] || sed -n 's/^:/\n:/p' $config
