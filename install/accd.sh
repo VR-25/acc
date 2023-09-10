@@ -55,8 +55,9 @@ if ! $init; then
 
 
   _le_resume_cap() {
-    ! tt ${temperature[2]%r} "*r" || return 0
-    if t ${capacity[2]} -gt 3000; then
+    if tt ${temperature[2]} "*r" && _lt_pause_cap; then
+      return 0
+    elif t ${capacity[2]} -gt 3000; then
       t $(volt_now) -le ${capacity[2]}
     else
       t $(cat $battCapacity) -le ${capacity[2]}
@@ -70,6 +71,11 @@ if ! $init; then
     else
       t $(cat $battCapacity) -le ${capacity[0]}
     fi
+  }
+
+
+  _uptime() {
+    [ $(cut -d '.' -f 1 /proc/uptime) -ge $1 ]
   }
 
 
@@ -296,7 +302,7 @@ if ! $init; then
         fi
 
         # enable charging under <conditions>
-        if _le_resume_cap && [ $(cat $temp) -le $(( ${temperature[2]%r} * 10 )) ]; then
+        if _le_resume_cap && temp_ok; then
           rm $TMPDIR/.forceoff* 2>/dev/null && sleep ${loopDelay[0]} || :
           enable_charging
         fi
@@ -407,8 +413,11 @@ if ! $init; then
   }
 
 
-  _uptime() {
-    [ $(cut -d '.' -f 1 /proc/uptime) -ge $1 ]
+  temp_ok() {
+    [ $(cat $temp) -le $(( ${temperature[2]%r} * 10 )) ] || {
+      [ -n "${cooldownCurrent-}${cooldownRatio[0]-}" ] \
+        && [ $(cat $temp) -le $(( ${temperature[0]} * 10 )) ]
+    }
   }
 
 

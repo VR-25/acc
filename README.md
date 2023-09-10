@@ -239,7 +239,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202308170
+configVerCode=202309100
 
 ampFactor=
 battStatusWorkaround=true
@@ -604,7 +604,8 @@ runCmdOnPause=''
 
 // Those two work together and are NOT tied to the cooldown cycle.
 // At max_temp, charging is paused.
-// Charging resumes at resume_temp, as long as other conditions (e.g., resume_capacity) are also met. To always override resume_capacity add r, as in resume_temp=25r.
+// Charging resumes at resume_temp, as long as other conditions (e.g., resume_capacity) are also met.
+// To always override resume_capacity append r, as in resume_temp=25r. With this, if cooldown is enabled, charging will also resume at the cooldown_temp threshold.
 
 
 // off_mid (om) # Default: true
