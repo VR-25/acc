@@ -39,10 +39,15 @@ apply_on_plug() {
   local default=
   local arg=${1:-value}
   local oppositeValue=
+  local mcc=
 
-  for entry in ${applyOnPlug[@]-} ${maxChargingVoltage[@]-} \
-    ${maxChargingCurrent[@]:-$([ .$arg != .default ] || cat $TMPDIR/ch-curr-ctrl-files 2>/dev/null || :)}
-  do
+  if ! ${restrictCurr:-false}; then
+    mcc=${maxChargingCurrent[@]:-$([ .$arg != .default ] || cat $TMPDIR/ch-curr-ctrl-files 2>/dev/null || :)}
+  else
+    set_ch_curr ${cooldownCurrent:--} || :
+  fi
+
+  for entry in ${applyOnPlug[@]-} ${maxChargingVoltage[@]-} $mcc; do
     set -- ${entry//::/ }
     [ -f ${1-//} ] || continue
     file=${1-}

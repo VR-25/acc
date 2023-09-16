@@ -114,6 +114,7 @@ if ! $init; then
     not_charging || isCharging=true
 
     (set +eu; eval '${loopCmd-}') || :
+    [ -n "${cooldownCurrent-}" ] && [ $(cat $temp) -ge $(( ${temperature[1]} * 10 )) ] && restrictCurr=true || :
 
     # shutdown if battery temp >= shutdown_temp
     [ $(cat $temp) -lt $(( ${temperature[3]} * 10 )) ] || shutdown
@@ -154,7 +155,6 @@ if ! $init; then
 
       ${chargingDisabled:-false} || apply_on_plug
       [ -z "${chargingDisabled-}" ] || enable_charging
-
       shutdownWarnings=true
 
     else
@@ -282,7 +282,6 @@ if ! $init; then
           fi
         done
 
-        $cooldown && set_ch_curr ${maxChargingCurrent0:--} || :
         cooldown=false
         sleep ${loopDelay[0]}
 
@@ -414,10 +413,13 @@ if ! $init; then
 
 
   temp_ok() {
-    [ $(cat $temp) -le $(( ${temperature[2]%r} * 10 )) ] || {
-      [ -n "${cooldownCurrent-}${cooldownRatio[0]-}" ] \
-        && [ $(cat $temp) -le $(( ${temperature[0]} * 10 )) ]
-    }
+    if { [ $(cat $temp) -le $(( ${temperature[2]%r} * 10 )) ] && restrictCurr=false; } \
+      || { [ -n "${cooldownCurrent-}${cooldownRatio[0]-}" ] && [ $(cat $temp) -le $(( ${temperature[0]} * 10 )) ]; }
+    then
+      return 0
+    else
+      return 1
+    fi
   }
 
 
@@ -431,6 +433,7 @@ if ! $init; then
   chgStatusCode=""
   capacitySync=false
   dischgStatusCode=""
+  restrictCurr=false
   shutdownWarnings=true
   resetBattStatsOnPlug=false
   resetBattStatsOnUnplug=false
