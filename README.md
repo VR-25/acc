@@ -103,8 +103,8 @@ ACC manipulates Android low level ([kernel](https://duckduckgo.com/lite/?q=kerne
 The author assumes no responsibility under anything that might break due to the use/misuse of this software.
 By choosing to use/misuse it, you agree to do so at your own risk!
 
-Some devices, notably from Xiaomi, have a buggy PMIC (Power Management Integrated Circuit) that can be triggered by acc.
-The issue blocks charging.
+Some devices, notably from Xiaomi (e.g., Poco X3 Pro), have a faulty PMIC (Power Management Integrated Circuit) that can be triggered by acc.
+The issue prevents charging.
 Ensure your battery does not discharge too low.
 Using acc's auto shutdown feature is highly recommended.
 
