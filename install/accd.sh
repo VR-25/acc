@@ -153,7 +153,14 @@ if ! $init; then
         fi
       }
 
-      ${chargingDisabled:-false} || apply_on_plug
+      ${chargingDisabled:-false} || {
+        if $restrictCurr; then
+          set_ch_curr ${cooldownCurrent:--} || :
+        else
+          apply_on_plug
+        fi
+      }
+
       [ -z "${chargingDisabled-}" ] || enable_charging
       shutdownWarnings=true
 
