@@ -20,7 +20,7 @@ lang=$language
 
 max_temp=${temperature[1]}
 resume_temp=${temperature[2]}
-max_temp_pause=${temperature[2]}
+max_temp_pause=${temperature[2]%r}
 
 off_mid=$offMid
 pause_capacity=${capacity[3]}

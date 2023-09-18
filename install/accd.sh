@@ -79,6 +79,11 @@ if ! $init; then
   }
 
 
+  below_abs_lims() {
+    _lt_pause_cap && [ $(cat $temp) -lt $(( ${temperature[1]} * 10 )) ]
+  }
+
+
   exxit() {
     exitCode=$?
     $persistLog && set +eu || set +eux
@@ -114,10 +119,19 @@ if ! $init; then
     not_charging || isCharging=true
 
     (set +eu; eval '${loopCmd-}') || :
-    [ -n "${cooldownCurrent-}" ] && [ $(cat $temp) -ge $(( ${temperature[1]} * 10 )) ] && restrictCurr=true || :
 
     # shutdown if battery temp >= shutdown_temp
     [ $(cat $temp) -lt $(( ${temperature[3]} * 10 )) ] || shutdown
+
+    [ -z "${cooldownCurrent-}" ] || {
+      if [ $(cat $temp) -le $(( ${temperature[2]%r} * 10 )) ]; then
+        restrictCurr=false
+      elif [ $(cat $temp) -ge $(( ${temperature[0]} * 10 )) ] \
+        || { ! $isCharging && [ $(cat $temp) -ge $(( ${temperature[2]%r} * 10 )) ]; }
+      then
+        restrictCurr=true
+      fi
+    }; sleep 3
 
     if $isCharging; then
 
@@ -154,12 +168,12 @@ if ! $init; then
       }
 
       ${chargingDisabled:-false} || {
-        if $restrictCurr; then
-          set_ch_curr ${cooldownCurrent:--} || :
+        if $restrictCurr && [ -n "${cooldownCurrent-}" ]; then
+          set_ch_curr $cooldownCurrent || :
         else
           apply_on_plug
         fi
-      }
+      }; sleep 3
 
       [ -z "${chargingDisabled-}" ] || enable_charging
       shutdownWarnings=true
@@ -245,48 +259,37 @@ if ! $init; then
         fi
 
         # cooldown cycle
-        while [ -n "${cooldownCurrent-}${cooldownRatio[0]-}${cooldownCustom[0]-}" ] \
-          && _lt_pause_cap && is_charging
-        do
-          $[ $(sed s/-// ${cooldownCustom[0]:-cooldownCustom} 2>/dev/null || echo 0) -ge ${cooldownCustom[1]:-1} ] \
+
+        while [ -z "${cooldownCurrent-}" ] && [ -n "${cooldownRatio[0]-}${cooldownCustom[0]-}" ]; do
+
+          [ $(sed s/-// ${cooldownCustom[0]:-cooldownCustom} 2>/dev/null || echo 0) -ge ${cooldownCustom[1]:-1} ] \
             && cooldownCustom_=true \
             || cooldownCustom_=false
+
           if [ $(cat $temp) -ge $(( ${temperature[0]} * 10 )) ] \
-            || _ge_cooldown_cap \
-            || $cooldownCustom_
+            || _ge_cooldown_cap || $cooldownCustom_
           then
             cooldown=true
-            if [ -n "${cooldownCurrent-}" ] && grep -q / $TMPDIR/ch-curr-ctrl-files 2>/dev/null; then
-              # cooldown by limiting current
-              maxChargingCurrent0=${maxChargingCurrent[0]-}
-              set_ch_curr ${cooldownCurrent:-500} || :
-              sleep ${cooldownRatio[1]:-${loopDelay[1]}}
-              [ ${cooldownRatio[0]:-0} -eq 0 ] || {
-                set_ch_curr ${maxChargingCurrent0:--} || :
-                count=0
-                while [ $count -lt ${cooldownRatio[0]:-${loopDelay[0]}} ]; do
-                  sleep ${loopDelay[0]}
-                  _lt_pause_cap && count=$(( count + ${loopDelay[0]} )) || break
-                done
-              }
-            else
-              # regular cooldown
-              cmd_batt set status $chgStatusCode
-              disable_charging
-              $cooldownCustom_ && sleep ${cooldownCustom[3]:-${loopDelay[1]}} \
-                || sleep ${cooldownRatio[1]:-${loopDelay[1]}}
-              enable_charging
-              $capacitySync || cmd_batt reset
-              ! $cooldownCustom_ || cooldownRatio[0]=${cooldownCustom[2]:-${loopDelay[0]}}
-              count=0
-              while [ $count -lt ${cooldownRatio[0]:-${loopDelay[0]}} ]; do
-                sleep ${loopDelay[0]}
-                _lt_pause_cap && count=$(( count + ${loopDelay[0]} )) || break
-              done
-            fi
           else
             break
           fi
+
+          cmd_batt set status $chgStatusCode
+          disable_charging
+          $cooldownCustom_ && sleep ${cooldownCustom[3]:-${loopDelay[1]}} \
+            || sleep ${cooldownRatio[1]:-${loopDelay[1]}}
+
+          enable_charging
+          $capacitySync || cmd_batt reset
+          ! $cooldownCustom_ || cooldownRatio[0]=${cooldownCustom[2]:-${loopDelay[0]}}
+          count=0
+          while [ $count -lt ${cooldownRatio[0]:-${loopDelay[0]}} ]; do
+            sleep ${loopDelay[0]}
+            below_abs_lims && count=$(( count + ${loopDelay[0]} )) || break
+          done
+
+          below_abs_lims && is_charging || break
+
         done
 
         cooldown=false
@@ -420,8 +423,8 @@ if ! $init; then
 
 
   temp_ok() {
-    if { [ $(cat $temp) -le $(( ${temperature[2]%r} * 10 )) ] && restrictCurr=false; } \
-      || { [ -n "${cooldownCurrent-}${cooldownRatio[0]-}" ] && [ $(cat $temp) -le $(( ${temperature[0]} * 10 )) ]; }
+    if [ $(cat $temp) -le $(( ${temperature[2]%r} * 10 )) ] \
+      || { [ -n "${cooldownCurrent-}" ] && tt "${temperature[2]}" "*r" && [ $(cat $temp) -le $(( ${temperature[0]} * 10 )) ]; }
     then
       return 0
     else
