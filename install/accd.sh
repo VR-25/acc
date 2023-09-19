@@ -126,12 +126,12 @@ if ! $init; then
     [ -z "${cooldownCurrent-}" ] || {
       if [ $(cat $temp) -le $(( ${temperature[2]%r} * 10 )) ]; then
         restrictCurr=false
-      elif [ $(cat $temp) -ge $(( ${temperature[0]} * 10 )) ] \
+      elif $cooldown || [ $(cat $temp) -ge $(( ${temperature[0]} * 10 )) ] \
         || { ! $isCharging && [ $(cat $temp) -ge $(( ${temperature[2]%r} * 10 )) ]; }
       then
         restrictCurr=true
       fi
-    }; sleep 3
+    }
 
     if $isCharging; then
 
@@ -173,7 +173,7 @@ if ! $init; then
         else
           apply_on_plug
         fi
-      }; sleep 3
+      }
 
       [ -z "${chargingDisabled-}" ] || enable_charging
       shutdownWarnings=true
