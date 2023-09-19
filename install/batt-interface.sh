@@ -115,7 +115,7 @@ volt_now() {
 if ${init:-false}; then
 
   for batt in maxfg/capacity */capacity; do
-    if [ -f ${batt%/*}/status ]; then
+    if [ -f ${batt%/*}/status ] && [ -n "$(cat ${batt%/*}/uevent 2>/dev/null || :)" ]; then
       batt=${batt%/*}
       break
     fi
