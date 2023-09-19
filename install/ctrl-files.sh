@@ -105,7 +105,7 @@ ls_curr_ctrl_files() {
 */current_max
 */dcp_charge
 */hv_charge
-*/input_current_max
+*/input_current*
 */mhl_2000_charge
 */mhl_2000_input
 */restrict*_cur*
