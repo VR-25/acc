@@ -124,9 +124,10 @@ if ! $init; then
     [ $(cat $temp) -lt $(( ${temperature[3]} * 10 )) ] || shutdown
 
     [ -z "${cooldownCurrent-}" ] || {
-      if [ $(cat $temp) -le $(( ${temperature[2]%r} * 10 )) ]; then
+      if [ $(cat $temp) -le $(( ${temperature[2]%r} * 10 )) ] && ! _ge_cooldown_cap; then
         restrictCurr=false
-      elif $cooldown || [ $(cat $temp) -ge $(( ${temperature[0]} * 10 )) ] \
+      fi
+      if _ge_cooldown_cap || [ $(cat $temp) -ge $(( ${temperature[0]} * 10 )) ] \
         || { ! $isCharging && [ $(cat $temp) -ge $(( ${temperature[2]%r} * 10 )) ]; }
       then
         restrictCurr=true
@@ -171,6 +172,7 @@ if ! $init; then
         if $restrictCurr && [ -n "${cooldownCurrent-}" ]; then
           set_ch_curr $cooldownCurrent || :
         else
+          [ -n "${maxChargingCurrent[0]-}" ] || set_ch_curr - || :
           apply_on_plug
         fi
       }
