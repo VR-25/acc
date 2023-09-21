@@ -42,6 +42,7 @@ battery/input_suspend 0 1 /proc/mtk_battery_cmd/en_power_path 1 1
 /sys/devices/virtual/oplus_chg/battery/*charging_enable 1 0
 /sys/kernel/debug/google_charger/chg_suspend 0 1
 /sys/kernel/debug/google_charger/input_suspend 0 1
+/sys/kernel/nubia_charge/charger_bypass off on
 /sys/module/pm*_charger/parameters/disabled 0 1
 
 /proc/driver/charger_limit_enable 0 1 /proc/driver/charger_limit 100 5
