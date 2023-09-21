@@ -637,7 +637,7 @@ case "${1-}" in
     test ${#array[@]} -lt 2 || unset array[0]
 
     test -n "$reference" || {
-      grep -Eq '^version=.*-(beta|rc)' $execDir/module.prop \
+      grep -Eq '^version=.*-(beta|dev|rc)' $execDir/module.prop \
         && reference=dev \
         || reference=master
     }
