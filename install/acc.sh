@@ -447,7 +447,7 @@ case "${1-}" in
   ;;
 
   -r|--readme)
-    doc=/data/local/tmp/.${id}_manual.html
+    doc=/data/local/tmp/${id}_manual.html
     cp -f $readMe $doc
     ext_app $doc VIEW html
   ;;

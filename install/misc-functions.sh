@@ -76,11 +76,6 @@ calc() {
 }
 
 
-cmd_batt() {
-  /system/bin/cmd battery "$@" < /dev/null > /dev/null 2>&1 || :
-}
-
-
 cycle_switches() {
 
   local on=
@@ -203,9 +198,6 @@ disable_charging() {
 }
 
 
-dumpsys() { /system/bin/dumpsys "$@" || :; }
-
-
 enable_charging() {
 
   ! not_charging || {
@@ -325,6 +317,13 @@ invalid_switch() {
 }
 
 
+is_android() {
+  [ -d /sdcard/Android/ ] && [ -x /system/bin/dumpsys ] \
+    && ! tt "$(readlink -f $execDir)" "*com.termux*" \
+    && pgrep -f zygote >/dev/null
+}
+
+
 misc_stuff() {
   set -eu
   mkdir -p $dataDir 2>/dev/null || :
@@ -342,7 +341,7 @@ misc_stuff() {
 
 
 notif() {
-  su -lp ${2:-2000} -c "/system/bin/cmd notification post -S bigtext -t '🔋ACC' 'Tag' \"${1:-:)}\"" < /dev/null > /dev/null 2>&1
+  su -lp ${2:-2000} -c "/system/bin/cmd notification post -S bigtext -t '🔋ACC' 'Tag' \"${1:-:)}\"" < /dev/null > /dev/null 2>&1 || :
 }
 
 
@@ -466,15 +465,18 @@ device=$(getprop ro.product.device | grep .. || getprop ro.build.product)
 cd /sys/class/power_supply/
 . $execDir/batt-interface.sh
 
-# cmd and dumpsys wrappers for Termux and recovery
-! tt "$(readlink -f $execDir)" "*com.termux*" || {
+# cmd battery and dumpsys wrappers
+if is_android; then
   cmd_batt() { /system/bin/cmd battery "$@" < /dev/null > /dev/null 2>&1 || :; }
   dumpsys() { /system/bin/dumpsys "$@" || :; }
-}
-pgrep -f zygote > /dev/null || {
+else
   cmd_batt() { :; }
   dumpsys() { :; }
-}
+  ! ${isAccd:-false} || {
+    chgStatusCode=0
+    dischgStatusCode=0
+  }
+fi
 
 # load plugins
 mkdir -p ${execDir}-data/plugins $TMPDIR/plugins

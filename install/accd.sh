@@ -161,7 +161,7 @@ if ! $init; then
         if $resetBattStatsOnPlug && ${resetBattStats[2]}; then
           sleep ${loopDelay[0]}
           not_charging || {
-            dumpsys batterystats --reset < /dev/null > /dev/null 2>&1 || :
+            dumpsys batterystats --reset < /dev/null > /dev/null 2>&1
             rm /data/system/batterystats* || :
             resetBattStatsOnPlug=false
           } 2>/dev/null
@@ -197,14 +197,14 @@ if ! $init; then
 
       # set dischgStatusCode and capacitySync
       [ -z "$dischgStatusCode" ] && cmd_batt reset \
-        && dischgStatusCode=$(dumpsys battery 2>/dev/null | sed -n 's/^  status: //p') || :
+        && dischgStatusCode=$(dumpsys battery 2>/dev/null | sed -n 's/^  status: //p')
 
       $cooldown || {
         resetBattStatsOnPlug=true
         if $resetBattStatsOnUnplug && ${resetBattStats[1]}; then
           sleep ${loopDelay[1]}
           ! not_charging Discharging || {
-            dumpsys batterystats --reset < /dev/null > /dev/null 2>&1 || :
+            dumpsys batterystats --reset < /dev/null > /dev/null 2>&1
             rm /data/system/batterystats* || :
             resetBattStatsOnUnplug=false
           } 2>/dev/null
@@ -252,7 +252,7 @@ if ! $init; then
           fi
           ! ${resetBattStats[0]} || {
             # reset battery stats on pause
-            dumpsys batterystats --reset < /dev/null > /dev/null 2>&1 || :
+            dumpsys batterystats --reset < /dev/null > /dev/null 2>&1
             rm /data/system/batterystats* 2>/dev/null || :
           }
           sleep ${loopDelay[1]}
@@ -371,6 +371,7 @@ if ! $init; then
 
 
   sync_capacity() {
+    is_android || return 0
     if [ ${capacity[4]} = true ] || ${capacity[5]} || \
       { [ ${capacity[4]} = auto ] \
       && [ $(dumpsys battery 2>/dev/null | sed -n 's/^  level: //p') -ne $(cat $battCapacity) ] \

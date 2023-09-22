@@ -94,7 +94,7 @@ z) $(print_exit)
     ;;
 
     a)
-      dumpsys batterystats --reset || :
+      dumpsys batterystats --reset
       rm /data/system/batterystats* 2>/dev/null || :
       exec wizard
     ;;

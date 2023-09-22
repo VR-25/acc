@@ -124,7 +124,7 @@ As the project gets bigger and more popular, the need for coffee goes up as well
 ## PREREQUISITES
 
 - [Must read - how to prolong lithium ion batteries lifespan](https://batteryuniversity.com/article/bu-808-how-to-prolong-lithium-based-batteries)
-- Android or Android based OS
+- Android or KaiOS
 - Any root solution (e.g., [Magisk](https://github.com/topjohnwu/Magisk))
 - [Busybox\*](https://github.com/Magisk-Modules-Repo/busybox-ndk) (only if not rooted with Magisk)
 - Non-Magisk users can enable acc auto-start by running /data/adb/vr25/acc/service.sh, a copy of, or a link to it - with init.d or an app that emulates it.

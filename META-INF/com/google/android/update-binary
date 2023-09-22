@@ -173,6 +173,14 @@ cp $srcDir/module.prop $installDir/
 cp -f $srcDir/README.* $data_dir/
 
 
+# KaiOS patches
+[ ! -d /data/usbmsc_mnt/ ] || {
+  for i in $installDir/$id/*.sh; do
+    sed -Ei 's#/sdcard(/|/Download/)#/data/usbmsc_mnt/#g' $i
+  done
+}
+
+
 ###
 ! $magisk || {
   # symlink executables
