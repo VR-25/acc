@@ -39,7 +39,7 @@ apply_on_plug() {
   local default=
   local arg=${1:-value}
   local oppositeValue=
-  local _mcc=${maxChargingCurrent[@]:-$([ .$arg != .default ] || cat $TMPDIR/ch-curr-ctrl-files 2>/dev/null || :)}
+  local _mcc="${maxChargingCurrent[@]:-$([ .$arg != .default ] || cat $TMPDIR/ch-curr-ctrl-files 2>/dev/null || :)}"
 
   for entry in ${applyOnPlug[@]-} ${maxChargingVoltage[@]-} $_mcc; do
     set -- ${entry//::/ }
