@@ -45,16 +45,20 @@ battery/input_suspend 0 1 /proc/mtk_battery_cmd/en_power_path 1 1
 /sys/kernel/nubia_charge/charger_bypass off on
 /sys/module/pm*_charger/parameters/disabled 0 1
 
+/proc/driver/charger_limit_enable 0 1 /proc/driver/charger_limit 100 battery/capacity
 /proc/driver/charger_limit_enable 0 1 /proc/driver/charger_limit 100 5
 /proc/mtk_battery_cmd/current_cmd 0::0 0::1
 /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0
 /sys/class/qcom-battery/night_charging 0 1
+/sys/module/lge_battery/parameters/charge_stop_level 100 battery/capacity battery/input_suspend 0 0
 /sys/module/lge_battery/parameters/charge_stop_level 100 5 battery/input_suspend 0 0
 
 # experimental
 /sys/class/qcom-battery/cool_mode 0 1
 /sys/class/qcom-battery/restricted_charging 0 1
+/sys/devices/platform/battery_meter/FG_suspend_current_threshold 100 battery/capacity
 /sys/devices/platform/battery_meter/FG_suspend_current_threshold 100 5
+/sys/devices/platform/google,charger/charge_stop_level 100 battery/capacity
 /sys/devices/platform/google,charger/charge_stop_level 100 5
 /sys/kernel/debug/google_charger/chg_mode 0 1
 /sys/kernel/fast_charge/force_fast_charge 1 0
