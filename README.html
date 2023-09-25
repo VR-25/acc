@@ -248,7 +248,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 
 <h1>DC</h1>
 
-<p>configVerCode=202309180</p>
+<p>configVerCode=202309250</p>
 
 <p>ampFactor=
 battStatusWorkaround=true
@@ -523,10 +523,12 @@ voltFactor=</p>
 // When not set, the cycle is disabled, unless cooldown<em>current is set.
 // Suggested values are cch=50 and cp=10.
 // If charging gets a bit slower than desired, try cch=50 and cp=5.
-// Note that cooldown</em>capacity and cooldown_temp can be disabled individually by assigning them values that would never be reached under normal circumstances.</p>
+// Note that cooldown</em>capacity and cooldown<em>temp can be disabled individually by assigning them values that would never be reached under normal circumstances.
+// cooldown</em>current optionally works with ratios as well (cooldown<em>charge: regular current, cooldown</em>pause: cooldown_current).</p>
 
 <p>// cooldown<em>current (cdc) # Default: null
 // Instead of pausing charging for cooldown</em>pause seconds, limit the max charging current (e.g., to 500 mA).
+// cooldown<em>pause and cooldown</em>charge are optional.
 // Note: devices don't support just about any current value. Multiples of 500 mA tend to have higher compatibility.</p>
 
 <p>// cooldown<em>custom (ccu) # Default: null

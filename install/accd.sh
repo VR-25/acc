@@ -80,7 +80,7 @@ if ! $init; then
 
 
   below_abs_lims() {
-    _lt_pause_cap && [ $(cat $temp) -lt $(( ${temperature[1]} * 10 )) ]
+    _lt_pause_cap && [ $(cat $temp) -lt $(( ${temperature[1]} * 10 )) ] && is_charging
   }
 
 
@@ -170,9 +170,9 @@ if ! $init; then
 
       ${chargingDisabled:-false} || {
         if $restrictCurr && [ -n "${cooldownCurrent-}" ]; then
-          set_ch_curr $cooldownCurrent || :
+          $cooldown || (set_ch_curr ${cooldownCurrent:--} || :)
         else
-          [ -n "${maxChargingCurrent[0]-}" ] || set_ch_curr - || :
+          [ -n "${maxChargingCurrent[0]-}" ] || (set_ch_curr - || :)
           apply_on_plug
         fi
       }
@@ -262,7 +262,7 @@ if ! $init; then
 
         # cooldown cycle
 
-        while [ -z "${cooldownCurrent-}" ] && [ -n "${cooldownRatio[0]-}${cooldownCustom[0]-}" ]; do
+        while [ -n "${cooldownRatio[0]-}${cooldownCustom[0]-}" ]; do
 
           [ $(sed s/-// ${cooldownCustom[0]:-cooldownCustom} 2>/dev/null || echo 0) -ge ${cooldownCustom[1]:-1} ] \
             && cooldownCustom_=true \
@@ -276,22 +276,34 @@ if ! $init; then
             break
           fi
 
-          cmd_batt set status $chgStatusCode
-          disable_charging
-          $cooldownCustom_ && sleep ${cooldownCustom[3]:-${loopDelay[1]}} \
-            || sleep ${cooldownRatio[1]:-${loopDelay[1]}}
+          below_abs_lims || break
 
-          enable_charging
-          $capacitySync || cmd_batt reset
-          ! $cooldownCustom_ || cooldownRatio[0]=${cooldownCustom[2]:-${loopDelay[0]}}
-          count=0
-          while [ $count -lt ${cooldownRatio[0]:-${loopDelay[0]}} ]; do
-            sleep ${loopDelay[0]}
-            below_abs_lims && count=$(( count + ${loopDelay[0]} )) || break
-          done
-
-          below_abs_lims && is_charging || break
-
+          if [ -z "${cooldownCurrent-}" ]; then
+            cmd_batt set status $chgStatusCode
+            disable_charging
+            $cooldownCustom_ && sleep ${cooldownCustom[3]:-${loopDelay[1]}} \
+              || sleep ${cooldownRatio[1]:-${loopDelay[1]}}
+            enable_charging
+            $capacitySync || cmd_batt reset
+            ! $cooldownCustom_ || cooldownRatio[0]=${cooldownCustom[2]:-${loopDelay[0]}}
+            count=0
+            while [ $count -lt ${cooldownRatio[0]:-${loopDelay[0]}} ]; do
+              sleep ${loopDelay[0]}
+              below_abs_lims && count=$(( count + ${loopDelay[0]} )) || break
+            done
+          else
+            (set_ch_curr ${cooldownCurrent:--} || :)
+            $cooldownCustom_ && sleep ${cooldownCustom[3]:-${loopDelay[1]}} \
+              || sleep ${cooldownRatio[1]:-${loopDelay[1]}}
+            [ -n "${maxChargingCurrent[0]-}" ] || (set_ch_curr - || :)
+            apply_on_plug
+            ! $cooldownCustom_ || cooldownRatio[0]=${cooldownCustom[2]:-${loopDelay[0]}}
+            count=0
+            while [ $count -lt ${cooldownRatio[0]:-${loopDelay[0]}} ]; do
+              sleep ${loopDelay[0]}
+              below_abs_lims && count=$(( count + ${loopDelay[0]} )) || break
+            done
+          fi
         done
 
         cooldown=false

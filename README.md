@@ -239,7 +239,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202309180
+configVerCode=202309250
 
 ampFactor=
 battStatusWorkaround=true
@@ -542,10 +542,12 @@ runCmdOnPause=''
 // Suggested values are cch=50 and cp=10.
 // If charging gets a bit slower than desired, try cch=50 and cp=5.
 // Note that cooldown_capacity and cooldown_temp can be disabled individually by assigning them values that would never be reached under normal circumstances.
+// cooldown_current optionally works with ratios as well (cooldown_charge: regular current, cooldown_pause: cooldown_current).
 
 
 // cooldown_current (cdc) # Default: null
 // Instead of pausing charging for cooldown_pause seconds, limit the max charging current (e.g., to 500 mA).
+// cooldown_pause and cooldown_charge are optional.
 // Note: devices don't support just about any current value. Multiples of 500 mA tend to have higher compatibility.
 
 

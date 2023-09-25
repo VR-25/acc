@@ -145,10 +145,8 @@ disable_charging() {
     else
       set +e
       if [ ${chargingSwitch[0]:-0} -lt 3700 ]; then
-        maxChargingCurrent0=${maxChargingCurrent[0]-}
         set_ch_curr ${chargingSwitch[0]:-0}
       else
-        maxChargingVoltage0=${maxChargingVoltage[0]-}
         set_ch_volt ${chargingSwitch[0]:-0}
       fi
       set -e
@@ -230,9 +228,9 @@ enable_charging() {
     else
       set +e
       if [ ${chargingSwitch[0]:-0} -lt 3700 ]; then
-        set_ch_curr ${maxChargingCurrent0:--}
+        set_ch_curr ${maxChargingCurrent[0]:--}
       else
-        set_ch_volt ${maxChargingVoltage0:--}
+        set_ch_volt ${maxChargingVoltage[0]:--}
       fi
       set -e
       chargingDisabled=false
