@@ -115,9 +115,8 @@ if ! $init; then
     local value=
     local isCharging=false
 
-    src_cfg
+    set_dp
     not_charging || isCharging=true
-
     (set +eu; eval '${loopCmd-}') || :
 
     # shutdown if battery temp >= shutdown_temp
@@ -311,19 +310,6 @@ if ! $init; then
 
       else
 
-        # set discharge polarity
-        if [ -z "${dischargePolarity-}" ] && $battStatusWorkaround \
-          && [ $currFile != $TMPDIR/.dummy-curr ] && ! online
-        then
-          (cmd="$TMPDIR/acca --set discharge_polarity="
-          curr=$(cat $currFile)
-          if [ $curr -gt 0 ]; then
-            eval "$cmd"+
-          elif [ $curr -lt 0 ]; then
-            eval "$cmd"-
-          fi)
-        fi
-
         # enable charging under <conditions>
         if _le_resume_cap && temp_ok; then
           rm $TMPDIR/.forceoff* 2>/dev/null && sleep ${loopDelay[0]} || :
@@ -372,6 +358,34 @@ if ! $init; then
       sleep 1
     done &
     set -x
+  }
+
+
+  set_dp() {
+    src_cfg
+    while [ -z "${dischargePolarity-}" ] && $battStatusWorkaround && [ $currFile != $TMPDIR/.dummy-curr ]; do
+      (if online; then
+        notif "discharge_polarity is not set. Unplug and wait, or set it manually."
+        (while [ -z "${dischargePolarity-}" ] && online; do
+          sleep ${loopDelay[0]}
+          src_cfg
+          set +x
+        done)
+        src_cfg
+        [ -z "${dischargePolarity-}" ] || notif "discharge_polarity set successfully!"
+      else
+        (cmd="$TMPDIR/acca --set discharge_polarity="
+        curr=$(cat $currFile)
+        if [ $curr -gt 0 ]; then
+          eval "$cmd"+
+        elif [ $curr -lt 0 ]; then
+          eval "$cmd"-
+        fi)
+        notif "discharge_polarity set successfully!"
+      fi
+      set +x)
+      src_cfg
+    done
   }
 
 
