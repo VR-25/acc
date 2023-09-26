@@ -98,6 +98,11 @@ battery/op_disable_charge 0 1 battery/input_suspend 0 0
 
 ls_curr_ctrl_files() {
   echo "
+# boolean
+*/input_current_limited
+*/restrict*_ch*g*
+/sys/class/qcom-battery/restrict*_ch*g*
+
 */ac_charge
 */ac_input
 */aca_charge

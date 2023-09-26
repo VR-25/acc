@@ -17,18 +17,18 @@ then
   ls -1 $(ls_curr_ctrl_files | grep -Ev '^#|^$') 2>/dev/null | \
     while read file; do
       chmod a+r $file || continue
-      defaultValue="$(cat $file)"
+      defaultValue="$(cat $file 2>/dev/null)" || continue
       case "$defaultValue" in
-        ""|[01]) continue;;
+        ""|-*|*" "*) continue;;
       esac
-      if [ ${defaultValue#-} -lt 10000 ]; then
+      if tt "$defaultValue" "[01]"; then
+        echo ${file}::1::0 >> ${currCtrl}_
+      elif [ "$defaultValue" -lt 10000 ]; then
         # milliamps
-        echo ${file}::v::$defaultValue \
-          >> ${currCtrl}_
-      else
+        echo ${file}::v::$defaultValue >> ${currCtrl}_
+      elif [ "$defaultValue" -ge 10000 ]; then
         # microamps
-        echo ${file}::v000::$defaultValue \
-          >> ${currCtrl}_
+        echo ${file}::v000::$defaultValue >> ${currCtrl}_
       fi
     done
 
