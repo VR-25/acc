@@ -68,7 +68,7 @@ Sans prêter attention au fait que le système est rooté avec Magisk, l'install
 ---
 ## LICENSE
 
-Copyright 2017-2022, VR25
+Copyright 2017-2023, VR25
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

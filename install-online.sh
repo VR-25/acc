@@ -3,7 +3,7 @@
 # $id Online Installer
 # https://raw.githubusercontent.com/VR-25/$id/$commit/install-online.sh
 #
-# Copyright 2019-2021, VR25
+# Copyright 2019-2023, VR25
 # License: GPLv3+
 #
 # Usage: sh install-online.sh [-c|--changelog] [-f|--force] [-k|--insecure] [-n|--non-interactive] [%parent install dir%] [commit]

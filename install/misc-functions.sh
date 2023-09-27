@@ -39,9 +39,10 @@ apply_on_plug() {
   local default=
   local arg=${1:-value}
   local oppositeValue=
-  local _mcc="${maxChargingCurrent[@]:-$([ .$arg != .default ] || cat $TMPDIR/ch-curr-ctrl-files 2>/dev/null || :)}"
 
-  for entry in ${applyOnPlug[@]-} ${maxChargingVoltage[@]-} $_mcc; do
+  for entry in ${applyOnPlug[@]-} ${maxChargingVoltage[@]-} \
+    ${maxChargingCurrent[@]:-$([ .$arg != .default ] || cat $TMPDIR/ch-curr-ctrl-files 2>/dev/null || :)}
+  do
     set -- ${entry//::/ }
     [ -f ${1-//} ] || continue
     file=${1-}
@@ -355,7 +356,7 @@ parse_value() {
 
 print_header() {
   echo "Advanced Charging Controller (ACC) $accVer ($accVerCode)
-(C) 2017-2022, VR25
+(C) 2017-2023, VR25
 GPLv3+"
 }
 
