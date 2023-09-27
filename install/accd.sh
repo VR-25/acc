@@ -117,6 +117,12 @@ if ! $init; then
 
     set_dp
     not_charging || isCharging=true
+
+    if $isCharging && [ -z "${chargingSwitch[0]-}" ]; then
+      disable_charging
+      enable_charging
+    fi
+
     (set +eu; eval '${loopCmd-}') || :
 
     # shutdown if battery temp >= shutdown_temp
