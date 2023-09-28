@@ -1,4 +1,4 @@
-configVerCode=202309250
+configVerCode=202309280
 
 ampFactor=
 battStatusWorkaround=true
@@ -142,9 +142,9 @@ runCmdOnPause=''
 
 # language=lang=LANGUAGE_CODE NULLABLE
 
-# maxChargingCurrent=max_charging_current=(MILLIAMPS CTRL_FILE1::RAW_VALUE::DEFAULT CTRL_FILE2::RAW_VALUE::DEFAULT...)
+# maxChargingCurrent=max_charging_current=(MILLIAMPS [CTRL_FILE1::RAW_VALUE::DEFAULT CTRL_FILE2::RAW_VALUE::DEFAULT...]) NULLABLE
 
-# maxChargingVoltage=max_charging_voltage=(MILLIVOLTS CTRL_FILE1::RAW_VALUE::DEFAULT CTRL_FILE2::RAW_VALUE::DEFAULT... [--exit]) NULLABLE
+# maxChargingVoltage=max_charging_voltage=(MILLIVOLTS [CTRL_FILE1::RAW_VALUE::DEFAULT CTRL_FILE2::RAW_VALUE::DEFAULT...] [--exit]) NULLABLE
 
 # offMid=off_mid=BOOLEAN
 
@@ -351,7 +351,12 @@ runCmdOnPause=''
 # max_charging_current (mcc) # Default: null
 # max_charging_voltage (mcv) # Default: null
 
-# Control files are automatically added.
+# Control files are automatically added by accd when the array has just one element (the milliamps/millivolts value).
+# If the second element of the array (array[1]) starts with "-", accd recognizes it as an instruction to update the control files.
+# This is useful for setting/changing current and voltage limits without a frontend (--set or app).
+# Simply put, if the user has the following in their config, accd automatically adds/updates the control files:
+#   maxChargingCurrent=(1000) # Control files will be added.
+#   maxChargingVoltage=(4000 -battery/voltage_max bms/voltage_max) # Control files will be updated.
 
 # Notes:
 #   Devices don't support just about any current value. Multiples of 500 mA tend to have higher compatibility.

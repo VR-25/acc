@@ -113,14 +113,17 @@ if ! $init; then
 
     local file=
     local value=
-    local isCharging=false
+    local isCharging=true
 
+    # source config & set discharge polarity
     set_dp
-    not_charging || isCharging=true
 
-    if $isCharging && [ -z "${chargingSwitch[0]-}" ]; then
-      disable_charging
-      enable_charging
+    if not_charging; then
+      isCharging=false
+      if [ -z "${chargingSwitch[0]-}" ]; then
+        disable_charging
+        enable_charging
+      fi
     fi
 
     (set +eu; eval '${loopCmd-}') || :
@@ -160,6 +163,22 @@ if ! $init; then
           chCurrRead=true
         fi
       }
+
+      # set charging current control files, as needed
+      if $chCurrRead && [ -n "${maxChargingCurrent[0]-}" ] \
+        && { [ -z "${maxChargingCurrent[1]-}" ] || tt "${maxChargingCurrent[1]-}" "-*"; } \
+        && grep -q / $TMPDIR/ch-curr-ctrl-files 2>/dev/null
+      then
+        $TMPDIR/acca --set max_charging_current=${maxChargingCurrent[0]}
+      fi
+
+       # set charging voltage control files, as needed
+      if [ -n "${maxChargingVoltage[0]-}" ] \
+        && { [ -z "${maxChargingVoltage[1]-}" ] || tt "${maxChargingVoltage[1]-}" "-*"; } \
+        && grep -q / $TMPDIR/ch-volt-ctrl-files 2>/dev/null
+      then
+        $TMPDIR/acca --set max_charging_voltage=${maxChargingVoltage[0]}
+      fi
 
       $cooldown || {
         resetBattStatsOnUnplug=true
