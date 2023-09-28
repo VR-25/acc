@@ -107,7 +107,10 @@ cycle_switches() {
 
 
 cycle_switches_off() {
-  ! $prioritizeBattIdleMode || cycle_switches off Idle
+  case $prioritizeBattIdleMode in
+    true) cycle_switches off Idle;;
+    no)   cycle_switches off Discharging;;
+  esac
   not_charging || cycle_switches off
 }
 

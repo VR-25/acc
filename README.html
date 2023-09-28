@@ -248,7 +248,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 
 <h1>DC</h1>
 
-<p>configVerCode=202309280</p>
+<p>configVerCode=202309281</p>
 
 <p>ampFactor=
 battStatusWorkaround=true
@@ -386,7 +386,7 @@ voltFactor=</p>
 
 <p>// offMid=off_mid=BOOLEAN</p>
 
-<p>// prioritizeBattIdleMode=prioritize<em>batt</em>idle_mode=BOOLEAN</p>
+<p>// prioritizeBattIdleMode=prioritize<em>batt</em>idle_mode=true|false|no</p>
 
 <p>// rebootResume=reboot_resume=BOOLEAN</p>
 
@@ -610,7 +610,8 @@ voltFactor=</p>
 
 <p>// If enabled, charging switches that support battery idle mode take precedence.
 // This is only relevant when the switch is automatically determined -- i.e., charging_switch is not set or it has no trailing " --".
-// In other words, this variable is only used when acc is automatically testing charging switches.</p>
+// In other words, this variable is only used when acc is automatically testing charging switches.
+// When set to "no", it has the opposite effect (prioritize non-idle mode).</p>
 
 <p>// reboot<em>resume (rr) # Default: false
 // Reboot (when capacity capacity is at or below resume</em>capacity) to re-enable charging.

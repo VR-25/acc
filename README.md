@@ -239,7 +239,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202309280
+configVerCode=202309281
 
 ampFactor=
 battStatusWorkaround=true
@@ -389,7 +389,7 @@ runCmdOnPause=''
 
 // offMid=off_mid=BOOLEAN
 
-// prioritizeBattIdleMode=prioritize_batt_idle_mode=BOOLEAN
+// prioritizeBattIdleMode=prioritize_batt_idle_mode=true|false|no
 
 // rebootResume=reboot_resume=BOOLEAN
 
@@ -643,6 +643,7 @@ runCmdOnPause=''
 // If enabled, charging switches that support battery idle mode take precedence.
 // This is only relevant when the switch is automatically determined -- i.e., charging_switch is not set or it has no trailing " --".
 // In other words, this variable is only used when acc is automatically testing charging switches.
+// When set to "no", it has the opposite effect (prioritize non-idle mode).
 
 
 // reboot_resume (rr) # Default: false
