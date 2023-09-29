@@ -126,6 +126,7 @@ if ! $init; then
       fi
     fi
 
+    [ $currentWorkaround0 = $currentWorkaround ] || exec $TMPDIR/accd --init
     (set +eu; eval '${loopCmd-}') || :
 
     # shutdown if battery temp >= shutdown_temp
@@ -192,22 +193,18 @@ if ! $init; then
         fi
       }
 
-      ${chargingDisabled:-false} || {
-        if $restrictCurr && [ -n "${cooldownCurrent-}" ]; then
-          $cooldown || (set_ch_curr ${cooldownCurrent:--} || :)
-        else
-          [ -n "${maxChargingCurrent[0]-}" ] || (set_ch_curr - || :)
-          apply_on_plug
-        fi
-      }
+      if $restrictCurr && [ -n "${cooldownCurrent-}" ]; then
+        $cooldown || (set_ch_curr ${cooldownCurrent:--} || :)
+      else
+        [ -n "${maxChargingCurrent[0]-}" ] || (set_ch_curr - || :)
+        apply_on_plug
+      fi
 
-      [ -z "${chargingDisabled-}" ] || enable_charging
       shutdownWarnings=true
 
     else
 
       $rebootResume \
-        && ${chargingDisabled:-false} \
         && le_resume_cap \
         && [ $(cat $temp) -lt $(( ${temperature[1]} * 10 )) ] && {
           notif "⚠️ System will reboot in 60 seconds to re-enable charging! Stop accd to abort."
@@ -216,8 +213,6 @@ if ! $init; then
             /system/bin/reboot || reboot
           }
         } || :
-
-      [ -z "${chargingDisabled-}" ] || chargingDisabled=false
 
       # set dischgStatusCode and capacitySync
       [ -z "$dischgStatusCode" ] && cmd_batt reset \
@@ -491,16 +486,18 @@ if ! $init; then
   . $execDir/misc-functions.sh
 
 
-  isAccd=true
-  cooldown=false
-  chCurrRead=false
-  chgStatusCode=""
   capacitySync=false
+  chCurrRead=false
+  chDisabledByAcc=false
+  chgStatusCode=""
+  cooldown=false
+  currentWorkaround0=$currentWorkaround
   dischgStatusCode=""
-  restrictCurr=false
-  shutdownWarnings=true
+  isAccd=true
   resetBattStatsOnPlug=false
   resetBattStatsOnUnplug=false
+  restrictCurr=false
+  shutdownWarnings=true
   versionCode=$(sed -n s/versionCode=//p $execDir/module.prop 2>/dev/null || :)
 
 

@@ -48,7 +48,6 @@
 - [LOCALIZATION](#localization)
 - [TIPS](#tips)
   - [_Always_ Limit the Charging Current If Your Battery is Old and/or Tends to Discharge Too Fast](#always-limit-the-charging-current-if-your-battery-is-old-andor-tends-to-discharge-too-fast)
-  - [Current and Voltage Based Charging Control](#current-and-voltage-based-charging-control)
   - [Generic](#generic)
   - [Google Pixel Devices](#google-pixel-devices)
   - [Override Battery mAh Capacity](override_battery_mah_capacity)
@@ -291,14 +290,9 @@ runCmdOnPause=''
 
 
 
-// NOTES
+// NOTE
 
-// The daemon does not have to be restarted after making changes to this file - unless one of the changes is charging_switch.
-
-// A change to current_workaround (cw) only takes effect after an acc [re]initialization.
-// Install, upgrade, "accd --init" and system reboot actions always [re]initialize acc.
-
-// If those 2 variables are updated with "acc --set" (does NOT apply to acca --set), accd is restarted automatically (--init is implied, as needed).
+// The daemon does not have to be restarted to apply changes. It picks them up automatically within seconds.
 
 
 
@@ -365,7 +359,7 @@ runCmdOnPause=''
 
 // capacity=(shutdown_capacity=INT cooldown_capacity=INT resume_capacity=INT pause_capacity=INT capacity_sync=auto|true|false capacity_mask=BOOLEAN)
 
-// chargingSwitch=charging_switch=([CTRL_FILE1 ON OFF [CTRL_FILE2 ON OFF...] [--] | MILLIAMPS | 3700-4300 MILLIVOLTS]) NULLABLE
+// chargingSwitch=charging_switch=([CTRL_FILE1 ON OFF [CTRL_FILE2 ON OFF...] [--]]) NULLABLE
 
 // cooldownCurrent=cooldown_current=MILLIAMPS NULLABLE
 
@@ -516,15 +510,6 @@ runCmdOnPause=''
 // This automated process can be disabled by appending " --" to the switch/group.
 // e.g., acc -s s="battery/charging_enabled 1 0 --"
 // "acc -ss" always appends " --".
-
-// charging_switch=milliamps (e.g., 0-250) enables current-based charging control.
-// If charging switch is set to 3700-4300 (millivolts), acc stops charging by limiting voltage.
-// For details, refer to the readme's tips section.
-
-// Unlike the original variant, this kind of switch is never unset automatically.
-// Thus, in this case, appending " --" to it leads to invalid syntax.
-
-// Unless charging is enabled first, a daemon restart is required after changing this setting (automated by "acc --set" (synchronous), but not by "acca --set" (asynchronous)).
 
 
 // cooldown_capacity (cc) # Default: 50
@@ -1358,16 +1343,6 @@ This extends the battery's lifespan and may even _reduce_ its discharge rate.
 500mA is a comfortable minimum - and also very compatible.
 
 If your device does not support custom current limits, use a dedicated ("slow") power adapter.
-
-
-### Current and Voltage Based Charging Control
-
-Enabled by setting charging_switch=milliamps or charging_switch=3700-4300 (millivolts) (e.g., `acc -s s=0`, `acc -s s=250`, `acc -s s=3900`, `acc -ss` (wizard)).
-
-Essentially, this turns current/voltage control files into _[pseudo] charging switches_.
-Alternatively, one can set a specific current or voltage regulator as charging switch (e.g., acc -s s="battery/current_max 3000000 0").
-
-Note: depending on the device - at `pause_capacity`, the charging status may either change ("Discharging" or "Idle" ("Not charging") or remain still ("Charging" -- not an issue).
 
 
 ### Generic

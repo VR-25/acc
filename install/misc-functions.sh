@@ -121,43 +121,31 @@ disable_charging() {
 
   not_charging || {
 
-    if tt "${chargingSwitch[0]:-/}" "*/*"; then
+    ! tt "${chargingSwitch[*]-}" "*--" || autoMode=false
 
-      ! tt "${chargingSwitch[*]-}" "*--" || autoMode=false
-
-      if tt "${chargingSwitch[0]-}" "*/*"; then
-        if [ -f ${chargingSwitch[0]} ]; then
-          if ! { flip_sw off && not_charging; }; then
-            $isAccd || print_switch_fails "${chargingSwitch[@]-}"
-            flip_sw on 2>/dev/null || :
-            if $autoMode; then
-              unset_switch
-              cycle_switches_off
-            fi
+    if tt "${chargingSwitch[0]-}" "*/*"; then
+      if [ -f ${chargingSwitch[0]} ]; then
+        if ! { flip_sw off && not_charging; }; then
+          $isAccd || print_switch_fails "${chargingSwitch[@]-}"
+          flip_sw on 2>/dev/null || :
+          if $autoMode; then
+            unset_switch
+            cycle_switches_off
           fi
-        else
-          invalid_switch
         fi
       else
-        cycle_switches_off
+        invalid_switch
       fi
-
-      if $autoMode && ! not_charging; then
-        return 7 # total failure
-      fi
-
     else
-      set +e
-      if [ ${chargingSwitch[0]:-0} -lt 3700 ]; then
-        set_ch_curr ${chargingSwitch[0]:-0}
-      else
-        set_ch_volt ${chargingSwitch[0]:-0}
-      fi
-      set -e
-      chargingDisabled=true
+      cycle_switches_off
+    fi
+
+    if $autoMode && ! not_charging; then
+      return 7 # total failure
     fi
 
     (set +eux; eval '${runCmdOnPause-}') || :
+    chDisabledByAcc=true
   }
 
   if [ -n "${1-}" ]; then
@@ -207,38 +195,27 @@ enable_charging() {
     set_temp_level
     [ ! -f $TMPDIR/.sw ] || (. $TMPDIR/.sw; rm $TMPDIR/.sw; flip_sw on) 2>/dev/null || :
 
-    if tt "${chargingSwitch[0]:-/}" "*/*"; then
+    if ! $ghostCharging || { $ghostCharging && online; }; then
 
-      if ! $ghostCharging || { $ghostCharging && online; }; then
+      flip_sw on || cycle_switches on
 
-        flip_sw on || cycle_switches on
-
-        # detect and block ghost charging
-        if ! $ghostCharging && ! not_charging && ! online \
-          && sleep ${loopDelay[0]} && ! not_charging && ! online
-        then
-          ghostCharging=true
-          disable_charging > /dev/null
-          touch $TMPDIR/.ghost-charging
-          wait_plug
-          return 0
-        fi
-
-      else
+      # detect and block ghost charging
+      if ! $ghostCharging && ! not_charging && ! online \
+        && sleep ${loopDelay[0]} && ! not_charging && ! online
+      then
+        ghostCharging=true
+        disable_charging > /dev/null
+        touch $TMPDIR/.ghost-charging
         wait_plug
         return 0
       fi
 
     else
-      set +e
-      if [ ${chargingSwitch[0]:-0} -lt 3700 ]; then
-        set_ch_curr ${maxChargingCurrent[0]:--}
-      else
-        set_ch_volt ${maxChargingVoltage[0]:--}
-      fi
-      set -e
-      chargingDisabled=false
+      wait_plug
+      return 0
     fi
+
+    chDisabledByAcc=false
   }
 
   if [ -n "${1-}" ]; then
