@@ -248,7 +248,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 
 <h1>DC</h1>
 
-<p>configVerCode=202309281</p>
+<p>configVerCode=202309290</p>
 
 <p>ampFactor=
 battStatusWorkaround=true
@@ -570,7 +570,7 @@ voltFactor=</p>
 // This is useful for setting/changing current and voltage limits without a frontend (--set or app).
 // Simply put, if the user has the following in their config, accd automatically adds/updates the control files:
 //   maxChargingCurrent=(1000) # Control files will be added.
-//   maxChargingVoltage=(4000 -battery/voltage<em>max bms/voltage</em>max) # Control files will be updated.</p>
+//   maxChargingVoltage=(4000 -battery/voltage<em>max bms/voltage</em>max) # Control files will be updated. The "-" is mandatory after changing the value (first element). Otherwise, the change has no effect.</p>
 
 <p>// Notes:
 //   Devices don't support just about any current value. Multiples of 500 mA tend to have higher compatibility.
@@ -582,7 +582,7 @@ voltFactor=</p>
 <p>// Those two work together and are NOT tied to the cooldown cycle.
 // At max<em>temp, charging is paused.
 // Charging resumes at resume</em>temp, as long as other conditions (e.g., resume<em>capacity) are also met.
-// To always override resume</em>capacity append r, as in resume<em>temp=25r. With this, if cooldown is enabled, charging will also resume at the cooldown</em>temp threshold.</p>
+// To always override resume</em>capacity append r, as in resume<em>temp=25r. With this, if cooldown is enabled, charging will also resume at the cooldown</em>temp threshold. Add cooldown_current and mcc into the mix to have temperature dependent restricted current.</p>
 
 <p>// off<em>mid (om) # Default: true
 // Whether to turn off charging after rebooting the system or restarting accd, if capacity is within resume</em>capacity and pause_capacity.</p>

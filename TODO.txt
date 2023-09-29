@@ -21,7 +21,6 @@ backup/restore config
 
 
 simplify mcc and mcv variables
-auto-set mcc and mcv ctrl files if parameter 2 is missing
 
 
 avoid accd restart
