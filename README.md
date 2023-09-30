@@ -898,7 +898,7 @@ Options
       acc -u master^1 -f (previous stable release)
       acc -u -f dev^2 (two dev versions below the latest dev)
       acc -u v2020.4.8-beta --force (force upgrade/downgrade to v2020.4.8-beta)
-      acc -u -c -n (if update is available, prints version code (integer) and changelog link)
+      acc -u -c -n (if update is available, prints version code (integer) and changelog)
       acc -u -c (same as above, but with install prompt)
 
   -U|--uninstall   Completely remove acc and AccA

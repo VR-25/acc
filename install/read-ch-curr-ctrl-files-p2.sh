@@ -19,17 +19,16 @@ then
       chmod a+r $file || continue
       defaultValue="$(cat $file 2>/dev/null)" || continue
       case "$defaultValue" in
-        ""|-*|*" "*) continue;;
+        ""|-*|*" "*|[01]|*[a-zA-Z]*) continue;;
+        [1-9]*)
+          if [ "$defaultValue" -lt 10000 ]; then
+            # milliamps
+            echo ${file}::v::$defaultValue >> ${currCtrl}_
+          else
+            # microamps
+            echo ${file}::v000::$defaultValue >> ${currCtrl}_
+          fi;;
       esac
-      if tt "$defaultValue" "[01]"; then
-        echo ${file}::1::0 >> ${currCtrl}_
-      elif [ "$defaultValue" -lt 10000 ]; then
-        # milliamps
-        echo ${file}::v::$defaultValue >> ${currCtrl}_
-      elif [ "$defaultValue" -ge 10000 ]; then
-        # microamps
-        echo ${file}::v000::$defaultValue >> ${currCtrl}_
-      fi
     done
 
   # exclude troublesome ctrl files
