@@ -1,4 +1,4 @@
-configVerCode=202309290
+configVerCode=202309300
 
 ampFactor=
 battStatusWorkaround=true
@@ -8,6 +8,7 @@ cooldownRatio=()
 currentWorkaround=false
 dischargePolarity=
 forceOff=false
+idleAbovePc=true
 idleThreshold=40
 language=en
 offMid=true
@@ -133,6 +134,8 @@ runCmdOnPause=''
 
 # forceOff=force_off=BOOLEAN
 
+# idleAbovePc=idle_above_pc=BOOLEAN
+
 # idleThreshold=idle_threshold=MILLIAMPS
 
 # language=lang=LANGUAGE_CODE NULLABLE
@@ -178,6 +181,7 @@ runCmdOnPause=''
 # current_workaround cw
 # discharge_polarity dp
 # force_off fo
+# idle_above_pc iap
 # idle_threshold it
 # lang l
 # max_charging_current mcc
@@ -324,6 +328,10 @@ runCmdOnPause=''
 # Enable this only if the set charging switch is stubbornly reset by the system.
 # Oftentimes, userspace thermal management daemons (e.g., mi_thermald) and/or driver issues are behind charging control issues.
 # Some people "systemlessly" disable certain thermal daemons with Magisk. While this is not a general recommendation, they swear by it.
+
+
+# idle_above_pc (iap) # Default: true
+# If set to false, accd will avoid idle mode (if possible) when capacity > pause_capacity.
 
 
 # idle_threshold (it) # Default: 40

@@ -247,7 +247,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 
 <h1>DC</h1>
 
-<p>configVerCode=202309290</p>
+<p>configVerCode=202309300</p>
 
 <p>ampFactor=
 battStatusWorkaround=true
@@ -257,6 +257,7 @@ cooldownRatio=()
 currentWorkaround=false
 dischargePolarity=
 forceOff=false
+idleAbovePc=true
 idleThreshold=40
 language=en
 offMid=true
@@ -370,6 +371,8 @@ voltFactor=</p>
 
 <p>// forceOff=force_off=BOOLEAN</p>
 
+<p>// idleAbovePc=idle<em>above</em>pc=BOOLEAN</p>
+
 <p>// idleThreshold=idle_threshold=MILLIAMPS</p>
 
 <p>// language=lang=LANGUAGE_CODE NULLABLE</p>
@@ -413,6 +416,7 @@ voltFactor=</p>
 // current<em>workaround cw
 // discharge</em>polarity dp
 // force<em>off fo
+// idle</em>above<em>pc iap
 // idle</em>threshold it
 // lang l
 // max<em>charging</em>current mcc
@@ -540,6 +544,9 @@ voltFactor=</p>
 // Enable this only if the set charging switch is stubbornly reset by the system.
 // Oftentimes, userspace thermal management daemons (e.g., mi</em>thermald) and/or driver issues are behind charging control issues.
 // Some people "systemlessly" disable certain thermal daemons with Magisk. While this is not a general recommendation, they swear by it.</p>
+
+<p>// idle<em>above</em>pc (iap) # Default: true
+// If set to false, accd will avoid idle mode (if possible) when capacity > pause_capacity.</p>
 
 <p>// idle<em>threshold (it) # Default: 40
 // Current threshold (absolute value) in milliamps to consider _status=Idle (only relevant if batt</em>status_workaround=true).</p>
