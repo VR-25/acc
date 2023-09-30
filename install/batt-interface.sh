@@ -32,7 +32,10 @@ not_charging() {
   if [ -z "${battStatusOverride-}" ] && [ -n "$switch" ]; then
     for i in $(seq $nci); do
       if [ "$switch" = off ]; then
-        ! status ${1-} || return 0
+        ! status ${1-} || {
+          sleep ${loopDelay[0]}
+          ! status ${1-} || return 0
+        }
       else
         status ${1-} || return 1
       fi

@@ -113,13 +113,20 @@ if ! $init; then
 
     local file=
     local value=
-    local isCharging=true
+    local isCharging=false
 
     # source config & set discharge polarity
     set_dp
 
-    if not_charging; then
-      isCharging=false
+    if ! not_charging; then
+      isCharging=true
+      # [auto mode] change the charging switch if charging has not been enabled by acc
+      if $chDisabledByAcc && [ -n "${chargingSwitch[0]-}" ] && ! tt "${chargingSwitch[@]}" "*--"; then
+        sed -i "\|${chargingSwitch[@]}|d" $TMPDIR/ch-switches
+        echo "${chargingSwitch[@]}" >> $TMPDIR/ch-switches
+        $TMPDIR/acca --set charging_switch=
+      fi
+      # [auto mode] set charging switch
       if [ -z "${chargingSwitch[0]-}" ]; then
         disable_charging
         enable_charging
@@ -263,8 +270,10 @@ if ! $init; then
             # if possible, avoid idle mode when capacity > pause_capacity
             (cat $config > $TMPDIR/.cfg
             config=$TMPDIR/.cfg
-            cycle_switches off Discharging
+            prioritizeBattIdleMode=no
+            cycle_switches_off
             echo "chargingSwitch=(${chargingSwitch[@]-})" > $TMPDIR/.sw)
+            chDisabledByAcc=true
           else
             disable_charging
             force_off
@@ -491,7 +500,6 @@ if ! $init; then
   chDisabledByAcc=false
   chgStatusCode=""
   cooldown=false
-  currentWorkaround0=$currentWorkaround
   dischgStatusCode=""
   isAccd=true
   resetBattStatsOnPlug=false
@@ -521,6 +529,7 @@ if ! $init; then
   misc_stuff "${1-}"
   . $execDir/oem-custom.sh
   src_cfg
+  currentWorkaround0=$currentWorkaround
 
 
   apply_on_boot
