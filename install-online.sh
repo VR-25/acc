@@ -104,14 +104,12 @@ then
   ! echo "$@" | grep -Eq '\-\-changelog|\-c' || {
     if echo "$@" | grep -Eq '\-\-non-interactive|\-n'; then
       echo $onlineVersion
-      curl -L "https://github.com/VR-25/$id/blob/${commit}/changelog.md"
+      echo "https://github.com/VR-25/$id/blob/${commit}/changelog.md"
       exit 5 # no update available
     else
       echo
       print_available $id $onlineVersion 2>/dev/null \
         || echo "$id $onlineVersion is available"
-      echo
-      curl -L "- https://github.com/VR-25/$id/blob/${commit}/changelog.md"
       print_install_prompt 2>/dev/null \
         || echo -n "- Download and install? ([enter]: yes, CTRL-C: no) "
       read REPLY

@@ -1,8 +1,8 @@
 id=acc
 domain=vr25
 name=Advanced Charging Controller (ACC)
-version=v2023.9.30.1-rc
-versionCode=202309301
+version=v2023.9.30.2-rc
+versionCode=202309302
 author=VR25
 description=Extend your battery's service life by controlling charging current, temperature, and voltage. Any root solution is supported. The installation is always "systemless". Works on Android and KaiOS.
 updateJson=https://raw.githubusercontent.com/VR-25/acc/master/module.json
