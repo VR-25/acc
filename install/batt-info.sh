@@ -50,6 +50,10 @@ batt_info() {
   }
 
 
+  # ensure temperature value is correct
+  info="$(echo "$info" | sed "/^TEMP=/s/=.*/=$(cat $temp)/g" | sort -u)"
+
+
   # parse CURRENT_NOW & convert to Amps
   currNow=$(echo "$info" | sed -n "s/^CURRENT_NOW=//p" | head -n1)
   dtr_conv_factor ${currNow#-} ${ampFactor:-$ampFactor_}
