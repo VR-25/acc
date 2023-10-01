@@ -246,9 +246,10 @@ In interactive mode, it also asks the user whether they want to download and ins
 
 <h1>DC</h1>
 
-<p>configVerCode=202310010</p>
+<p>configVerCode=202310012</p>
 
-<p>ampFactor=
+<p>allowIdleAbovePcap=true
+ampFactor=
 battStatusWorkaround=true
 capacity=(5 50 70 75 auto false)
 cooldownCurrent=
@@ -256,7 +257,6 @@ cooldownRatio=()
 currentWorkaround=false
 dischargePolarity=
 forceOff=false
-allowIdleAbovePcap=true
 idleThreshold=40
 language=en
 offMid=true
@@ -344,6 +344,8 @@ voltFactor=</p>
 
 <p>// VALUES</p>
 
+<p>// allowIdleAbovePcap=allow<em>idle</em>above_pcap=BOOLEAN</p>
+
 <p>// ampFactor=amp_factor=MULTIPLIER NULLABLE</p>
 
 <p>// applyOnBoot=apply<em>on</em>boot=([CTRL<em>FILE1::RAW</em>VALUE[::DEFAULT]] [CTRL<em>FILE2::RAW</em>VALUE[::DEFAULT]...] [--exit]) NULLABLE</p>
@@ -369,8 +371,6 @@ voltFactor=</p>
 <p>// dischargePolarity=discharge_polarity=+|- NULLABLE</p>
 
 <p>// forceOff=force_off=BOOLEAN</p>
-
-<p>// allowIdleAbovePcap=allow<em>idle</em>above_pcap=BOOLEAN</p>
 
 <p>// idleThreshold=idle_threshold=MILLIAMPS</p>
 
@@ -398,24 +398,24 @@ voltFactor=</p>
 
 <p>// ALIASES (for use with --set only)</p>
 
-<p>// amp<em>factor af
-// apply</em>on<em>boot ab
-// apply</em>on<em>plug ap
-// batt</em>status<em>override bso
-// batt</em>status<em>workaround bsw
-// capacity</em>mask cm
-// capacity<em>sync cs
-// charging</em>switch s
-// cooldown<em>capacity cc
-// cooldown</em>charge cch
-// cooldown<em>current cdc
-// cooldown</em>custom ccu
-// cooldown<em>pause cp
-// cooldown</em>temp ct
-// current<em>workaround cw
-// discharge</em>polarity dp
-// force<em>off fo
-// allow</em>idle<em>above</em>pcap aiapc
+<p>// allow<em>idle</em>above<em>pcap aiapc
+// amp</em>factor af
+// apply<em>on</em>boot ab
+// apply<em>on</em>plug ap
+// batt<em>status</em>override bso
+// batt<em>status</em>workaround bsw
+// capacity<em>mask cm
+// capacity</em>sync cs
+// charging<em>switch s
+// cooldown</em>capacity cc
+// cooldown<em>charge cch
+// cooldown</em>current cdc
+// cooldown<em>custom ccu
+// cooldown</em>pause cp
+// cooldown<em>temp ct
+// current</em>workaround cw
+// discharge<em>polarity dp
+// force</em>off fo
 // idle<em>threshold it
 // lang l
 // max</em>charging<em>current mcc
@@ -441,6 +441,11 @@ voltFactor=</p>
 <p>// configVerCode #
 // This is checked during updates to determine whether the config should be patched. Do NOT modify.
 // The value is not necessarily the same as acc version code.</p>
+
+<p>// allow<em>idle</em>above<em>pcap (aiapc) # Default: true
+// If set to false, accd will avoid idle mode (if possible) when capacity > pause</em>capacity.
+// This is useful for forever-plugged setups, where battery longevity is a top priority.
+// Idle mode is good, but "storing" a highly charged battery for a LONG time is a bad idea.</p>
 
 <p>// amp<em>factor (af) # Default: null
 // volt</em>factor (vf) #
@@ -543,9 +548,6 @@ voltFactor=</p>
 // Enable this only if the set charging switch is stubbornly reset by the system.
 // Oftentimes, userspace thermal management daemons (e.g., mi</em>thermald) and/or driver issues are behind charging control issues.
 // Some people "systemlessly" disable certain thermal daemons with Magisk. While this is not a general recommendation, they swear by it.</p>
-
-<p>// allow<em>idle</em>above<em>pcap (aiapc) # Default: true
-// If set to false, accd will avoid idle mode (if possible) when capacity > pause</em>capacity.</p>
 
 <p>// idle<em>threshold (it) # Default: 40
 // Current threshold (absolute value) in milliamps to consider _status=Idle (only relevant if batt</em>status_workaround=true).</p>

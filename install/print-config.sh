@@ -1,6 +1,7 @@
 set +u
 
-echo "amp_factor=$ampFactor
+echo "allow_idle_above_pcap=$allowIdleAbovePcap
+amp_factor=$ampFactor
 batt_status_workaround=$battStatusWorkaround
 
 capacity_mask=${capacity[5]}
@@ -15,7 +16,6 @@ cooldown_temp=${temperature[0]}
 current_workaround=$currentWorkaround
 discharge_polarity=$dischargePolarity
 force_off=$forceOff
-allowIdleAbovePcap=$allow_idle_above_pcap
 idle_threshold=$idleThreshold
 lang=$language
 

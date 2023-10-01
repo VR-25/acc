@@ -2,6 +2,7 @@ set +u
 
 ab="${apply_on_boot-${ab-${applyOnBoot[@]}}}"
 af=${amp_factor-${af-$ampFactor}}
+aiapc="${allow_idle_above_pcap-${aiapc-$allowIdleAbovePcap}}"
 ap="${apply_on_plug-${ap-${applyOnPlug[@]}}}"
 bso="${batt_status_override-${bso-$battStatusOverride}}"
 bsw=${batt_status_workaround-${bsw-$battStatusWorkaround}}
@@ -16,13 +17,11 @@ ct=${cooldown_temp-${ct-${temperature[0]}}}
 cw=${current_workaround-${cw-$currentWorkaround}}
 dp="${discharge_polarity-${dp-$dischargePolarity}}"
 fo="${force_off-${fo-$forceOff}}"
-aiapc="${allow_idle_above_pcap-${aiapc-$allowIdleAbovePcap}}"
 it="${idle_threshold-${it-$idleThreshold}}"
 l=${lang-${l-${language}}}
 mcc="${max_charging_current-${mcc-${maxChargingCurrent[@]}}}"
 mcv="${max_charging_voltage-${mcv-${maxChargingVoltage[@]}}}"
 mt=${max_temp-${mt-${temperature[1]}}}
-rt=${resume_temp-${rt-${temperature[2]}}}
 om="${off_mid-${om-$offMid}}"
 pbim=${prioritize_batt_idle_mode-${pbim-$prioritizeBattIdleMode}}
 pc=${pause_capacity-${pc-${capacity[3]}}}
@@ -32,12 +31,12 @@ rbsu=${reset_batt_stats_on_unplug-${rbsu-${resetBattStats[1]}}}
 rc=${resume_capacity-${rc-${capacity[2]}}}
 rcp="${run_cmd_on_pause-${rcp-${runCmdOnPause[@]}}}"
 rr="${reboot_resume-${rr-$rebootResume}}"
+rt=${resume_temp-${rt-${temperature[2]}}}
 s="${charging_switch-${s-${chargingSwitch[@]}}}"
 sc=${shutdown_capacity-${sc-${capacity[0]}}}
 st=${shutdown_temp-${st-${temperature[3]}}}
 tl="${temp_level-${tl-$tempLevel}}"
 vf=${volt_factor-${vf-$voltFactor}}
-
 
 # backup scripts
 touch $TMPDIR/.scripts
@@ -53,6 +52,7 @@ printf "\n\n\n" >> $TMPDIR/.scripts
 
 echo "configVerCode=$(cat $TMPDIR/.config-ver)
 
+allowIdleAbovePcap=${aiapc:-true}
 ampFactor=$af
 battStatusWorkaround=${bsw:-true}
 capacity=(${sc:-5} ${cc:-50} ${rc:-70} ${pc:-75} ${cs:-auto} ${cm:-false})
@@ -61,7 +61,6 @@ cooldownRatio=($cch $cp)
 currentWorkaround=${cw:-false}
 dischargePolarity=$dp
 forceOff=${fo:-false}
-allowIdleAbovePcap=${aiapc:-true}
 idleThreshold=${it:-40}
 language=${lang:-en}
 offMid=${om:-true}

@@ -237,8 +237,9 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202310010
+configVerCode=202310012
 
+allowIdleAbovePcap=true
 ampFactor=
 battStatusWorkaround=true
 capacity=(5 50 70 75 auto false)
@@ -247,7 +248,6 @@ cooldownRatio=()
 currentWorkaround=false
 dischargePolarity=
 forceOff=false
-allowIdleAbovePcap=true
 idleThreshold=40
 language=en
 offMid=true
@@ -347,6 +347,8 @@ runCmdOnPause=''
 
 // VALUES
 
+// allowIdleAbovePcap=allow_idle_above_pcap=BOOLEAN
+
 // ampFactor=amp_factor=MULTIPLIER NULLABLE
 
 // applyOnBoot=apply_on_boot=([CTRL_FILE1::RAW_VALUE[::DEFAULT]] [CTRL_FILE2::RAW_VALUE[::DEFAULT]...] [--exit]) NULLABLE
@@ -372,8 +374,6 @@ runCmdOnPause=''
 // dischargePolarity=discharge_polarity=+|- NULLABLE
 
 // forceOff=force_off=BOOLEAN
-
-// allowIdleAbovePcap=allow_idle_above_pcap=BOOLEAN
 
 // idleThreshold=idle_threshold=MILLIAMPS
 
@@ -403,6 +403,7 @@ runCmdOnPause=''
 
 // ALIASES (for use with --set only)
 
+// allow_idle_above_pcap aiapc
 // amp_factor af
 // apply_on_boot ab
 // apply_on_plug ap
@@ -420,7 +421,6 @@ runCmdOnPause=''
 // current_workaround cw
 // discharge_polarity dp
 // force_off fo
-// allow_idle_above_pcap aiapc
 // idle_threshold it
 // lang l
 // max_charging_current mcc
@@ -449,6 +449,12 @@ runCmdOnPause=''
 // configVerCode #
 // This is checked during updates to determine whether the config should be patched. Do NOT modify.
 // The value is not necessarily the same as acc version code.
+
+
+// allow_idle_above_pcap (aiapc) # Default: true
+// If set to false, accd will avoid idle mode (if possible) when capacity > pause_capacity.
+// This is useful for forever-plugged setups, where battery longevity is a top priority.
+// Idle mode is good, but "storing" a highly charged battery for a LONG time is a bad idea.
 
 
 // amp_factor (af) # Default: null
@@ -567,10 +573,6 @@ runCmdOnPause=''
 // Enable this only if the set charging switch is stubbornly reset by the system.
 // Oftentimes, userspace thermal management daemons (e.g., mi_thermald) and/or driver issues are behind charging control issues.
 // Some people "systemlessly" disable certain thermal daemons with Magisk. While this is not a general recommendation, they swear by it.
-
-
-// allow_idle_above_pcap (aiapc) # Default: true
-// If set to false, accd will avoid idle mode (if possible) when capacity > pause_capacity.
 
 
 // idle_threshold (it) # Default: 40
