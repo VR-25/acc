@@ -60,9 +60,9 @@
 ## DESCRIPTION
 
 ACC is an Android software mainly intended for [extending battery service life](https://batteryuniversity.com/article/bu-808-how-to-prolong-lithium-based-batteries).
-In a nutshell, this is achieved through limiting charging current, temperature, and voltage.
+In a nutshell, this is achieved through limiting charging current, temperature and voltage.
 Any root solution is supported.
-Regardless of whether the system is rooted with Magisk, the installation is always "systemless".
+Regardless of whether the system is rooted with KernelSU/Magisk, the installation is always "systemless".
 
 
 ---
@@ -103,13 +103,13 @@ The author assumes no responsibility under anything that might break due to the 
 By choosing to use/misuse it, you agree to do so at your own risk!
 
 Some devices, notably from Xiaomi (e.g., Poco X3 Pro), have a faulty PMIC (Power Management Integrated Circuit) that can be triggered by acc.
-The issue prevents charging.
-Ensure your battery does not discharge too low.
-Using acc's auto shutdown feature is highly recommended.
+The issue blocks charging.
+Ensure the battery does not discharge too low.
+Using acc's auto shutdown feature is highly recommended (default shutdown_capacity is 5).
 
 Refer to [this XDA post](https://forum.xda-developers.com/t/rom-official-arrowos-11-0-android-11-0-vayu-bhima.4267263/post-85119331) for additional details.
 
-[lybxlpsv](https://github.com/lybxlpsv) suggests booting into bootloader and then back into system to reset the PMIC.
+[lybxlpsv](https://github.com/lybxlpsv) suggests booting into bootloader/fastboot and then back into system to reset the PMIC.
 
 
 ---
@@ -124,17 +124,17 @@ As the project gets bigger and more popular, the need for coffee goes up as well
 
 - [Must read - how to prolong lithium ion batteries lifespan](https://batteryuniversity.com/article/bu-808-how-to-prolong-lithium-based-batteries)
 - Android or KaiOS
-- Any root solution (e.g., [Magisk](https://github.com/topjohnwu/Magisk))
-- [Busybox\*](https://github.com/Magisk-Modules-Repo/busybox-ndk) (only if not rooted with Magisk)
-- Non-Magisk users can enable acc auto-start by running /data/adb/vr25/acc/service.sh, a copy of, or a link to it - with init.d or an app that emulates it.
+- Any root solution (e.g., KernelSU, Magisk, SuperSU, etc)
+- [Busybox\*](https://github.com/Magisk-Modules-Repo/busybox-ndk) (only if not rooted with KernelSU or Magisk)
+- Non KernelSU/Magisk installs require a way of running `/data/adb/vr25/acc/service.sh` on boot to initialize acc.
 - Terminal emulator
-- Text editor (optional)
+- Root text editor (optional)
 
-\* A busybox binary can simply be placed in /data/adb/vr25/bin/.
-Permissions (0755) are set automatically, as needed.
-Precedence: /data/adb/vr25/bin/busybox > Magisk's busybox > system's busybox
+\* A busybox binary can simply be placed in `/data/adb/vr25/bin/`.
+Permissions (`0755`) are set automatically, as needed.
+Precedence: /data/adb/vr25/bin/busybox > KernelSu's or Magisk's busybox > system's busybox
 
-Other executables or static binaries can also be placed in /data/adb/vr25/bin/ (with proper permissions) instead of being installed system-wide.
+Other executables or static binaries can also be placed in `/data/adb/vr25/bin/` (with proper permissions) instead of being installed system-wide.
 
 
 ---
@@ -171,7 +171,7 @@ Uninstall: run `acc --uninstall` or flash\* `/data/adb/vr25/acc-data/acc-uninsta
 
 ACC runs in some recovery environments as well.
 Unless the zip is flashed again, manual initialization is required.
-The initialization command is `/data/adb/vr25/acc/service.sh`.
+The initialization script is `/data/adb/vr25/acc/service.sh`.
 
 
 ---
@@ -192,16 +192,15 @@ or `curl -L#  https://github.com/VR-25/acc/archive/master.tar.gz | tar -xz`
 
 2. `cd acc*`
 
-3. `sh build.sh` (or double-click `build.bat` on Windows 10, if you have Windows subsystem for Linux (with zip) installed)
+3. `sh build.sh` (or double-click `build.bat` on Windows 10+, if you have Windows subsystem for Linux (with zip) installed)
 
 
 #### Notes
 
-- build.sh automatically sets/corrects `id=*` in `*.sh` and `update-binary` files.
-Refer to framework-details.txt for a full list of tasks carried out by it.
-To skip generating archives, run the build script with a random argument (e.g. bash build.sh h).
+- `build.sh` automatically sets/corrects `id=*` in `*.sh` and `update-binary` files.
+To skip generating archives, run the build script with a random argument (e.g. `sh build.sh h`).
 
-- To update the local source code, run `git pull --force` or re-download it (with wget/curl) as described above.
+- To update the local source code, run `git pull --force` or re-download it (with `wget`/`curl`) as described above.
 
 
 ### Install from Local Source or GitHub
@@ -212,15 +211,15 @@ To skip generating archives, run the build script with a random argument (e.g. b
 The order of arguments doesn't matter.
 For upgrades, if `%parent install dir%` is not supplied, the original/current is used.
 
-- `sh install-tarball.sh [module id, default: acc] [parent install dir (e.g., /data/data/mattecarra.accapp/files)]` installs the tarball (acc*gz) from the script's location.
-The archive must be in the same directory as this script - and obtained from GitHub: https://github.com/VR-25/acc/archive/$commit.tar.gz ($commit examples: master, dev, v2020.5.20-rc).
+- `sh install-tarball.sh [module id, default: acc] [parent install dir (e.g., /data/data/mattecarra.accapp/files)]` installs the tarball (`acc*gz`) from the script's location.
+The archive must be in the same directory as this script - and obtained from GitHub: https://github.com/VR-25/acc/archive/$commit.tar.gz (`$commit` examples: `master`, `dev`, `v2020.5.20-rc`).
 
 
 #### Notes
 
 - `install-online.sh` is the `acc --upgrade` back-end.
 
-- The default parent installation directories, in order of priority, are: `/data/data/mattecarra.accapp/files/` (ACC App, but only if Magisk is not installed), `/data/adb/modules/` (Magisk) and `/data/adb/` (other root solutions).
+- The default parent installation directories, in order of priority, are: `/data/data/mattecarra.accapp/files/` (ACC App, but only for non KernelSU/Magisk installs), `/data/adb/modules/` (KernelSU/Magisk) and `/data/adb/vr25/` (other root solutions).
 
 - No argument/option is strictly mandatory.
 The exception is `--non-interactive` for front-end apps.
@@ -238,7 +237,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202309300
+configVerCode=202310010
 
 ampFactor=
 battStatusWorkaround=true
@@ -248,7 +247,7 @@ cooldownRatio=()
 currentWorkaround=false
 dischargePolarity=
 forceOff=false
-idleAbovePc=true
+allowIdleAbovePcap=true
 idleThreshold=40
 language=en
 offMid=true
@@ -374,7 +373,7 @@ runCmdOnPause=''
 
 // forceOff=force_off=BOOLEAN
 
-// idleAbovePc=idle_above_pc=BOOLEAN
+// allowIdleAbovePcap=allow_idle_above_pcap=BOOLEAN
 
 // idleThreshold=idle_threshold=MILLIAMPS
 
@@ -421,7 +420,7 @@ runCmdOnPause=''
 // current_workaround cw
 // discharge_polarity dp
 // force_off fo
-// idle_above_pc iap
+// allow_idle_above_pcap aiapc
 // idle_threshold it
 // lang l
 // max_charging_current mcc
@@ -570,7 +569,7 @@ runCmdOnPause=''
 // Some people "systemlessly" disable certain thermal daemons with Magisk. While this is not a general recommendation, they swear by it.
 
 
-// idle_above_pc (iap) # Default: true
+// allow_idle_above_pcap (aiapc) # Default: true
 // If set to false, accd will avoid idle mode (if possible) when capacity > pause_capacity.
 
 
@@ -976,6 +975,8 @@ Those override the permanent.
 
 A daemon restart is required to load new/modified plugins.
 
+An alternative to plugins are one-line scripts. Refer to the [default configuration](#default-configuration) section above.
+
 
 ---
 ## NOTES/TIPS FOR FRONT-END DEVELOPERS
@@ -983,8 +984,8 @@ A daemon restart is required to load new/modified plugins.
 
 ### Basics
 
-ACC does not require Magisk.
-Any root solution is fine.
+ACC does not require KernelSU/Magisk.
+Any root solution works, as long as busybox is installed.
 
 Use `/dev/.vr25/acc/acca` instead of regular `acc`.
 It's optimized for front-ends, guaranteed to be readily available after installation/upgrades and significantly faster than its `acc` counterpart.
@@ -997,14 +998,14 @@ Include provided descriptions of ACC features/settings in your app(s).
 Provide additional information (trusted) where appropriate.
 Explain settings/concepts as clearly and with as few words as possible.
 
-Take advantage of exit codes.
+Take advantage of acc exit codes.
 Refer back to `SETUP/USAGE > [Terminal Commands](#terminal-commands) > Exit Codes`.
 
 
 ### Installing/Upgrading ACC
 
 This should be trivial.
-The simplest way is flashing acc from Magisk manager.
+The simplest way is flashing acc from a KernelSU/Magisk module manager.
 
 Alternatively, `install.sh`, `install-online.sh` or `install-tarball.sh` can be used.
 For details, refer back to [install from local source or GitHub](#install-from-local-source-or-github).
@@ -1028,31 +1029,32 @@ The format is as follows:
 
 ### Uninstalling ACC
 
-Either run `/dev/.vr25/acc/uninstall` (no reboot required; **charger must be plugged**) or uninstall from Magisk manager and reboot.
+Either run `/dev/.vr25/acc/uninstall` (no reboot required) or uninstall from KernelSU/Magisk module manager and reboot.
 
 
 ### Initializing ACC
 
-On boot_completed receiver and main activity, run:
+On `boot_completed` receiver and `main activity`, run:
 
-`[ -f /dev/.vr25/acc/acca ] || /data/adb/vr25/acc/service.sh`
+`test -f /dev/.vr25/acc/acca || /data/adb/vr25/acc/service.sh`
 
 Explanation:
 
 ACC's working environment must be initialized - i.e., by updating the stock charging config (for restoring without a reboot) and pre-processing data for greater efficiency.
 This is done exactly once after boot.
 If it were done only after installation/upgrade, one would have to reinstall/upgrade acc after every kernel update.
-That's because kernel updates often change the default power supply drivers settings.
+That's because kernel updates often change the default power supply drivers' settings.
 
-Since acc's core executables are dynamic ([expected to] change regularly), those are linked to `/dev/.vr25/acc/` to preserve the API.
-The links must be recreated once after boot (/dev/ is volatile).
+Since acc's core executables are dynamic ([expected to] change regularly), those are linked to `/dev/.vr25/acc/` to preserve the APIs.
+The links must be recreated once after boot (since `/dev/` is volatile).
 
 `accd` is a symbolic link to `service.sh`.
-If service.sh is executed every time the `main activity` is launched, accd will be repeatedly restarted for no reason.
+If service.sh is executed every time the `main activity` is launched, accd will be repeatedly restarted for no reason. Thus, we run `test -f /dev/.vr25/acc/acca || /data/adb/vr25/acc/service.sh`, as opposed to just `/data/adb/vr25/acc/service.sh`
+
 
 Notes
 
-- This "manual" initialization is only _strictly_ required if Magisk is not installed - and only once per boot session. In other words, Magisk already runs service.sh shortly after boot.
+- This "manual" initialization is only _strictly_ required for non KernelSU/Magisk installs -- and only once per boot session. In other words, KernelSU and Magisk already run `service.sh` shortly after boot.
 - ACC's installer always initializes it.
 
 
@@ -1066,10 +1068,10 @@ Use ONLY those with `/dev/.vr25/acc/acca --set`!
 
 To clarify, `/dev/.vr25/acc/acca --set chargingSwitch=...` is not supported!
 Use either `s` or `charging_switch`.
-`chargingSwitch` and all the other "camelcase" style variables are for internal use only (i.e., private API).
+`chargingSwitch` and all the other "camelcase" style variables are for internal use only (i.e., private APIs).
 
 Do not parse the config file directly.
-Use `--set --print` and `--set --print-default`.
+Use `--set --print ['regex']` and `--set --print-default ['regex']`.
 Refer back to [terminal commands](#terminal-commands) for details.
 
 
@@ -1081,7 +1083,7 @@ Some kernels provide more information than others.
 Most of the lines are either unnecessary (e.g., type: everyone knows that already) or unreliable (e.g., health, speed).
 
 Here's what one should focus on:
-
+```
 HEALTH=Good # Battery health
 CAPACITY=50 # Battery level, 0-100
 CURRENT_NOW=0 # Charging current (Amps)
@@ -1089,7 +1091,7 @@ POWER_NOW=0 # (CURRENT_NOW * VOLTAGE_NOW) (Watts)
 STATUS=Charging # Charging, Discharging or Idle (Not charging)
 TEMP=281 # Always in (ºC * 10)
 VOLTAGE_NOW=3.861 # Charging voltage (Volts)
-
+```
 Note: the power information refers to what is actually supplied to the battery, not what's coming from the adapter.
 External power is always converted before it reaches the battery.
 
@@ -1125,13 +1127,6 @@ _Back to the main config:_
 ACC daemon does not have to be restarted after making changes to the config.
 It picks up new changes within seconds.
 
-There are a few exceptions:
-
-- `charging_switch` (`s`) requires a daemon restart (`/dev/.vr25/acc/accd`).
-- `current_workaround` (`cw`) requires a full re-initialization (`/dev/.vr25/acc/accd --init`).
-
-This information is in the [default configuration](#default-configuration) section as well.
-
 
 ---
 ## TROUBLESHOOTING
@@ -1146,24 +1141,25 @@ Refer to "default config > batt_status_workaround".
 
 When Android's battery level differs from that of the kernel, ACC daemon automatically syncs it by stopping the battery service and feeding it the real value every few seconds.
 
-Pixel devices are known for having battery level discrepancies for the longest time.
+Some Pixel devices are known for having battery level discrepancies.
 
-If your device shuts down before the battery is actually empty, capacity_sync or capacity_mask may help.
+If your device shuts down before the battery is actually empty, `capacity_sync` or `capacity_mask` may help.
 Refer to the [default configuration](#default-configuration) section above for details.
 
 
 ### Charging Switch
 
-By default, ACC uses whichever [charging switch](https://github.com/VR-25/acc/blob/dev/acc/charging-switches.txt) works ("automatic" charging switch).
+By default, ACC uses whichever [charging switch](https://github.com/VR-25/acc/blob/dev/acc/charging-switches.txt) works ("automatic" mode).
 However, things don't always go well.
 
-- Some switches are unreliable under certain conditions (e.g., while display is off).
+- Some switches are unreliable under certain conditions (e.g., while the screen is off).
 
 - Others hold a [wakelock](https://duckduckgo.com/lite/?q=wakelock).
 This causes fast battery drain when charging is paused and the device remains plugged.
 
 - Charging keeps being re-enabled by the system, seconds after acc daemon disables it.
 As a result, the battery eventually charges to 100% capacity, regardless of pause_capacity.
+Refer to config > force_off.
 
 - High CPU load (drains battery) was also reported.
 
@@ -1172,8 +1168,8 @@ As a result, the battery eventually charges to 100% capacity, regardless of paus
 In such situations, one has to enforce a switch that works as expected.
 Here's how to do it:
 
-1. Run `acc --test` (or `acc -t`) to see which switches work.
-2. Run `acc --set charging_switch` (or `acc -ss`) to enforce a working switch.
+1. Run `acc -t` to see which switches work.
+2. Run `acc -ss` to enforce a working switch.
 3. Test the reliability of the set switch. If it doesn't work properly, try another.
 
 Since not everyone is tech savvy, ACC daemon automatically applies settings for certain devices to minimize charging switch issues.
@@ -1204,7 +1200,7 @@ Some devices do not support just any current value, though.
 That's not to say out-of-range values cause issues.
 These are simply ignored.
 
-If low current values don't work, try setting `current_workaround=true` (takes effect after `accd --init`.
+If low current values don't work, try setting `current_workaround=true`.
 Refer to the [default configuration](#default-configuration) section for details.
 
 One can override the default lists of max charging current/voltage control files by copying `acc/ctrl-files.sh` to `/data/adb/vr25/acc-data/plugins/` and modifying it accordingly.
@@ -1214,7 +1210,7 @@ Reminder: a daemon restart is required to load new/modified plugins.
 
 ### Diagnostics/Logs
 
-Volatile logs (gone on reboot) are stored in `/dev/.vr25/acc/` (.log files only).
+Volatile logs (gone on reboot) are stored in `/dev/.vr25/acc/` (`.log` files only).
 Persistent logs reside in `/data/adb/vr25/acc-data/logs/`.
 
 `acc -le` exports all acc logs, plus Magisk's and extras to `/data/adb/acc-data/logs/acc-$device_codename.tgz`.
@@ -1269,7 +1265,7 @@ Refer back to the [warnings](#warnings) section above.
 ### Unexpected Reboots
 
 Wrong/troublesome charging control files may trigger unwanted reboots.
-ACC blacklist some of these automatically (registered in `/data/adb/vr25/acc-data/logs/write.log`, with a leading hashtag).
+ACC blacklist [some of] these automatically (registered in `/data/adb/vr25/acc-data/logs/write.log`, with a leading hashtag).
 Sometimes, there may be false positives in there - i.e., due to unexpected reboots caused by something else. Thus, if a control file that used to work, suddenly does not, see if it was blacklisted (`acc -t` also reveals blacklisted switches).
 Send `write.log` to the developer once the reboots have stopped.
 
@@ -1289,7 +1285,7 @@ Run `acc -l tail` to find out.
 This will print the last 10 lines of the daemon log file.
 
 A relatively common exit code is `7` - meaning all charging switches failed to disable charging.
-It happens due to kernel issues (refer to the previous subsection - [charging switch](#charging-switch)).
+It usually happens due to kernel issues (refer to the previous subsection - [charging switch](#charging-switch)).
 The daemon only stops due to this if acc is set to automatically determine the switches to use (default behavior).
 Manually setting a working switch with `acc -ss` or `acc -s s="SWITCHES GO HERE --"` disables auto mode and prevents accd from stopping if the set the charging switches fail.
 
@@ -1368,7 +1364,7 @@ There are no negative consequences when it doesn't.
 
 ### Override Battery mAh Capacity
 
-An "extended" battery won't change fully if the kernel still has the stock `charge_full_design` value.
+An "extended" battery won't charge fully if the kernel still has the stock `charge_full_design` value.
 Some devices allow that to be modified. If that's the case for you, use `apply_on_boot` to set the desired value(s) in `/sys/class/power_supply/*/charge_full_design`.
 
 
@@ -1385,7 +1381,7 @@ If your battery's thermistor always reports a negative value, and charging is ve
 
 > How do I report issues?
 
-Open issues on GitHub or contact the developer on Facebook, Telegram (preferred) or XDA (links below).
+Open issues on GitHub or contact the developer on Telegram (preferred) or XDA (links below).
 Always provide as much information as possible.
 Attach `/sdcard/Download/acc-logs-*.tgz` - generated by `acc -le` _right after_ the problem occurs.
 Refer back to `TROUBLESHOOTING > Diagnostics/Logs` for additional details.
@@ -1517,8 +1513,6 @@ Configure day and night profiles:
 - [Donate - Liberapay](https://liberapay.com/vr25)
 - [Donate - Patreon](https://patreon.com/vr25)
 - [Donate - PayPal Me](https://paypal.me/vr25xda)
-
-- [Facebook Page](https://fb.me/vr25xda)
 
 - [Frontend - ACC App](https://github.com/MatteCarra/AccA/releases)
 - [Frontend - ACC Settings](https://github.com/CrazyBoyFeng/AccSettings)
