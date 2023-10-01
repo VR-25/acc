@@ -1,4 +1,4 @@
-configVerCode=202309300
+configVerCode=202310010
 
 ampFactor=
 battStatusWorkaround=true
@@ -8,7 +8,7 @@ cooldownRatio=()
 currentWorkaround=false
 dischargePolarity=
 forceOff=false
-idleAbovePc=true
+allowIdleAbovePcap=true
 idleThreshold=40
 language=en
 offMid=true
@@ -134,7 +134,7 @@ runCmdOnPause=''
 
 # forceOff=force_off=BOOLEAN
 
-# idleAbovePc=idle_above_pc=BOOLEAN
+# allowIdleAbovePcap=allow_idle_above_pcap=BOOLEAN
 
 # idleThreshold=idle_threshold=MILLIAMPS
 
@@ -181,7 +181,7 @@ runCmdOnPause=''
 # current_workaround cw
 # discharge_polarity dp
 # force_off fo
-# idle_above_pc iap
+# allow_idle_above_pcap aiapc
 # idle_threshold it
 # lang l
 # max_charging_current mcc
@@ -330,7 +330,7 @@ runCmdOnPause=''
 # Some people "systemlessly" disable certain thermal daemons with Magisk. While this is not a general recommendation, they swear by it.
 
 
-# idle_above_pc (iap) # Default: true
+# allow_idle_above_pcap (aiapc) # Default: true
 # If set to false, accd will avoid idle mode (if possible) when capacity > pause_capacity.
 
 

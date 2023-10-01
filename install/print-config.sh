@@ -15,7 +15,7 @@ cooldown_temp=${temperature[0]}
 current_workaround=$currentWorkaround
 discharge_polarity=$dischargePolarity
 force_off=$forceOff
-idleAbovePc=$idle_above_pc
+allowIdleAbovePcap=$allow_idle_above_pcap
 idle_threshold=$idleThreshold
 lang=$language
 

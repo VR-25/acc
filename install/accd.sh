@@ -266,7 +266,7 @@ if ! $init; then
 
         # disable charging under <conditions>
         if [ $(cat $temp) -ge $(( ${temperature[1]} * 10 )) ] || _ge_pause_cap; then
-          if ! $idleAbovePc && [ $(cat $battCapacity) -gt ${capacity[3]} ]; then
+          if ! $allowIdleAbovePcap && [ $(cat $battCapacity) -gt ${capacity[3]} ]; then
             # if possible, avoid idle mode when capacity > pause_capacity
             (cat $config > $TMPDIR/.cfg
             config=$TMPDIR/.cfg
