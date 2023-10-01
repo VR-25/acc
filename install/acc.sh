@@ -447,9 +447,13 @@ case "${1-}" in
   ;;
 
   -r|--readme)
-    doc=/data/local/tmp/${id}_manual.html
-    cp -f $readMe $doc
-    ext_app $doc VIEW html
+    if [ .${2-} = .g ]; then
+      doc=/data/local/tmp/${id}_manual.html
+      cp -f $readMe $doc
+      ext_app $doc VIEW html
+    else
+      edit ${readMe%html}md
+    fi
   ;;
 
   -R|--resetbs)
