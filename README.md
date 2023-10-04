@@ -1134,7 +1134,7 @@ It picks up new changes within seconds.
 ## TROUBLESHOOTING
 
 
-## acc -t Results Are Inconsistent
+### acc -t Results Are Inconsistent
 
 Refer to "default config > batt_status_workaround".
 
@@ -1151,7 +1151,7 @@ Refer to the [default configuration](#default-configuration) section above for d
 
 ### Charging Switch
 
-By default, ACC uses whichever [charging switch](https://github.com/VR-25/acc/blob/dev/acc/charging-switches.txt) works ("automatic" mode).
+By default, ACC uses whichever [charging switch](https://github.com/VR-25/acc/blob/dev/acc/install/ctrl-files.sh) works ("automatic" mode).
 However, things don't always go well.
 
 - Some switches are unreliable under certain conditions (e.g., while the screen is off).

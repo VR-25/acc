@@ -39,20 +39,14 @@ z) $(print_exit)
 
     2)
       . $execDir/print-help.sh
-      if is_android; then
-        print_help_ g || print_help_
-      else
-        print_help_
-      fi
+      print_help_ g
+      edit $TMPDIR/.help
       exec wizard
     ;;
 
     3)
-      if is_android; then
-        $TMPDIR/acca --readme g || edit ${readMe%html}md
-      else
-        edit ${readMe%html}md
-      fi
+      edit $readMe g VIEW html
+      edit ${readMe%html}md
       exec wizard
     ;;
 
@@ -97,11 +91,8 @@ z) $(print_exit)
     ;;
 
     9)
-      if is_android; then
-        $TMPDIR/acca --config g || edit $config
-      else
-        edit $config
-      fi
+      edit $config g
+      edit $config
       exec wizard
     ;;
 

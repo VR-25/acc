@@ -102,11 +102,12 @@ edit() {
     a) echo >> $file; shift; echo "$@" >> $file;;
     d) sed -Ei "\#$2#d" $file;;
 
-    g) ! tt "$file" "$TMPDIR/*" || {
+    g) [ "$file" = "$config" ] || {
          install -m 666 $file /data/local/tmp/
          file=/data/local/tmp/${file##*/}
        }
-       ext_app $file;;
+       shift
+       ext_app $file "$@";;
 
     "") case $file in
           *.log|*.md|*.help) less $file;;
@@ -120,8 +121,8 @@ edit() {
 ext_app() {
   am start -a android.intent.action.${2:-EDIT} \
            -t "text/${3:-plain}" \
-           -d file://$1 &>/dev/null \
-           --grant-read-uri-permission
+           -d file://$1 \
+           --grant-read-uri-permission &>/dev/null || :
 }
 
 
@@ -448,9 +449,7 @@ case "${1-}" in
 
   -r|--readme)
     if [ .${2-} = .g ]; then
-      doc=/data/local/tmp/${id}_manual.html
-      cp -f $readMe $doc
-      ext_app $doc VIEW html
+      edit $readMe g VIEW html
     else
       edit ${readMe%html}md
     fi
