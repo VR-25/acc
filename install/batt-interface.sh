@@ -143,7 +143,7 @@ if ${init:-false}; then
   echo 0 > $TMPDIR/.dummy-curr
 
   for currFile in $batt/current_now bms/current_now \
-    $batt/batteryaveragecurrent $TMPDIR/.dummy-curr
+    $batt/?attery?verage?urrent $TMPDIR/.dummy-curr
   do
     [ ! -f $currFile ] || break
   done

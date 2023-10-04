@@ -392,7 +392,7 @@ if ! $init; then
 
   set_dp() {
     src_cfg
-    while [ -z "${dischargePolarity-}" ] && $battStatusWorkaround && [ $currFile != $TMPDIR/.dummy-curr ]; do
+    while [ -z "${dischargePolarity-}" ] && [ $currFile != $TMPDIR/.dummy-curr ] && $battStatusWorkaround; do
       (if online; then
         notif "discharge_polarity is not set. Unplug and wait, or set it manually."
         (while [ -z "${dischargePolarity-}" ] && online; do
