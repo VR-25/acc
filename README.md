@@ -237,7 +237,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202310012
+configVerCode=202310060
 
 allowIdleAbovePcap=true
 ampFactor=
@@ -558,9 +558,8 @@ runCmdOnPause=''
 
 // current_workaround (cw) # Default: false
 // Only use current control files whose paths match "batt".
-// This is necessary only if the current limit affects both input and charging current values (breaking idle mode when charging_switch=milliamps).
+// This is necessary only if the current limit affects both input and charging current values.
 // Try this if low current values don't work.
-// "accd --init" is required after changing this (automated by "acc --set").
 
 
 // discharge_polarity (dp) # Default: null
