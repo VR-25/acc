@@ -11,7 +11,7 @@ apply_on_boot() {
 
   [ ${2:-x} != force ] || force=true
 
-  ! tt "${applyOnBoot[@]-}${maxChargingVoltage[@]-}" "*--exit*" || exitCmd=true
+  ! tt "${applyOnBoot[*]-}${maxChargingVoltage[*]-}" "*--exit*" || exitCmd=true
 
   for entry in ${applyOnBoot[@]-} ${maxChargingVoltage[@]-}; do
     set -- ${entry//::/ }

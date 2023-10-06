@@ -121,7 +121,7 @@ if ! $init; then
     if ! not_charging; then
       isCharging=true
       # [auto mode] change the charging switch if charging has not been enabled by acc
-      if $chDisabledByAcc && [ -n "${chargingSwitch[0]-}" ] && ! tt "${chargingSwitch[@]}" "*--"; then
+      if $chDisabledByAcc && [ -n "${chargingSwitch[0]-}" ] && ! tt "${chargingSwitch[*]}" "*--"; then
         sed -i "\|${chargingSwitch[@]}|d" $TMPDIR/ch-switches
         echo "${chargingSwitch[@]}" >> $TMPDIR/ch-switches
         $TMPDIR/acca --set charging_switch=
