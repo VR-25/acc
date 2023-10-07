@@ -297,7 +297,7 @@ invalid_switch() {
 
 
 is_android() {
-  [ -d /sdcard/Android/ ] && [ -x /system/bin/dumpsys ] \
+  [ ! -d /data/usbmsc_mnt/ ] && [ -x /system/bin/dumpsys ] \
     && ! tt "$(readlink -f $execDir)" "*com.termux*" \
     && pgrep -f zygote >/dev/null
 }
