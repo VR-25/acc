@@ -1,4 +1,4 @@
-configVerCode=202310060
+configVerCode=202310070
 
 allowIdleAbovePcap=true
 ampFactor=
@@ -333,6 +333,7 @@ runCmdOnPause=''
 # Enable this only if the set charging switch is stubbornly reset by the system.
 # Oftentimes, userspace thermal management daemons (e.g., mi_thermald) and/or driver issues are behind charging control issues.
 # Some people "systemlessly" disable certain thermal daemons with Magisk. While this is not a general recommendation, they swear by it.
+# accd enables force_off if switches fail (in auto mode) more than once.
 
 
 # idle_threshold (it) # Default: 40

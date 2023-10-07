@@ -237,7 +237,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202310060
+configVerCode=202310070
 
 allowIdleAbovePcap=true
 ampFactor=
@@ -572,6 +572,7 @@ runCmdOnPause=''
 // Enable this only if the set charging switch is stubbornly reset by the system.
 // Oftentimes, userspace thermal management daemons (e.g., mi_thermald) and/or driver issues are behind charging control issues.
 // Some people "systemlessly" disable certain thermal daemons with Magisk. While this is not a general recommendation, they swear by it.
+// accd enables force_off if switches fail (in auto mode) more than once.
 
 
 // idle_threshold (it) # Default: 40
@@ -772,10 +773,11 @@ Options
       acc -e 30m (recharge for 30 minutes)
       acc -e 4000mv (recharge to 4000mV)
 
-  -f|--force|--full [capacity]   Charge once to a given capacity (default: 100%), without restrictions
+  -f|--force|--full [capacity] [additional options and args]   Charge once to a given capacity (default: 100%), without restrictions
     e.g.,
       acc -f 95 (charge to 95%)
       acc -f (charge to 100%)
+      acc -f -sc 500 (charge to 100% with a 500 mA limit)
     Note: if the desired % is less than pause_capacity, use acc -e #%
 
   -F|--flash ["zip_file"]   Flash any zip files whose update-binary is a shell script

@@ -127,6 +127,9 @@ if ! $init; then
           echo "${chargingSwitch[*]}" >> $TMPDIR/ch-switches
         fi
         $TMPDIR/acca --set charging_switch=
+        # enable forceOff if switches fail more than once
+        swFailures=$((swFailures + 1))
+        [ $swFailures -lt 2 ] || { $TMPDIR/acca --set force_off=true; forceOff=true; }
       fi
       # [auto mode] set charging switch
       if [ -z "${chargingSwitch[0]-}" ]; then
@@ -274,7 +277,8 @@ if ! $init; then
             config=$TMPDIR/.cfg
             prioritizeBattIdleMode=no
             cycle_switches_off
-            echo "chargingSwitch=(${chargingSwitch[@]-})" > $TMPDIR/.sw)
+            echo "chargingSwitch=(${chargingSwitch[@]-})" > $TMPDIR/.sw
+            force_off)
             chDisabledByAcc=true
           else
             disable_charging
@@ -508,6 +512,7 @@ if ! $init; then
   resetBattStatsOnUnplug=false
   restrictCurr=false
   shutdownWarnings=true
+  swFailures=0
   versionCode=$(sed -n s/versionCode=//p $execDir/module.prop 2>/dev/null || :)
 
 
