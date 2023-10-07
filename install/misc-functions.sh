@@ -97,8 +97,12 @@ cycle_switches() {
           . $execDir/write-config.sh
           break
         else
-          # reset switch/group that fails to disable charging
+          # reset switch/group that fails to comply, and move it to the end of the list
           flip_sw on 2>/dev/null || :
+          if ! ${acc_t:-false}; then
+            sed -i "\|^${chargingSwitch[*]}$|d" $TMPDIR/ch-switches
+            echo "${chargingSwitch[*]}" >> $TMPDIR/ch-switches
+          fi
         fi
       fi
     }

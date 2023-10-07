@@ -145,6 +145,7 @@ test_charging_switch() {
 
   local idleMode=false
   local failed=false
+  local acc_t=true
   chargingSwitch=($@)
 
   echo
