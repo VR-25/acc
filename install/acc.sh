@@ -311,7 +311,8 @@ misc_stuff "${1-}"
 if ${verbose:-true} && [ -f $execDir/translations/$language/strings.sh ]; then
   . $execDir/translations/$language/strings.sh
 fi
-grep -q .. $execDir/translations/$language/README.md 2>/dev/null \
+
+grep -q .. $execDir/translations/$language/README.html 2>/dev/null \
   && readMe=$execDir/translations/$language/README.html \
   || readMe=$dataDir/README.html
 
@@ -372,6 +373,8 @@ case "${1-}" in
 
   -f|--force|--full)
 
+    tt ".${2-}" ".-*" && _two= || _two="${2-}"
+
     apply_on_boot=
     apply_on_plug=
     cooldown_charge=
@@ -384,15 +387,26 @@ case "${1-}" in
     off_mid=false
     resume_temp=
     temp_level=0
-    pause_capacity=${2:-100}
+    pause_capacity=${_two:-100}
     resume_capacity=$((pause_capacity - 2))
 
     cp -f $defaultConfig $TMPDIR/.acc-f-config
     config=$TMPDIR/.acc-f-config
     . $execDir/write-config.sh
-    print_charging_enabled_until ${2:-100}%
+    print_charging_enabled_until ${_two:-100}%
     echo
     echo ':; ! online && [ $(cat $battCapacity) -ge ${capacity[2]} ] && exec $TMPDIR/accd || :' >> $config
+
+     # additional options
+    case "${2-}" in
+      [0-9]*)
+        shift 2
+        ! tt "${1-}" "-*" || $TMPDIR/acca $config "$@" || :;;
+      -*)
+        shift
+        $TMPDIR/acca $config "$@" || :;;
+    esac
+
     exec $TMPDIR/accd $config
   ;;
 

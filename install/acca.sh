@@ -1,6 +1,6 @@
 #!/system/bin/sh
 # acca: acc for front-ends (faster and more efficient than acc)
-# Copyright 2020-2022, VR25
+# Copyright 2020-2023, VR25
 # License: GPLv3+
 
 
@@ -42,17 +42,15 @@ set -eu
 
 execDir=/data/adb/vr25/acc
 config=/data/adb/vr25/acc-data/config.txt
-dataDir=${config%/*}
+dataDir=/data/adb/vr25/acc-data
 defaultConfig=$execDir/default-config.txt
 TMPDIR=/dev/.vr25/acc
 verbose=false
 
-export execDir TMPDIR verbose
 cd /sys/class/power_supply/
 . $execDir/setup-busybox.sh
 
 mkdir -p $dataDir
-[ -f $config ] || cat $defaultConfig > $config
 
 # custom config path
 case "${1-}" in
@@ -62,6 +60,8 @@ case "${1-}" in
     shift
   ;;
 esac
+
+export config execDir TMPDIR verbose
 
 
 case "$@" in
@@ -85,7 +85,7 @@ case "$@" in
   -s\ *=*|--set\ *=*)
 
     ${async:-false} || {
-      async=true setsid $0 "$@" > /dev/null 2>&1 < /dev/null
+      async=true setsid $0 $config "$@" > /dev/null 2>&1 < /dev/null
       exit 0
     }
 
