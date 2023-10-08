@@ -25,7 +25,7 @@ not_charging() {
 
   tt "${chargingSwitch[$*]-}" "*\ --" || battStatusOverride=
 
-  [ $currFile = $TMPDIR/.dummy-curr ] && battStatusWorkaround=false || {
+  ! tt "$currFile" "*/current_now" && battStatusWorkaround=false || {
     [ ${ampFactor:-$ampFactor_} -eq 1000 ] || idleThreshold=${idleThreshold}000
   }
 
@@ -58,7 +58,7 @@ read_status() {
   local status="$(cat $battStatus)"
   case "$status" in
     Charging|Discharging) printf %s $status;;
-    Not?charging) printf Idle;;
+    Not?charging) online && printf Idle || printf Discharging;;
     *) printf Discharging;;
   esac
 }
@@ -142,8 +142,8 @@ if ${init:-false}; then
 
   echo 0 > $TMPDIR/.dummy-curr
 
-  for currFile in $batt/current_now bms/current_now \
-    $batt/?attery?verage?urrent $TMPDIR/.dummy-curr
+  for currFile in $batt/current_now bms/current_now battery/?attery?verage?urrent \
+    /sys/devices/platform/battery/power_supply/battery/?attery?verage?urrent $TMPDIR/.dummy-curr
   do
     [ ! -f $currFile ] || break
   done
