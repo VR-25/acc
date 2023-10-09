@@ -154,7 +154,6 @@ Options
       acc -f 95 (charge to 95%)
       acc -f (charge to 100%)
       acc -f -sc 500 (charge to 100% with a 500 mA limit)
-    Note: if the desired % is less than pause_capacity, use acc -e #%
 
   -F|--flash ["zip_file"]   Flash any zip files whose update-binary is a shell script
     e.g.,

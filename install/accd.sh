@@ -121,15 +121,15 @@ if ! $init; then
     if ! not_charging; then
       isCharging=true
       # [auto mode] change the charging switch if charging has not been enabled by acc
-      if $chDisabledByAcc && [ -n "${chargingSwitch[0]-}" ] && ! tt "${chargingSwitch[*]}" "*--"; then
+      if $chDisabledByAcc && [ -n "${chargingSwitch[0]-}" ] && ! tt "${chargingSwitch[*]}" "*--" \
+        && sleep ${loopDelay[1]} && { ! not_charging || { isCharging=false; false; }; }
+      then
         if grep -q "^${chargingSwitch[*]}$" $TMPDIR/ch-switches; then
           sed -i "\|^${chargingSwitch[*]}$|d" $TMPDIR/ch-switches
           echo "${chargingSwitch[*]}" >> $TMPDIR/ch-switches
         fi
         $TMPDIR/acca --set charging_switch=
-        # enable forceOff if switches fail more than once
-        swFailures=$((swFailures + 1))
-        [ $swFailures -lt 2 ] || { $TMPDIR/acca --set force_off=true; forceOff=true; }
+        chargingSwitch=()
       fi
       # [auto mode] set charging switch
       if [ -z "${chargingSwitch[0]-}" ]; then
@@ -512,7 +512,6 @@ if ! $init; then
   resetBattStatsOnUnplug=false
   restrictCurr=false
   shutdownWarnings=true
-  swFailures=0
   versionCode=$(sed -n s/versionCode=//p $execDir/module.prop 2>/dev/null || :)
 
 
