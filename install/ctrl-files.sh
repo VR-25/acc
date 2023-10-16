@@ -56,6 +56,7 @@ battery/input_suspend 0 1 /proc/mtk_battery_cmd/en_power_path 1 1
 # experimental
 /sys/class/qcom-battery/cool_mode 0 1
 /sys/devices/platform/google,charger/charge_stop_level 100 5
+/sys/devices/platform/google,charger/charge_stop_level 100 battery/capacity
 /sys/kernel/debug/google_charger/chg_mode 0 1
 /sys/kernel/fast_charge/force_fast_charge 1 0
 #/sys/module/qpnp_fg/parameters/batt_range_pct 0 1
