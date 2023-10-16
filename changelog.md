@@ -1,3 +1,34 @@
+**v2023.10.16 (202310160)**
+- "edit g" shall work with non-root apps (acc -h g, acc -l g, acc -la g)
+- -f supports additional options (e.g., acc -f -sc 500)
+- -h|--help [[editor] [editor_opts] | g for GUI] prints the help text, plus the config
+- -sd shall not print user scripts
+- accd auto-updates mcc and mcv arrays (missing ctrl files or array[1] "-" marker)
+- Added dev tag to update checker
+- Additional charging switches
+- Additional current control files
+- allowIdleAbovePcap=true, if set to false, accd will avoid idle mode (if possible) when capacity > pause_capacity
+- Auto-move failing switches to the end of the list
+- Default acc -w refresh rate set to 1 second
+- Default capacity_sync set to false
+- Dropped obsolete code & information
+- Ensure charging switch is set before a pause condition is hit
+- Fixed html hyperlinks and duplicate temp in acc -i (OnePlus 7)
+- Implement "rt ct mt" restricted charging hysteresis
+- Improved current control files parsing & automatic switch logic
+- KaiOS support
+- Log export function invokes Android's share dialog
+- Optimized loop delays (loopDelay=(3 9): 3 seconds while charging/idle, 9 seconds while discharging)
+- prioritizeBattIdleMode=no has the opposite effect (prioritize non-idle mode)
+- Refactored battery health calculator and cooldown logic
+- resume_temp and cooldown_temp optionally override resume_capacity (if resume_temp has a trailing "r", as in resume_temp=35r)
+- Selection lists count from 0 instead of 1
+- Show /dev/ prefix tip only if acc is not in $PATH
+- Suspend regular daemon functions until discharge_polarity is set, either automatically or manually
+- Updated documentation
+- Validate current control files only while charging
+- Wizard is more user-friendly
+
 **v2023.8.19 (202308190)**
 - 1936210 Fix print_quit error
 - 28d68bd Fix -f and temp_level
@@ -11,22 +42,10 @@
 - -H|--health <mAh>: Print estimated battery health
 - -r|--readme now sends intent to open README.html
 - Additional charging switches
-- Fix set_temp_level()
+- Fix set_temp_level() sleep 4;
 - Fixed one-line scripts identifier
 - Fixed random accd crash
 - Implemented resume_temp; deprecated max_temp_pause
 - Refactored edit handler; use "g" (instead of "app") for GUI editor
 - Set default temp_level to null to accommodate battery/siop_level
 - Set list number width to 2 columns
-
-**v2023.7.17 (202307170)**
-- Do not disengage "charge once to %" until unplugged (requires "plug state" API)
-- Fixed capacity_mask miscalculations (@kaljade)
-- KernelSu support (#197)
-- Support Samsung's battery/siop_level by default
-- XDA S-trace's vFloat kernel patch support (voltage control for SDM660 devices)
-
-**v2023.6.26 (202306260)**
-* A bunch of new features and bug fixes
-* Updated logic
-* Full changelog [link](https://github.com/VR-25/acc/compare/v2022.6.4...v2023.6.26)
