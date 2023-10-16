@@ -690,7 +690,7 @@ case "${1-}" in
   -w*|--watch*)
     sleepSeconds=${1#*h}
     sleepSeconds=${sleepSeconds#*w}
-    : ${sleepSeconds:=3}
+    : ${sleepSeconds:=1}
     . $execDir/batt-info.sh
     while :; do
       clear
