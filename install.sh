@@ -287,9 +287,9 @@ cat $srcDir/changelog.md
 
 
 printf "\n\n"
-echo "Rebooting is unnecessary.
-- $id commands may require the "/dev/.$domain/$id/" prefix (e.g., /dev/.$domain/$id/$id -v) until system is rebooted.
-- Daemon started."
+which accd. >/dev/null && echo "Rebooting is unnecessary." \
+  || echo "- $id commands require the "/dev/" prefix (e.g., /dev/$id -v) until system is rebooted."
+echo "- Daemon started."
 
 
 case $installDir in
