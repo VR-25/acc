@@ -1,9 +1,9 @@
-configVerCode=202310090
+configVerCode=202310160
 
 allowIdleAbovePcap=true
 ampFactor=
 battStatusWorkaround=true
-capacity=(5 50 70 75 auto false)
+capacity=(5 50 70 75 false false)
 cooldownCurrent=
 cooldownRatio=()
 currentWorkaround=false
@@ -265,7 +265,7 @@ runCmdOnPause=''
 # Use case: secretly install acc on a relative's device, and enable this, so that they always see the regular 0-100% battery level scale.
 
 
-# capacity_sync (cs) # Default: auto
+# capacity_sync (cs) # Default: false
 # Some devices, notably from the Pixel lineup, have a capacity discrepancy issue between Android's battery service and the kernel.
 # capacity_sync forces Android to report the actual battery capacity reported by the kernel.
 # Besides, it also prevents Android from getting capacity readings below 2%, since some systems shutdown before battery level actually drops to 0%.

@@ -8,9 +8,9 @@ if (set +x; . $config) > /dev/null 2>&1; then
   defaultConfVer=0$(cat $TMPDIR/.config-ver)
   [ $configVer -eq $defaultConfVer ] || {
     if [ $configVer -lt 202308121 ]; then
-      $TMPDIR/acca --set temp_level=0 force_off=
-    elif [ $configVer -lt 202310090 ]; then
-      $TMPDIR/acca --set force_off=
+      $TMPDIR/acca --set temp_level=0 force_off= capacity_sync=
+    elif [ $configVer -lt 202310160 ]; then
+      $TMPDIR/acca --set force_off= capacity_sync=
     else
       $TMPDIR/acca --set dummy=
     fi

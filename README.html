@@ -1,310 +1,109 @@
-<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>@font-face {
-  font-family: octicons-link;
-  src: url(data:font/woff;charset=utf-8;base64,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) format('woff');
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>body {
+  max-width: 980px;
+  margin: 16px auto;
 }
 
-body {
-    width: 980px;
-    margin-right: auto;
-    margin-left: auto;
-    color:#333;
-    background:#fff;
+body .markdown-body
+{
+  padding: 45px;
 }
 
-body .markdown-body {
-    padding: 45px;
-    word-wrap: break-word;
-}
-
-.markdown-body .octicon-link:before {
-  font: normal normal normal 16px/1 octicons-link;
-  display: inline-block;
-  text-decoration: none;
-  text-rendering: auto;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-  content: '\f05c';
-  vertical-align: middle;
-}
-
-.markdown-body .anchor {
-  float: left;
-  line-height: 1;
-  margin-left: -20px;
-  padding-right: 4px;
-}
-
-.markdown-body .anchor:focus {
-  outline: none;
-}
-
-.markdown-body h1 .octicon-link,
-.markdown-body h2 .octicon-link,
-.markdown-body h3 .octicon-link,
-.markdown-body h4 .octicon-link,
-.markdown-body h5 .octicon-link,
-.markdown-body h6 .octicon-link {
-  color: #1b1f23;
-  vertical-align: middle;
-  visibility: hidden;
-}
-
-.markdown-body h1:hover .anchor,
-.markdown-body h2:hover .anchor,
-.markdown-body h3:hover .anchor,
-.markdown-body h4:hover .anchor,
-.markdown-body h5:hover .anchor,
-.markdown-body h6:hover .anchor {
-  text-decoration: none;
-}
-
-.markdown-body h1:hover .anchor .octicon-link,
-.markdown-body h2:hover .anchor .octicon-link,
-.markdown-body h3:hover .anchor .octicon-link,
-.markdown-body h4:hover .anchor .octicon-link,
-.markdown-body h5:hover .anchor .octicon-link,
-.markdown-body h6:hover .anchor .octicon-link {
-  visibility: visible;
+@font-face {
+  font-family: fontawesome-mini;
+  src: url(data:font/woff;charset=utf-8;base64,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) format('woff');
 }
 
 .markdown-body {
+  font-family: sans-serif;
   -ms-text-size-adjust: 100%;
   -webkit-text-size-adjust: 100%;
-  color: #24292e;
-  line-height: 1.5;
-  font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol;
+  color: #333333;
+  overflow: hidden;
+  font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, freesans, sans-serif;
   font-size: 16px;
-  line-height: 1.5;
+  line-height: 1.6;
   word-wrap: break-word;
 }
 
-.markdown-body .pl-c {
-  color: #6a737d;
-}
-
-.markdown-body .pl-c1,
-.markdown-body .pl-s .pl-v {
-  color: #005cc5;
-}
-
-.markdown-body .pl-e,
-.markdown-body .pl-en {
-  color: #6f42c1;
-}
-
-.markdown-body .pl-s .pl-s1,
-.markdown-body .pl-smi {
-  color: #24292e;
-}
-
-.markdown-body .pl-ent {
-  color: #22863a;
-}
-
-.markdown-body .pl-k {
-  color: #d73a49;
-}
-
-.markdown-body .pl-pds,
-.markdown-body .pl-s,
-.markdown-body .pl-s .pl-pse .pl-s1,
-.markdown-body .pl-sr,
-.markdown-body .pl-sr .pl-cce,
-.markdown-body .pl-sr .pl-sra,
-.markdown-body .pl-sr .pl-sre {
-  color: #032f62;
-}
-
-.markdown-body .pl-smw,
-.markdown-body .pl-v {
-  color: #e36209;
-}
-
-.markdown-body .pl-bu {
-  color: #b31d28;
-}
-
-.markdown-body .pl-ii {
-  background-color: #b31d28;
-  color: #fafbfc;
-}
-
-.markdown-body .pl-c2 {
-  background-color: #d73a49;
-  color: #fafbfc;
-}
-
-.markdown-body .pl-c2:before {
-  content: "^M";
-}
-
-.markdown-body .pl-sr .pl-cce {
-  color: #22863a;
-  font-weight: 700;
-}
-
-.markdown-body .pl-ml {
-  color: #735c0f;
-}
-
-.markdown-body .pl-mh,
-.markdown-body .pl-mh .pl-en,
-.markdown-body .pl-ms {
-  color: #005cc5;
-  font-weight: 700;
-}
-
-.markdown-body .pl-mi {
-  color: #24292e;
-  font-style: italic;
-}
-
-.markdown-body .pl-mb {
-  color: #24292e;
-  font-weight: 700;
-}
-
-.markdown-body .pl-md {
-  background-color: #ffeef0;
-  color: #b31d28;
-}
-
-.markdown-body .pl-mi1 {
-  background-color: #f0fff4;
-  color: #22863a;
-}
-
-.markdown-body .pl-mc {
-  background-color: #ffebda;
-  color: #e36209;
-}
-
-.markdown-body .pl-mi2 {
-  background-color: #005cc5;
-  color: #f6f8fa;
-}
-
-.markdown-body .pl-mdr {
-  color: #6f42c1;
-  font-weight: 700;
-}
-
-.markdown-body .pl-ba {
-  color: #586069;
-}
-
-.markdown-body .pl-sg {
-  color: #959da5;
-}
-
-.markdown-body .pl-corl {
-  color: #032f62;
-  text-decoration: underline;
-}
-
-.markdown-body details {
-  display: block;
-}
-
-.markdown-body summary {
-  display: list-item;
-}
-
 .markdown-body a {
-  background-color: transparent;
+  background: transparent;
 }
 
 .markdown-body a:active,
 .markdown-body a:hover {
-  outline-width: 0;
+  outline: 0;
 }
 
+.markdown-body b,
 .markdown-body strong {
-  font-weight: inherit;
-  font-weight: bolder;
+  font-weight: bold;
+}
+
+.markdown-body mark {
+  background: #ff0;
+  color: #000;
+  font-style: italic;
+  font-weight: bold;
+}
+
+.markdown-body sub,
+.markdown-body sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+.markdown-body sup {
+  top: -0.5em;
+}
+.markdown-body sub {
+  bottom: -0.25em;
 }
 
 .markdown-body h1 {
   font-size: 2em;
-  margin: .67em 0;
+  margin: 0.67em 0;
 }
 
 .markdown-body img {
-  border-style: none;
+  border: 0;
+}
+
+.markdown-body hr {
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
+  height: 0;
+}
+
+.markdown-body pre {
+  overflow: auto;
 }
 
 .markdown-body code,
 .markdown-body kbd,
-.markdown-body pre {
-  font-family: monospace,monospace;
+.markdown-body pre,
+.markdown-body samp {
+  font-family: monospace, monospace;
   font-size: 1em;
 }
 
-.markdown-body hr {
-  box-sizing: content-box;
-  height: 0;
-  overflow: visible;
-}
-
 .markdown-body input {
+  color: inherit;
   font: inherit;
   margin: 0;
 }
 
-.markdown-body input {
-  overflow: visible;
+.markdown-body html input[disabled] {
+  cursor: default;
 }
 
-.markdown-body [type=checkbox] {
+.markdown-body input {
+  line-height: normal;
+}
+
+.markdown-body input[type="checkbox"] {
   box-sizing: border-box;
   padding: 0;
-}
-
-.markdown-body * {
-  box-sizing: border-box;
-}
-
-.markdown-body input {
-  font-family: inherit;
-  font-size: inherit;
-  line-height: inherit;
-}
-
-.markdown-body a {
-  color: #0366d6;
-  text-decoration: none;
-}
-
-.markdown-body a:hover {
-  text-decoration: underline;
-}
-
-.markdown-body strong {
-  font-weight: 600;
-}
-
-.markdown-body hr {
-  background: transparent;
-  border: 0;
-  border-bottom: 1px solid #dfe2e5;
-  height: 0;
-  margin: 15px 0;
-  overflow: hidden;
-}
-
-.markdown-body hr:before {
-  content: "";
-  display: table;
-}
-
-.markdown-body hr:after {
-  clear: both;
-  content: "";
-  display: table;
 }
 
 .markdown-body table {
@@ -317,8 +116,107 @@ body .markdown-body {
   padding: 0;
 }
 
-.markdown-body details summary {
-  cursor: pointer;
+.markdown-body .codehilitetable,
+.markdown-body .highlighttable {
+  border: 0;
+  border-spacing: 0;
+}
+
+.markdown-body .codehilitetable tr,
+.markdown-body .highlighttable {
+  border: 0;
+}
+
+.markdown-body .codehilitetable pre,
+.markdown-body .codehilitetable div.codehilite,
+.markdown-body .highlighttable pre,
+.markdown-body .highlighttable div.highlight {
+  margin: 0;
+}
+
+.markdown-body .linenos,
+.markdown-body .code,
+.markdown-body .codehilitetable td,
+.markdown-body .highlighttable td {
+  border: 0;
+  padding: 0;
+}
+
+.markdown-body td:not(.linenos) .linenodiv {
+  padding: 0 !important;
+}
+
+.markdown-body .code {
+  width: 100%;
+}
+
+.markdown-body .linenos div pre,
+.markdown-body .linenodiv pre,
+.markdown-body .linenodiv {
+  border: 0;
+  -webkit-border-radius: 0;
+  -moz-border-radius: 0;
+  border-radius: 0;
+  -webkit-border-top-left-radius: 3px;
+  -webkit-border-bottom-left-radius: 3px;
+  -moz-border-radius-topleft: 3px;
+  -moz-border-radius-bottomleft: 3px;
+  border-top-left-radius: 3px;
+  border-bottom-left-radius: 3px;
+}
+
+.markdown-body .code div pre,
+.markdown-body .code div {
+  border: 0;
+  -webkit-border-radius: 0;
+  -moz-border-radius: 0;
+  border-radius: 0;
+  -webkit-border-top-right-radius: 3px;
+  -webkit-border-bottom-right-radius: 3px;
+  -moz-border-radius-topright: 3px;
+  -moz-border-radius-bottomright: 3px;
+  border-top-right-radius: 3px;
+  border-bottom-right-radius: 3px;
+}
+
+.markdown-body * {
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+.markdown-body input {
+  font: 13px Helvetica, arial, freesans, clean, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+  line-height: 1.4;
+}
+
+.markdown-body a {
+  color: #4183c4;
+  text-decoration: none;
+}
+
+.markdown-body a:hover,
+.markdown-body a:focus,
+.markdown-body a:active {
+  text-decoration: underline;
+}
+
+.markdown-body hr {
+  height: 0;
+  margin: 15px 0;
+  overflow: hidden;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.markdown-body hr:before,
+.markdown-body hr:after {
+  display: table;
+  content: " ";
+}
+
+.markdown-body hr:after {
+  clear: both;
 }
 
 .markdown-body h1,
@@ -327,63 +225,44 @@ body .markdown-body {
 .markdown-body h4,
 .markdown-body h5,
 .markdown-body h6 {
-  margin-bottom: 0;
-  margin-top: 0;
+  margin-top: 15px;
+  margin-bottom: 15px;
+  line-height: 1.1;
 }
 
 .markdown-body h1 {
-  font-size: 32px;
-}
-
-.markdown-body h1,
-.markdown-body h2 {
-  font-weight: 600;
+  font-size: 30px;
 }
 
 .markdown-body h2 {
-  font-size: 24px;
+  font-size: 21px;
 }
 
 .markdown-body h3 {
-  font-size: 20px;
-}
-
-.markdown-body h3,
-.markdown-body h4 {
-  font-weight: 600;
-}
-
-.markdown-body h4 {
   font-size: 16px;
 }
 
-.markdown-body h5 {
+.markdown-body h4 {
   font-size: 14px;
 }
 
-.markdown-body h5,
-.markdown-body h6 {
-  font-weight: 600;
-}
-
-.markdown-body h6 {
+.markdown-body h5 {
   font-size: 12px;
 }
 
-.markdown-body p {
-  margin-bottom: 10px;
-  margin-top: 0;
+.markdown-body h6 {
+  font-size: 11px;
 }
 
 .markdown-body blockquote {
   margin: 0;
 }
 
-.markdown-body ol,
-.markdown-body ul {
-  margin-bottom: 0;
+.markdown-body ul,
+.markdown-body ol {
+  padding: 0;
   margin-top: 0;
-  padding-left: 0;
+  margin-bottom: 0;
 }
 
 .markdown-body ol ol,
@@ -391,10 +270,10 @@ body .markdown-body {
   list-style-type: lower-roman;
 }
 
-.markdown-body ol ol ol,
-.markdown-body ol ul ol,
+.markdown-body ul ul ol,
 .markdown-body ul ol ol,
-.markdown-body ul ul ol {
+.markdown-body ol ul ol,
+.markdown-body ol ol ol {
   list-style-type: lower-alpha;
 }
 
@@ -403,162 +282,174 @@ body .markdown-body {
 }
 
 .markdown-body code,
-.markdown-body pre {
-  font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,Courier,monospace;
+.markdown-body pre,
+.markdown-body samp {
+  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
   font-size: 12px;
 }
 
 .markdown-body pre {
+  margin-top: 0;
   margin-bottom: 0;
+}
+
+.markdown-body kbd {
+  background-color: #e7e7e7;
+  background-image: -moz-linear-gradient(#fefefe, #e7e7e7);
+  background-image: -webkit-linear-gradient(#fefefe, #e7e7e7);
+  background-image: linear-gradient(#fefefe, #e7e7e7);
+  background-repeat: repeat-x;
+  border-radius: 2px;
+  border: 1px solid #cfcfcf;
+  color: #000;
+  padding: 3px 5px;
+  line-height: 10px;
+  font: 11px Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  display: inline-block;
+}
+
+.markdown-body>*:first-child {
+  margin-top: 0 !important;
+}
+
+.markdown-body>*:last-child {
+  margin-bottom: 0 !important;
+}
+
+.markdown-body .headerlink {
+  font: normal 400 16px fontawesome-mini;
+  vertical-align: middle;
+  margin-left: -16px;
+  float: left;
+  display: inline-block;
+  text-decoration: none;
+  opacity: 0;
+  color: #333;
+}
+
+.markdown-body .headerlink:focus {
+  outline: none;
+}
+
+.markdown-body h1 .headerlink {
+  margin-top: 0.8rem;
+}
+
+.markdown-body h2 .headerlink,
+.markdown-body h3 .headerlink {
+  margin-top: 0.6rem;
+}
+
+.markdown-body h4 .headerlink {
+  margin-top: 0.2rem;
+}
+
+.markdown-body h5 .headerlink,
+.markdown-body h6 .headerlink {
   margin-top: 0;
 }
 
-.markdown-body input::-webkit-inner-spin-button,
-.markdown-body input::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  appearance: none;
-  margin: 0;
-}
-
-.markdown-body .border {
-  border: 1px solid #e1e4e8!important;
-}
-
-.markdown-body .border-0 {
-  border: 0!important;
-}
-
-.markdown-body .border-bottom {
-  border-bottom: 1px solid #e1e4e8!important;
-}
-
-.markdown-body .rounded-1 {
-  border-radius: 3px!important;
-}
-
-.markdown-body .bg-white {
-  background-color: #fff!important;
-}
-
-.markdown-body .bg-gray-light {
-  background-color: #fafbfc!important;
-}
-
-.markdown-body .text-gray-light {
-  color: #6a737d!important;
-}
-
-.markdown-body .mb-0 {
-  margin-bottom: 0!important;
-}
-
-.markdown-body .my-2 {
-  margin-bottom: 8px!important;
-  margin-top: 8px!important;
-}
-
-.markdown-body .pl-0 {
-  padding-left: 0!important;
-}
-
-.markdown-body .py-0 {
-  padding-bottom: 0!important;
-  padding-top: 0!important;
-}
-
-.markdown-body .pl-1 {
-  padding-left: 4px!important;
-}
-
-.markdown-body .pl-2 {
-  padding-left: 8px!important;
-}
-
-.markdown-body .py-2 {
-  padding-bottom: 8px!important;
-  padding-top: 8px!important;
-}
-
-.markdown-body .pl-3,
-.markdown-body .px-3 {
-  padding-left: 16px!important;
-}
-
-.markdown-body .px-3 {
-  padding-right: 16px!important;
-}
-
-.markdown-body .pl-4 {
-  padding-left: 24px!important;
-}
-
-.markdown-body .pl-5 {
-  padding-left: 32px!important;
-}
-
-.markdown-body .pl-6 {
-  padding-left: 40px!important;
-}
-
-.markdown-body .f6 {
-  font-size: 12px!important;
-}
-
-.markdown-body .lh-condensed {
-  line-height: 1.25!important;
-}
-
-.markdown-body .text-bold {
-  font-weight: 600!important;
-}
-
-.markdown-body:before {
-  content: "";
-  display: table;
-}
-
-.markdown-body:after {
-  clear: both;
-  content: "";
-  display: table;
-}
-
-.markdown-body>:first-child {
-  margin-top: 0!important;
-}
-
-.markdown-body>:last-child {
-  margin-bottom: 0!important;
-}
-
-.markdown-body a:not([href]) {
-  color: inherit;
+.markdown-body .headerlink:hover,
+.markdown-body h1:hover .headerlink,
+.markdown-body h2:hover .headerlink,
+.markdown-body h3:hover .headerlink,
+.markdown-body h4:hover .headerlink,
+.markdown-body h5:hover .headerlink,
+.markdown-body h6:hover .headerlink {
+  opacity: 1;
   text-decoration: none;
 }
 
-.markdown-body blockquote,
-.markdown-body dl,
-.markdown-body ol,
+.markdown-body h1 {
+  padding-bottom: 0.3em;
+  font-size: 2.25em;
+  line-height: 1.2;
+  border-bottom: 1px solid #eee;
+}
+
+.markdown-body h2 {
+  padding-bottom: 0.3em;
+  font-size: 1.75em;
+  line-height: 1.225;
+  border-bottom: 1px solid #eee;
+}
+
+.markdown-body h3 {
+  font-size: 1.5em;
+  line-height: 1.43;
+}
+
+.markdown-body h4 {
+  font-size: 1.25em;
+}
+
+.markdown-body h5 {
+  font-size: 1em;
+}
+
+.markdown-body h6 {
+  font-size: 1em;
+  color: #777;
+}
+
 .markdown-body p,
-.markdown-body pre,
+.markdown-body blockquote,
+.markdown-body ul,
+.markdown-body ol,
+.markdown-body dl,
 .markdown-body table,
-.markdown-body ul {
-  margin-bottom: 16px;
+.markdown-body pre,
+.markdown-body .admonition {
   margin-top: 0;
+  margin-bottom: 16px;
 }
 
 .markdown-body hr {
-  background-color: #e1e4e8;
-  border: 0;
-  height: .25em;
-  margin: 24px 0;
+  height: 4px;
+  padding: 0;
+  margin: 16px 0;
+  background-color: #e7e7e7;
+  border: 0 none;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+  padding-left: 2em;
+}
+
+.markdown-body ul ul,
+.markdown-body ul ol,
+.markdown-body ol ol,
+.markdown-body ol ul {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.markdown-body li>p {
+  margin-top: 16px;
+}
+
+.markdown-body dl {
   padding: 0;
 }
 
+.markdown-body dl dt {
+  padding: 0;
+  margin-top: 16px;
+  font-size: 1em;
+  font-style: italic;
+  font-weight: bold;
+}
+
+.markdown-body dl dd {
+  padding: 0 16px;
+  margin-bottom: 16px;
+}
+
 .markdown-body blockquote {
-  border-left: .25em solid #dfe2e5;
-  color: #6a737d;
-  padding: 0 1em;
+  padding: 0 15px;
+  color: #777;
+  border-left: 4px solid #ddd;
 }
 
 .markdown-body blockquote>:first-child {
@@ -569,344 +460,439 @@ body .markdown-body {
   margin-bottom: 0;
 }
 
-.markdown-body kbd {
-  background-color: #fafbfc;
-  border: 1px solid #c6cbd1;
-  border-bottom-color: #959da5;
-  border-radius: 3px;
-  box-shadow: inset 0 -1px 0 #959da5;
-  color: #444d56;
-  display: inline-block;
-  font-size: 11px;
-  line-height: 10px;
-  padding: 3px 5px;
-  vertical-align: middle;
-}
-
-.markdown-body h1,
-.markdown-body h2,
-.markdown-body h3,
-.markdown-body h4,
-.markdown-body h5,
-.markdown-body h6 {
-  font-weight: 600;
-  line-height: 1.25;
-  margin-bottom: 16px;
-  margin-top: 24px;
-}
-
-.markdown-body h1 {
-  font-size: 2em;
-}
-
-.markdown-body h1,
-.markdown-body h2 {
-  border-bottom: 1px solid #eaecef;
-  padding-bottom: .3em;
-}
-
-.markdown-body h2 {
-  font-size: 1.5em;
-}
-
-.markdown-body h3 {
-  font-size: 1.25em;
-}
-
-.markdown-body h4 {
-  font-size: 1em;
-}
-
-.markdown-body h5 {
-  font-size: .875em;
-}
-
-.markdown-body h6 {
-  color: #6a737d;
-  font-size: .85em;
-}
-
-.markdown-body ol,
-.markdown-body ul {
-  padding-left: 2em;
-}
-
-.markdown-body ol ol,
-.markdown-body ol ul,
-.markdown-body ul ol,
-.markdown-body ul ul {
-  margin-bottom: 0;
-  margin-top: 0;
-}
-
-.markdown-body li {
-  word-wrap: break-all;
-}
-
-.markdown-body li>p {
-  margin-top: 16px;
-}
-
-.markdown-body li+li {
-  margin-top: .25em;
-}
-
-.markdown-body dl {
-  padding: 0;
-}
-
-.markdown-body dl dt {
-  font-size: 1em;
-  font-style: italic;
-  font-weight: 600;
-  margin-top: 16px;
-  padding: 0;
-}
-
-.markdown-body dl dd {
-  margin-bottom: 16px;
-  padding: 0 16px;
-}
-
 .markdown-body table {
   display: block;
-  overflow: auto;
   width: 100%;
+  overflow: auto;
+  word-break: normal;
+  word-break: keep-all;
 }
 
 .markdown-body table th {
-  font-weight: 600;
+  font-weight: bold;
 }
 
-.markdown-body table td,
-.markdown-body table th {
-  border: 1px solid #dfe2e5;
+.markdown-body table th,
+.markdown-body table td {
   padding: 6px 13px;
+  border: 1px solid #ddd;
 }
 
 .markdown-body table tr {
   background-color: #fff;
-  border-top: 1px solid #c6cbd1;
+  border-top: 1px solid #ccc;
 }
 
 .markdown-body table tr:nth-child(2n) {
-  background-color: #f6f8fa;
+  background-color: #f8f8f8;
 }
 
 .markdown-body img {
-  background-color: #fff;
-  box-sizing: content-box;
   max-width: 100%;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
 }
 
-.markdown-body img[align=right] {
-  padding-left: 20px;
-}
-
-.markdown-body img[align=left] {
-  padding-right: 20px;
-}
-
-.markdown-body code {
-  background-color: rgba(27,31,35,.05);
-  border-radius: 3px;
-  font-size: 85%;
+.markdown-body code,
+.markdown-body samp {
+  padding: 0;
+  padding-top: 0.2em;
+  padding-bottom: 0.2em;
   margin: 0;
-  padding: .2em .4em;
+  font-size: 85%;
+  border-radius: 3px;
 }
 
-.markdown-body pre {
-  word-wrap: normal;
+.markdown-body code:not(.highlight):not(.codehilite), .markdown-body samp {
+  background-color: rgba(0,0,0,0.04);
+}
+
+.markdown-body code:before,
+.markdown-body code:after {
+  letter-spacing: -0.2em;
+  content: "\00a0";
 }
 
 .markdown-body pre>code {
+  padding: 0;
+  margin: 0;
+  font-size: 100%;
+  word-break: normal;
+  white-space: pre;
   background: transparent;
   border: 0;
-  font-size: 100%;
-  margin: 0;
-  padding: 0;
-  white-space: pre;
-  word-break: normal;
 }
 
+.markdown-body .codehilite,
 .markdown-body .highlight {
   margin-bottom: 16px;
 }
 
+.markdown-body .codehilite pre,
+.markdown-body .highlight pre,
+.markdown-body pre {
+  padding: 16px;
+  overflow: auto;
+  font-size: 85%;
+  line-height: 1.45;
+}
+
+.markdown-body .codehilite,
+.markdown-body .highlight,
+.markdown-body pre {
+  border-radius: 3px;
+}
+
+.markdown-body :not(.highlight) > pre {
+  background-color: #f7f7f7;
+}
+
+.markdown-body .codehilite pre,
 .markdown-body .highlight pre {
   margin-bottom: 0;
   word-break: normal;
 }
 
-.markdown-body .highlight pre,
 .markdown-body pre {
-  background-color: #f6f8fa;
-  border-radius: 3px;
-  font-size: 85%;
-  line-height: 1.45;
-  overflow: auto;
-  padding: 16px;
+  word-wrap: normal;
 }
 
 .markdown-body pre code {
+  display: inline;
+  max-width: initial;
+  padding: 0;
+  margin: 0;
+  overflow: initial;
+  line-height: inherit;
+  word-wrap: normal;
   background-color: transparent;
   border: 0;
-  display: inline;
-  line-height: inherit;
-  margin: 0;
-  max-width: auto;
-  overflow: visible;
+}
+
+.markdown-body pre code:before,
+.markdown-body pre code:after {
+  content: normal;
+}
+
+/* Admonition */
+.markdown-body .admonition {
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  position: relative;
+  border-radius: 3px;
+  border: 1px solid #e0e0e0;
+  border-left: 6px solid #333;
+  padding: 10px 10px 10px 30px;
+}
+
+.markdown-body .admonition table {
+  color: #333;
+}
+
+.markdown-body .admonition p {
   padding: 0;
-  word-wrap: normal;
 }
 
-.markdown-body .commit-tease-sha {
-  color: #444d56;
-  display: inline-block;
-  font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,Courier,monospace;
-  font-size: 90%;
+.markdown-body .admonition-title {
+  font-weight: bold;
+  margin: 0;
 }
 
-.markdown-body .blob-wrapper {
-  border-bottom-left-radius: 3px;
-  border-bottom-right-radius: 3px;
-  overflow-x: auto;
-  overflow-y: hidden;
+.markdown-body .admonition>.admonition-title {
+  color: #333;
 }
 
-.markdown-body .blob-wrapper-embedded {
-  max-height: 240px;
-  overflow-y: auto;
+.markdown-body .attention>.admonition-title {
+  color: #a6d796;
 }
 
-.markdown-body .blob-num {
+.markdown-body .caution>.admonition-title {
+  color: #d7a796;
+}
+
+.markdown-body .hint>.admonition-title {
+  color: #96c6d7;
+}
+
+.markdown-body .danger>.admonition-title {
+  color: #c25f77;
+}
+
+.markdown-body .question>.admonition-title {
+  color: #96a6d7;
+}
+
+.markdown-body .note>.admonition-title {
+  color: #d7c896;
+}
+
+.markdown-body .admonition:before,
+.markdown-body .attention:before,
+.markdown-body .caution:before,
+.markdown-body .hint:before,
+.markdown-body .danger:before,
+.markdown-body .question:before,
+.markdown-body .note:before {
+  font: normal normal 16px fontawesome-mini;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
-  -webkit-user-select: none;
-  color: rgba(27,31,35,.3);
-  cursor: pointer;
-  font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,Courier,monospace;
-  font-size: 12px;
-  line-height: 20px;
-  min-width: 50px;
-  padding-left: 10px;
-  padding-right: 10px;
-  text-align: right;
   user-select: none;
-  vertical-align: top;
-  white-space: nowrap;
-  width: 1%;
-}
-
-.markdown-body .blob-num:hover {
-  color: rgba(27,31,35,.6);
-}
-
-.markdown-body .blob-num:before {
-  content: attr(data-line-number);
-}
-
-.markdown-body .blob-code {
-  line-height: 20px;
+  line-height: 1.5;
+  color: #333;
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding-top: 10px;
   padding-left: 10px;
-  padding-right: 10px;
-  position: relative;
-  vertical-align: top;
 }
 
-.markdown-body .blob-code-inner {
-  color: #24292e;
-  font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,Courier,monospace;
-  font-size: 12px;
-  overflow: visible;
-  white-space: pre;
-  word-wrap: normal;
+.markdown-body .admonition:before {
+  content: "\f056\00a0";
+  color: 333;
 }
 
-.markdown-body .pl-token.active,
-.markdown-body .pl-token:hover {
-  background: #ffea7f;
-  cursor: pointer;
+.markdown-body .attention:before {
+  content: "\f058\00a0";
+  color: #a6d796;
 }
 
-.markdown-body kbd {
-  background-color: #fafbfc;
-  border: 1px solid #d1d5da;
-  border-bottom-color: #c6cbd1;
+.markdown-body .caution:before {
+  content: "\f06a\00a0";
+  color: #d7a796;
+}
+
+.markdown-body .hint:before {
+  content: "\f05a\00a0";
+  color: #96c6d7;
+}
+
+.markdown-body .danger:before {
+  content: "\f057\00a0";
+  color: #c25f77;
+}
+
+.markdown-body .question:before {
+  content: "\f059\00a0";
+  color: #96a6d7;
+}
+
+.markdown-body .note:before {
+  content: "\f040\00a0";
+  color: #d7c896;
+}
+
+.markdown-body .admonition::after {
+  content: normal;
+}
+
+.markdown-body .attention {
+  border-left: 6px solid #a6d796;
+}
+
+.markdown-body .caution {
+  border-left: 6px solid #d7a796;
+}
+
+.markdown-body .hint {
+  border-left: 6px solid #96c6d7;
+}
+
+.markdown-body .danger {
+  border-left: 6px solid #c25f77;
+}
+
+.markdown-body .question {
+  border-left: 6px solid #96a6d7;
+}
+
+.markdown-body .note {
+  border-left: 6px solid #d7c896;
+}
+
+.markdown-body .admonition>*:first-child {
+  margin-top: 0 !important;
+}
+
+.markdown-body .admonition>*:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* progress bar*/
+.markdown-body .progress {
+  display: block;
+  width: 300px;
+  margin: 10px 0;
+  height: 24px;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
   border-radius: 3px;
-  box-shadow: inset 0 -1px 0 #c6cbd1;
-  color: #444d56;
-  display: inline-block;
-  font: 11px SFMono-Regular,Consolas,Liberation Mono,Menlo,Courier,monospace;
-  line-height: 10px;
-  padding: 3px 5px;
-  vertical-align: middle;
-}
-
-.markdown-body :checked+.radio-label {
-  border-color: #0366d6;
+  background-color: #ededed;
   position: relative;
-  z-index: 1;
+  box-shadow: inset -1px 1px 3px rgba(0, 0, 0, .1);
 }
 
-.markdown-body .tab-size[data-tab-size="1"] {
-  -moz-tab-size: 1;
-  tab-size: 1;
+.markdown-body .progress-label {
+  position: absolute;
+  text-align: center;
+  font-weight: bold;
+  width: 100%; margin: 0;
+  line-height: 24px;
+  color: #333;
+  text-shadow: 1px 1px 0 #fefefe, -1px -1px 0 #fefefe, -1px 1px 0 #fefefe, 1px -1px 0 #fefefe, 0 1px 0 #fefefe, 0 -1px 0 #fefefe, 1px 0 0 #fefefe, -1px 0 0 #fefefe, 1px 1px 2px #000;
+  -webkit-font-smoothing: antialiased !important;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
-.markdown-body .tab-size[data-tab-size="2"] {
-  -moz-tab-size: 2;
-  tab-size: 2;
+.markdown-body .progress-bar {
+  height: 24px;
+  float: left;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+  background-color: #96c6d7;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .5), inset 0 -1px 0 rgba(0, 0, 0, .1);
+  background-size: 30px 30px;
+  background-image: -webkit-linear-gradient(
+    135deg, rgba(255, 255, 255, .4) 27%,
+    transparent 27%,
+    transparent 52%, rgba(255, 255, 255, .4) 52%,
+    rgba(255, 255, 255, .4) 77%,
+    transparent 77%, transparent
+  );
+  background-image: -moz-linear-gradient(
+    135deg,
+    rgba(255, 255, 255, .4) 27%, transparent 27%,
+    transparent 52%, rgba(255, 255, 255, .4) 52%,
+    rgba(255, 255, 255, .4) 77%, transparent 77%,
+    transparent
+  );
+  background-image: -ms-linear-gradient(
+    135deg,
+    rgba(255, 255, 255, .4) 27%, transparent 27%,
+    transparent 52%, rgba(255, 255, 255, .4) 52%,
+    rgba(255, 255, 255, .4) 77%, transparent 77%,
+    transparent
+  );
+  background-image: -o-linear-gradient(
+    135deg,
+    rgba(255, 255, 255, .4) 27%, transparent 27%,
+    transparent 52%, rgba(255, 255, 255, .4) 52%,
+    rgba(255, 255, 255, .4) 77%, transparent 77%,
+    transparent
+  );
+  background-image: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, .4) 27%, transparent 27%,
+    transparent 52%, rgba(255, 255, 255, .4) 52%,
+    rgba(255, 255, 255, .4) 77%, transparent 77%,
+    transparent
+  );
 }
 
-.markdown-body .tab-size[data-tab-size="3"] {
-  -moz-tab-size: 3;
-  tab-size: 3;
+.markdown-body .progress-100plus .progress-bar {
+  background-color: #a6d796;
 }
 
-.markdown-body .tab-size[data-tab-size="4"] {
-  -moz-tab-size: 4;
-  tab-size: 4;
+.markdown-body .progress-80plus .progress-bar {
+  background-color: #c6d796;
 }
 
-.markdown-body .tab-size[data-tab-size="5"] {
-  -moz-tab-size: 5;
-  tab-size: 5;
+.markdown-body .progress-60plus .progress-bar {
+  background-color: #d7c896;
 }
 
-.markdown-body .tab-size[data-tab-size="6"] {
-  -moz-tab-size: 6;
-  tab-size: 6;
+.markdown-body .progress-40plus .progress-bar {
+  background-color: #d7a796;
 }
 
-.markdown-body .tab-size[data-tab-size="7"] {
-  -moz-tab-size: 7;
-  tab-size: 7;
+.markdown-body .progress-20plus .progress-bar {
+  background-color: #d796a6;
 }
 
-.markdown-body .tab-size[data-tab-size="8"] {
-  -moz-tab-size: 8;
-  tab-size: 8;
+.markdown-body .progress-0plus .progress-bar {
+  background-color: #c25f77;
 }
 
-.markdown-body .tab-size[data-tab-size="9"] {
-  -moz-tab-size: 9;
-  tab-size: 9;
+.markdown-body .candystripe-animate .progress-bar{
+  -webkit-animation: animate-stripes 3s linear infinite;
+  -moz-animation: animate-stripes 3s linear infinite;
+  animation: animate-stripes 3s linear infinite;
 }
 
-.markdown-body .tab-size[data-tab-size="10"] {
-  -moz-tab-size: 10;
-  tab-size: 10;
+@-webkit-keyframes animate-stripes {
+  0% {
+    background-position: 0 0;
+  }
+
+  100% {
+    background-position: 60px 0;
+  }
 }
 
-.markdown-body .tab-size[data-tab-size="11"] {
-  -moz-tab-size: 11;
-  tab-size: 11;
+@-moz-keyframes animate-stripes {
+  0% {
+    background-position: 0 0;
+  }
+
+  100% {
+    background-position: 60px 0;
+  }
 }
 
-.markdown-body .tab-size[data-tab-size="12"] {
-  -moz-tab-size: 12;
-  tab-size: 12;
+@keyframes animate-stripes {
+  0% {
+    background-position: 0 0;
+  }
+
+  100% {
+    background-position: 60px 0;
+  }
+}
+
+.markdown-body .gloss .progress-bar {
+  box-shadow:
+    inset 0 4px 12px rgba(255, 255, 255, .7),
+    inset 0 -12px 0 rgba(0, 0, 0, .05);
+}
+
+/* MultiMarkdown Critic Blocks */
+.markdown-body .critic_mark {
+  background: #ff0;
+}
+
+.markdown-body .critic_delete {
+  color: #c82829;
+  text-decoration: line-through;
+}
+
+.markdown-body .critic_insert {
+  color: #718c00 ;
+  text-decoration: underline;
+}
+
+.markdown-body .critic_comment {
+  color: #8e908c;
+  font-style: italic;
+}
+
+.markdown-body .headeranchor {
+  font: normal normal 16px fontawesome-mini;
+  line-height: 1;
+  display: inline-block;
+  text-decoration: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.headeranchor:before {
+  content: '\e157';
 }
 
 .markdown-body .task-list-item {
@@ -918,67 +904,180 @@ body .markdown-body {
 }
 
 .markdown-body .task-list-item input {
-  margin: 0 .2em .25em -1.6em;
+  margin: 0 4px 0.25em -20px;
   vertical-align: middle;
 }
 
-.markdown-body hr {
-  border-bottom-color: #eee;
+.markdown-body diagram-div, .markdown-body div.uml-sequence-diagram, .markdown-body, div.uml-flowchart {
+  overflow: auto;
 }
 
-.markdown-body .pl-0 {
-  padding-left: 0!important;
+/* Media */
+@media only screen and (min-width: 480px) {
+  .markdown-body {
+    font-size:14px;
+  }
 }
 
-.markdown-body .pl-1 {
-  padding-left: 4px!important;
+@media only screen and (min-width: 768px) {
+  .markdown-body {
+    font-size:16px;
+  }
 }
 
-.markdown-body .pl-2 {
-  padding-left: 8px!important;
-}
+@media print {
+  .markdown-body * {
+    background: transparent !important;
+    color: black !important;
+    filter:none !important;
+    -ms-filter: none !important;
+  }
 
-.markdown-body .pl-3 {
-  padding-left: 16px!important;
-}
+  .markdown-body {
+    font-size:12pt;
+    max-width:100%;
+    outline:none;
+    border: 0;
+  }
 
-.markdown-body .pl-4 {
-  padding-left: 24px!important;
-}
+  .markdown-body a,
+  .markdown-body a:visited {
+    text-decoration: underline;
+  }
 
-.markdown-body .pl-5 {
-  padding-left: 32px!important;
-}
+  .markdown-body .headeranchor-link {
+    display: none;
+  }
 
-.markdown-body .pl-6 {
-  padding-left: 40px!important;
-}
+  .markdown-body a[href]:after {
+    content: " (" attr(href) ")";
+  }
 
-.markdown-body .pl-7 {
-  padding-left: 48px!important;
-}
+  .markdown-body abbr[title]:after {
+    content: " (" attr(title) ")";
+  }
 
-.markdown-body .pl-8 {
-  padding-left: 64px!important;
-}
+  .markdown-body .ir a:after,
+  .markdown-body a[href^="javascript:"]:after,
+  .markdown-body a[href^="#"]:after {
+    content: "";
+  }
 
-.markdown-body .pl-9 {
-  padding-left: 80px!important;
-}
+  .markdown-body pre {
+    white-space: pre;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
 
-.markdown-body .pl-10 {
-  padding-left: 96px!important;
-}
+  .markdown-body pre,
+  .markdown-body blockquote {
+    border: 1px solid #999;
+    padding-right: 1em;
+    page-break-inside: avoid;
+  }
 
-.markdown-body .pl-11 {
-  padding-left: 112px!important;
-}
+  .markdown-body .progress,
+  .markdown-body .progress-bar {
+    -moz-box-shadow: none;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+  }
 
-.markdown-body .pl-12 {
-  padding-left: 128px!important;
+  .markdown-body .progress {
+    border: 1px solid #ddd;
+  }
+
+  .markdown-body .progress-bar {
+    height: 22px;
+    border-right: 1px solid #ddd;
+  }
+
+  .markdown-body tr,
+  .markdown-body img {
+    page-break-inside: avoid;
+  }
+
+  .markdown-body img {
+    max-width: 100% !important;
+  }
+
+  .markdown-body p,
+  .markdown-body h2,
+  .markdown-body h3 {
+    orphans: 3;
+    widows: 3;
+  }
+
+  .markdown-body h2,
+  .markdown-body h3 {
+    page-break-after: avoid;
+  }
 }
-</style><title>README</title></head><body><article class="markdown-body"><h1 id="user-content-advanced-charging-controller-acc"><a class="heading-link" href="#advanced-charging-controller-acc">Advanced Charging Controller (ACC)<span aria-hidden="true" class="octicon octicon-link"></span></a></h1>
-<hr>
+</style><style>/*GitHub*/
+.highlight {background-color:#f7f7f7;color:#333333;}
+.highlight .hll {background-color:#ffffcc;}
+.highlight .c{color:#999988;font-style:italic}
+.highlight .err{color:#a61717;background-color:#e3d2d2}
+.highlight .k{font-weight:bold}
+.highlight .o{font-weight:bold}
+.highlight .cm{color:#999988;font-style:italic}
+.highlight .cp{color:#999999;font-weight:bold}
+.highlight .c1{color:#999988;font-style:italic}
+.highlight .cs{color:#999999;font-weight:bold;font-style:italic}
+.highlight .gd{color:#000000;background-color:#ffdddd}
+.highlight .ge{font-style:italic}
+.highlight .gr{color:#aa0000}
+.highlight .gh{color:#999999}
+.highlight .gi{color:#000000;background-color:#ddffdd}
+.highlight .go{color:#888888}
+.highlight .gp{color:#555555}
+.highlight .gs{font-weight:bold}
+.highlight .gu{color:#800080;font-weight:bold}
+.highlight .gt{color:#aa0000}
+.highlight .kc{font-weight:bold}
+.highlight .kd{font-weight:bold}
+.highlight .kn{font-weight:bold}
+.highlight .kp{font-weight:bold}
+.highlight .kr{font-weight:bold}
+.highlight .kt{color:#445588;font-weight:bold}
+.highlight .m{color:#009999}
+.highlight .s{color:#dd1144}
+.highlight .n{color:#333333}
+.highlight .na{color:teal}
+.highlight .nb{color:#0086b3}
+.highlight .nc{color:#445588;font-weight:bold}
+.highlight .no{color:teal}
+.highlight .ni{color:purple}
+.highlight .ne{color:#990000;font-weight:bold}
+.highlight .nf{color:#990000;font-weight:bold}
+.highlight .nn{color:#555555}
+.highlight .nt{color:navy}
+.highlight .nv{color:teal}
+.highlight .ow{font-weight:bold}
+.highlight .w{color:#bbbbbb}
+.highlight .mf{color:#009999}
+.highlight .mh{color:#009999}
+.highlight .mi{color:#009999}
+.highlight .mo{color:#009999}
+.highlight .sb{color:#dd1144}
+.highlight .sc{color:#dd1144}
+.highlight .sd{color:#dd1144}
+.highlight .s2{color:#dd1144}
+.highlight .se{color:#dd1144}
+.highlight .sh{color:#dd1144}
+.highlight .si{color:#dd1144}
+.highlight .sx{color:#dd1144}
+.highlight .sr{color:#009926}
+.highlight .s1{color:#dd1144}
+.highlight .ss{color:#990073}
+.highlight .bp{color:#999999}
+.highlight .vc{color:teal}
+.highlight .vg{color:teal}
+.highlight .vi{color:teal}
+.highlight .il{color:#009999}
+.highlight .gc{color:#999;background-color:#EAF2F5}
+</style><title>README</title></head><body><article class="markdown-body"><h1 id="advanced-charging-controller-acc">Advanced Charging Controller (ACC)<a class="headerlink" href="#advanced-charging-controller-acc" title="Permanent link"></a></h1>
+<hr />
 <ul>
 <li><a href="#description">DESCRIPTION</a></li>
 <li><a href="#license">LICENSE</a></li>
@@ -986,56 +1085,34 @@ body .markdown-body {
 <li><a href="#warnings">WARNINGS</a></li>
 <li><a href="#donations">DONATIONS</a></li>
 <li><a href="#prerequisites">PREREQUISITES</a></li>
-<li>
-<a href="#quick-start-guide">QUICK START GUIDE</a>
-<ul>
+<li><a href="#quick-start-guide">QUICK START GUIDE</a></li>
 <li><a href="#notes">Notes</a></li>
-</ul>
-</li>
-<li>
-<a href="#building-andor-installing-from-source">BUILDING AND/OR INSTALLING FROM SOURCE</a>
-<ul>
+<li><a href="#building-andor-installing-from-source">BUILDING AND/OR INSTALLING FROM SOURCE</a></li>
 <li><a href="#dependencies-build">Dependencies (Build)</a></li>
-<li>
-<a href="#build-tarballs-and-flashable-zips">Build Tarballs and Flashable Zips</a>
-<ul>
+<li><a href="#build-tarballs-and-flashable-zips">Build Tarballs and Flashable Zips</a><ul>
 <li><a href="#notes-1">Notes</a></li>
 </ul>
 </li>
-<li>
-<a href="#install-from-local-source-or-github">Install from Local Source or GitHub</a>
-<ul>
+<li><a href="#install-from-local-source-or-github">Install from Local Source or GitHub</a><ul>
 <li><a href="#notes-2">Notes</a></li>
 </ul>
 </li>
-</ul>
-</li>
 <li><a href="#default-configuration">DEFAULT CONFIGURATION</a></li>
-<li>
-<a href="#setupusage">SETUP/USAGE</a>
-<ul>
+<li><a href="#setupusage">SETUP/USAGE</a></li>
 <li><a href="#terminal-commands">Terminal Commands</a></li>
-</ul>
-</li>
 <li><a href="#plugins">PLUGINS</a></li>
-<li>
-<a href="#notestips-for-front-end-developers">NOTES/TIPS FOR FRONT-END DEVELOPERS</a>
-<ul>
+<li><a href="#notestips-for-front-end-developers">NOTES/TIPS FOR FRONT-END DEVELOPERS</a></li>
 <li><a href="#basics">Basics</a></li>
 <li><a href="#installingupgrading-acc">Installing/Upgrading ACC</a></li>
 <li><a href="#uninstalling-acc">Uninstalling ACC</a></li>
 <li><a href="#initializing-acc">Initializing ACC</a></li>
 <li><a href="#managing-acc">Managing ACC</a></li>
-<li><a href="#the-output-of---info">The Output of --info</a></li>
+<li><a href="#the-output-of---info">The Output of &ndash;info</a></li>
 <li><a href="#profiles">Profiles</a></li>
 <li><a href="#more">More</a></li>
-</ul>
-</li>
-<li>
-<a href="#troubleshooting">TROUBLESHOOTING</a>
-<ul>
+<li><a href="#troubleshooting">TROUBLESHOOTING</a></li>
 <li><a href="#acc--t-results-seem-inconsistent"><code>acc -t</code> Results Seem Inconsistent</a></li>
-<li><a href="#battery-capacity--level-doesnt-seem-right">Battery Capacity (% Level) Doesn't Seem Right</a></li>
+<li><a href="#battery-capacity--level-doesnt-seem-right">Battery Capacity (% Level) Doesn&rsquo;t Seem Right</a></li>
 <li><a href="#charging-switch">Charging Switch</a></li>
 <li><a href="#custom-max-charging-voltage-and-current-limits">Custom Max Charging Voltage And Current Limits</a></li>
 <li><a href="#diagnosticslogs">Diagnostics/Logs</a></li>
@@ -1048,31 +1125,25 @@ body .markdown-body {
 <li><a href="#unexpected-reboots">Unexpected Reboots</a></li>
 <li><a href="#warp-vooc-and-other-fast-charging-tech">WARP, VOOC and Other Fast Charging Tech</a></li>
 <li><a href="#why-did-accd-stop">Why Did accd Stop?</a></li>
-</ul>
-</li>
 <li><a href="#power-supply-logs-help-needed">POWER SUPPLY LOGS (HELP NEEDED)</a></li>
 <li><a href="#localization">LOCALIZATION</a></li>
-<li>
-<a href="#tips">TIPS</a>
-<ul>
+<li><a href="#tips">TIPS</a></li>
 <li><a href="#always-limit-the-charging-current-if-your-battery-is-old-andor-tends-to-discharge-too-fast"><em>Always</em> Limit the Charging Current If Your Battery is Old and/or Tends to Discharge Too Fast</a></li>
 <li><a href="#generic">Generic</a></li>
 <li><a href="#google-pixel-devices">Google Pixel Devices</a></li>
 <li><a href="/home/v/Transfer%C3%AAncias/git/acc/override_battery_mah_capacity">Override Battery mAh Capacity</a></li>
 <li><a href="/home/v/Transfer%C3%AAncias/git/acc/override_broken_temperature_sensor">Override Broken Temperature Sensor</a></li>
-</ul>
-</li>
 <li><a href="#frequently-asked-questions-faq">FREQUENTLY ASKED QUESTIONS (FAQ)</a></li>
 <li><a href="#links">LINKS</a></li>
 </ul>
-<hr>
-<h2 id="user-content-description"><a class="heading-link" href="#description">DESCRIPTION<span aria-hidden="true" class="octicon octicon-link"></span></a></h2>
-<p>ACC is an Android software mainly intended for <a href="https://batteryuniversity.com/article/bu-808-how-to-prolong-lithium-based-batteries" rel="nofollow">extending battery service life</a>.
+<hr />
+<h2 id="description">DESCRIPTION<a class="headerlink" href="#description" title="Permanent link"></a></h2>
+<p>ACC is an Android software mainly intended for <a href="https://batteryuniversity.com/article/bu-808-how-to-prolong-lithium-based-batteries">extending battery service life</a>.
 In a nutshell, this is achieved through limiting charging current, temperature and voltage.
 Any root solution is supported.
-Regardless of whether the system is rooted with KernelSU/Magisk, the installation is always "systemless".</p>
-<hr>
-<h2 id="user-content-license"><a class="heading-link" href="#license">LICENSE<span aria-hidden="true" class="octicon octicon-link"></span></a></h2>
+Regardless of whether the system is rooted with KernelSU/Magisk, the installation is always &ldquo;systemless&rdquo;.</p>
+<hr />
+<h2 id="license">LICENSE<a class="headerlink" href="#license" title="Permanent link"></a></h2>
 <p>Copyright 2017-2023, VR25</p>
 <p>This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -1083,46 +1154,45 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.</p>
 <p>You should have received a copy of the GNU General Public License
-along with this program. If not, see <a href="https://www.gnu.org/licenses/" rel="nofollow">https://www.gnu.org/licenses/</a>.</p>
-<hr>
-<h2 id="user-content-disclaimer"><a class="heading-link" href="#disclaimer">DISCLAIMER<span aria-hidden="true" class="octicon octicon-link"></span></a></h2>
+along with this program. If not, see <a href="https://www.gnu.org/licenses/">https://www.gnu.org/licenses/</a>.</p>
+<hr />
+<h2 id="disclaimer">DISCLAIMER<a class="headerlink" href="#disclaimer" title="Permanent link"></a></h2>
 <p>Always read/reread this reference prior to installing/upgrading this software.</p>
 <p>While no cats have been harmed, the author assumes no responsibility for anything that might break due to the use/misuse of it.</p>
 <p>To prevent fraud, do NOT mirror any link associated with this project.
 Do NOT share builds (tarballs/zips)! Share official links instead.</p>
-<hr>
-<h2 id="user-content-warnings"><a class="heading-link" href="#warnings">WARNINGS<span aria-hidden="true" class="octicon octicon-link"></span></a></h2>
-<p>ACC manipulates Android low level (<a href="https://duckduckgo.com/lite/?q=kernel+android" rel="nofollow">kernel</a>) parameters which control the charging circuitry.
+<hr />
+<h2 id="warnings">WARNINGS<a class="headerlink" href="#warnings" title="Permanent link"></a></h2>
+<p>ACC manipulates Android low level (<a href="https://duckduckgo.com/lite/?q=kernel+android">kernel</a>) parameters which control the charging circuitry.
 The author assumes no responsibility under anything that might break due to the use/misuse of this software.
 By choosing to use/misuse it, you agree to do so at your own risk!</p>
 <p>Some devices, notably from Xiaomi (e.g., Poco X3 Pro), have a faulty PMIC (Power Management Integrated Circuit) that can be triggered by acc.
 The issue blocks charging.
 Ensure the battery does not discharge too low.
-Using acc's auto shutdown feature is highly recommended (default shutdown_capacity is 5).</p>
-<p>Refer to <a href="https://forum.xda-developers.com/t/rom-official-arrowos-11-0-android-11-0-vayu-bhima.4267263/post-85119331" rel="nofollow">this XDA post</a> for additional details.</p>
+Using acc&rsquo;s auto shutdown feature is highly recommended (default shutdown_capacity is 5).</p>
+<p>Refer to <a href="https://forum.xda-developers.com/t/rom-official-arrowos-11-0-android-11-0-vayu-bhima.4267263/post-85119331">this XDA post</a> for additional details.</p>
 <p><a href="https://github.com/lybxlpsv">lybxlpsv</a> suggests booting into bootloader/fastboot and then back into system to reset the PMIC.</p>
-<hr>
-<h2 id="user-content-donations"><a class="heading-link" href="#donations">DONATIONS<span aria-hidden="true" class="octicon octicon-link"></span></a></h2>
+<hr />
+<h2 id="donations">DONATIONS<a class="headerlink" href="#donations" title="Permanent link"></a></h2>
 <p>Please, support the project with donations (<a href="#links">links</a> at the bottom).
 As the project gets bigger and more popular, the need for coffee goes up as well.</p>
-<hr>
-<h2 id="user-content-prerequisites"><a class="heading-link" href="#prerequisites">PREREQUISITES<span aria-hidden="true" class="octicon octicon-link"></span></a></h2>
+<hr />
+<h2 id="prerequisites">PREREQUISITES<a class="headerlink" href="#prerequisites" title="Permanent link"></a></h2>
 <ul>
-<li><a href="https://batteryuniversity.com/article/bu-808-how-to-prolong-lithium-based-batteries" rel="nofollow">Must read - how to prolong lithium ion batteries lifespan</a></li>
+<li><a href="https://batteryuniversity.com/article/bu-808-how-to-prolong-lithium-based-batteries">Must read - how to prolong lithium ion batteries lifespan</a></li>
 <li>Android or KaiOS</li>
 <li>Any root solution (e.g., KernelSU, Magisk, SuperSU, etc)</li>
-<li>
-<a href="https://github.com/Magisk-Modules-Repo/busybox-ndk">Busybox*</a> (only if not rooted with KernelSU or Magisk)</li>
+<li><a href="https://github.com/Magisk-Modules-Repo/busybox-ndk">Busybox*</a> (only if not rooted with KernelSU or Magisk)</li>
 <li>Non KernelSU/Magisk installs require a way of running <code>/data/adb/vr25/acc/service.sh</code> on boot to initialize acc.</li>
 <li>Terminal emulator</li>
 <li>Root text editor (optional)</li>
 </ul>
 <p>* A busybox binary can simply be placed in <code>/data/adb/vr25/bin/</code>.
 Permissions (<code>0755</code>) are set automatically, as needed.
-Precedence: /data/adb/vr25/bin/busybox &gt; KernelSu's or Magisk's busybox &gt; system's busybox</p>
+Precedence: /data/adb/vr25/bin/busybox &gt; KernelSu&rsquo;s or Magisk&rsquo;s busybox &gt; system&rsquo;s busybox</p>
 <p>Other executables or static binaries can also be placed in <code>/data/adb/vr25/bin/</code> (with proper permissions) instead of being installed system-wide.</p>
-<hr>
-<h2 id="user-content-quick-start-guide"><a class="heading-link" href="#quick-start-guide">QUICK START GUIDE<span aria-hidden="true" class="octicon octicon-link"></span></a></h2>
+<hr />
+<h2 id="quick-start-guide">QUICK START GUIDE<a class="headerlink" href="#quick-start-guide" title="Permanent link"></a></h2>
 <ol start="0">
 <li>
 <p>All commands/actions require root.</p>
@@ -1134,7 +1204,7 @@ Rebooting after installation/removal is generally unnecessary.
 Manual uninstall before upgrade is unnecessary.</p>
 </li>
 <li>
-<p>[Optional] run <code>acc</code> (wizard). That's the main command to remember.</p>
+<p>[Optional] run <code>acc</code> (wizard). That&rsquo;s the main command to remember.</p>
 </li>
 <li>
 <p>[Optional] run <code>acc pause_capacity resume_capacity</code> (default <code>75 70</code>) to set the battery levels at which charging should pause and resume, respectively.</p>
@@ -1145,25 +1215,25 @@ Read as much as you can, prior to reporting issues and/or asking questions.
 Oftentimes, solutions/answers will be right before your eyes.</p>
 </li>
 </ol>
-<h3 id="user-content-notes"><a class="heading-link" href="#notes">Notes<span aria-hidden="true" class="octicon octicon-link"></span></a></h3>
+<h3 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link"></a></h3>
 <p>Steps <code>2</code> and <code>3</code> are optional because there are default settings.
 For details, refer to the <a href="#default-configuration">default configuration</a> section below.
 Users are encouraged to try step <code>2</code> - to familiarize themselves with the available options.</p>
 <p>Settings can be overwhelming. Start with what you understand.
 The default configuration has you covered.
-Don't ever feel like you have to configure everything. You probably shouldn't anyway - unless you really know what you're doing.</p>
+Don&rsquo;t ever feel like you have to configure everything. You probably shouldn&rsquo;t anyway - unless you really know what you&rsquo;re doing.</p>
 <p>Uninstall: run <code>acc --uninstall</code> or flash* <code>/data/adb/vr25/acc-data/acc-uninstaller.zip</code>.</p>
 <p>ACC runs in some recovery environments as well.
 Unless the zip is flashed again, manual initialization is required.
 The initialization script is <code>/data/adb/vr25/acc/service.sh</code>.</p>
-<hr>
-<h2 id="user-content-building-andor-installing-from-source"><a class="heading-link" href="#building-andor-installing-from-source">BUILDING AND/OR INSTALLING FROM SOURCE<span aria-hidden="true" class="octicon octicon-link"></span></a></h2>
-<h3 id="user-content-dependencies-build"><a class="heading-link" href="#dependencies-build">Dependencies (Build)<span aria-hidden="true" class="octicon octicon-link"></span></a></h3>
+<hr />
+<h2 id="building-andor-installing-from-source">BUILDING AND/OR INSTALLING FROM SOURCE<a class="headerlink" href="#building-andor-installing-from-source" title="Permanent link"></a></h2>
+<h3 id="dependencies-build">Dependencies (Build)<a class="headerlink" href="#dependencies-build" title="Permanent link"></a></h3>
 <ul>
 <li>git, wget, or curl (pick one)</li>
 <li>zip</li>
 </ul>
-<h3 id="user-content-build-tarballs-and-flashable-zips"><a class="heading-link" href="#build-tarballs-and-flashable-zips">Build Tarballs and Flashable Zips<span aria-hidden="true" class="octicon octicon-link"></span></a></h3>
+<h3 id="build-tarballs-and-flashable-zips">Build Tarballs and Flashable Zips<a class="headerlink" href="#build-tarballs-and-flashable-zips" title="Permanent link"></a></h3>
 <ol>
 <li>
 <p>Download and extract the source code: <code>git clone https://github.com/VR-25/acc.git</code>
@@ -1177,7 +1247,7 @@ or <code>curl -L#  https://github.com/VR-25/acc/archive/master.tar.gz | tar -xz<
 <p><code>sh build.sh</code> (or double-click <code>build.bat</code> on Windows 10+, if you have Windows subsystem for Linux (with zip) installed)</p>
 </li>
 </ol>
-<h4 id="user-content-notes-1"><a class="heading-link" href="#notes-1">Notes<span aria-hidden="true" class="octicon octicon-link"></span></a></h4>
+<h4 id="notes_1">Notes<a class="headerlink" href="#notes_1" title="Permanent link"></a></h4>
 <ul>
 <li>
 <p><code>build.sh</code> automatically sets/corrects <code>id=*</code> in <code>*.sh</code> and <code>update-binary</code> files.
@@ -1187,22 +1257,22 @@ To skip generating archives, run the build script with a random argument (e.g. <
 <p>To update the local source code, run <code>git pull --force</code> or re-download it (with <code>wget</code>/<code>curl</code>) as described above.</p>
 </li>
 </ul>
-<h3 id="user-content-install-from-local-source-or-github"><a class="heading-link" href="#install-from-local-source-or-github">Install from Local Source or GitHub<span aria-hidden="true" class="octicon octicon-link"></span></a></h3>
+<h3 id="install-from-local-source-or-github">Install from Local Source or GitHub<a class="headerlink" href="#install-from-local-source-or-github" title="Permanent link"></a></h3>
 <ul>
 <li>
 <p><code>[export installDir=&lt;parent install dir&gt;] sh install.sh</code> installs acc from the extracted source.</p>
 </li>
 <li>
 <p><code>sh install-online.sh [-c|--changelog] [-f|--force] [-k|--insecure] [-n|--non-interactive] [%parent install dir%] [commit]</code> downloads and installs acc from GitHub - e.g., <code>sh install-online.sh dev</code>.
-The order of arguments doesn't matter.
+The order of arguments doesn&rsquo;t matter.
 For upgrades, if <code>%parent install dir%</code> is not supplied, the original/current is used.</p>
 </li>
 <li>
-<p><code>sh install-tarball.sh [module id, default: acc] [parent install dir (e.g., /data/data/mattecarra.accapp/files)]</code> installs the tarball (<code>acc*gz</code>) from the script's location.
+<p><code>sh install-tarball.sh [module id, default: acc] [parent install dir (e.g., /data/data/mattecarra.accapp/files)]</code> installs the tarball (<code>acc*gz</code>) from the script&rsquo;s location.
 The archive must be in the same directory as this script - and obtained from GitHub: <a href="https://github.com/VR-25/acc/archive/$commit.tar.gz">https://github.com/VR-25/acc/archive/$commit.tar.gz</a> (<code>$commit</code> examples: <code>master</code>, <code>dev</code>, <code>v2020.5.20-rc</code>).</p>
 </li>
 </ul>
-<h4 id="user-content-notes-2"><a class="heading-link" href="#notes-2">Notes<span aria-hidden="true" class="octicon octicon-link"></span></a></h4>
+<h4 id="notes_2">Notes<a class="headerlink" href="#notes_2" title="Permanent link"></a></h4>
 <ul>
 <li>
 <p><code>install-online.sh</code> is the <code>acc --upgrade</code> back-end.</p>
@@ -1225,16 +1295,16 @@ In interactive mode, it also asks the user whether they want to download and ins
 <p>You may also want to read <a href="#terminal-commands">Terminal Commands</a> &gt; <code>Exit Codes</code> below.</p>
 </li>
 </ul>
-<hr>
-<h2 id="user-content-default-configuration"><a class="heading-link" href="#default-configuration">DEFAULT CONFIGURATION<span aria-hidden="true" class="octicon octicon-link"></span></a></h2>
-<pre><code>#DC#
+<hr />
+<h2 id="default-configuration">DEFAULT CONFIGURATION<a class="headerlink" href="#default-configuration" title="Permanent link"></a></h2>
+<div class="highlight"><pre>#DC#
 
-configVerCode=202310090
+configVerCode=202310160
 
 allowIdleAbovePcap=true
 ampFactor=
 battStatusWorkaround=true
-capacity=(5 50 70 75 auto false)
+capacity=(5 50 70 75 false false)
 cooldownCurrent=
 cooldownRatio=()
 currentWorkaround=false
@@ -1254,7 +1324,7 @@ applyOnBoot=()
 
 applyOnPlug=()
 
-battStatusOverride=''
+battStatusOverride=&#39;&#39;
 
 chargingSwitch=()
 
@@ -1264,7 +1334,7 @@ maxChargingCurrent=()
 
 maxChargingVoltage=()
 
-runCmdOnPause=''
+runCmdOnPause=&#39;&#39;
 
 
 
@@ -1274,11 +1344,11 @@ runCmdOnPause=''
 // It replaces LF (Linux/Unix) with CRLF (Windows) line endings.
 
 // Nullifying values that should not be null causes unexpected behavior.
-// However, doing so with "--set var=" restores the default value of "var".
-// In other words, for regular users, "--set" is safer than modifying the config file directly.
+// However, doing so with &quot;--set var=&quot; restores the default value of &quot;var&quot;.
+// In other words, for regular users, &quot;--set&quot; is safer than modifying the config file directly.
 
 // Do not feel like you must configure everything!
-// Do not change what you don't understand.
+// Do not change what you don&#39;t understand.
 
 
 
@@ -1290,10 +1360,10 @@ runCmdOnPause=''
 
 // INTERNAL FUNCTIONS
 
-// at H:MM 'command...'   scheduler
+// at H:MM &#39;command...&#39;   scheduler
 // e.g.,
-//   at 2:14 acc --notif '2:14 AM now!'
-//   at 22:30 acc --notif '22:30 now!'
+//   at 2:14 acc --notif &#39;2:14 AM now!&#39;
+//   at 22:30 acc --notif &#39;22:30 now!&#39;
 
 // calc &lt;operation...&gt;   float  calculator
 
@@ -1331,8 +1401,8 @@ runCmdOnPause=''
 // %U Week of year (0-53 start sunday)   %W Week of year (0-53 start monday)
 // %V Week of year (1-53 start monday, week &lt; 4 days not part of this year)
 
-// %F "%Y-%m-%d"     %R "%H:%M"        %T "%H:%M:%S"    %z numeric timezone
-// %D "%m/%d/%y"     %r "%I:%M:%S %p"  %h "%b"          %s unix epoch time
+// %F &quot;%Y-%m-%d&quot;     %R &quot;%H:%M&quot;        %T &quot;%H:%M:%S&quot;    %z numeric timezone
+// %D &quot;%m/%d/%y&quot;     %r &quot;%I:%M:%S %p&quot;  %h &quot;%b&quot;          %s unix epoch time
 // %x locale date    %X locale time    %c locale date/time
 
 
@@ -1347,7 +1417,7 @@ runCmdOnPause=''
 
 // applyOnPlug=apply_on_plug=([CTRL_FILE1::RAW_VALUE[::DEFAULT]] [CTRL_FILE2::RAW_VALUE[::DEFAULT]...]) NULLABLE
 
-// battStatusOverride=batt_status_override=Idle|Discharging|'code to PRINT value for _status' NULLABLE
+// battStatusOverride=batt_status_override=Idle|Discharging|&#39;code to PRINT value for _status&#39; NULLABLE
 
 // battStatusWorkaround=batt_status_workaround=BOOLEAN
 
@@ -1383,7 +1453,7 @@ runCmdOnPause=''
 
 // resetBattStats=(reset_batt_stats_on_pause reset_batt_stats_on_unplug reset_batt_stats_on_plug) BOOLEAN
 
-// runCmdOnPause=run_cmd_on_pause='COMMAND...' NULLABLE
+// runCmdOnPause=run_cmd_on_pause=&#39;COMMAND...&#39; NULLABLE
 
 // temperature=(cooldown_temp=ºC max_temp=ºC resume_temp=ºC[r] shutdown_temp=ºC)
 
@@ -1446,7 +1516,7 @@ runCmdOnPause=''
 // allow_idle_above_pcap (aiapc) # Default: true
 // If set to false, accd will avoid idle mode (if possible) when capacity &gt; pause_capacity.
 // This is useful for forever-plugged setups, where battery longevity is a top priority.
-// Idle mode is good, but "storing" a highly charged battery for a LONG time is a bad idea.
+// Idle mode is good, but &quot;storing&quot; a highly charged battery for a LONG time is a bad idea.
 
 
 // amp_factor (af) # Default: null
@@ -1473,31 +1543,31 @@ runCmdOnPause=''
 // Overrides the battery status determined by the not_charging function.
 // It can be Idle, Discharging (both case sensitive), or logic to PRINT the desired value for the _status variable.
 // When set to Idle or Discharging, _status will be set to that value if the enforced* charging switch state is off.
-// It only works in conjunction with an enforced charging switch (set manually, has a trailing " --").
+// It only works in conjunction with an enforced charging switch (set manually, has a trailing &quot; --&quot;).
 
-// Usage scenario: the switch "main/cool_mode 0 1" supports idle mode. However, sometimes it does not respond soon enough (e.g., due to fast charging). The user can then enforce it with "acc -ss" and set "batt_status_override=Idle". This means, when "main/cool_mode" is "on" (0), _status will be determined by the not_charging function (as usual), but when it's off (1), _status will be Idle, bypassing the not_charging function.
+// Usage scenario: the switch &quot;main/cool_mode 0 1&quot; supports idle mode. However, sometimes it does not respond soon enough (e.g., due to fast charging). The user can then enforce it with &quot;acc -ss&quot; and set &quot;batt_status_override=Idle&quot;. This means, when &quot;main/cool_mode&quot; is &quot;on&quot; (0), _status will be determined by the not_charging function (as usual), but when it&#39;s off (1), _status will be Idle, bypassing the not_charging function.
 
 // If the user were to write their own logic, it would be something like the following:
-// batt_status_override='[ $(cat main/cool_mode) -eq 1 ] &amp;&amp; printf Idle || :'
-// The "|| :" part is mandatory to avoid issues with "set -e", which acc uses extensively.
+// batt_status_override=&#39;[ $(cat main/cool_mode) -eq 1 ] &amp;&amp; printf Idle || :&#39;
+// The &quot;|| :&quot; part is mandatory to avoid issues with &quot;set -e&quot;, which acc uses extensively.
 
 
 // batt_status_workaround (bsw) # Default: true
-// With this enabled, in addition to just reading POWER_SUPPLY_STATUS, if the battery is "Charging" and current is within idle_threshold (inclusive), battery status is considered "Idle".
-// Status is considered "Discharging", if current polarity changes after calling the disable_charging function.
+// With this enabled, in addition to just reading POWER_SUPPLY_STATUS, if the battery is &quot;Charging&quot; and current is within idle_threshold (inclusive), battery status is considered &quot;Idle&quot;.
+// Status is considered &quot;Discharging&quot;, if current polarity changes after calling the disable_charging function.
 // By not relying solely on the information provided by POWER_SUPPLY_STATUS, this approach dramatically boosts compatibility.
 // This must be disabled on systems that report wrong/misleading charging current values.
 
 
 // capacity_mask (cm) # Default: false
 // Implies capacity_sync.
-// This forces Android to report "capacity = (capacity - shutdown _capacity) * 100 / (pause_capacity - shutdown_capacity)", effectively masking capacity limits.
+// This forces Android to report &quot;capacity = (capacity - shutdown _capacity) * 100 / (pause_capacity - shutdown_capacity)&quot;, effectively masking capacity limits.
 // It also prevents Android from getting capacity readings below 2%, since some systems shutdown before battery level actually drops to 0%.
-// Use case: secretly install acc on a relative's device, and enable this, so that they always see the regular 0-100% battery level scale.
+// Use case: secretly install acc on a relative&#39;s device, and enable this, so that they always see the regular 0-100% battery level scale.
 
 
-// capacity_sync (cs) # Default: auto
-// Some devices, notably from the Pixel lineup, have a capacity discrepancy issue between Android's battery service and the kernel.
+// capacity_sync (cs) # Default: false
+// Some devices, notably from the Pixel lineup, have a capacity discrepancy issue between Android&#39;s battery service and the kernel.
 // capacity_sync forces Android to report the actual battery capacity reported by the kernel.
 // Besides, it also prevents Android from getting capacity readings below 2%, since some systems shutdown before battery level actually drops to 0%.
 
@@ -1508,9 +1578,9 @@ runCmdOnPause=''
 // If later the set switch/group fails, acc unsets it and repeats the above.
 // If all switches fail to disable charging, chargingSwitch is unset and acc/d exit with error code 7.
 
-// This automated process can be disabled by appending " --" to the switch/group.
-// e.g., acc -s s="battery/charging_enabled 1 0 --"
-// "acc -ss" always appends " --".
+// This automated process can be disabled by appending &quot; --&quot; to the switch/group.
+// e.g., acc -s s=&quot;battery/charging_enabled 1 0 --&quot;
+// &quot;acc -ss&quot; always appends &quot; --&quot;.
 
 
 // cooldown_capacity (cc) # Default: 50
@@ -1534,36 +1604,36 @@ runCmdOnPause=''
 // cooldown_current (cdc) # Default: null
 // Instead of pausing charging for cooldown_pause seconds, limit the max charging current (e.g., to 500 mA).
 // cooldown_pause and cooldown_charge are optional.
-// Note: devices don't support just about any current value. Multiples of 500 mA tend to have higher compatibility.
+// Note: devices don&#39;t support just about any current value. Multiples of 500 mA tend to have higher compatibility.
 
 
 // cooldown_custom (ccu) # Default: null
-// When cooldown_capacity and/or cooldown_temp don't suit your needs, this comes to the rescue.
+// When cooldown_capacity and/or cooldown_temp don&#39;t suit your needs, this comes to the rescue.
 // It overrides the regular cooldown settings.
 
 
 // cooldown_temp (ct) # Default: 35
 // Temperature (°C) at which the cooldown cycle starts.
-// Cooldown reduces the battery degradation rate by lowering the device's temperature.
+// Cooldown reduces the battery degradation rate by lowering the device&#39;s temperature.
 // Requires cooldown_current or cooldown_charge and cooldown_pause, explained above.
 
 
 // current_workaround (cw) # Default: false
-// Only use current control files whose paths match "batt".
+// Only use current control files whose paths match &quot;batt&quot;.
 // This is necessary only if the current limit affects both input and charging current values.
-// Try this if low current values don't work.
+// Try this if low current values don&#39;t work.
 
 
 // discharge_polarity (dp) # Default: null
 // This overrides the automatic current polarity (+|-) detection.
-// It's only relevant when batt_status_workaround=true.
-// Polarity may change with a kernel upgrade. If this setting is wrong, charging control won't work if batt_status_workaround is on.
+// It&#39;s only relevant when batt_status_workaround=true.
+// Polarity may change with a kernel upgrade. If this setting is wrong, charging control won&#39;t work if batt_status_workaround is on.
 
 
 // force_off (fo) # Default: false
 // Enable this only if the set charging switch is stubbornly reset by the system.
 // Oftentimes, userspace thermal management daemons (e.g., mi_thermald) and/or driver issues are behind charging control issues.
-// Some people "systemlessly" disable certain thermal daemons with Magisk. While this is not a general recommendation, they swear by it.
+// Some people &quot;systemlessly&quot; disable certain thermal daemons with Magisk. While this is not a general recommendation, they swear by it.
 
 
 // idle_threshold (it) # Default: 40
@@ -1578,14 +1648,14 @@ runCmdOnPause=''
 // max_charging_voltage (mcv) # Default: null
 
 // Control files are automatically added by accd when the array has just one element (the milliamps/millivolts value).
-// If the second element of the array (array[1]) starts with "-", accd recognizes it as an instruction to update the control files.
+// If the second element of the array (array[1]) starts with &quot;-&quot;, accd recognizes it as an instruction to update the control files.
 // This is useful for setting/changing current and voltage limits without a frontend (--set or app).
 // Simply put, if the user has the following in their config, accd automatically adds/updates the control files:
 //   maxChargingCurrent=(1000) # Control files will be added.
-//   maxChargingVoltage=(4000 -battery/voltage_max bms/voltage_max) # Control files will be updated. The "-" is mandatory after changing the value (first element). Otherwise, the change has no effect.
+//   maxChargingVoltage=(4000 -battery/voltage_max bms/voltage_max) # Control files will be updated. The &quot;-&quot; is mandatory after changing the value (first element). Otherwise, the change has no effect.
 
 // Notes:
-//   Devices don't support just about any current value. Multiples of 500 mA tend to have higher compatibility.
+//   Devices don&#39;t support just about any current value. Multiples of 500 mA tend to have higher compatibility.
 //   The maximum current that can be set via dedicated commands is 9999 mA. For voltage, the max is 4300 mV. One can override those by manually editing the config.
 
 
@@ -1604,15 +1674,15 @@ runCmdOnPause=''
 
 // one-line scripts # Default: none
 
-// Every line that begins with ":" is interpreted as a shell script.
+// Every line that begins with &quot;:&quot; is interpreted as a shell script.
 // This feature can be useful for many things, including setting up persistent config profiles (source a file that overrides the main config).
 // All script lines are executed whenever the config is loaded/sourced.
 // This happens regularly while the daemon is running, and at least once per command run.
 
-// Note: due to user data encryption, files used in one-line scripts must reside somewhere in /data/adb/, just like acc's own data files. Ignore if your data isn't encrypted.
+// Note: due to user data encryption, files used in one-line scripts must reside somewhere in /data/adb/, just like acc&#39;s own data files. Ignore if your data isn&#39;t encrypted.
 
 // Tip: One can schedule tasks with the following construct:
-// : sleep profile; at 22:00 'acc -s pc=50 mcc=500 mcv=3900; acc -n "Switched to night profile"'
+// : sleep profile; at 22:00 &#39;acc -s pc=50 mcc=500 mcv=3900; acc -n &quot;Switched to night profile&quot;&#39;
 
 
 // pause_capacity (pc) # Default: 75
@@ -1621,19 +1691,19 @@ runCmdOnPause=''
 
 // prioritize_batt_idle_mode (pbim) # Default: true
 
-// Battery idle mode, also called "standby mode" or "charging bypass", is the ability of running off the charger, as if the battery were disconnected from the device.
-// Not all devices support this, but there's also emulated idle mode (refer to the readme).
+// Battery idle mode, also called &quot;standby mode&quot; or &quot;charging bypass&quot;, is the ability of running off the charger, as if the battery were disconnected from the device.
+// Not all devices support this, but there&#39;s also emulated idle mode (refer to the readme).
 // Emulated idle mode works on all devices.
 
 // If enabled, charging switches that support battery idle mode take precedence.
-// This is only relevant when the switch is automatically determined -- i.e., charging_switch is not set or it has no trailing " --".
+// This is only relevant when the switch is automatically determined -- i.e., charging_switch is not set or it has no trailing &quot; --&quot;.
 // In other words, this variable is only used when acc is automatically testing charging switches.
-// When set to "no", it has the opposite effect (prioritize non-idle mode).
+// When set to &quot;no&quot;, it has the opposite effect (prioritize non-idle mode).
 
 
 // reboot_resume (rr) # Default: false
 // Reboot (when capacity capacity is at or below resume_capacity) to re-enable charging.
-// This is only for devices whose switches can't re-enable charging.
+// This is only for devices whose switches can&#39;t re-enable charging.
 // A warning notification is posted 60 seconds prior, for the user to block the action, if they so please.
 
 
@@ -1653,7 +1723,7 @@ runCmdOnPause=''
 
 // run_cmd_on_pause (rcp) # Default: null
 // Run commands* after pausing charging.
-// * Usually a script ("sh some_file" or ". some_file")
+// * Usually a script (&quot;sh some_file&quot; or &quot;. some_file&quot;)
 
 
 // shutdown_capacity (sc) # Default: 5
@@ -1667,23 +1737,24 @@ runCmdOnPause=''
 
 // temp_level (tl) # Default: 0
 // This is a current limiting hack.
-// Some devices have adjustable "temperature levels". At the highest level, charging current is blocked.
+// Some devices have adjustable &quot;temperature levels&quot;. At the highest level, charging current is blocked.
 // The stock values are generally integers, ranging from 0 to 6, 7 or so.
-// For greater flexibility, this variable stores a percentage value -- which is internally mapped to the system's scales.
+// For greater flexibility, this variable stores a percentage value -- which is internally mapped to the system&#39;s scales.
 
 #/DC#
-</code></pre>
-<hr>
-<h2 id="user-content-setupusage"><a class="heading-link" href="#setupusage">SETUP/USAGE<span aria-hidden="true" class="octicon octicon-link"></span></a></h2>
+</pre></div>
+
+<hr />
+<h2 id="setupusage">SETUP/USAGE<a class="headerlink" href="#setupusage" title="Permanent link"></a></h2>
 <p>As the <a href="#default-configuration">default configuration</a> (above) suggests, ACC is designed to run out of the box, with little to no customization/intervention.</p>
 <p>The only command you have to remember is <code>acc</code>.
-It's a wizard you'll either love or hate.</p>
+It&rsquo;s a wizard you&rsquo;ll either love or hate.</p>
 <p>If you feel uncomfortable with the command line, skip this section and use a front-end app instead.</p>
 <p>Alternatively, you can use a <code>text editor</code> to modify <code>/data/adb/vr25/acc-data/config.txt</code>.
 The config file itself has configuration instructions.
 Those are the same found in the <a href="#default-configuration">default configuration</a> section, above.</p>
-<h3 id="user-content-terminal-commands"><a class="heading-link" href="#terminal-commands">Terminal Commands<span aria-hidden="true" class="octicon octicon-link"></span></a></h3>
-<pre><code>#TC#
+<h3 id="terminal-commands">Terminal Commands<a class="headerlink" href="#terminal-commands" title="Permanent link"></a></h3>
+<div class="highlight"><pre>#TC#
 
 Usage
 
@@ -1708,15 +1779,15 @@ Usage
   acc[d] -x [options] [args]   Sets log=/sdcard/Download/acc[d]-${device}.log; useful for debugging unwanted reboots
 
   A custom config path can be specified as first parameter (second if -x is used).
-  If the file doesn't exist, the current config is cloned.
+  If the file doesn&#39;t exist, the current config is cloned.
     e.g.,
       acc /data/acc-night-config.txt --set pause_capacity=45 resume_capacity=43
       acc /data/acc-night-config.txt --set --current 500
       accd /data/acc-night-config.txt --init
 
   Notes regarding accd:
-    - The order of "--init|-i" does not matter.
-    - The config path string shall not contain "--init|-i".
+    - The order of &quot;--init|-i&quot; does not matter.
+    - The config path string shall not contain &quot;--init|-i&quot;.
 
 
 Options
@@ -1731,8 +1802,8 @@ Options
 
   -c|--config a|d string|regex   Append (a) or delete (d) string/pattern to/from config
     e.g.,
-      acc -c a ": sleep profile; at 22:00 acc -s pc=50 mcc=500 mcv=3900" (append a schedule)
-      acc -c d sleep (remove all lines matching "sleep")
+      acc -c a &quot;: sleep profile; at 22:00 acc -s pc=50 mcc=500 mcv=3900&quot; (append a schedule)
+      acc -c d sleep (remove all lines matching &quot;sleep&quot;)
 
   -d|--disable [#%, #s, #m, #h or #mv (optional)]   Disable charging
     e.g.,
@@ -1741,13 +1812,13 @@ Options
       acc -d 4000mv (do not recharge until battery voltage &lt;= 4000mV)
 
   -D|--daemon   Print daemon status, (and if running) version and PID
-    e.g., acc -D (alias: "accd,")
+    e.g., acc -D (alias: &quot;accd,&quot;)
 
   -D|--daemon [start|stop|restart]   Manage daemon
     e.g.,
       acc -D start (alias: accd)
       acc -D restart (alias: accd)
-      accd -D stop (alias: "accd.")
+      accd -D stop (alias: &quot;accd.&quot;)
 
   -e|--enable [#%, #s, #m, #h or #mv (optional)]   Enable charging
     e.g.,
@@ -1761,28 +1832,28 @@ Options
       acc -f (charge to 100%)
       acc -f -sc 500 (charge to 100% with a 500 mA limit)
 
-  -F|--flash ["zip_file"]   Flash any zip files whose update-binary is a shell script
+  -F|--flash [&quot;zip_file&quot;]   Flash any zip files whose update-binary is a shell script
     e.g.,
       acc -F (lauches a zip flashing wizard)
-      acc -F "file1" "file2" "fileN" ... (install multiple zips)
-      acc -F "/sdcard/Download/Magisk-v20.0(20000).zip"
+      acc -F &quot;file1&quot; &quot;file2&quot; &quot;fileN&quot; ... (install multiple zips)
+      acc -F &quot;/sdcard/Download/Magisk-v20.0(20000).zip&quot;
 
   -h|--help [[editor] [editor_opts] | g for GUI]   Print this help text, plus the config
 
   -H|--health &lt;mAh&gt;   Print estimated battery health
 
-  -i|--info [case insensitive egrep regex (default: ".")]   Show battery info
+  -i|--info [case insensitive egrep regex (default: &quot;.&quot;)]   Show battery info
     e.g.,
       acc -i
       acc -i volt
-      acc -i 'volt\|curr'
+      acc -i &#39;volt\|curr&#39;
 
   -l|--log [-a|--acc] [[editor] [editor_opts] | g for GUI]   Print/edit accd log (default) or acc log (-a|--acc)
     e.g.,
       acc -l (same as acc -l less)
       acc -l rm
       acc -l -a cat
-      acc -l grep ': ' (show explicit errors only)
+      acc -l grep &#39;: &#39; (show explicit errors only)
 
   -la   Same as -l -a
 
@@ -1791,8 +1862,8 @@ Options
 
   -le   Same as -l -e
 
-  -n|--notif [["STRING" (default: ":)")] [USER ID (default: 2000 (shell))]]   Post Android notification; may not work on all systems
-    e.g., acc -n "Hello, World!"
+  -n|--notif [[&quot;STRING&quot; (default: &quot;:)&quot;)] [USER ID (default: 2000 (shell))]]   Post Android notification; may not work on all systems
+    e.g., acc -n &quot;Hello, World!&quot;
 
   -p|--parse [&lt;base file&gt; &lt;file to parse&gt;] | &lt;file to parse&gt;]   Helps find potential charging switches quickly, for any device
     e.g.,
@@ -1808,12 +1879,12 @@ Options
   -s|--set   Print current config
     e.g., acc -s
 
-  -s|--set prop1=value "prop2=value1 value2"   Set [multiple] properties
+  -s|--set prop1=value &quot;prop2=value1 value2&quot;   Set [multiple] properties
     e.g.,
       acc -s charging_switch=
       acc -s pause_capacity=60 resume_capacity=55 (shortcuts: acc -s pc=60 rc=55, acc 60 55)
-      acc -s "charging_switch=battery/charging_enabled 1 0" resume_capacity=55 pause_capacity=60
-    Note: all properties have short aliases for faster typing; run "acc -c cat" to see them
+      acc -s &quot;charging_switch=battery/charging_enabled 1 0&quot; resume_capacity=55 pause_capacity=60
+    Note: all properties have short aliases for faster typing; run &quot;acc -c cat&quot; to see them
 
   -s|--set c|--current [milliamps|-]   Set/print/restore_default max charging current (range: 0-9999 Milliamps)
     e.g.,
@@ -1828,18 +1899,18 @@ Options
 
   -sl   Same as above
 
-  -s|--set d|--print-default [egrep regex (default: ".")]   Print default config without blank lines
+  -s|--set d|--print-default [egrep regex (default: &quot;.&quot;)]   Print default config without blank lines
     e.g.,
       acc -s d (print entire defaul config)
-      acc -s d cap (print only entries matching "cap")
+      acc -s d cap (print only entries matching &quot;cap&quot;)
 
-  -sd [egrep regex (default: ".")]   Same as above
+  -sd [egrep regex (default: &quot;.&quot;)]   Same as above
 
-  -s|--set p|--print [egrep regex (default: ".")]   Print current config without blank lines (refer to previous examples)
+  -s|--set p|--print [egrep regex (default: &quot;.&quot;)]   Print current config without blank lines (refer to previous examples)
 
-  -sp [egrep regex (default: ".")]   Same as above
+  -sp [egrep regex (default: &quot;.&quot;)]   Same as above
 
-  -s|--set r|--reset [a]   Restore default config ("a" is for "all": config and control file blacklists, essentially a hard reset)
+  -s|--set r|--reset [a]   Restore default config (&quot;a&quot; is for &quot;all&quot;: config and control file blacklists, essentially a hard reset)
     e.g.,
       acc -s r
 
@@ -1868,14 +1939,14 @@ Options
   -t|--test [ctrl_file1 on off [ctrl_file2 on off]]   Test custom charging switches
     e.g.,
       acc -t battery/charging_enabled 1 0
-      acc -t /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0 ("::" is a placeholder for " " - MTK only)
+      acc -t /proc/mtk_battery_cmd/current_cmd 0::0 0::1 /proc/mtk_battery_cmd/en_power_path 1 0 (&quot;::&quot; is a placeholder for &quot; &quot; - MTK only)
 
   -t|--test [file]   Test charging switches from a file (default: /ch-switches)
     e.g.,
       acc -t (test known switches)
       acc -t /sdcard/experimental_switches.txt (test custom/foreign switches)
 
-  -t|--test [p|parse]   Parse potential charging switches from the power supply log (as "acc -p"), test them all, and add the working ones to the list of known switches
+  -t|--test [p|parse]   Parse potential charging switches from the power supply log (as &quot;acc -p&quot;), test them all, and add the working ones to the list of known switches
     Implies -x, as acc -x -t p
     e.g., acc -t p
 
@@ -1912,20 +1983,20 @@ Exit Codes
   2. Incorrect command syntax
   3. Missing busybox binary
   4. Not running as root
-  5. Update available ("--upgrade")
-  6. No update available ("--upgrade")
+  5. Update available (&quot;--upgrade&quot;)
+  6. No update available (&quot;--upgrade&quot;)
   7. Failed to disable charging
-  8. Daemon already running ("--daemon start")
-  9. Daemon not running ("--daemon" and "--daemon stop")
+  8. Daemon already running (&quot;--daemon start&quot;)
+  9. Daemon not running (&quot;--daemon&quot; and &quot;--daemon stop&quot;)
   10. All charging switches fail (--test)
   11. Current (mA) out of 0-9999 range
   12. Initialization failed
   13. Failed to lock /acc.lock
-  14. ACC won't initialize, because the Magisk module disable flag is set
+  14. ACC won&#39;t initialize, because the Magisk module disable flag is set
   15. Idle mode is supported (--test)
   16. Failed to enable charging (--test)
 
-  Logs are exported automatically ("--log --export") on exit codes 1, 2 and 7.
+  Logs are exported automatically (&quot;--log --export&quot;) on exit codes 1, 2 and 7.
 
 
 Tips
@@ -1933,19 +2004,20 @@ Tips
   Commands can be chained for extended functionality.
     e.g., charge for 30 minutes, pause charging for 6 hours, charge to 85% and restart the daemon
     acc -e 30m &amp;&amp; acc -d 6h &amp;&amp; acc -e 85 &amp;&amp; accd
-  One can take advantage of one-line scripts and the built-in "at" function to schedule profiles (refer back to -c|--config).
+  One can take advantage of one-line scripts and the built-in &quot;at&quot; function to schedule profiles (refer back to -c|--config).
 
   Sample profile
     acc -s pc=60 mcc=500 mcv=3900
       This keeps battery capacity between 55-60%, limits charging current to 500 mA and voltage to 3900 millivolts.
-      It's great for nighttime and "forever-plugged".
+      It&#39;s great for nighttime and &quot;forever-plugged&quot;.
 
   Refer to acc -r (or --readme) for the full documentation (recommended)
 
 #/TC#
-</code></pre>
-<hr>
-<h2 id="user-content-plugins"><a class="heading-link" href="#plugins">PLUGINS<span aria-hidden="true" class="octicon octicon-link"></span></a></h2>
+</pre></div>
+
+<hr />
+<h2 id="plugins">PLUGINS<a class="headerlink" href="#plugins" title="Permanent link"></a></h2>
 <p>Those are scripts that override functions and some global variables.
 They should be placed in <code>/data/adb/vr25/acc-data/plugins/</code>.
 Files are sorted and sourced.
@@ -1955,13 +2027,13 @@ Hidden files and those without the <code>.sh</code> extension are ignored.</p>
 Those override the permanent.</p>
 <p>A daemon restart is required to load new/modified plugins.</p>
 <p>An alternative to plugins are one-line scripts. Refer to the <a href="#default-configuration">default configuration</a> section above.</p>
-<hr>
-<h2 id="user-content-notestips-for-front-end-developers"><a class="heading-link" href="#notestips-for-front-end-developers">NOTES/TIPS FOR FRONT-END DEVELOPERS<span aria-hidden="true" class="octicon octicon-link"></span></a></h2>
-<h3 id="user-content-basics"><a class="heading-link" href="#basics">Basics<span aria-hidden="true" class="octicon octicon-link"></span></a></h3>
+<hr />
+<h2 id="notestips-for-front-end-developers">NOTES/TIPS FOR FRONT-END DEVELOPERS<a class="headerlink" href="#notestips-for-front-end-developers" title="Permanent link"></a></h2>
+<h3 id="basics">Basics<a class="headerlink" href="#basics" title="Permanent link"></a></h3>
 <p>ACC does not require KernelSU/Magisk.
 Any root solution works, as long as busybox is installed.</p>
 <p>Use <code>/dev/.vr25/acc/acca</code> instead of regular <code>acc</code>.
-It's optimized for front-ends, guaranteed to be readily available after installation/upgrades and significantly faster than its <code>acc</code> counterpart.
+It&rsquo;s optimized for front-ends, guaranteed to be readily available after installation/upgrades and significantly faster than its <code>acc</code> counterpart.
 <code>acca --set prop1=bla prop2="bla bla" ...</code> runs asynchronously (non-blocking mode) - meaning, multiple instances of it work in parallel.</p>
 <p>It may be best to use long options over short equivalents - e.g., <code>--set charging_switch=</code> instead of <code>-s s=</code>.
 This makes code more readable (less cryptic).</p>
@@ -1970,71 +2042,72 @@ Provide additional information (trusted) where appropriate.
 Explain settings/concepts as clearly and with as few words as possible.</p>
 <p>Take advantage of acc exit codes.
 Refer back to <code>SETUP/USAGE &gt; [Terminal Commands](#terminal-commands) &gt; Exit Codes</code>.</p>
-<h3 id="user-content-installingupgrading-acc"><a class="heading-link" href="#installingupgrading-acc">Installing/Upgrading ACC<span aria-hidden="true" class="octicon octicon-link"></span></a></h3>
+<h3 id="installingupgrading-acc">Installing/Upgrading ACC<a class="headerlink" href="#installingupgrading-acc" title="Permanent link"></a></h3>
 <p>This should be trivial.
 The simplest way is flashing acc from a KernelSU/Magisk module manager.</p>
 <p>Alternatively, <code>install.sh</code>, <code>install-online.sh</code> or <code>install-tarball.sh</code> can be used.
 For details, refer back to <a href="#install-from-local-source-or-github">install from local source or GitHub</a>.</p>
 <p>Developers can also use the <em>updateJSON</em> API.
-The front-end downloads and parses <a href="https://raw.githubusercontent.com/VR-25/acc/master/module.json" rel="nofollow">this JSON file</a>.
+The front-end downloads and parses <a href="https://raw.githubusercontent.com/VR-25/acc/master/module.json">this JSON file</a>.
 The format is as follows:</p>
-<pre><code>{
-    "busybox": "https://github.com/Magisk-Modules-Repo/busybox-ndk",
-    "changelog": "https://raw.githubusercontent.com/VR-25/acc/master/changelog.md",
-    "curl": "https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/tree/master/curl",
-    "tgz": "https://github.com/VR-25/acc/releases/download/$version/acc_${version}_${versionCode}.tgz",
-    "tgzInstaller": "https://github.com/VR-25/acc/releases/download/$version/install-tarball.sh",
-    "version": "STRING",
-    "versionCode": INT,
-    "zipUrl": "https://github.com/VR-25/acc/releases/download/$version/acc_${version}_${versionCode}.zip"
+<div class="highlight"><pre>{
+    &quot;busybox&quot;: &quot;https://github.com/Magisk-Modules-Repo/busybox-ndk&quot;,
+    &quot;changelog&quot;: &quot;https://raw.githubusercontent.com/VR-25/acc/master/changelog.md&quot;,
+    &quot;curl&quot;: &quot;https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/tree/master/curl&quot;,
+    &quot;tgz&quot;: &quot;https://github.com/VR-25/acc/releases/download/$version/acc_${version}_${versionCode}.tgz&quot;,
+    &quot;tgzInstaller&quot;: &quot;https://github.com/VR-25/acc/releases/download/$version/install-tarball.sh&quot;,
+    &quot;version&quot;: &quot;STRING&quot;,
+    &quot;versionCode&quot;: INT,
+    &quot;zipUrl&quot;: &quot;https://github.com/VR-25/acc/releases/download/$version/acc_${version}_${versionCode}.zip&quot;
 }
-</code></pre>
-<h3 id="user-content-uninstalling-acc"><a class="heading-link" href="#uninstalling-acc">Uninstalling ACC<span aria-hidden="true" class="octicon octicon-link"></span></a></h3>
+</pre></div>
+
+<h3 id="uninstalling-acc">Uninstalling ACC<a class="headerlink" href="#uninstalling-acc" title="Permanent link"></a></h3>
 <p>Either run <code>/dev/.vr25/acc/uninstall</code> (no reboot required) or uninstall from KernelSU/Magisk module manager and reboot.</p>
-<h3 id="user-content-initializing-acc"><a class="heading-link" href="#initializing-acc">Initializing ACC<span aria-hidden="true" class="octicon octicon-link"></span></a></h3>
+<h3 id="initializing-acc">Initializing ACC<a class="headerlink" href="#initializing-acc" title="Permanent link"></a></h3>
 <p>On <code>boot_completed</code> receiver and <code>main activity</code>, run:</p>
 <p><code>test -f /dev/.vr25/acc/acca || /data/adb/vr25/acc/service.sh</code></p>
 <p>Explanation:</p>
-<p>ACC's working environment must be initialized - i.e., by updating the stock charging config (for restoring without a reboot) and pre-processing data for greater efficiency.
+<p>ACC&rsquo;s working environment must be initialized - i.e., by updating the stock charging config (for restoring without a reboot) and pre-processing data for greater efficiency.
 This is done exactly once after boot.
 If it were done only after installation/upgrade, one would have to reinstall/upgrade acc after every kernel update.
-That's because kernel updates often change the default power supply drivers' settings.</p>
-<p>Since acc's core executables are dynamic ([expected to] change regularly), those are linked to <code>/dev/.vr25/acc/</code> to preserve the APIs.
+That&rsquo;s because kernel updates often change the default power supply drivers&rsquo; settings.</p>
+<p>Since acc&rsquo;s core executables are dynamic ([expected to] change regularly), those are linked to <code>/dev/.vr25/acc/</code> to preserve the APIs.
 The links must be recreated once after boot (since <code>/dev/</code> is volatile).</p>
 <p><code>accd</code> is a symbolic link to <code>service.sh</code>.
 If service.sh is executed every time the <code>main activity</code> is launched, accd will be repeatedly restarted for no reason. Thus, we run <code>test -f /dev/.vr25/acc/acca || /data/adb/vr25/acc/service.sh</code>, as opposed to just <code>/data/adb/vr25/acc/service.sh</code></p>
 <p>Notes</p>
 <ul>
-<li>This "manual" initialization is only <em>strictly</em> required for non KernelSU/Magisk installs -- and only once per boot session. In other words, KernelSU and Magisk already run <code>service.sh</code> shortly after boot.</li>
-<li>ACC's installer always initializes it.</li>
+<li>This &ldquo;manual&rdquo; initialization is only <em>strictly</em> required for non KernelSU/Magisk installs &ndash; and only once per boot session. In other words, KernelSU and Magisk already run <code>service.sh</code> shortly after boot.</li>
+<li>ACC&rsquo;s installer always initializes it.</li>
 </ul>
-<h3 id="user-content-managing-acc"><a class="heading-link" href="#managing-acc">Managing ACC<span aria-hidden="true" class="octicon octicon-link"></span></a></h3>
+<h3 id="managing-acc">Managing ACC<a class="headerlink" href="#managing-acc" title="Permanent link"></a></h3>
 <p>As already stated, front-ends should use the executable <code>/dev/.vr25/acc/acca</code>.
 Refer to the <a href="#default-configuration">default configuration</a> and <a href="#terminal-commands">terminal commands</a> sections above.</p>
 <p>The default config reference has a section entitled variable aliases/shortcuts.
 Use ONLY those with <code>/dev/.vr25/acc/acca --set</code>!</p>
 <p>To clarify, <code>/dev/.vr25/acc/acca --set chargingSwitch=...</code> is not supported!
 Use either <code>s</code> or <code>charging_switch</code>.
-<code>chargingSwitch</code> and all the other "camelcase" style variables are for internal use only (i.e., private APIs).</p>
+<code>chargingSwitch</code> and all the other &ldquo;camelcase&rdquo; style variables are for internal use only (i.e., private APIs).</p>
 <p>Do not parse the config file directly.
 Use <code>--set --print ['regex']</code> and <code>--set --print-default ['regex']</code>.
 Refer back to <a href="#terminal-commands">terminal commands</a> for details.</p>
-<h3 id="user-content-the-output-of---info"><a class="heading-link" href="#the-output-of---info">The Output of --info<span aria-hidden="true" class="octicon octicon-link"></span></a></h3>
+<h3 id="the-output-of-info">The Output of &ndash;info<a class="headerlink" href="#the-output-of-info" title="Permanent link"></a></h3>
 <p>It comes from the kernel, not acc itself.
 Some kernels provide more information than others.</p>
 <p>Most of the lines are either unnecessary (e.g., type: everyone knows that already) or unreliable (e.g., health, speed).</p>
-<p>Here's what one should focus on:</p>
-<pre><code>HEALTH=Good # Battery health
+<p>Here&rsquo;s what one should focus on:
+<div class="highlight"><pre>HEALTH=Good # Battery health
 CAPACITY=50 # Battery level, 0-100
 CURRENT_NOW=0 # Charging current (Amps)
 POWER_NOW=0 # (CURRENT_NOW * VOLTAGE_NOW) (Watts)
 STATUS=Charging # Charging, Discharging or Idle (Not charging)
 TEMP=281 # Always in (ºC * 10)
 VOLTAGE_NOW=3.861 # Charging voltage (Volts)
-</code></pre>
-<p>Note: the power information refers to what is actually supplied to the battery, not what's coming from the adapter.
+</pre></div>
+Note: the power information refers to what is actually supplied to the battery, not what&rsquo;s coming from the adapter.
 External power is always converted before it reaches the battery.</p>
-<h3 id="user-content-profiles"><a class="heading-link" href="#profiles">Profiles<span aria-hidden="true" class="octicon octicon-link"></span></a></h3>
+<h3 id="profiles">Profiles<a class="headerlink" href="#profiles" title="Permanent link"></a></h3>
 <p>Those are simply different config files.
 A config path can be supplied as first argument to <code>acca</code> and second to <code>accd</code> executables.</p>
 <p>Examples:</p>
@@ -2047,27 +2120,27 @@ A config path can be supplied as first argument to <code>acca</code> and second 
 <p><code>/dev/.vr25/acc/accd --init /path/to/new/file</code> (the daemon is restarted with the new config.)</p>
 <p><em>Back to the main config:</em></p>
 <p><code>/dev/.vr25/acc/accd --init</code></p>
-<h3 id="user-content-more"><a class="heading-link" href="#more">More<span aria-hidden="true" class="octicon octicon-link"></span></a></h3>
+<h3 id="more">More<a class="headerlink" href="#more" title="Permanent link"></a></h3>
 <p>ACC daemon does not have to be restarted after making changes to the config.
 It picks up new changes within seconds.</p>
-<hr>
-<h2 id="user-content-troubleshooting"><a class="heading-link" href="#troubleshooting">TROUBLESHOOTING<span aria-hidden="true" class="octicon octicon-link"></span></a></h2>
-<h3 id="user-content-acc--t-results-are-inconsistent"><a class="heading-link" href="#acc--t-results-are-inconsistent">acc -t Results Are Inconsistent<span aria-hidden="true" class="octicon octicon-link"></span></a></h3>
-<p>Refer to "default config &gt; batt_status_workaround".</p>
-<h3 id="user-content-battery-capacity--level-doesnt-seem-right"><a class="heading-link" href="#battery-capacity--level-doesnt-seem-right">Battery Capacity (% Level) Doesn't Seem Right<span aria-hidden="true" class="octicon octicon-link"></span></a></h3>
-<p>When Android's battery level differs from that of the kernel, ACC daemon automatically syncs it by stopping the battery service and feeding it the real value every few seconds.</p>
+<hr />
+<h2 id="troubleshooting">TROUBLESHOOTING<a class="headerlink" href="#troubleshooting" title="Permanent link"></a></h2>
+<h3 id="acc-t-results-are-inconsistent">acc -t Results Are Inconsistent<a class="headerlink" href="#acc-t-results-are-inconsistent" title="Permanent link"></a></h3>
+<p>Refer to &ldquo;default config &gt; batt_status_workaround&rdquo;.</p>
+<h3 id="battery-capacity-level-doesnt-seem-right">Battery Capacity (% Level) Doesn&rsquo;t Seem Right<a class="headerlink" href="#battery-capacity-level-doesnt-seem-right" title="Permanent link"></a></h3>
+<p>When Android&rsquo;s battery level differs from that of the kernel, ACC daemon automatically syncs it by stopping the battery service and feeding it the real value every few seconds.</p>
 <p>Some Pixel devices are known for having battery level discrepancies.</p>
 <p>If your device shuts down before the battery is actually empty, <code>capacity_sync</code> or <code>capacity_mask</code> may help.
 Refer to the <a href="#default-configuration">default configuration</a> section above for details.</p>
-<h3 id="user-content-charging-switch"><a class="heading-link" href="#charging-switch">Charging Switch<span aria-hidden="true" class="octicon octicon-link"></span></a></h3>
-<p>By default, ACC uses whichever <a href="https://github.com/VR-25/acc/blob/dev/acc/install/ctrl-files.sh">charging switch</a> works ("automatic" mode).
-However, things don't always go well.</p>
+<h3 id="charging-switch">Charging Switch<a class="headerlink" href="#charging-switch" title="Permanent link"></a></h3>
+<p>By default, ACC uses whichever <a href="https://github.com/VR-25/acc/blob/dev/acc/install/ctrl-files.sh">charging switch</a> works (&ldquo;automatic&rdquo; mode).
+However, things don&rsquo;t always go well.</p>
 <ul>
 <li>
 <p>Some switches are unreliable under certain conditions (e.g., while the screen is off).</p>
 </li>
 <li>
-<p>Others hold a <a href="https://duckduckgo.com/lite/?q=wakelock" rel="nofollow">wakelock</a>.
+<p>Others hold a <a href="https://duckduckgo.com/lite/?q=wakelock">wakelock</a>.
 This causes fast battery drain when charging is paused and the device remains plugged.</p>
 </li>
 <li>
@@ -2079,63 +2152,63 @@ Refer to config &gt; force_off.</p>
 <p>High CPU load (drains battery) was also reported.</p>
 </li>
 <li>
-<p>In the worst case scenario, the battery status is reported as <code>discharging</code>, while it's actually <code>charging</code>.</p>
+<p>In the worst case scenario, the battery status is reported as <code>discharging</code>, while it&rsquo;s actually <code>charging</code>.</p>
 </li>
 </ul>
 <p>In such situations, one has to enforce a switch that works as expected.
-Here's how to do it:</p>
+Here&rsquo;s how to do it:</p>
 <ol>
 <li>Run <code>acc -t</code> to see which switches work.</li>
 <li>Run <code>acc -ss</code> to enforce a working switch.</li>
-<li>Test the reliability of the set switch. If it doesn't work properly, try another.</li>
+<li>Test the reliability of the set switch. If it doesn&rsquo;t work properly, try another.</li>
 </ol>
 <p>Since not everyone is tech savvy, ACC daemon automatically applies settings for certain devices to minimize charging switch issues.
 These are in <code>acc/oem-custom.sh</code>.</p>
-<h3 id="user-content-custom-max-charging-voltage-and-current-limits"><a class="heading-link" href="#custom-max-charging-voltage-and-current-limits">Custom Max Charging Voltage And Current Limits<span aria-hidden="true" class="octicon octicon-link"></span></a></h3>
+<h3 id="custom-max-charging-voltage-and-current-limits">Custom Max Charging Voltage And Current Limits<a class="headerlink" href="#custom-max-charging-voltage-and-current-limits" title="Permanent link"></a></h3>
 <p>Unfortunately, not all kernels support these features.
 While custom current limits are supported by most (at least to some degree), voltage tweaking support is <em>exceptionally</em> rare.</p>
-<p>That said, the existence of potential voltage/current control file doesn't necessarily mean these are writable* or the features, supported.</p>
+<p>That said, the existence of potential voltage/current control file doesn&rsquo;t necessarily mean these are writable* or the features, supported.</p>
 <p>* Root is not enough.
 Kernel level permissions forbid write access to certain interfaces.</p>
 <p>Sometimes, restoring the default current may not work without a system reboot.
 A workaround is setting the default max current value or any arbitrary high number (e.g., 9000 mA).
-Don't worry about frying things.
+Don&rsquo;t worry about frying things.
 The device will only draw the max it can take.</p>
 <p><strong>WARNING</strong>: limiting voltage causes battery state of charge (SoC) deviation on some devices.
 The  battery management system self-calibrates constantly, though.
-Thus, as soon as the default voltage limit is restored, it'll start "fixing" itself.</p>
+Thus, as soon as the default voltage limit is restored, it&rsquo;ll start &ldquo;fixing&rdquo; itself.</p>
 <p>Limiting current, on the other hand, has been found to be universally safe.
 Some devices do not support just any current value, though.
-That's not to say out-of-range values cause issues.
+That&rsquo;s not to say out-of-range values cause issues.
 These are simply ignored.</p>
-<p>If low current values don't work, try setting <code>current_workaround=true</code>.
+<p>If low current values don&rsquo;t work, try setting <code>current_workaround=true</code>.
 Refer to the <a href="#default-configuration">default configuration</a> section for details.</p>
 <p>One can override the default lists of max charging current/voltage control files by copying <code>acc/ctrl-files.sh</code> to <code>/data/adb/vr25/acc-data/plugins/</code> and modifying it accordingly.
 Note that default limits must be restored prior to that to avoid the need for a system reboot.
 Reminder: a daemon restart is required to load new/modified plugins.</p>
-<h3 id="user-content-diagnosticslogs"><a class="heading-link" href="#diagnosticslogs">Diagnostics/Logs<span aria-hidden="true" class="octicon octicon-link"></span></a></h3>
+<h3 id="diagnosticslogs">Diagnostics/Logs<a class="headerlink" href="#diagnosticslogs" title="Permanent link"></a></h3>
 <p>Volatile logs (gone on reboot) are stored in <code>/dev/.vr25/acc/</code> (<code>.log</code> files only).
 Persistent logs reside in <code>/data/adb/vr25/acc-data/logs/</code>.</p>
-<p><code>acc -le</code> exports all acc logs, plus Magisk's and extras to <code>/data/adb/acc-data/logs/acc-$device_codename.tgz</code>.
+<p><code>acc -le</code> exports all acc logs, plus Magisk&rsquo;s and extras to <code>/data/adb/acc-data/logs/acc-$device_codename.tgz</code>.
 The logs do not contain any personal information and are never automatically sent to the developer.
 Automatic exporting (local) happens under specific conditions (refer back to <code>SETUP/USAGE &gt; Terminal Commands &gt; Exit Codes</code>).</p>
-<h3 id="user-content-install-upgrade-stop-and-restart-processes-seem-to-take-too-long"><a class="heading-link" href="#install-upgrade-stop-and-restart-processes-seem-to-take-too-long">Install, Upgrade, Stop and Restart Processes Seem to Take Too Long<span aria-hidden="true" class="octicon octicon-link"></span></a></h3>
+<h3 id="install-upgrade-stop-and-restart-processes-seem-to-take-too-long">Install, Upgrade, Stop and Restart Processes Seem to Take Too Long<a class="headerlink" href="#install-upgrade-stop-and-restart-processes-seem-to-take-too-long" title="Permanent link"></a></h3>
 <p>The daemon stop process implies complete reversal of changes made to the charging management system.
 Sometimes, <strong>this requires the charger to be plugged</strong>.
-That's because some devices have kernel bugs and/or bad charging driver implementations.
+That&rsquo;s because some devices have kernel bugs and/or bad charging driver implementations.
 That said, accd is always stopped <em>gracefully</em> to ensure the restoration takes place.
-One who knows what they're doing, can force-stop accd by running <code>pkill -9 -f accd</code>.</p>
-<h3 id="user-content-kernel-panic-and-spontaneous-reboots"><a class="heading-link" href="#kernel-panic-and-spontaneous-reboots">Kernel Panic and Spontaneous Reboots<span aria-hidden="true" class="octicon octicon-link"></span></a></h3>
+One who knows what they&rsquo;re doing, can force-stop accd by running <code>pkill -9 -f accd</code>.</p>
+<h3 id="kernel-panic-and-spontaneous-reboots">Kernel Panic and Spontaneous Reboots<a class="headerlink" href="#kernel-panic-and-spontaneous-reboots" title="Permanent link"></a></h3>
 <p>Control files that trigger these are automatically backlisted (commented out in <code>/data/adb/acc-data/logs/write.log</code>).</p>
-<h3 id="user-content-restore-default-config"><a class="heading-link" href="#restore-default-config">Restore Default Config<span aria-hidden="true" class="octicon octicon-link"></span></a></h3>
+<h3 id="restore-default-config">Restore Default Config<a class="headerlink" href="#restore-default-config" title="Permanent link"></a></h3>
 <p>This can potentially save a lot of time and grief.</p>
 <p><code>acc --set --reset</code>, <code>acc -sr</code> or <code>rm /data/adb/vr25/acc-data/config.txt</code> (failsafe)</p>
-<h3 id="user-content-samsung-charging-always-stops-at-70-capacity"><a class="heading-link" href="#samsung-charging-always-stops-at-70-capacity">Samsung, Charging <em>Always</em> Stops at 70% Capacity<span aria-hidden="true" class="octicon octicon-link"></span></a></h3>
+<h3 id="samsung-charging-always-stops-at-70-capacity">Samsung, Charging <em>Always</em> Stops at 70% Capacity<a class="headerlink" href="#samsung-charging-always-stops-at-70-capacity" title="Permanent link"></a></h3>
 <p>This is a device-specific issue (by design?).
-It's caused by the <em>store_mode</em> charging control file.
+It&rsquo;s caused by the <em>store_mode</em> charging control file.
 Switch to <em>batt_slate_mode</em> to prevent it.
 Refer back to <a href="#charging-switch">charging switch</a> above for details on that.</p>
-<h3 id="user-content-slow-charging"><a class="heading-link" href="#slow-charging">Slow Charging<span aria-hidden="true" class="octicon octicon-link"></span></a></h3>
+<h3 id="slow-charging">Slow Charging<a class="headerlink" href="#slow-charging" title="Permanent link"></a></h3>
 <p>At least one of the following may be the cause:</p>
 <ul>
 <li>Charging current and/or voltage limits</li>
@@ -2143,29 +2216,29 @@ Refer back to <a href="#charging-switch">charging switch</a> above for details o
 <li>Troublesome charging switch (refer back to <code>TROUBLESHOOTING &gt; Charging Switch</code>)</li>
 <li>Weak adapter and/or power cord</li>
 </ul>
-<h3 id="user-content-unable-to-charge"><a class="heading-link" href="#unable-to-charge">Unable to Charge<span aria-hidden="true" class="octicon octicon-link"></span></a></h3>
+<h3 id="unable-to-charge">Unable to Charge<a class="headerlink" href="#unable-to-charge" title="Permanent link"></a></h3>
 <p>Refer back to the <a href="#warnings">warnings</a> section above.</p>
-<h3 id="user-content-unexpected-reboots"><a class="heading-link" href="#unexpected-reboots">Unexpected Reboots<span aria-hidden="true" class="octicon octicon-link"></span></a></h3>
+<h3 id="unexpected-reboots">Unexpected Reboots<a class="headerlink" href="#unexpected-reboots" title="Permanent link"></a></h3>
 <p>Wrong/troublesome charging control files may trigger unwanted reboots.
 ACC blacklist [some of] these automatically (registered in <code>/data/adb/vr25/acc-data/logs/write.log</code>, with a leading hashtag).
 Sometimes, there may be false positives in there - i.e., due to unexpected reboots caused by something else. Thus, if a control file that used to work, suddenly does not, see if it was blacklisted (<code>acc -t</code> also reveals blacklisted switches).
 Send <code>write.log</code> to the developer once the reboots have stopped.</p>
-<h3 id="user-content-warp-vooc-and-other-fast-charging-tech"><a class="heading-link" href="#warp-vooc-and-other-fast-charging-tech">WARP, VOOC and Other Fast Charging Tech<span aria-hidden="true" class="octicon octicon-link"></span></a></h3>
+<h3 id="warp-vooc-and-other-fast-charging-tech">WARP, VOOC and Other Fast Charging Tech<a class="headerlink" href="#warp-vooc-and-other-fast-charging-tech" title="Permanent link"></a></h3>
 <p>Charging switches may not work reliably with the original power adapter.
 This has nothing to do with acc.
-It's bad design by the OEMs themselves.
+It&rsquo;s bad design by the OEMs themselves.
 If you face issues, either try a different charging switch or a regular power brick (a.k.a., slow charger).
 You may also want to try stopping charging by limiting current/voltage.</p>
-<h3 id="user-content-why-did-accd-stop"><a class="heading-link" href="#why-did-accd-stop">Why Did accd Stop?<span aria-hidden="true" class="octicon octicon-link"></span></a></h3>
+<h3 id="why-did-accd-stop">Why Did accd Stop?<a class="headerlink" href="#why-did-accd-stop" title="Permanent link"></a></h3>
 <p>Run <code>acc -l tail</code> to find out.
 This will print the last 10 lines of the daemon log file.</p>
 <p>A relatively common exit code is <code>7</code> - meaning all charging switches failed to disable charging.
 It usually happens due to kernel issues (refer to the previous subsection - <a href="#charging-switch">charging switch</a>).
 The daemon only stops due to this if acc is set to automatically determine the switches to use (default behavior).
 Manually setting a working switch with <code>acc -ss</code> or <code>acc -s s="SWITCHES GO HERE --"</code> disables auto mode and prevents accd from stopping if the set the charging switches fail.</p>
-<hr>
-<h2 id="user-content-power-supply-logs-help-needed"><a class="heading-link" href="#power-supply-logs-help-needed">POWER SUPPLY LOGS (HELP NEEDED)<span aria-hidden="true" class="octicon octicon-link"></span></a></h2>
-<p>Please run <code>acc -le</code> and upload <code>/data/adb/vr25/acc-data/logs/power_supply-*.log</code> to <a href="https://www.dropbox.com/request/WYVDyCc0GkKQ8U5mLNlH" rel="nofollow">my dropbox</a> (no account/sign-up required).
+<hr />
+<h2 id="power-supply-logs-help-needed">POWER SUPPLY LOGS (HELP NEEDED)<a class="headerlink" href="#power-supply-logs-help-needed" title="Permanent link"></a></h2>
+<p>Please run <code>acc -le</code> and upload <code>/data/adb/vr25/acc-data/logs/power_supply-*.log</code> to <a href="https://www.dropbox.com/request/WYVDyCc0GkKQ8U5mLNlH">my dropbox</a> (no account/sign-up required).
 This file contains invaluable power supply information, such as battery details and available charging control files.
 A public database is being built for mutual benefit.
 Your cooperation is greatly appreciated.</p>
@@ -2174,9 +2247,9 @@ Your cooperation is greatly appreciated.</p>
 <li>Name: random/fake</li>
 <li>Email: random/fake</li>
 </ul>
-<p>See current submissions <a href="https://www.dropbox.com/sh/rolzxvqxtdkfvfa/AABceZM3BBUHUykBqOW-0DYIa?dl=0" rel="nofollow">here</a>.</p>
-<hr>
-<h2 id="user-content-localization"><a class="heading-link" href="#localization">LOCALIZATION<span aria-hidden="true" class="octicon octicon-link"></span></a></h2>
+<p>See current submissions <a href="https://www.dropbox.com/sh/rolzxvqxtdkfvfa/AABceZM3BBUHUykBqOW-0DYIa?dl=0">here</a>.</p>
+<hr />
+<h2 id="localization">LOCALIZATION<a class="headerlink" href="#localization" title="Permanent link"></a></h2>
 <p>Currently Supported Languages and Translation Levels (default, full, good, fair, minimal)</p>
 <ul>
 <li>Chinese, simplified (zh-rCN): minimal</li>
@@ -2197,35 +2270,34 @@ Your cooperation is greatly appreciated.</p>
 <p>Modify the header of strings.sh to reflect the translation (e.g., # Español (es)).</p>
 </li>
 <li>
-<p>Anyone is free and encouraged to open translation <a href="https://duckduckgo.com/lite/?q=pull+request" rel="nofollow">pull requests</a>.
+<p>Anyone is free and encouraged to open translation <a href="https://duckduckgo.com/lite/?q=pull+request">pull requests</a>.
 Alternatively, a <em>compressed</em> archive of translated <code>strings.sh</code> and <code>README.md</code> files can be sent to the developer via Telegram (link below).</p>
 </li>
 <li>
-<p>Use <code>acc -sl</code> (--set --lang): language switching wizard or <code>acc -s l=&lt;lang_string&gt;</code> to set a language.</p>
+<p>Use <code>acc -sl</code> (&ndash;set &ndash;lang): language switching wizard or <code>acc -s l=&lt;lang_string&gt;</code> to set a language.</p>
 </li>
 </ol>
-<hr>
-<h2 id="user-content-tips"><a class="heading-link" href="#tips">TIPS<span aria-hidden="true" class="octicon octicon-link"></span></a></h2>
-<h3 id="user-content-always-limit-the-charging-current-if-your-battery-is-old-andor-tends-to-discharge-too-fast"><a class="heading-link" href="#always-limit-the-charging-current-if-your-battery-is-old-andor-tends-to-discharge-too-fast">
-<em>Always</em> Limit the Charging Current If Your Battery is Old and/or Tends to Discharge Too Fast<span aria-hidden="true" class="octicon octicon-link"></span></a></h3>
-<p>This extends the battery's lifespan and may even <em>reduce</em> its discharge rate.</p>
+<hr />
+<h2 id="tips">TIPS<a class="headerlink" href="#tips" title="Permanent link"></a></h2>
+<h3 id="always-limit-the-charging-current-if-your-battery-is-old-andor-tends-to-discharge-too-fast"><em>Always</em> Limit the Charging Current If Your Battery is Old and/or Tends to Discharge Too Fast<a class="headerlink" href="#always-limit-the-charging-current-if-your-battery-is-old-andor-tends-to-discharge-too-fast" title="Permanent link"></a></h3>
+<p>This extends the battery&rsquo;s lifespan and may even <em>reduce</em> its discharge rate.</p>
 <p>750-1000mA is a good range for regular use.</p>
 <p>500mA is a comfortable minimum - and also very compatible.</p>
-<p>If your device does not support custom current limits, use a dedicated ("slow") power adapter.</p>
-<h3 id="user-content-generic"><a class="heading-link" href="#generic">Generic<span aria-hidden="true" class="octicon octicon-link"></span></a></h3>
+<p>If your device does not support custom current limits, use a dedicated (&ldquo;slow&rdquo;) power adapter.</p>
+<h3 id="generic">Generic<a class="headerlink" href="#generic" title="Permanent link"></a></h3>
 <p>Force fast charge: <code>appy_on_boot="/sys/kernel/fast_charge/force_fast_charge::1::0 usb/boost_current::1::0 charger/boost_current::1::0"</code></p>
-<h3 id="user-content-google-pixel-devices"><a class="heading-link" href="#google-pixel-devices">Google Pixel Devices<span aria-hidden="true" class="octicon octicon-link"></span></a></h3>
+<h3 id="google-pixel-devices">Google Pixel Devices<a class="headerlink" href="#google-pixel-devices" title="Permanent link"></a></h3>
 <p>Force fast wireless charging with third party wireless chargers that are supposed to charge the battery faster: <code>apply_on_plug=wireless/voltage_max::9000000</code>.</p>
 <p>This may not work on all Pixel devices.
-There are no negative consequences when it doesn't.</p>
-<h3 id="user-content-override-battery-mah-capacity"><a class="heading-link" href="#override-battery-mah-capacity">Override Battery mAh Capacity<span aria-hidden="true" class="octicon octicon-link"></span></a></h3>
-<p>An "extended" battery won't charge fully if the kernel still has the stock <code>charge_full_design</code> value.
-Some devices allow that to be modified. If that's the case for you, use <code>apply_on_boot</code> to set the desired value(s) in <code>/sys/class/power_supply/*/charge_full_design</code>.</p>
-<h3 id="user-content-override-broken-temperature-sensor"><a class="heading-link" href="#override-broken-temperature-sensor">Override Broken Temperature Sensor<span aria-hidden="true" class="octicon octicon-link"></span></a></h3>
-<p>If your battery's thermistor always reports a negative value, and charging is very slow or even off, see if the following helps:</p>
+There are no negative consequences when it doesn&rsquo;t.</p>
+<h3 id="override-battery-mah-capacity">Override Battery mAh Capacity<a class="headerlink" href="#override-battery-mah-capacity" title="Permanent link"></a></h3>
+<p>An &ldquo;extended&rdquo; battery won&rsquo;t charge fully if the kernel still has the stock <code>charge_full_design</code> value.
+Some devices allow that to be modified. If that&rsquo;s the case for you, use <code>apply_on_boot</code> to set the desired value(s) in <code>/sys/class/power_supply/*/charge_full_design</code>.</p>
+<h3 id="override-broken-temperature-sensor">Override Broken Temperature Sensor<a class="headerlink" href="#override-broken-temperature-sensor" title="Permanent link"></a></h3>
+<p>If your battery&rsquo;s thermistor always reports a negative value, and charging is very slow or even off, see if the following helps:</p>
 <p><code>echo ': ; if ${isAccd:-false} &amp;&amp; online; then (for i in */temp_cool */temp_cold; do [ -f $i ] || continue; chown 0:0 $i; chmod 0644 $i; echo "-999" &gt; $i; done); fi || :' &gt;&gt; $(acca -c echo)</code></p>
-<hr>
-<h2 id="user-content-frequently-asked-questions-faq"><a class="heading-link" href="#frequently-asked-questions-faq">FREQUENTLY ASKED QUESTIONS (FAQ)<span aria-hidden="true" class="octicon octicon-link"></span></a></h2>
+<hr />
+<h2 id="frequently-asked-questions-faq">FREQUENTLY ASKED QUESTIONS (FAQ)<a class="headerlink" href="#frequently-asked-questions-faq" title="Permanent link"></a></h2>
 <blockquote>
 <p>How do I report issues?</p>
 </blockquote>
@@ -2234,52 +2306,52 @@ Always provide as much information as possible.
 Attach <code>/sdcard/Download/acc-logs-*.tgz</code> - generated by <code>acc -le</code> <em>right after</em> the problem occurs.
 Refer back to <code>TROUBLESHOOTING &gt; Diagnostics/Logs</code> for additional details.</p>
 <blockquote>
-<p>Why won't you support my device? I've been waiting for ages!</p>
+<p>Why won&rsquo;t you support my device? I&rsquo;ve been waiting for ages!</p>
 </blockquote>
 <p>Firstly, have some extra patience!
-Secondly, several systems don't have intuitive charging control files; I have to dig deeper - and oftentimes, improvise; this takes time and effort.
-Lastly, some systems don't support custom charging control at all;  in such cases, you have to keep trying different kernels and uploading the respective power supply logs.
+Secondly, several systems don&rsquo;t have intuitive charging control files; I have to dig deeper - and oftentimes, improvise; this takes time and effort.
+Lastly, some systems don&rsquo;t support custom charging control at all;  in such cases, you have to keep trying different kernels and uploading the respective power supply logs.
 Refer back to <code>POWER SUPPLY LOGS (HELP NEEDED)</code>.</p>
 <blockquote>
 <p>Why, when and how should I calibrate the battery manager?</p>
 </blockquote>
-<p>With modern battery management systems, that's generally unnecessary.</p>
-<p>However, if your battery is underperforming, you may want to try the procedure described at <a href="https://batteryuniversity.com/article/bu-603-how-to-calibrate-a-smart-battery" rel="nofollow">https://batteryuniversity.com/article/bu-603-how-to-calibrate-a-smart-battery</a> .</p>
+<p>With modern battery management systems, that&rsquo;s generally unnecessary.</p>
+<p>However, if your battery is underperforming, you may want to try the procedure described at <a href="https://batteryuniversity.com/article/bu-603-how-to-calibrate-a-smart-battery">https://batteryuniversity.com/article/bu-603-how-to-calibrate-a-smart-battery</a> .</p>
 <p>ACC automatically optimizes system performance and battery utilization, by forcing <code>bg-dexopt-job</code> on daemon [re]start, once after boot, if charging and uptime &gt;= 900 seconds.</p>
 <blockquote>
 <p>I set voltage to 4080 mV and that corresponds to just about 75% charge.
 But is it typically safer to let charging keep running, or to have the circuits turn on and shut off between defined percentage levels repeatedly?</p>
 </blockquote>
-<p>It's not much about which method is safer.
-It's specifically about electron stability: optimizing the pressure (voltage) and current flow.</p>
-<p>As long as you don't set a voltage limit higher than 4200 mV, and don't leave the device plugged in for extended periods of time, you're good with that limitation alone.
+<p>It&rsquo;s not much about which method is safer.
+It&rsquo;s specifically about electron stability: optimizing the pressure (voltage) and current flow.</p>
+<p>As long as you don&rsquo;t set a voltage limit higher than 4200 mV, and don&rsquo;t leave the device plugged in for extended periods of time, you&rsquo;re good with that limitation alone.
 Otherwise, the other option is actually more beneficial - since it mitigates high pressure (voltage) exposure/time to a greater extent.
 If you use both, simultaneously - you get the best of both worlds.
-On top of that, if you enable the cooldown cycle, it'll give you even more benefits.</p>
-<p>Ever wondered why lithium ion batteries aren't sold fully charged? They're usually ~40-60% charged. Why is that?
+On top of that, if you enable the cooldown cycle, it&rsquo;ll give you even more benefits.</p>
+<p>Ever wondered why lithium ion batteries aren&rsquo;t sold fully charged? They&rsquo;re usually ~40-60% charged. Why is that?
 Keeping a battery fully drained, almost fully drained or 70%+ charged for a long times, leads to significant (permanent) capacity loss</p>
-<p>Putting it all together in practice...</p>
+<p>Putting it all together in practice&hellip;</p>
 <p>Night/heavy-duty/forever-plugged profile: keep capacity within 40-60% (e.g., acc 50 45) and/or voltage around ~3900 mV</p>
 <p>Day/regular profile: max capacity: 75-80% and/or voltage no higher than 4100 mV</p>
 <p>Travel profile: capacity up to 95% and/or voltage no higher than 4200 mV</p>
-<p>* <a href="https://batteryuniversity.com/article/bu-808-how-to-prolong-lithium-based-batteries/" rel="nofollow">https://batteryuniversity.com/article/bu-808-how-to-prolong-lithium-based-batteries/</a></p>
+<p>* <a href="https://batteryuniversity.com/article/bu-808-how-to-prolong-lithium-based-batteries/">https://batteryuniversity.com/article/bu-808-how-to-prolong-lithium-based-batteries/</a></p>
 <blockquote>
-<p>I don't really understand what the "-f|--force|--full [capacity]" is meant for.</p>
+<p>I don&rsquo;t really understand what the &ldquo;-f|&ndash;force|&ndash;full [capacity]&rdquo; is meant for.</p>
 </blockquote>
 <p>Consider the following situation:</p>
-<p>You're almost late for an important event.
+<p>You&rsquo;re almost late for an important event.
 You recall that I stole your power bank and sold it on Ebay.
 You need your device and a good battery backup.
-The event will take the whole day and you won't have access to an external power supply in the middle of nowhere.
+The event will take the whole day and you won&rsquo;t have access to an external power supply in the middle of nowhere.
 You need your battery charged fast and as much as possible.
-However, you don't want to modify ACC config nor manually stop/restart the daemon.</p>
+However, you don&rsquo;t want to modify ACC config nor manually stop/restart the daemon.</p>
 <blockquote>
 <p>Do I have to install/upgrade both ACC and AccA?</p>
 </blockquote>
 <p>To really get out of this dilemma, you have to understand what ACC and AccA essentially are.</p>
 <p>ACC is a Android program that controls charging.
 It can be installed as an app (e.g., AccA) module, Magisk module or standalone software. Its installer determines the installation path/variant. The user is given the power to override that.</p>
-<p>A plain text file holds the program's configuration. It can be edited with any root text editor.
+<p>A plain text file holds the program&rsquo;s configuration. It can be edited with any root text editor.
 ACC has a command line interface (CLI) - which in essence is a set of Application Programing Interfaces (APIs). The main purpose of a CLI/API is making difficult tasks ordinary.</p>
 <p>AccA is a graphical user interface (GUI) for the ACC command line. The main purpose of a GUI is making ordinary tasks simpler.
 AccA ships with a version of ACC that is automatically installed when the app is first launched.</p>
@@ -2288,7 +2360,7 @@ Think of AccA as a robotic driver that often prefers hitting people over trees.
 Due to extenuating circumstances, that robot may not be upgraded as frequently as the car.
 Upgrading the car regularly makes the driver happier - even though I doubt it has any emotion to speak of.
 The back-end can be upgraded by flashing the latest ACC zip.
-However, unless you have a good reason to do so, don't fix what's not broken.</p>
+However, unless you have a good reason to do so, don&rsquo;t fix what&rsquo;s not broken.</p>
 <blockquote>
 <p>Does acc work also when Android is off?</p>
 </blockquote>
@@ -2297,18 +2369,18 @@ Currently, it does work in recovery mode, though.</p>
 <blockquote>
 <p>I have this wakelock as soon as charging is disabled. How do I deal with it?</p>
 </blockquote>
-<p>The best solution is enforcing a charging switch that doesn't trigger a wakelock.
+<p>The best solution is enforcing a charging switch that doesn&rsquo;t trigger a wakelock.
 Refer back to <code>TROUBLESHOOTING &gt; Charging Switch</code>.
 A common workaround is having <code>resume_capacity = pause_capacity - 1</code>. e.g., resume_capacity=74, pause_capacity=75.</p>
 <blockquote>
-<p>What's idle mode, and how do I set it up?</p>
+<p>What&rsquo;s idle mode, and how do I set it up?</p>
 </blockquote>
-<p>It's the ability of running off the charger.
+<p>It&rsquo;s the ability of running off the charger.
 The battery behaves as if it were physically disconnected from the device.
 The primary indicator of idle mode is charging current around 0 mA. One can customize idleThreshold (absolute value).</p>
 <p>Idle mode is great for extended device use (e.g., GPS navigation, gaming, server). Use it when the charger must be plugged for a long time (or permanently).</p>
 <p>IMPORTANT: lithium batteries have the longest lifespan when kept about 40-60% charged (about 3.7-3.9ish Volts). That said, try not to use idle mode above 60% too often.</p>
-<p>Not all devices support the "native" idle mode. Hence, variants of "emulated" idle mode are available:</p>
+<p>Not all devices support the &ldquo;native&rdquo; idle mode. Hence, variants of &ldquo;emulated&rdquo; idle mode are available:</p>
 <ol>
 <li>Limit the charging voltage (requires kernel support) to a value that gets you close to the desired battery level. To avoid false positives, determine the value only after the device has been unplugged for a minute or so.</li>
 <li>Pause/resume charging based on voltage thresholds (e.g., acc 3900 keeps voltage within 3850 and 3900 millivolts).</li>
@@ -2317,33 +2389,23 @@ The primary indicator of idle mode is charging current around 0 mA. One can cust
 <p>Notes</p>
 <ul>
 <li>In idle mode, the battery does discharge, although very slowly. The same happens to a battery that is sitting on a shelf.</li>
-<li>In emulated idle mode, the battery tends to hold its charge, since it works as a "passthrough" device. Imagine pouring water into a glass that is already full.</li>
+<li>In emulated idle mode, the battery tends to hold its charge, since it works as a &ldquo;passthrough&rdquo; device. Imagine pouring water into a glass that is already full.</li>
 </ul>
 <blockquote>
-<p>How do I enable "smart charging"?</p>
+<p>How do I enable &ldquo;smart charging&rdquo;?</p>
 </blockquote>
 <p>Configure day and night profiles:</p>
 <p><code>acc -c a ": day profile; at 6:00 \"acc -s pc=75 mcc= mcv=4100; acc -n 'Switched to day profile'\""; acc -c a ": night profile; at 22:00 \"acc -s pc=50 mcc=500 mcv=3900; acc -n 'Switched to night profile'\""</code></p>
-<hr>
-<h2 id="user-content-links"><a class="heading-link" href="#links">LINKS<span aria-hidden="true" class="octicon octicon-link"></span></a></h2>
+<hr />
+<h2 id="links">LINKS<a class="headerlink" href="#links" title="Permanent link"></a></h2>
 <ul>
+<li><a href="https://enroll.zellepay.com/qr-codes?data=eyJuYW1lIjoiSVZBTkRSTyIsInRva2VuIjoiaXByajI1QGdtYWlsLmNvbSIsImFjdGlvbiI6InBheW1lbnQifQ==">Donate - Zelle: iprj25 @ gmail . com</a></li>
+<li><a href="https://app.airtm.com/send-or-request/send">Donate - Airtm, username: ivandro863auzqg</a></li>
+<li><a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&amp;business=iprj25@gmail.com&amp;lc=US&amp;item_name=VR25+is+creating+free+and+open+source+software.+Donate+to+suppport+their+work.&amp;no_note=0&amp;cn=&amp;currency_code=USD&amp;bn=PP-DonationsBF:btn_donateCC_LG.gif:NonHosted">Donate - Credit/Debit Card</a></li>
+<li><a href="https://liberapay.com/vr25">Donate - Liberapay</a></li>
+<li><a href="https://patreon.com/vr25">Donate - Patreon</a></li>
 <li>
-<p><a href="https://enroll.zellepay.com/qr-codes?data=eyJuYW1lIjoiSVZBTkRSTyIsInRva2VuIjoiaXByajI1QGdtYWlsLmNvbSIsImFjdGlvbiI6InBheW1lbnQifQ==" rel="nofollow">Donate - Zelle: iprj25 @ gmail . com</a></p>
-</li>
-<li>
-<p><a href="https://app.airtm.com/send-or-request/send" rel="nofollow">Donate - Airtm, username: ivandro863auzqg</a></p>
-</li>
-<li>
-<p><a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&amp;business=iprj25@gmail.com&amp;lc=US&amp;item_name=VR25+is+creating+free+and+open+source+software.+Donate+to+suppport+their+work.&amp;no_note=0&amp;cn=&amp;currency_code=USD&amp;bn=PP-DonationsBF:btn_donateCC_LG.gif:NonHosted" rel="nofollow">Donate - Credit/Debit Card</a></p>
-</li>
-<li>
-<p><a href="https://liberapay.com/vr25" rel="nofollow">Donate - Liberapay</a></p>
-</li>
-<li>
-<p><a href="https://patreon.com/vr25" rel="nofollow">Donate - Patreon</a></p>
-</li>
-<li>
-<p><a href="https://paypal.me/vr25xda" rel="nofollow">Donate - PayPal Me</a></p>
+<p><a href="https://paypal.me/vr25xda">Donate - PayPal Me</a></p>
 </li>
 <li>
 <p><a href="https://github.com/MatteCarra/AccA/releases">Frontend - ACC App</a></p>
@@ -2352,22 +2414,19 @@ The primary indicator of idle mode is charging current around 0 mA. One can cust
 <p><a href="https://github.com/CrazyBoyFeng/AccSettings">Frontend - ACC Settings</a></p>
 </li>
 <li>
-<p><a href="https://batteryuniversity.com/article/bu-808-how-to-prolong-lithium-based-batteries" rel="nofollow">Must Read - How to Prolong Lithium Ion Batteries Lifespan</a></p>
+<p><a href="https://batteryuniversity.com/article/bu-808-how-to-prolong-lithium-based-batteries">Must Read - How to Prolong Lithium Ion Batteries Lifespan</a></p>
 </li>
 <li>
-<p><a href="https://t.me/vr25_xda" rel="nofollow">Telegram Channel</a></p>
+<p><a href="https://t.me/vr25_xda">Telegram Channel</a></p>
 </li>
+<li><a href="https://t.me/acc_group">Telegram Group</a></li>
 <li>
-<p><a href="https://t.me/acc_group" rel="nofollow">Telegram Group</a></p>
-</li>
-<li>
-<p><a href="https://t.me/vr25xda" rel="nofollow">Telegram Profile</a></p>
+<p><a href="https://t.me/vr25xda">Telegram Profile</a></p>
 </li>
 <li>
 <p><a href="https://github.com/VR-25/acc">Upstream Repository</a></p>
 </li>
 <li>
-<p><a href="https://forum.xda-developers.com/apps/magisk/module-magic-charging-switch-cs-v2017-9-t3668427" rel="nofollow">XDA Thread</a></p>
+<p><a href="https://forum.xda-developers.com/apps/magisk/module-magic-charging-switch-cs-v2017-9-t3668427">XDA Thread</a></p>
 </li>
-</ul>
-</article></body></html>
+</ul></article></body></html>
