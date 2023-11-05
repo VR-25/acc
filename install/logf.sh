@@ -9,6 +9,8 @@ logf() {
     cd $TMPDIR/.logf
     set +e
 
+    dmesg > dmesg.log
+    logcat *:E *:W > logcat.log
     $execDir/power-supply-logger.sh
     { parse_switches 2>/dev/null || $TMPDIR/acca --parse; } > acc-p.txt
 
