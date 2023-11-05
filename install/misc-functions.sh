@@ -324,7 +324,7 @@ misc_stuff() {
 
 
 notif() {
-  su -lp ${2:-2000} -c "/system/bin/cmd notification post -S bigtext -t '🔋ACC' 'Tag' \"${1:-:)}\"" < /dev/null > /dev/null 2>&1 || :
+  su -lp ${2:-2000} -c "/system/bin/cmd notification post -S bigtext -t '🔋ACC' 'Tag' \"${*:-:)}\"" < /dev/null > /dev/null 2>&1 || :
 }
 
 
