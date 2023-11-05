@@ -631,7 +631,6 @@ case "${1-}" in
   -u|--upgrade)
     shift
     local array[0]=
-    local insecure=
     local reference=
 
     for i; do
@@ -640,9 +639,6 @@ case "${1-}" in
         -c|--changelog)
         ;;
         -f|--force)
-        ;;
-        -k|--insecure)
-          insecure=--insecure
         ;;
         -n|--non-interactive)
         ;;
@@ -666,7 +662,8 @@ case "${1-}" in
     }
 
     if which curl >/dev/null; then
-      curl $insecure -Lo $TMPDIR/install-online.sh https://raw.githubusercontent.com/VR-25/acc/$reference/install-online.sh
+      curl --dns-servers 9.9.9.9,1.1.1.1 --progress-bar --insecure -Lo \
+        $TMPDIR/install-online.sh https://raw.githubusercontent.com/VR-25/acc/$reference/install-online.sh
     else
       PATH=${PATH#*/busybox:} /dev/.vr25/busybox/wget -O $TMPDIR/install-online.sh --no-check-certificate \
         https://raw.githubusercontent.com/VR-25/acc/$reference/install-online.sh

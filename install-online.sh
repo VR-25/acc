@@ -6,7 +6,7 @@
 # Copyright 2019-2023, VR25
 # License: GPLv3+
 #
-# Usage: sh install-online.sh [-c|--changelog] [-f|--force] [-k|--insecure] [-n|--non-interactive] [%parent install dir%] [commit]
+# Usage: sh install-online.sh [-c|--changelog] [-f|--force] [-n|--non-interactive] [%parent install dir%] [commit]
 
 
 set +x
@@ -68,28 +68,26 @@ get_ver() { sed -n 's/^versionCode=//p' ${1:-}; }
 }
 
 
-which curl >/dev/null || {
-  curl() {
+if which curl >/dev/null; then
+  _curl() {
+    curl --dns-servers 9.9.9.9,1.1.1.1 --progress-bar --insecure -Lo "$@"
+  }
+else
+  _curl() {
     shift $(($# - 1))
     PATH=${PATH#*/busybox:} /dev/.vr25/busybox/wget -O - --no-check-certificate $1
   }
-}
+fi
 
 
-case "$@" in
-  *--insecure*|*-k*) insecure=--insecure;;
-  *) insecure=;;
-esac
-
-
-commit=$(echo "$*" | sed -E 's/%.*%|-c|--changelog|-f|--force|-k|--insecure|-n|--non-interactive| //g')
+commit=$(echo "$*" | sed -E 's/%.*%|-c|--changelog|-f|--force|-n|--non-interactive| //g')
 : ${commit:=master}
 
 tarball=https://github.com/VR-25/$id/archive/${commit}.tar.gz
 
 installedVersion=$(get_ver /data/adb/$domain/$id/module.prop 2>/dev/null || :)
 
-onlineVersion=$(curl -L $insecure https://raw.githubusercontent.com/VR-25/$id/${commit}/module.prop | get_ver)
+onlineVersion=$(_curl https://raw.githubusercontent.com/VR-25/$id/${commit}/module.prop | get_ver)
 
 
 [ -f $PWD/${0##*/} ] || cd $(readlink -f ${0%/*})
@@ -117,12 +115,12 @@ then
   }
 
   # download and install tarball
-  : ${installDir:=$(echo "$@" | sed -E "s/-c|--changelog|-f|--force|-k|--insecure|-n|--non-interactive|%|$commit| //g")}
+  : ${installDir:=$(echo "$@" | sed -E "s/-c|--changelog|-f|--force|-n|--non-interactive|%|$commit| //g")}
   export installDir
   set +eu
   trap - EXIT
   echo
-  curl -L $insecure $tarball | tar -xz \
+  _curl $tarball | tar -xz \
     && ash ${id}-${commit}/install.sh
 
 else
