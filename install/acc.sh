@@ -685,13 +685,14 @@ case "${1-}" in
   ;;
 
   -w*|--watch*)
+    two="${2//,/|}"
     sleepSeconds=${1#*h}
     sleepSeconds=${sleepSeconds#*w}
     : ${sleepSeconds:=1}
     . $execDir/batt-info.sh
     while :; do
       clear
-      batt_info "${2-}"
+      batt_info "${two-}"
       sleep $sleepSeconds
       set +x
     done

@@ -6,6 +6,7 @@ batt_info() {
   local currNow=
   local powerNow=
   local factor=
+  local one="${1//,/|}"
   set +eu
 
 
@@ -125,5 +126,5 @@ CONSUMED_WATTS=$CONSUMED_WATTS"
     fi
   done 2>/dev/null || :
 
-  } | grep -Ei "${1:-.*}" || :
+  } | grep -Ei "${one:-.*}" || :
 }

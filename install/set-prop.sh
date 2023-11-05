@@ -12,6 +12,7 @@ print_ss_() {
 set_prop() {
 
   local restartDaemon=false
+  local two=
 
   case ${1-} in
 
@@ -44,13 +45,15 @@ set_prop() {
     # print default config
     d|--print-default)
       . $defaultConfig
-      . $execDir/print-config.sh ns | { grep -E "${2-.}" | more; } || :
+      two="${2//,/|}"
+      . $execDir/print-config.sh ns | { grep -E "${two-.}" | more; } || :
       return 0
     ;;
 
     # print current config
     p|--print)
-      . $execDir/print-config.sh | { grep -E "${2-.}" | more; } || :
+      two="${2//,/|}"
+      . $execDir/print-config.sh | { grep -E "${two-.}" | more; } || :
       return 0
     ;;
 

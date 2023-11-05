@@ -792,7 +792,7 @@ Options
     e.g.,
       acc -i
       acc -i volt
-      acc -i 'volt\|curr'
+      acc -i volt,curr (multiple patterns)
 
   -l|--log [-a|--acc] [[editor] [editor_opts] | g for GUI]   Print/edit accd log (default) or acc log (-a|--acc)
     e.g.,
@@ -849,6 +849,7 @@ Options
     e.g.,
       acc -s d (print entire defaul config)
       acc -s d cap (print only entries matching "cap")
+      acc -s cap,temp (multiple patterns)
 
   -sd [egrep regex (default: ".")]   Same as above
 
@@ -899,7 +900,7 @@ Options
   -T|--logtail   Monitor accd log (tail -F)
     e.g., acc -T
 
-  -u|--upgrade [-c|--changelog] [-f|--force] [-k|--insecure] [-n|--non-interactive]   Online upgrade/downgrade
+  -u|--upgrade [-c|--changelog] [-f|--force] [-n|--non-interactive]   Online upgrade/downgrade
     e.g.,
       acc -u dev (upgrade to the latest dev version)
       acc -u (latest version from the current branch)
@@ -915,11 +916,12 @@ Options
   -v|--version   Print acc version and version code
     e.g., acc -v
 
-  -w#|--watch#   Monitor battery uevent
+  -w[#]|--watch[#] [pattern1,pattern2,...]   Monitor battery uevent
     e.g.,
       acc -w (update info every second)
       acc -w0.5 (update info every half a second)
       acc -w0 (no extra delay)
+      acc -w curr,volt
 
 
 Exit Codes
