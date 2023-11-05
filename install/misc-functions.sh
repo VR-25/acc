@@ -417,6 +417,7 @@ write() {
       usleep 330000
       eval "echo $1 > $2" || :
     done
+    chmod 0444 $2
   }
 }
 

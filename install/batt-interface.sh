@@ -70,14 +70,14 @@ set_temp_level() {
   local l=${1:-${tempLevel-}}
   [ -n "$l" ] || return 0
   if [ -f $b ]; then
-    chown 0:0 $b && chmod 0644 $b && echo $((100 - $l)) > $b || :
+    chown 0:0 $b && chmod 0644 $b && echo $((100 - $l)) > $b && chmod 0444 $b || :
   else
     for a in */num_system_temp*levels; do
       b=$(echo $a | sed 's/\/num_/\//; s/s$//')
       if [ ! -f $a ] || [ ! -f $b ]; then
         continue
       fi
-      chown 0:0 $b && chmod 0644 $b && echo $(( ($(cat $a) * l) / 100 )) > $b || :
+      chown 0:0 $b && chmod 0644 $b && echo $(( ($(cat $a) * l) / 100 )) > $b && chmod 0444 $b || :
     done
   fi
 }
