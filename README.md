@@ -237,7 +237,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202310160
+configVerCode=202311050
 
 allowIdleAbovePcap=true
 ampFactor=
@@ -300,8 +300,8 @@ runCmdOnPause=''
 
 // at H:MM 'command...'   scheduler
 // e.g.,
-//   at 2:14 acc --notif '2:14 AM now!'
-//   at 22:30 acc --notif '22:30 now!'
+//   at 2:14 acc --notif 2:14 AM now\!
+//   at 22:30 acc -n 22:30 now\!
 
 // calc <operation...>   float  calculator
 
@@ -620,7 +620,7 @@ runCmdOnPause=''
 // Note: due to user data encryption, files used in one-line scripts must reside somewhere in /data/adb/, just like acc's own data files. Ignore if your data isn't encrypted.
 
 // Tip: One can schedule tasks with the following construct:
-// : sleep profile; at 22:00 'acc -s pc=50 mcc=500 mcv=3900; acc -n "Switched to night profile"'
+// : sleep profile; at 22:00 acc -s pc=50 mcc=500 mcv=3900, acc -n Switched to night profile
 
 
 // pause_capacity (pc) # Default: 75
@@ -748,7 +748,7 @@ Options
 
   -c|--config a|d string|regex   Append (a) or delete (d) string/pattern to/from config
     e.g.,
-      acc -c a ": sleep profile; at 22:00 acc -s pc=50 mcc=500 mcv=3900" (append a schedule)
+      acc -c a : sleep profile, at 22:00 acc -s pc=50 mcc=500 mcv=3900, acc -n switched to sleep profile (append a schedule)
       acc -c d sleep (remove all lines matching "sleep")
 
   -d|--disable [#%, #s, #m, #h or #mv (optional)]   Disable charging

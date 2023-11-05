@@ -99,7 +99,7 @@ edit() {
   local file="$1"
   shift
   case "${1-}" in
-    a) echo >> $file; shift; echo "$@" >> $file;;
+    a) echo >> $file; shift; echo "$@" | sed 's/,/;/' >> $file;;
     d) sed -Ei "\#$2#d" $file;;
 
     g) [ "$file" = "$config" ] || {

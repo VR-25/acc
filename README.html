@@ -1299,7 +1299,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 <h2 id="default-configuration">DEFAULT CONFIGURATION<a class="headerlink" href="#default-configuration" title="Permanent link"></a></h2>
 <div class="highlight"><pre>#DC#
 
-configVerCode=202310160
+configVerCode=202311050
 
 allowIdleAbovePcap=true
 ampFactor=
@@ -1362,8 +1362,8 @@ runCmdOnPause=&#39;&#39;
 
 // at H:MM &#39;command...&#39;   scheduler
 // e.g.,
-//   at 2:14 acc --notif &#39;2:14 AM now!&#39;
-//   at 22:30 acc --notif &#39;22:30 now!&#39;
+//   at 2:14 acc --notif 2:14 AM now\!
+//   at 22:30 acc -n 22:30 now\!
 
 // calc &lt;operation...&gt;   float  calculator
 
@@ -1682,7 +1682,7 @@ runCmdOnPause=&#39;&#39;
 // Note: due to user data encryption, files used in one-line scripts must reside somewhere in /data/adb/, just like acc&#39;s own data files. Ignore if your data isn&#39;t encrypted.
 
 // Tip: One can schedule tasks with the following construct:
-// : sleep profile; at 22:00 &#39;acc -s pc=50 mcc=500 mcv=3900; acc -n &quot;Switched to night profile&quot;&#39;
+// : sleep profile; at 22:00 acc -s pc=50 mcc=500 mcv=3900, acc -n Switched to night profile
 
 
 // pause_capacity (pc) # Default: 75
@@ -1802,7 +1802,7 @@ Options
 
   -c|--config a|d string|regex   Append (a) or delete (d) string/pattern to/from config
     e.g.,
-      acc -c a &quot;: sleep profile; at 22:00 acc -s pc=50 mcc=500 mcv=3900&quot; (append a schedule)
+      acc -c a : sleep profile, at 22:00 acc -s pc=50 mcc=500 mcv=3900, acc -n switched to sleep profile (append a schedule)
       acc -c d sleep (remove all lines matching &quot;sleep&quot;)
 
   -d|--disable [#%, #s, #m, #h or #mv (optional)]   Disable charging

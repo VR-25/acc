@@ -125,7 +125,7 @@ Options
 
   -c|--config a|d string|regex   Append (a) or delete (d) string/pattern to/from config
     e.g.,
-      acc -c a ": sleep profile; at 22:00 acc -s pc=50 mcc=500 mcv=3900" (append a schedule)
+      acc -c a : sleep profile, at 22:00 acc -s pc=50 mcc=500 mcv=3900, acc -n switched to sleep profile (append a schedule)
       acc -c d sleep (remove all lines matching "sleep")
 
   -d|--disable [#%, #s, #m, #h or #mv (optional)]   Disable charging

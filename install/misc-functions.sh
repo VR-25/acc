@@ -67,7 +67,8 @@ at() {
       exit" > $file
     chmod 0755 $file
     start-stop-daemon -bx $file -S --
-    eval "$@"
+    one="$(echo "$@" | sed 's/,/;/g')"
+    eval "$one"
   fi
 }
 
@@ -324,7 +325,7 @@ misc_stuff() {
 
 
 notif() {
-  su -lp ${2:-2000} -c "/system/bin/cmd notification post -S bigtext -t '🔋ACC' 'Tag' \"${*:-:)}\"" < /dev/null > /dev/null 2>&1 || :
+  su -lp 2000 -c "/system/bin/cmd notification post -S bigtext -t '🔋ACC' 'Tag' \"${*:-:)}\"" < /dev/null > /dev/null 2>&1 || :
 }
 
 
