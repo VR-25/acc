@@ -661,7 +661,7 @@ case "${1-}" in
         || chmod -R 0755 /data/adb/vr25/bin
     }
 
-    if which curl >/dev/null; then
+    if i=$(which curl) && [ "$(head -n 1 $i)" != "#!/system/bin/sh" ]; then
       curl --dns-servers 9.9.9.9,1.1.1.1 --progress-bar --insecure -Lo \
         $TMPDIR/install-online.sh https://raw.githubusercontent.com/VR-25/acc/$reference/install-online.sh
     else
