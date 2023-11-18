@@ -44,9 +44,19 @@ grep '^:' $config > $TMPDIR/.scripts 2>/dev/null || :
 sed -i 's/^:/\n:/' $TMPDIR/.scripts
 printf "\n\n\n" >> $TMPDIR/.scripts
 
-# enforce valid pc and rc difference
+
+# enforce valid capacity and temp limits
+
 [ $rc -lt $pc ] || {
   [ $pc -gt 3000 ] && rc=$((pc - 50)) || rc=$((pc - 5))
+}
+
+[ ${rt%r} -lt $mt ] || {
+  ! ${acc_f:-false} || rt=r
+  case $rt in
+    *r) rt=$((mt - 5))r;;
+    *) rt=$((mt - 5));;
+  esac
 }
 
 

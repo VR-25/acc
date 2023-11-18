@@ -397,7 +397,8 @@ case "${1-}" in
     echo
     echo ':; ! online && [ $(cat $battCapacity) -ge ${capacity[2]} ] && exec $TMPDIR/accd || :' >> $config
 
-     # additional options
+    # additional options
+    export acc_f=true
     case "${2-}" in
       [0-9]*)
         shift 2
