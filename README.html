@@ -1299,7 +1299,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 <h2 id="default-configuration">DEFAULT CONFIGURATION<a class="headerlink" href="#default-configuration" title="Permanent link"></a></h2>
 <div class="highlight"><pre>#DC#
 
-configVerCode=202311120
+configVerCode=202311180
 
 allowIdleAbovePcap=true
 ampFactor=
@@ -1360,7 +1360,7 @@ runCmdOnPause=&#39;&#39;
 
 // INTERNAL FUNCTIONS
 
-// at H:M &#39;command...&#39;   scheduler
+// at HH:MM &#39;command...&#39;   scheduler
 // e.g.,
 //   at 2:14 acc --notif 2:14 AM now\!
 //   at 22:30 acc -n 22:30 now\!
@@ -1736,8 +1736,8 @@ runCmdOnPause=&#39;&#39;
 
 
 // temp_level (tl) # Default: 0
-// This is a current limiting hack.
-// Some devices have adjustable &quot;temperature levels&quot;. At the highest level, charging current is blocked.
+// This is an alternate current limiting feature.
+// Some devices have adjustable &quot;temperature levels&quot; and/or charge_control_limit, siop_level parameters. At the highest level, charging current is blocked.
 // The stock values are generally integers, ranging from 0 to 6, 7 or so.
 // For greater flexibility, this variable stores a percentage value -- which is internally mapped to the system&#39;s scales.
 

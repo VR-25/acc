@@ -237,7 +237,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202311120
+configVerCode=202311180
 
 allowIdleAbovePcap=true
 ampFactor=
@@ -298,7 +298,7 @@ runCmdOnPause=''
 
 // INTERNAL FUNCTIONS
 
-// at H:M 'command...'   scheduler
+// at HH:MM 'command...'   scheduler
 // e.g.,
 //   at 2:14 acc --notif 2:14 AM now\!
 //   at 22:30 acc -n 22:30 now\!
@@ -674,8 +674,8 @@ runCmdOnPause=''
 
 
 // temp_level (tl) # Default: 0
-// This is a current limiting hack.
-// Some devices have adjustable "temperature levels". At the highest level, charging current is blocked.
+// This is an alternate current limiting feature.
+// Some devices have adjustable "temperature levels" and/or charge_control_limit, siop_level parameters. At the highest level, charging current is blocked.
 // The stock values are generally integers, ranging from 0 to 6, 7 or so.
 // For greater flexibility, this variable stores a percentage value -- which is internally mapped to the system's scales.
 

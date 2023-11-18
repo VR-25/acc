@@ -66,7 +66,7 @@ at() {
   if [ ! -f $lockFile ] && [ $runH -eq $hour ] && [ $minute -ge $runM ] && [ $runM -le $((minute + sleepM)) ]; then
     mkdir -p ${lockFile%/*}
     echo "#!/system/bin/sh
-      sleep $((60 * sleepM))
+      sleep 3600
       rm $lockFile
       exit" > $lockFile
     chmod 0755 $lockFile
