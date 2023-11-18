@@ -80,6 +80,13 @@ set_temp_level() {
       chown 0:0 $b && chmod 0644 $b && echo $(( ($(cat $a) * l) / 100 )) > $b && chmod 0444 $b || :
     done
   fi
+  for a in */charge_control_limit_max; do
+    b=${a%_max}
+    if [ ! -f $a ] || [ ! -f $b ]; then
+      continue
+    fi
+    chown 0:0 $b && chmod 0644 $b && echo $(( ($(cat $a) * l) / 100 )) > $b && chmod 0444 $b || :
+  done
 }
 
 

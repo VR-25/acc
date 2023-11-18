@@ -97,6 +97,7 @@ if ! $init; then
     config=$TMPDIR/.config
     apply_on_boot default
     apply_on_plug default
+    tempLevel=0
     enable_charging
     if tt "$exitCode" "[127]"; then
       . $execDir/logf.sh
@@ -212,6 +213,7 @@ if ! $init; then
         apply_on_plug
       fi
 
+      set_temp_level
       shutdownWarnings=true
 
     else

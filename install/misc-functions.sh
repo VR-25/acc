@@ -201,7 +201,6 @@ enable_charging() {
 
   ! not_charging || {
 
-    set_temp_level
     [ ! -f $TMPDIR/.sw ] || (. $TMPDIR/.sw; rm $TMPDIR/.sw; flip_sw on) 2>/dev/null || :
 
     if ! $ghostCharging || { $ghostCharging && online; }; then
@@ -226,6 +225,8 @@ enable_charging() {
 
     chDisabledByAcc=false
   }
+
+  set_temp_level
 
   if [ -n "${1-}" ]; then
     case $1 in
