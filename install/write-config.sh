@@ -47,17 +47,23 @@ printf "\n\n\n" >> $TMPDIR/.scripts
 
 # enforce valid capacity and temp limits
 
+: ${pc:=75}
+: ${rc:=70}
+
 [ $rc -lt $pc ] || {
   [ $pc -gt 3000 ] && rc=$((pc - 50)) || rc=$((pc - 5))
 }
 
-[ ${rt%r} -lt $mt ] || {
+: ${mt:=50}
+: ${rt:=45}
+
+if [ ${rt%r} -ge $mt ] || [ $((mt - ${rt%r})) -gt 10 ]; then
   ! ${acc_f:-false} || rt=r
   case $rt in
-    *r) rt=$((mt - 5))r;;
-    *) rt=$((mt - 5));;
+    *r) rt=$((mt - 1))r;;
+    *) rt=$((mt - 1));;
   esac
-}
+fi
 
 
 echo "configVerCode=$(cat $TMPDIR/.config-ver)
