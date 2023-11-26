@@ -54,27 +54,20 @@ apply_on_plug() {
 }
 
 
-at() {
-  local run=
-  local runH=${1%:*}
-  local runM=${1#*:}
-  local hour=$(date +%H)
-  local minute=$(date +%M)
-  local lockFile=$TMPDIR/schedules/$runH:$runM
-  shift
-  if [ ! -f $lockFile ] && [ $runH -eq $hour ]; then
-    { [ $runM -eq $minute ] || [ $((runM + 1)) -eq $minute ] || [ $((runM - 1)) -eq $minute ]; } || return 0
-    mkdir -p ${lockFile%/*}
-    echo "#!/system/bin/sh
-      sleep 180
-      rm \$0
-      exit" > $lockFile
-    chmod 0755 $lockFile
-    start-stop-daemon -bx $lockFile -S --
-    run="$(echo "$@" | sed 's/,/;/g')"
-    eval "$run"
+at_() {
+  local file=$TMPDIR/schedules/${1/:}
+  if [ ! -f $file ] && [ $(date +%H%M) -ge ${file##*/} ]; then
+    mkdir -p ${file%/*}
+    touch $file
+    shift
+    set -- $(echo "$@" | sed 's/,/;/g')
+    eval "$@"
+  elif [ $(date +%H%M) -lt ${file##*/} ]; then
+    rm $file 2>/dev/null || :
   fi
 }
+
+at() { :; }
 
 
 calc() {

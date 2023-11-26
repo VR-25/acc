@@ -158,6 +158,15 @@ if ! $init; then
 
     if $isCharging; then
 
+      # handle schedules
+      (date=$(date +%H:%M)
+      grep '^:.* at [0-9]' $config | sed 's/^:.* at //' > $TMPDIR/.schedules \
+      && echo "$date %" >> $TMPDIR/.schedules \
+      && sort -u $TMPDIR/.schedules > $TMPDIR/.schedules_ \
+      && line=$(awk "/^$date %/ { print NR; exit 0; }" $TMPDIR/.schedules_) \
+      && sed -n $((line - 1))p $TMPDIR/.schedules_ | sed 's/^/at_ /' > $TMPDIR/.schedules \
+      && . $TMPDIR/.schedules) 2>/dev/null || :
+
       # set chgStatusCode and capacitySync
       if [ -z "$chgStatusCode" ] && cmd_batt reset \
         && chgStatusCode=$(dumpsys battery 2>/dev/null | sed -n 's/^  status: //p')
