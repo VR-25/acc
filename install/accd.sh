@@ -158,6 +158,8 @@ if ! $init; then
 
     if $isCharging; then
 
+      killall -CONT mi_thermald 2>/dev/null || :
+
       # handle schedules
       (date=$(date +%H:%M)
       grep '^:.* at [0-9]' $config | sed 's/^:.* at //' > $TMPDIR/.schedules \

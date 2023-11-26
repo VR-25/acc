@@ -194,6 +194,8 @@ enable_charging() {
 
   ! not_charging || {
 
+    killall -CONT mi_thermald 2>/dev/null || :
+
     [ ! -f $TMPDIR/.sw ] || (. $TMPDIR/.sw; rm $TMPDIR/.sw; flip_sw on) 2>/dev/null || :
 
     if ! $ghostCharging || { $ghostCharging && online; }; then
@@ -267,6 +269,8 @@ flip_sw() {
   local on=
   local off=
   local oppositeValue=
+
+  [ $flip = on ] || killall -STOP mi_thermald 2>/dev/null || :
 
   set -- ${chargingSwitch[@]-}
   [ -f ${1:-//} ] || return 2
