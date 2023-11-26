@@ -87,7 +87,7 @@ z) $(print_exit)
       print_press_key
       read -n 1
       set +eu
-      $execDir/uninstall.sh
+      . $execDir/uninstall.sh
     ;;
 
     9)
