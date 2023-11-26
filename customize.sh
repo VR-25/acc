@@ -183,13 +183,13 @@ cp -f $srcDir/README.* $data_dir/
 
 ###
 ! $magisk || {
-  # symlink executables
+  # link executables
   mkdir -p $installDir/system/bin
-  ln -fs $installDir/${id}.sh $installDir/system/bin/$id
-  ln -fs $installDir/${id}.sh $installDir/system/bin/${id}d,
-  ln -fs $installDir/${id}.sh $installDir/system/bin/${id}d.
-  ln -fs $installDir/${id}a.sh $installDir/system/bin/${id}a
-  ln -fs $installDir/service.sh $installDir/system/bin/${id}d
+  ln -f $installDir/${id}.sh $installDir/system/bin/$id
+  ln -f $installDir/${id}.sh $installDir/system/bin/${id}d,
+  ln -f $installDir/${id}.sh $installDir/system/bin/${id}d.
+  ln -f $installDir/${id}a.sh $installDir/system/bin/${id}a
+  ln -f $installDir/service.sh $installDir/system/bin/${id}d
 }
 
 
@@ -262,6 +262,7 @@ case $installDir in
   ;;
   *)
     set_perms_recursive $installDir
+    chmod 0755 $installDir/system/bin/*
   ;;
 esac
 
