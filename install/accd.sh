@@ -676,18 +676,19 @@ else
 
 
   # read charging voltage control files
-  : > $TMPDIR/ch-volt-ctrl-files_
-  ls -1 $(ls_volt_ctrl_files | grep -Ev '^#|^$') 2>/dev/null | \
-    while read file; do
-      chmod a+r $file 2>/dev/null && grep -Eq '^4[1-4][0-9]{2}' $file || continue
-      grep -q '.... ....' $file && continue
-      echo ${file}::$(sed -n 's/^..../v/p' $file)::$(cat $file) \
-        >> $TMPDIR/ch-volt-ctrl-files_
-    done
+  if [ ! -f $TMPDIR/.ch-curr-read ]; then
+    : > $TMPDIR/ch-volt-ctrl-files_
+    ls -1 $(ls_volt_ctrl_files | grep -Ev '^#|^$') 2>/dev/null | \
+      while read file; do
+        chmod a+r $file 2>/dev/null && grep -Eq '^4[1-4][0-9]{2}' $file || continue
+        grep -q '.... ....' $file && continue
+        echo ${file}::$(sed -n 's/^..../v/p' $file)::$(cat $file) \
+          >> $TMPDIR/ch-volt-ctrl-files_
+      done
+  fi
 
 
   # exclude troublesome ctrl files
-  rm $TMPDIR/.ch-curr-read $TMPDIR/ch-curr-ctrl-files 2>/dev/null
   for file in $TMPDIR/ch-*_; do
     sort -u $file | grep -Eiv 'parallel|::-|bq[0-9].*/current_max' > ${file%_}
     rm $file

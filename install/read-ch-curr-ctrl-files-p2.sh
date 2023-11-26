@@ -10,6 +10,7 @@ if [ ! -f $TMPDIR/.ch-curr-read ] \
   || ! grep -q / ${currCtrl} 2>/dev/null
 then
 
+  rm $currCtrl ${currCtrl}_ 2>/dev/null || :
   . $execDir/ctrl-files.sh
   plugins=/data/adb/vr25/acc-data/plugins
   [ -f $plugins/ctrl-files.sh ] && . $plugins/ctrl-files.sh
