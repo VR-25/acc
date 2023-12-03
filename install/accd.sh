@@ -219,7 +219,7 @@ if ! $init; then
 
       if $restrictCurr && [ -n "${cooldownCurrent-}" ]; then
         $cooldown || (set_ch_curr ${cooldownCurrent:--} || :)
-        (maxChargingCurrent=() apply_on_plug)
+        (maxChargingCurrent=(); apply_on_plug)
       else
         [ -n "${maxChargingCurrent[0]-}" ] || (set_ch_curr - || :)
         apply_on_plug
@@ -229,12 +229,15 @@ if ! $init; then
       set_temp_level
       shutdownWarnings=true
 
+      dumpsys activity top | sed -En 's/(.*ACTIVITY )(.*)(\/.*)/\2/p' | tail -n 1 | grep -E "$(echo ${idleApps[*]} | sed 's/ /|/g; s/,/|/g')" >/dev/null \
+        && capacity[3]=$(cat $battCapacity) && capacity[2]=$((capacity[3] - 5)) || :
+
     else
 
       $rebootResume \
         && le_resume_cap \
         && [ $(cat $temp) -lt $(( ${temperature[1]} * 10 )) ] && {
-          notif "⚠️ System will reboot in 60 seconds to re-enable charging! Stop accd to abort."
+          notif "⚠️ System will reboot in 60 seconds to re-enable charging! Run \"accd.\" to abort."
           sleep 60
           ! not_charging || {
             /system/bin/reboot || reboot

@@ -237,7 +237,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202311261
+configVerCode=202312030
 
 allowIdleAbovePcap=true
 ampFactor=
@@ -248,6 +248,7 @@ cooldownRatio=()
 currentWorkaround=false
 dischargePolarity=
 forceOff=false
+idleApps=()
 idleThreshold=40
 language=en
 offMid=true
@@ -375,6 +376,8 @@ runCmdOnPause=''
 
 // forceOff=force_off=BOOLEAN
 
+// idleApps=idle_apps=(comma or space separated patterns matching Android package names) NULLABLE
+
 // idleThreshold=idle_threshold=MILLIAMPS
 
 // language=lang=LANGUAGE_CODE NULLABLE
@@ -421,6 +424,7 @@ runCmdOnPause=''
 // current_workaround cw
 // discharge_polarity dp
 // force_off fo
+// idle_apps ia
 // idle_threshold it
 // lang l
 // max_charging_current mcc
@@ -572,6 +576,12 @@ runCmdOnPause=''
 // Enable this only if the set charging switch is stubbornly reset by the system.
 // Oftentimes, userspace thermal management daemons (e.g., mi_thermald) and/or driver issues are behind charging control issues.
 // Some people "systemlessly" disable certain thermal daemons with Magisk. While this is not a general recommendation, they swear by it.
+
+
+// idle_apps (ia) # Default: null
+// This is a list of comma or space separated patterns matching Android package names.
+// When a matched app is running in the foreground, idle mode is enabled.
+// e.g., idleApps=(maps navig somegame) or idleApps=(maps,navig,somegame) or mixed
 
 
 // idle_threshold (it) # Default: 40
