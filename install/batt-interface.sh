@@ -50,7 +50,7 @@ not_charging() {
 
 
 online() {
-  grep 1 */online | grep -iv bms >/dev/null
+  grep 1 */online | grep -Eiv "batt|bms|flash|otg|parallel" >/dev/null
 }
 
 
