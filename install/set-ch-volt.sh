@@ -1,7 +1,13 @@
 set_ch_volt() {
+
   if [ -n "${1-}" ]; then
 
     set -- $*
+
+    apply_on_boot_() {
+      (applyOnBoot=()
+      apply_on_boot ${*-})
+    }
 
     ${verbose:-true} || {
       exxit() { exit $?; }
@@ -10,7 +16,7 @@ set_ch_volt() {
 
     # restore
     if [ $1 = - ]; then
-      apply_on_boot default force
+      apply_on_boot_ default force
       max_charging_voltage=
       ! ${verbose:-true} || print_volt_restored
 
@@ -18,7 +24,7 @@ set_ch_volt() {
       apply_voltage() {
         eval "maxChargingVoltage=($1 $(sed "s|::v|::$1|" $TMPDIR/ch-volt-ctrl-files) ${2-})" \
           && unset max_charging_voltage mcv \
-          && apply_on_boot \
+          && apply_on_boot_ \
           && {
             ! ${verbose:-true} || print_volt_set $1
           } || return 1

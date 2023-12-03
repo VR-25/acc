@@ -30,9 +30,15 @@ set_ch_curr() {
 
   if [ -n "${1-}" ]; then
 
+    apply_on_plug_() {
+      (applyOnPlug=()
+      maxChargingVoltage=()
+      apply_on_plug ${1-})
+    }
+
     # restore
     if [ $1 = - ]; then
-      apply_on_plug default
+      apply_on_plug_ default
       max_charging_current=
       ! $verbose || print_curr_restored
 
@@ -47,7 +53,7 @@ set_ch_curr() {
           fi
         " \
           && unset max_charging_current mcc \
-          && apply_on_plug \
+          && apply_on_plug_ \
           && {
             ! $verbose || print_curr_set $1
           } || return 1

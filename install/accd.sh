@@ -95,7 +95,7 @@ if ! $init; then
     cmd_batt reset
     grep -Ev '^$|^#' $config > $TMPDIR/.config
     config=$TMPDIR/.config
-    apply_on_boot default
+    applyOnPlug=(${applyOnPlug[*]-} ${applyOnBoot[*]-})
     apply_on_plug default
     tempLevel=0
     enable_charging
@@ -219,11 +219,13 @@ if ! $init; then
 
       if $restrictCurr && [ -n "${cooldownCurrent-}" ]; then
         $cooldown || (set_ch_curr ${cooldownCurrent:--} || :)
+        (maxChargingCurrent=() apply_on_plug)
       else
         [ -n "${maxChargingCurrent[0]-}" ] || (set_ch_curr - || :)
         apply_on_plug
       fi
 
+      set_ch_volt ${maxChargingVoltage[0]:--}
       set_temp_level
       shutdownWarnings=true
 
@@ -343,7 +345,6 @@ if ! $init; then
             $cooldownCustom_ && sleep ${cooldownCustom[3]:-${loopDelay[1]}} \
               || sleep ${cooldownRatio[1]:-${loopDelay[1]}}
             [ -n "${maxChargingCurrent[0]-}" ] || (set_ch_curr - || :)
-            apply_on_plug
             ! $cooldownCustom_ || cooldownRatio[0]=${cooldownCustom[2]:-${loopDelay[0]}}
             count=0
             while [ $count -lt ${cooldownRatio[0]:-${loopDelay[0]}} ]; do
