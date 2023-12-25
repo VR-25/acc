@@ -54,9 +54,9 @@ apply_on_plug() {
 }
 
 
-at_() {
+at() {
   local file=$TMPDIR/schedules/${1/:}
-  if [ ! -f $file ] && [ $(date +%H%M) -ge ${file##*/} ]; then
+  if [ ! -f $file ] && [ $(date +%H%M) -ge ${file##*/} ] && [ $(date +%H) -eq ${1%:*} ]; then
     mkdir -p ${file%/*}
     touch $file
     shift
@@ -66,8 +66,6 @@ at_() {
     rm $file 2>/dev/null || :
   fi
 }
-
-at() { :; }
 
 
 calc() {

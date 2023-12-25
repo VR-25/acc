@@ -237,7 +237,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202312030
+configVerCode=202312250
 
 allowIdleAbovePcap=true
 ampFactor=
@@ -299,7 +299,7 @@ runCmdOnPause=''
 
 // INTERNAL FUNCTIONS
 
-// at H:MM 'command...'   scheduler
+// at HH:MM 'command...'   scheduler
 // e.g.,
 //   at 2:14 acc --notif 2:14 AM now\!
 //   at 22:30 acc -n 22:30 now\!
