@@ -32,22 +32,24 @@ then
       esac
     done
 
-  # exclude troublesome ctrl files
-  sort -u ${currCtrl}_ \
-    | grep -Eiv 'parallel|::-|bq[0-9].*/current_max' > $TMPDIR/.ctrl
+  if [ -f ${currCtrl}_ ]; then
+    # exclude troublesome ctrl files
+    sort -u ${currCtrl}_ \
+      | grep -Eiv 'parallel|::-|bq[0-9].*/current_max' > $TMPDIR/.ctrl
 
-  # exclude non-batt control files
-  $currentWorkaround \
-    && grep -i batt $TMPDIR/.ctrl > ${currCtrl} \
-    || cat $TMPDIR/.ctrl > ${currCtrl}
+    # exclude non-batt control files
+    $currentWorkaround \
+      && grep -i batt $TMPDIR/.ctrl > ${currCtrl} \
+      || cat $TMPDIR/.ctrl > ${currCtrl}
 
-  # add curr and volt ctrl files to charging switches list
-  sed -e 's/::.*::/ /' -e 's/$/ 0/' $TMPDIR/.ctrl >> $TMPDIR/ch-switches
-  sed -E 's/(.*)(::v.*::)(.*)/\1 \3 \2/; s/::v/10/; s/:://' $TMPDIR/.ctrl >> $TMPDIR/ch-switches
-  sed -Ee 's/::.*::/ /' -e 's/([0-9])$/\1 3600mV/' $TMPDIR/ch-volt-ctrl-files >> $TMPDIR/ch-switches
+    # add curr and volt ctrl files to charging switches list
+    sed -e 's/::.*::/ /' -e 's/$/ 0/' $TMPDIR/.ctrl >> $TMPDIR/ch-switches
+    sed -E 's/(.*)(::v.*::)(.*)/\1 \3 \2/; s/::v/10/; s/:://' $TMPDIR/.ctrl >> $TMPDIR/ch-switches
+    sed -Ee 's/::.*::/ /' -e 's/([0-9])$/\1 3600mV/' $TMPDIR/ch-volt-ctrl-files >> $TMPDIR/ch-switches
 
-  cat $TMPDIR/ch-switches > $TMPDIR/.ctrl
-  grep / $TMPDIR/.ctrl | sort -u > $TMPDIR/ch-switches
+    cat $TMPDIR/ch-switches > $TMPDIR/.ctrl
+    grep / $TMPDIR/.ctrl | sort -u > $TMPDIR/ch-switches
+  fi
 fi
 
 rm ${currCtrl}_ $TMPDIR/.ctrl 2>/dev/null

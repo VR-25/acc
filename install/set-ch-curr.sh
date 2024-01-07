@@ -22,9 +22,9 @@ set_ch_curr() {
       (while not_charging; do sleep 1; set +x; done)
     fi
     . $execDir/read-ch-curr-ctrl-files-p2.sh
-    grep -q / $TMPDIR/ch-curr-ctrl-files || {
+    grep -q / $TMPDIR/ch-curr-ctrl-files 2>/dev/null || {
       ! $verbose || print_no_ctrl_file
-      return 1
+      return 0
     }
   fi
 
