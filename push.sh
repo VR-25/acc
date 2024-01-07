@@ -19,5 +19,20 @@ dest=/sdcard/Download/acc.zip
   shift
 }
 
-adb $([ -z "${1-}" ] || echo "-s $1") push $zip $dest \
-  && adb $([ -z "${1-}" ] || echo "-s $1") shell su -c magisk --install-module $dest || :
+one=${1-}
+
+_adb() {
+  if [ -n "${one-}" ]; then
+    adb -s $one "$@"
+  else
+    adb "$@"
+  fi
+}
+
+if _adb shell su -c "which ksud >/dev/null"; then
+  install="ksud module install $dest"
+else
+  install="magisk --install-module $dest"
+fi
+
+_adb push $zip $dest && _adb shell su -c "$install" || :
