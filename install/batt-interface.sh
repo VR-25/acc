@@ -50,7 +50,11 @@ not_charging() {
 
 
 online() {
-  grep 1 */online | grep -Eiv "batt|bms|flash|otg|parallel" >/dev/null
+  local i=
+  for i in $(ls -1 */online | grep -Ei 'usb|wireless'); do
+    grep -q 0 $i || return 0
+  done
+  return 1
 }
 
 
