@@ -69,7 +69,7 @@ print_switch_fails() {
 }
 
 print_no_ctrl_file() {
-  echo "No control file found"
+  echo "No regular current control file found; try the temp_level feature"
 }
 
 print_not_found() {
