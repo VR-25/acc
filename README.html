@@ -1299,7 +1299,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 <h2 id="default-configuration">DEFAULT CONFIGURATION<a class="headerlink" href="#default-configuration" title="Permanent link"></a></h2>
 <div class="highlight"><pre>#DC#
 
-configVerCode=202312250
+configVerCode=202312310
 
 allowIdleAbovePcap=true
 ampFactor=
@@ -1727,7 +1727,7 @@ runCmdOnPause=&#39;&#39;
 // Reset battery stats seconds after unplugging the charger.
 
 
-// resume_capacity (rc) # Default: 15
+// resume_capacity (rc) # Default: 70
 // Battery level or millivolts at which charging should resume.
 
 
@@ -2145,7 +2145,7 @@ It picks up new changes within seconds.</p>
 <p>If your device shuts down before the battery is actually empty, <code>capacity_sync</code> or <code>capacity_mask</code> may help.
 Refer to the <a href="#default-configuration">default configuration</a> section above for details.</p>
 <h3 id="charging-switch">Charging Switch<a class="headerlink" href="#charging-switch" title="Permanent link"></a></h3>
-<p>By default, ACC uses whichever <a href="https://github.com/VR-25/acc/blob/dev/acc/install/ctrl-files.sh">charging switch</a> works (&ldquo;automatic&rdquo; mode).
+<p>By default, ACC uses whichever <a href="https://github.com/VR-25/acc/blob/dev/install/ctrl-files.sh">charging switch</a> works (&ldquo;automatic&rdquo; mode).
 However, things don&rsquo;t always go well.</p>
 <ul>
 <li>
@@ -2276,7 +2276,7 @@ Your cooperation is greatly appreciated.</p>
 <p>Translation Notes</p>
 <ol>
 <li>
-<p>Start with copies of <a href="https://github.com/VR-25/acc/blob/dev/acc/strings.sh">acc/strings.sh</a> and, optionally, <a href="https://github.com/VR-25/acc/blob/dev/README.md">README.md</a>.</p>
+<p>Start with copies of <a href="https://github.com/VR-25/acc/blob/dev/install/strings.sh">acc/strings.sh</a> and, optionally, <a href="https://github.com/VR-25/acc/blob/dev/README.md">README.md</a>.</p>
 </li>
 <li>
 <p>Modify the header of strings.sh to reflect the translation (e.g., # Español (es)).</p>

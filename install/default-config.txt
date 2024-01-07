@@ -1,4 +1,4 @@
-configVerCode=202312250
+configVerCode=202312310
 
 allowIdleAbovePcap=true
 ampFactor=
@@ -426,7 +426,7 @@ runCmdOnPause=''
 # Reset battery stats seconds after unplugging the charger.
 
 
-# resume_capacity (rc) # Default: 15
+# resume_capacity (rc) # Default: 70
 # Battery level or millivolts at which charging should resume.
 
 

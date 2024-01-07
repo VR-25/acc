@@ -237,7 +237,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202312250
+configVerCode=202312310
 
 allowIdleAbovePcap=true
 ampFactor=
@@ -665,7 +665,7 @@ runCmdOnPause=''
 // Reset battery stats seconds after unplugging the charger.
 
 
-// resume_capacity (rc) # Default: 15
+// resume_capacity (rc) # Default: 70
 // Battery level or millivolts at which charging should resume.
 
 
@@ -1162,7 +1162,7 @@ Refer to the [default configuration](#default-configuration) section above for d
 
 ### Charging Switch
 
-By default, ACC uses whichever [charging switch](https://github.com/VR-25/acc/blob/dev/acc/install/ctrl-files.sh) works ("automatic" mode).
+By default, ACC uses whichever [charging switch](https://github.com/VR-25/acc/blob/dev/install/ctrl-files.sh) works ("automatic" mode).
 However, things don't always go well.
 
 - Some switches are unreliable under certain conditions (e.g., while the screen is off).
@@ -1337,7 +1337,7 @@ Currently Supported Languages and Translation Levels (default, full, good, fair,
 
 Translation Notes
 
-1. Start with copies of [acc/strings.sh](https://github.com/VR-25/acc/blob/dev/acc/strings.sh) and, optionally, [README.md](https://github.com/VR-25/acc/blob/dev/README.md).
+1. Start with copies of [acc/strings.sh](https://github.com/VR-25/acc/blob/dev/install/strings.sh) and, optionally, [README.md](https://github.com/VR-25/acc/blob/dev/README.md).
 
 2. Modify the header of strings.sh to reflect the translation (e.g., # Español (es)).
 
