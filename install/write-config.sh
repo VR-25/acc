@@ -69,7 +69,7 @@ fi
 
 echo "configVerCode=$(cat $TMPDIR/.config-ver)
 
-allowIdleAbovePcap=${aiapc:-true}
+allowIdleAbovePcap=${aiapc:-false}
 ampFactor=$af
 battStatusWorkaround=${bsw:-true}
 capacity=(${sc:-5} ${cc:-50} ${rc:-70} ${pc:-75} ${cs:-false} ${cm:-false})
@@ -79,7 +79,7 @@ currentWorkaround=${cw:-false}
 dischargePolarity=$dp
 forceOff=${fo:-false}
 idleApps=($ia)
-idleThreshold=${it:-40}
+idleThreshold=${it:-30}
 language=${lang:-en}
 offMid=${om:-true}
 prioritizeBattIdleMode=${pbim:-true}
