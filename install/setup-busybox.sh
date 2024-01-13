@@ -7,7 +7,7 @@
 
 bin_dir=/data/adb/vr25/bin
 busybox_dir=/dev/.vr25/busybox
-magisk_busybox="/data/adb/ksu/bin/busybox /data/adb/magisk/busybox"
+magisk_busybox="$(ls /data/adb/*/bin/busybox /data/adb/magisk/busybox 2>/dev/null || :)"
 
 [ -x $busybox_dir/ls ] || {
   mkdir -p $busybox_dir
