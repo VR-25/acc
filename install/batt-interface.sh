@@ -51,7 +51,7 @@ not_charging() {
 
 online() {
   local i=
-  for i in $(ls -1 */online | grep -Ei '^ac/|^charger/|^usb/|^wireless/'); do
+  for i in $(ls -1 */online | grep -Ei '^ac/|^charger/|^dc/|^usb/|^wireless/'); do
     grep -q 0 $i || return 0
   done
   return 1
