@@ -16,7 +16,7 @@ idle_discharging() {
 not_charging() {
 
   local i=
-  local nci=${nci:-15}
+  local sti=${sti:-17}
   local switch=${flip-}; flip=
   local curThen=$(cat $curThen)
   local idleThreshold=$idleThreshold
@@ -30,17 +30,17 @@ not_charging() {
   }
 
   if [ -z "${battStatusOverride-}" ] && [ -n "$switch" ]; then
-    for i in $(seq $nci); do
+    for i in $(seq $sti); do
       if [ "$switch" = off ]; then
         ! status ${1-} || {
-          sleep ${loopDelay[0]}
+          sleep 2
           ! status ${1-} || return 0
         }
       else
         status ${1-} || return 1
       fi
       [ ! -f $TMPDIR/.nowrite ] || { rm $TMPDIR/.nowrite 2>/dev/null || :; break; }
-      [ $i = $nci ] || sleep 3
+      [ $i = $sti ] || sleep 2
     done
     [ "$switch" = on ] || return 1
   else
