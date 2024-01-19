@@ -567,7 +567,9 @@ case "${1-}" in
 
     [ "${1-}" != -- ] || shift #legacy, AccA
     . $execDir/read-ch-curr-ctrl-files-p2.sh
-    : > /sdcard/Download/acc-t_output-${device}.log
+    { echo versionCode=$(sed -n s/versionCode=//p $execDir/module.prop 2>/dev/null || :)
+    echo
+    grep . */online; } > /sdcard/Download/acc-t_output-${device}.log
 
     if [ -z "${2-}" ]; then
       ! tt "${1-}" "p|parse" || parsed=$TMPDIR/.parsed
