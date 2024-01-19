@@ -119,18 +119,25 @@ if ! $init; then
     # source config & set discharge polarity
     set_dp
 
-    if ! not_charging; then
+    if not_charging; then
+      unsolicitedResumes=0
+    else
       isCharging=true
-      # [auto mode] change the charging switch if charging has not been enabled by acc
+      # [auto mode] change the charging switch if charging has not been enabled by acc (if behavior repeats 3 times)
       if $chDisabledByAcc && [ -n "${chargingSwitch[0]-}" ] && ! tt "${chargingSwitch[*]}" "*--" \
         && sleep ${loopDelay[1]} && { ! not_charging || { isCharging=false; false; }; }
       then
-        if grep -q "^${chargingSwitch[*]}$" $TMPDIR/ch-switches; then
-          sed -i "\|^${chargingSwitch[*]}$|d" $TMPDIR/ch-switches
-          echo "${chargingSwitch[*]}" >> $TMPDIR/ch-switches
+        if [ $unsolicitedResumes -ge 3 ]; then
+          if grep -q "^${chargingSwitch[*]}$" $TMPDIR/ch-switches; then
+            sed -i "\|^${chargingSwitch[*]}$|d" $TMPDIR/ch-switches
+            echo "${chargingSwitch[*]}" >> $TMPDIR/ch-switches
+          fi
+          $TMPDIR/acca --set charging_switch=
+          chargingSwitch=()
+          unsolicitedResumes=0
+        else
+          unsolicitedResumes=$((unsolicitedResumes + 1))
         fi
-        $TMPDIR/acca --set charging_switch=
-        chargingSwitch=()
       fi
       # [auto mode] set charging switch
       if [ -z "${chargingSwitch[0]-}" ]; then
@@ -518,6 +525,7 @@ if ! $init; then
   resetBattStatsOnUnplug=false
   restrictCurr=false
   shutdownWarnings=true
+  unsolicitedResumes=0
   versionCode=$(sed -n s/versionCode=//p $execDir/module.prop 2>/dev/null || :)
 
 
