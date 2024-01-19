@@ -237,7 +237,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202401130
+configVerCode=202401180
 
 allowIdleAbovePcap=false
 ampFactor=

@@ -7,10 +7,8 @@ if (set +x; . $config) > /dev/null 2>&1; then
   configVer=0$(_get_prop configVerCode)
   defaultConfVer=0$(cat $TMPDIR/.config-ver)
   [ $configVer -eq $defaultConfVer ] || {
-    if [ $configVer -lt 202308121 ]; then
-      $TMPDIR/acca --set temp_level=0 force_off= capacity_sync=
-    elif [ $configVer -lt 202310160 ]; then
-      $TMPDIR/acca --set force_off= capacity_sync=
+    if [ $configVer -lt 202401180 ]; then
+      $TMPDIR/acca --set allow_idle_above_pcap= idle_threshold=
     else
       $TMPDIR/acca --set dummy=
     fi

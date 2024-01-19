@@ -14,10 +14,10 @@ logf() {
     $execDir/power-supply-logger.sh
     { parse_switches 2>/dev/null || $TMPDIR/acca --parse; } > acc-p.txt
 
-    ln -f ../ch-switches charging-switches.txt
-    ln -f ../oem-custom oem-custom.txt 2>/dev/null
+    { ln -f ../ch-switches charging-switches.txt
+    ln -f ../oem-custom oem-custom.txt
     ln -f ../ch-curr-ctrl-files charging-current-ctrl-files.txt
-    ln -f ../ch-volt-ctrl-files charging-voltage-ctrl-files.txt
+    ln -f ../ch-volt-ctrl-files charging-voltage-ctrl-files.txt; } 2>/dev/null
 
     for file in /cache/magisk.log /data/cache/magisk.log; do
       [ -f $file ] && ln -sf $file ./ && break
