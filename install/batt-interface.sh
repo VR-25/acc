@@ -25,9 +25,10 @@ not_charging() {
 
   tt "${chargingSwitch[$*]-}" "*\ --" || battStatusOverride=
 
-  ! tt "$currFile" "*/current_now" && battStatusWorkaround=false || {
-    [ ${ampFactor:-$ampFactor_} -eq 1000 ] || idleThreshold=${idleThreshold}000
-  }
+  case "$currFile" in
+    */current_now|*/?attery?verage?urrent) [ ${ampFactor:-$ampFactor_} -eq 1000 ] || idleThreshold=${idleThreshold}000;;
+    *) battStatusWorkaround=false;;
+  esac
 
   if [ -z "${battStatusOverride-}" ] && [ -n "$switch" ]; then
     for i in $(seq $sti); do
@@ -51,10 +52,15 @@ not_charging() {
 
 online() {
   local i=
-  for i in $(ls -1 */online | grep -Ei '^ac/|^charger/|^dc/|^usb/|^wireless/'); do
+  for i in $(online_f); do
     grep -q 0 $i || return 0
   done
   return 1
+}
+
+
+online_f() {
+  ls -1 */online | grep -Ei '^ac/|^charger/|^dc/|^usb/|^wireless/' || :
 }
 
 
