@@ -1,4 +1,6 @@
-set +u
+(set +u
+s0="${charging_switch-${s}}"
+
 
 ab="${apply_on_boot-${ab-${applyOnBoot[@]}}}"
 af=${amp_factor-${af-$ampFactor}}
@@ -39,6 +41,7 @@ st=${shutdown_temp-${st-${temperature[3]}}}
 tl="${temp_level-${tl-$tempLevel}}"
 vf=${volt_factor-${vf-$voltFactor}}
 
+
 # backup scripts
 touch $TMPDIR/.scripts
 grep '^:' $config > $TMPDIR/.scripts 2>/dev/null || :
@@ -65,6 +68,16 @@ if [ ${rt%r} -ge $mt ] || [ $((mt - ${rt%r})) -gt 10 ]; then
     *) rt=$((mt - 1));;
   esac
 fi
+
+
+# reset switch (in auto-mode) if pbim has changed
+case "${chargingSwitch[*]}" in
+  *--) ;;
+  *)
+    if [ -z "$s0" ] && [ ".$pbim" != ".$prioritizeBattIdleMode" ]; then
+      s=
+    fi;;
+esac
 
 
 echo "configVerCode=$(cat $TMPDIR/.config-ver)
@@ -108,4 +121,4 @@ runCmdOnPause='$rcp'" > $config
 
 cat $TMPDIR/.scripts $TMPDIR/.config-help >> $config
 rm $TMPDIR/.scripts
-set -u
+set -u)
