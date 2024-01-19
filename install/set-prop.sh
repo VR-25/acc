@@ -46,14 +46,14 @@ set_prop() {
     d|--print-default)
       . $defaultConfig
       two="${2//,/|}"
-      . $execDir/print-config.sh ns | { grep -E "${two-.}" | more; } || :
+      . $execDir/print-config.sh ns | { grep -E "${two:-.}" | more; } || :
       return 0
     ;;
 
     # print current config
     p|--print)
       two="${2//,/|}"
-      . $execDir/print-config.sh | { grep -E "${two-.}" | more; } || :
+      . $execDir/print-config.sh | { grep -E "${two:-.}" | more; } || :
       return 0
     ;;
 

@@ -118,7 +118,8 @@ case "$@" in
   -s\ d*|-s\ --print-default*|--set\ d*|--set\ --print-default*|-sd*)
     [ $1 = -sd ] && shift || shift 2
     . $defaultConfig
-    . $execDir/print-config.sh | grep -E "${1:-.}" | sed 's/^$//' || :
+    one="${1//,/|}"
+    . $execDir/print-config.sh ns | grep -E "${one:-.}" | sed 's/^$//' || :
     exit 0
   ;;
 
@@ -126,7 +127,8 @@ case "$@" in
   -s\ p*|-s\ --print|-s\ --print\ *|--set\ p|--set\ --print|--set\ --print\ *|-sp*)
     [ $1 = -sp ] && shift || shift 2
     src_cfg
-    . $execDir/print-config.sh | grep -E "${1:-.}" | sed 's/^$//' || :
+    one="${1//,/|}"
+    . $execDir/print-config.sh | grep -E "${one:-.}" | sed 's/^$//' || :
     exit 0
   ;;
 
