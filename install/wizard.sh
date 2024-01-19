@@ -129,7 +129,8 @@ z) $(print_exit)
     ;;
 
     e)
-      _batt_info
+      . $execDir/batt-info.sh
+      batt_info | more
     ;;
 
     f)

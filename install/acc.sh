@@ -4,44 +4,6 @@
 # License: GPLv3+
 
 
-_batt_info() {
-  set +e
-  dsys="$(dumpsys battery)"
-
-  {
-    {
-
-      if tt "${dsys:-x}" "*reset*"; then
-
-        status=$(echo "$dsys" | sed -n 's/^  status: //p')
-        level=$(echo "$dsys" | sed -n 's/^  level: //p')
-        powered=$(echo "$dsys" | grep ' powered: true' > /dev/null && echo true || echo false)
-
-        cmd_batt reset
-        dumpsys battery
-        cmd_batt set status $status
-        cmd_batt set level $level
-
-        if $powered; then
-          cmd_batt set ac 1
-        else
-          cmd_batt unplug
-        fi
-
-      else
-        echo "$dsys"
-      fi
-
-    } | grep -Ei "${1-.*}" | sed -e '1s/.*/Battery Service\n/' && echo
-
-    . $execDir/batt-info.sh
-    printf "Uevent\n\n"
-    batt_info "${1-}" | sed 's/^/  /'
-
-  } | more
-}
-
-
 daemon_ctrl() {
 
   local isRunning=false
@@ -436,7 +398,8 @@ case "${1-}" in
   ;;
 
   -i|--info)
-    _batt_info "${2-.*}"
+    . $execDir/batt-info.sh
+    batt_info "${2-}" | more
   ;;
 
   -la)

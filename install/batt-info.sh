@@ -100,8 +100,7 @@ POWER_NOW=$powerNow$(print_W 2>/dev/null || :)"
 
 
   # power supply info
-  for i in */online; do
-    ! tt "$i" "*[bB][mM][sS]*" || continue
+  for i in $(online_f); do
     if [ -f $i ] && [ $(cat $i) -eq 1 ]; then
       i=${i%/*}
       POWER_SUPPLY_TYPE=$(cat $i/real_type 2>/dev/null || echo $i | tr [a-z] [A-Z])
@@ -125,6 +124,12 @@ CONSUMED_WATTS=$CONSUMED_WATTS"
       break
     fi
   done 2>/dev/null || :
+
+
+  # online status
+  echo
+  grep . */online
+
 
   } | grep -Ei "${one:-.*}" || :
 }
