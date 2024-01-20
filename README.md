@@ -748,7 +748,7 @@ Usage
 
 Options
 
-  -b|--rollback   Undo upgrade
+  -b[c | " c"]|--rollback[c | " c"]   Restore previous installation; "c" restores the config as well
 
   -c|--config [[editor] [editor_opts] | g for GUI]   Edit config (default editor: nano/vim/vi)
     e.g.,

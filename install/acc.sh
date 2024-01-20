@@ -211,8 +211,12 @@ parse_switches() {
 rollback() {
   rm -rf $execDir/*
   cp -a $dataDir/backup/* $execDir/
-  mv -f $execDir/config.txt $config
-  $TMPDIR/accd --init
+  if [ .${1-} = .c ]; then
+    mv -f $execDir/config.txt $config
+  else
+    rm $execDir/config.txt
+  fi
+  $execDir/service.sh --init
 }
 
 
@@ -306,6 +310,10 @@ case "${1-}" in
 
   -b|--rollback)
     rollback
+  ;;
+
+   -bc|b\ c|--rollback|--rollback\ c)
+    rollback c
   ;;
 
   -c|--config)
