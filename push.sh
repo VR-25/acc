@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 # Push and Install Zip
-# Copyright 2022-2023, VR25
+# Copyright 2022-2024, VR25
 # License: GPLv3+
 #
 # usage: $0 [k] [adb device]

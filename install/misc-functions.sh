@@ -343,7 +343,7 @@ parse_value() {
 
 print_header() {
   echo "Advanced Charging Controller (ACC) $accVer ($accVerCode)
-(C) 2017-2023, VR25
+(C) 2017-2024, VR25
 GPLv3+"
 }
 

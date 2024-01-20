@@ -68,7 +68,7 @@ Sistem Magisk kullanılarak veya başka bir şekilde rootlanmış fark etmez, ku
 ---
 ## Lisans
 
-Copyright 2017-2023, VR25
+Copyright 2017-2024, VR25
 
 Bu ücretsiz bir yazılımdır: dilerseniz Free Software Foundation tarafından yayımlanan
 GNU General Public License altında değiştirebilir veya yeniden dağıtabilirsiniz.

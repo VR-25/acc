@@ -68,7 +68,7 @@ Regardless of whether the system is rooted with KernelSU/Magisk, the installatio
 ---
 ## LICENSE
 
-Copyright 2017-2023, VR25
+Copyright 2017-2024, VR25
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

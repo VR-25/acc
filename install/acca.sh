@@ -1,6 +1,6 @@
 #!/system/bin/sh
 # acca: acc for front-ends (faster and more efficient than acc)
-# Copyright 2020-2023, VR25
+# Copyright 2020-2024, VR25
 # License: GPLv3+
 
 

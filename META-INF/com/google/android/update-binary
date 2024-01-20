@@ -1,6 +1,6 @@
 #!/system/bin/sh
 # $id Installer/Upgrader
-# Copyright 2019-2023, VR25
+# Copyright 2019-2024, VR25
 # License: GPLv3+
 #
 # devs: triple hashtags (###) mark non-generic code
@@ -152,7 +152,7 @@ fi
 
 ###
 echo "$name $version ($versionCode)
-Copyright 2017-2023, $author
+Copyright 2017-2024, $author
 GPLv3+
 
 Installing in $installDir/$id/..."

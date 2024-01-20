@@ -1,5 +1,5 @@
 # Busybox Setup
-# Copyright 2019-2023, VR25
+# Copyright 2019-2024, VR25
 # License: GPLv3+
 #
 # Usage: . $0

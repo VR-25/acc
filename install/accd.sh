@@ -1,6 +1,6 @@
 #!/system/bin/sh
 # Advanced Charging Controller Daemon (accd)
-# Copyright 2017-2023, VR25
+# Copyright 2017-2024, VR25
 # License: GPLv3+
 
 
