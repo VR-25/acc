@@ -36,6 +36,15 @@ if ! $init; then
   }
 
 
+  _le_pause_cap() {
+    if t ${capacity[3]} -gt 3000; then
+      t $(volt_now) -le ${capacity[3]}
+    else
+      t $(cat $battCapacity) -le ${capacity[3]}
+    fi
+  }
+
+
   _lt_pause_cap() {
     if t ${capacity[3]} -gt 3000; then
       t $(volt_now) -lt ${capacity[3]}
@@ -276,6 +285,8 @@ if ! $init; then
 
       if is_charging; then
 
+        xIdle=false
+
         # disable charging after a reboot, if min < capacity < max
         if $offMid && [ -f $TMPDIR/.minCapMax ] && _lt_pause_cap && _gt_resume_cap; then
           disable_charging
@@ -296,6 +307,7 @@ if ! $init; then
             echo "chargingSwitch=(${chargingSwitch[@]-})" > $TMPDIR/.sw
             force_off)
             chDisabledByAcc=true
+            [ $_status != Discharging ] || xIdle=true
           else
             disable_charging
             force_off
@@ -360,8 +372,12 @@ if ! $init; then
 
       else
 
+        if $xIdle && _le_pause_cap; then
+          enable_charging
+          disable_charging
+          xIdle=false
         # enable charging under <conditions>
-        if _le_resume_cap && temp_ok; then
+        elif _le_resume_cap && temp_ok; then
           rm $TMPDIR/.forceoff* 2>/dev/null && sleep ${loopDelay[0]} || :
           enable_charging
         fi
@@ -514,6 +530,7 @@ if ! $init; then
   . $execDir/misc-functions.sh
 
 
+  xIdle=false
   capacitySync=false
   chCurrRead=false
   chDisabledByAcc=false
