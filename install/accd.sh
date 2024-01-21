@@ -64,7 +64,7 @@ if ! $init; then
 
 
   _le_resume_cap() {
-    if tt ${temperature[2]} "*r" && _lt_pause_cap; then
+    if $mtReached && _lt_pause_cap; then
       return 0
     elif t ${capacity[2]} -gt 3000; then
       t $(volt_now) -le ${capacity[2]}
@@ -162,11 +162,11 @@ if ! $init; then
     [ $(cat $temp) -lt $(( ${temperature[3]} * 10 )) ] || shutdown
 
     [ -z "${cooldownCurrent-}" ] || {
-      if [ $(cat $temp) -le $(( ${temperature[2]%r} * 10 )) ] && ! _ge_cooldown_cap; then
+      if [ $(cat $temp) -le $(( ${temperature[2]} * 10 )) ] && ! _ge_cooldown_cap; then
         restrictCurr=false
       fi
       if _ge_cooldown_cap || [ $(cat $temp) -ge $(( ${temperature[0]} * 10 )) ] \
-        || { ! $isCharging && [ $(cat $temp) -ge $(( ${temperature[2]%r} * 10 )) ]; }
+        || { ! $isCharging && [ $(cat $temp) -ge $(( ${temperature[2]} * 10 )) ]; }
       then
         restrictCurr=true
       fi
@@ -286,6 +286,7 @@ if ! $init; then
       if is_charging; then
 
         xIdle=false
+        mtReached=false
 
         # disable charging after a reboot, if min < capacity < max
         if $offMid && [ -f $TMPDIR/.minCapMax ] && _lt_pause_cap && _gt_resume_cap; then
@@ -297,7 +298,7 @@ if ! $init; then
         fi
 
         # disable charging under <conditions>
-        if [ $(cat $temp) -ge $(( ${temperature[1]} * 10 )) ] || _ge_pause_cap; then
+        if mt_reached || _ge_pause_cap; then
           if ! $allowIdleAbovePcap && [ $(cat $battCapacity) -gt ${capacity[3]} ]; then
             # if possible, avoid idle mode when capacity > pause_capacity
             (cat $config > $TMPDIR/.cfg
@@ -377,7 +378,7 @@ if ! $init; then
           disable_charging
           xIdle=false
         # enable charging under <conditions>
-        elif _le_resume_cap && temp_ok; then
+        elif _le_resume_cap && [ $(cat $temp) -le $(( ${temperature[2]} * 10 )) ]; then
           rm $TMPDIR/.forceoff* 2>/dev/null && sleep ${loopDelay[0]} || :
           enable_charging
         fi
@@ -424,6 +425,11 @@ if ! $init; then
       sleep 1
     done &
     set -x
+  }
+
+
+  mt_reached() {
+    [ $(cat $temp) -ge $(( ${temperature[1]} * 10 )) ] && mtReached=true
   }
 
 
@@ -515,17 +521,6 @@ if ! $init; then
   }
 
 
-  temp_ok() {
-    if [ $(cat $temp) -le $(( ${temperature[2]%r} * 10 )) ] \
-      || { [ -n "${cooldownCurrent-}" ] && tt "${temperature[2]}" "*r" && [ $(cat $temp) -le $(( ${temperature[0]} * 10 )) ]; }
-    then
-      return 0
-    else
-      return 1
-    fi
-  }
-
-
   # load generic functions
   . $execDir/misc-functions.sh
 
@@ -538,6 +533,7 @@ if ! $init; then
   cooldown=false
   dischgStatusCode=""
   isAccd=true
+  mtReached=false
   resetBattStatsOnPlug=false
   resetBattStatsOnUnplug=false
   restrictCurr=false

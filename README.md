@@ -237,7 +237,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202401180
+configVerCode=202401210
 
 allowIdleAbovePcap=false
 ampFactor=
@@ -396,7 +396,7 @@ runCmdOnPause=''
 
 // runCmdOnPause=run_cmd_on_pause='COMMAND...' NULLABLE
 
-// temperature=(cooldown_temp=ºC max_temp=ºC resume_temp=ºC[r] shutdown_temp=ºC)
+// temperature=(cooldown_temp=ºC max_temp=ºC resume_temp=ºC shutdown_temp=ºC)
 
 // tempLevel=temp_level=PERCENT (0-100)
 
@@ -612,8 +612,8 @@ runCmdOnPause=''
 
 // Those two work together and are NOT tied to the cooldown cycle.
 // At max_temp, charging is paused.
-// Charging resumes at resume_temp, as long as other conditions (e.g., resume_capacity) are also met.
-// To always override resume_capacity append r, as in resume_temp=25r. With this, if cooldown is enabled, charging will also resume at the cooldown_temp threshold. Add cooldown_current and mcc into the mix to have temperature dependent restricted current.
+// If charging is paused due to capacity >= pause_capacity, it resumes when capacity <= resume_capacity AND temp <= resume_temp.
+// If charging is paused due to temp >= max_temp, it resumes when temp <= resume_temp AND capacity < pause_capacity.
 
 
 // off_mid (om) # Default: true
