@@ -111,7 +111,7 @@ if ! $init; then
     if tt "$exitCode" "[127]"; then
       . $execDir/logf.sh
       logf --export
-      notif "⚠️ Daemon stopped with exit code $exitCode!"
+      notif "⚠️ Daemon stopped with exit code $exitCode! Run \"acc -l tail\" to see the last 10 lines of the log file."
     fi
     cd /
     echo versionCode=$versionCode
@@ -186,22 +186,17 @@ if ! $init; then
         fi
       fi
 
-      # read charging current ctrl files (part 2) once
-      $chCurrRead || {
-        if [ ! -f $TMPDIR/.ch-curr-read ] \
-          || ! grep -q / $TMPDIR/ch-curr-ctrl-files 2>/dev/null
+      if [ -f $TMPDIR/.ch-curr-read ]; then
+        # set charging current control files, as needed
+        if [ -n "${maxChargingCurrent[0]-}" ] \
+          && { [ -z "${maxChargingCurrent[1]-}" ] || tt "${maxChargingCurrent[1]-}" "-*"; } \
+          && grep -q / $TMPDIR/ch-curr-ctrl-files 2>/dev/null
         then
-          . $execDir/read-ch-curr-ctrl-files-p2.sh
-          chCurrRead=true
+          $TMPDIR/acca --set max_charging_current=${maxChargingCurrent[0]}
         fi
-      }
-
-      # set charging current control files, as needed
-      if $chCurrRead && [ -n "${maxChargingCurrent[0]-}" ] \
-        && { [ -z "${maxChargingCurrent[1]-}" ] || tt "${maxChargingCurrent[1]-}" "-*"; } \
-        && grep -q / $TMPDIR/ch-curr-ctrl-files 2>/dev/null
-      then
-        $TMPDIR/acca --set max_charging_current=${maxChargingCurrent[0]}
+      else
+        # parse charging current ctrl files
+        . $execDir/read-ch-curr-ctrl-files-p2.sh
       fi
 
        # set charging voltage control files, as needed
@@ -527,7 +522,6 @@ if ! $init; then
 
   xIdle=false
   capacitySync=false
-  chCurrRead=false
   chDisabledByAcc=false
   chgStatusCode=""
   cooldown=false
@@ -690,16 +684,15 @@ else
 
 
   # read charging voltage control files
-  if [ ! -f $TMPDIR/.ch-curr-read ]; then
-    : > $TMPDIR/ch-volt-ctrl-files_
-    ls -1 $(ls_volt_ctrl_files | grep -Ev '^#|^$') 2>/dev/null | \
-      while read file; do
-        chmod a+r $file 2>/dev/null && grep -Eq '^4[1-4][0-9]{2}' $file || continue
-        grep -q '.... ....' $file && continue
-        echo ${file}::$(sed -n 's/^..../v/p' $file)::$(cat $file) \
-          >> $TMPDIR/ch-volt-ctrl-files_
-      done
-  fi
+  rm $TMPDIR/.ch-curr-read 2>/dev/null
+  : > $TMPDIR/ch-volt-ctrl-files_
+  ls -1 $(ls_volt_ctrl_files | grep -Ev '^#|^$') 2>/dev/null | \
+    while read file; do
+      chmod a+r $file 2>/dev/null && grep -Eq '^4[1-4][0-9]{2}' $file || continue
+      grep -q '.... ....' $file && continue
+      echo ${file}::$(sed -n 's/^..../v/p' $file)::$(cat $file) \
+        >> $TMPDIR/ch-volt-ctrl-files_
+    done
 
 
   # exclude troublesome ctrl files
@@ -723,6 +716,10 @@ else
 
   # start $id daemon
   rm $TMPDIR/.ghost-charging 2>/dev/null
+  if [ -f $TMPDIR/.install-notes ]; then
+    $TMPDIR/acca --notif "$(cat $TMPDIR/.install-notes)"
+    mv -f $TMPDIR/.install-notes $TMPDIR/.updated
+  fi 2>/dev/null
   exec $0 $args
 fi
 
