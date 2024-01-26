@@ -10,9 +10,7 @@ set_ch_curr() {
   ! ${isAccd:-false} || verbose=false
 
   # check support
-  if [ ! -f $TMPDIR/.ch-curr-read ] \
-    || ! grep -q / $TMPDIR/ch-curr-ctrl-files 2>/dev/null
-  then
+  if [ ! -f $TMPDIR/.ch-curr-read ]; then
     if not_charging; then
       ! $verbose || {
         print_read_curr
@@ -22,11 +20,11 @@ set_ch_curr() {
       (while not_charging; do sleep 1; set +x; done)
     fi
     . $execDir/read-ch-curr-ctrl-files-p2.sh
-    grep -q / $TMPDIR/ch-curr-ctrl-files 2>/dev/null || {
-      ! $verbose || print_no_ctrl_file
-      return 0
-    }
   fi
+  grep -q / $TMPDIR/ch-curr-ctrl-files 2>/dev/null || {
+    ! $verbose || print_no_ctrl_file
+    return 0
+  }
 
   if [ -n "${1-}" ]; then
 

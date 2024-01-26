@@ -14,6 +14,13 @@ set_ch_volt() {
       . $execDir/misc-functions.sh
     }
 
+    ! ${isAccd:-false} || verbose=false
+
+    grep -q / $TMPDIR/ch-volt-ctrl-files 2>/dev/null || {
+      ! $verbose || print_no_ctrl_file v
+      return 0
+    }
+
     # restore
     if [ $1 = - ]; then
       apply_on_boot_ default force

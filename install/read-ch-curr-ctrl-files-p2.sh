@@ -6,9 +6,7 @@
 
 currCtrl=$TMPDIR/ch-curr-ctrl-files
 
-if [ ! -f $TMPDIR/.ch-curr-read ] \
-  || ! grep -q / ${currCtrl} 2>/dev/null
-then
+if [ ! -f $TMPDIR/.ch-curr-read ]; then
 
   rm $currCtrl ${currCtrl}_ 2>/dev/null || :
   . $execDir/ctrl-files.sh
