@@ -8,6 +8,7 @@
 
 # override the official Magisk module installer
 SKIPUNZIP=1
+SKIPMOUNT=false
 
 
 echo
@@ -163,8 +164,8 @@ cp -aH /data/adb/$domain/$id/* $config $data_dir/backup/ 2>/dev/null || :
 
 /system/bin/sh $srcDir/install/uninstall.sh install
 KSU=${KSU:-false}
-$KSU || { [ ! -f /data/adb/ksu/bin/busybox ] || KSU=true; }
-cp -R $srcDir/install/ $installDir/$id
+$KSU || { [ ! -f /data/adb/*/bin/busybox ] || KSU=true; }
+cp -R $srcDir/install $installDir/$id
 installDir=$(readlink -f $installDir/$id)
 cp $srcDir/module.prop $installDir/
 cp -f $srcDir/README.* $data_dir/
@@ -178,15 +179,25 @@ cp -f $srcDir/README.* $data_dir/
 }
 
 
+tmpd=/dev/.$domain/$id
+mkdir -p $tmpd
+
+
 ###
 ! $magisk || {
-  # link executables
+
+  # create executable wrappers
   mkdir -p $installDir/system/bin
-  ln -f $installDir/${id}.sh $installDir/system/bin/$id
-  ln -f $installDir/${id}.sh $installDir/system/bin/${id}d,
-  ln -f $installDir/${id}.sh $installDir/system/bin/${id}d.
-  ln -f $installDir/${id}a.sh $installDir/system/bin/${id}a
-  ln -f $installDir/service.sh $installDir/system/bin/${id}d
+
+  for i in ${id}.sh:$id ${id}.sh:${id}d, ${id}.sh:${id}d. ${id}a.sh:${id}a service.sh:${id}d; do
+    echo "#!/system/bin/sh
+#exec_wrapper
+if [ -f $tmpd/.updated ]; then
+  /dev/${i#*:} \"\$@\"
+else
+  . /data/adb/$domain/$id/${i%:*} \"\$@\"
+fi" > $installDir/system/bin/${i#*:}
+  done
 }
 
 
@@ -259,7 +270,7 @@ case $installDir in
   ;;
   *)
     set_perms_recursive $installDir
-    chmod 0755 $installDir/system/bin/*
+    chmod 0755 $installDir/system/bin/* 2>/dev/null || :
   ;;
 esac
 
@@ -267,13 +278,13 @@ esac
 ! $KSU || {
   upModDir=${magiskModDir}_update
   rm -rf $upModDir/$id 2>/dev/null || :
-  cp -a $installDir $upModDir
+  cp -a $installDir $upModDir/
   touch $installDir/update
 }
 
 
 set +eu
-printf "- Done\n\n\n"
+printf "Done\n\n\n"
 
 
 # print links and changelog
@@ -284,10 +295,18 @@ printf "\n\nCHANGELOG\n\n"
 cat $srcDir/changelog.md
 
 
+_echo() {
+  echo "$@" | tee -a $tmpd/.install-notes
+}
+
+
 printf "\n\n"
-which accd. >/dev/null && echo "Rebooting is unnecessary." \
-  || echo "- $id commands require the "/dev/" prefix (e.g., /dev/$id -v) until system is rebooted."
-echo "- Daemon started."
+printf "$version ($versionCode) installed and running!\n\nRollback with acc -bc if not satisfied.\n\n" | tee $tmpd/.install-notes
+if [ -x /sbin/${id}d ] || grep -q '#exec_wrapper' /system/bin/${id}d 2>/dev/null; then
+  _echo "Rebooting is unnecessary."
+else
+  _echo "Note: If you're not rebooting now, prefix all acc executables with /dev/ (as in /dev/acc -i, /dev/accd). Otherwise, you'll be using the previous installation of those. Reasoning: Magisk, KernelSU and similar, don't remount/update modules without a reboot. Subsequent upgrades won't require a reboot."
+fi
 
 
 case $installDir in
