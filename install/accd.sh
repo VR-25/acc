@@ -93,6 +93,15 @@ if ! $init; then
   }
 
 
+  cap_idle_threshold() {
+    if [ ${capacity[3]} -gt 3000 ]; then
+      [ ${capacity[3]} -gt 3900 ] && [ $(volt_now) -gt $(( ${capacity[3]} + 50 )) ]
+    else
+      [ ${capacity[3]} -gt 60 ] && [ $(cat $battCapacity) -gt $(( ${capacity[3]} + 1 )) ]
+    fi
+  }
+
+
   exxit() {
     exitCode=$?
     $persistLog && set +eu || set +eux
@@ -294,7 +303,7 @@ if ! $init; then
 
         # disable charging under <conditions>
         if mt_reached || _ge_pause_cap; then
-          if ! $allowIdleAbovePcap && [ $xIdleCount -lt 2 ] && [ $(cat $battCapacity) -gt $(( ${capacity[3]} + 1 )) ]; then
+          if ! $allowIdleAbovePcap && [ $xIdleCount -lt 2 ] && cap_idle_threshold; then
             # if possible, avoid idle mode when capacity > pause_capacity
             (cat $config > $TMPDIR/.cfg
             config=$TMPDIR/.cfg
