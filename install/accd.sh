@@ -294,7 +294,7 @@ if ! $init; then
 
         # disable charging under <conditions>
         if mt_reached || _ge_pause_cap; then
-          if ! $allowIdleAbovePcap && [ $(cat $battCapacity) -gt ${capacity[3]} ]; then
+          if ! $allowIdleAbovePcap && [ $xIdleCount -lt 2 ] && [ $(cat $battCapacity) -gt ${capacity[3]} ]; then
             # if possible, avoid idle mode when capacity > pause_capacity
             (cat $config > $TMPDIR/.cfg
             config=$TMPDIR/.cfg
@@ -372,6 +372,7 @@ if ! $init; then
           enable_charging
           disable_charging
           xIdle=false
+          xIdleCount=$((xIdleCount + 1))
         # enable charging under <conditions>
         elif _le_resume_cap && [ $(cat $temp) -le $(( ${temperature[2]} * 10 )) ]; then
           rm $TMPDIR/.forceoff* 2>/dev/null && sleep ${loopDelay[0]} || :
@@ -521,6 +522,7 @@ if ! $init; then
 
 
   xIdle=false
+  xIdleCount=0
   capacitySync=false
   chDisabledByAcc=false
   chgStatusCode=""
