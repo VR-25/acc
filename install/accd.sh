@@ -294,7 +294,7 @@ if ! $init; then
 
         # disable charging under <conditions>
         if mt_reached || _ge_pause_cap; then
-          if ! $allowIdleAbovePcap && [ $xIdleCount -lt 2 ] && [ $(cat $battCapacity) -gt ${capacity[3]} ]; then
+          if ! $allowIdleAbovePcap && [ $xIdleCount -lt 2 ] && [ $(cat $battCapacity) -gt $(( ${capacity[3]} + 1 )) ]; then
             # if possible, avoid idle mode when capacity > pause_capacity
             (cat $config > $TMPDIR/.cfg
             config=$TMPDIR/.cfg
