@@ -439,9 +439,11 @@ if ! $init; then
 
 
   set_dp() {
+    local cmd=
+    local curr=
     src_cfg
     while [ -z "${dischargePolarity-}" ] && [ $currFile != $TMPDIR/.dummy-curr ] && $battStatusWorkaround; do
-      (cmd="$TMPDIR/acca --set discharge_polarity="
+      cmd="$TMPDIR/acca --set discharge_polarity="
       curr=$(cat $currFile)
       if online; then
         if [ $(cat $battStatus) = Charging ] && [ ${curr#-} -gt $idleThreshold ]; then
@@ -458,9 +460,10 @@ if ! $init; then
           eval "$cmd"-
         fi
       fi
-      set +x)
+      set +x
       src_cfg
     done
+    set -x
   }
 
 

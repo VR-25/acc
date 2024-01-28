@@ -153,10 +153,11 @@ disable_charging() {
       *%)
         print_charging_disabled_until $1
         echo
-        (set +x
+        set +x
         until [ $(cat $battCapacity) -le ${1%\%} ]; do
           sleep ${loopDelay[1]}
-        done)
+        done
+        log_on
         enable_charging
       ;;
       *[hms])
@@ -172,10 +173,11 @@ disable_charging() {
       *m[vV])
         print_charging_disabled_until $1 v
         echo
-        (set +x
+        set +x
         until [ $(volt_now) -le ${1%m*} ]; do
           sleep ${loopDelay[1]}
-        done)
+        done
+        log_on
         enable_charging
       ;;
       *)
@@ -224,10 +226,11 @@ enable_charging() {
       *%)
         print_charging_enabled_until $1
         echo
-        (set +x
+        set +x
         until [ $(cat $battCapacity) -ge ${1%\%} ]; do
           sleep ${loopDelay[0]}
-        done)
+        done
+        log_on
         disable_charging
       ;;
       *[hms])
@@ -243,10 +246,11 @@ enable_charging() {
       *m[vV])
         print_charging_enabled_until $1 v
         echo
-        (set +x
+        set +x
         until [ $(volt_now) -ge ${1%m*} ]; do
           sleep ${loopDelay[0]}
-        done)
+        done
+        log_on
         disable_charging
       ;;
       *)
@@ -307,6 +311,17 @@ is_android() {
   [ ! -d /data/usbmsc_mnt/ ] && [ -x /system/bin/dumpsys ] \
     && ! tt "$(readlink -f $execDir)" "*com.termux*" \
     && pgrep -f zygote >/dev/null
+}
+
+
+log_on() {
+  if [ -f ${log:-//} ]; then
+    if [[ $log = */accd-* ]]; then
+      set -x
+    else
+      set -x 2>>$log
+    fi
+  fi
 }
 
 
@@ -383,11 +398,12 @@ wait_plug() {
     echo "ghostCharging=true"
     print_wait_plug
   }
-  (while ! online; do
+  while ! online; do
     sleep ${loopDelay[1]}
     ! $isAccd || sync_capacity 2>/dev/null || :
     set +x
-  done)
+  done
+  log_on
   enable_charging "$@"
 }
 

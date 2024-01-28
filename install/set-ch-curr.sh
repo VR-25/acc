@@ -17,7 +17,9 @@ set_ch_curr() {
         print_wait_plug
         echo
       }
-      (while not_charging; do sleep 1; set +x; done)
+      set +x
+      while not_charging; do sleep 1; done
+      log_on
     fi
     . $execDir/read-ch-curr-ctrl-files-p2.sh
   fi
