@@ -76,7 +76,7 @@ case "$@" in
     src_cfg
     . $execDir/batt-interface.sh
     . $execDir/batt-info.sh
-    batt_info "${2-}" | sed 's/=Idle$/=Not charging/' #legacy, AccA
+    batt_info "${2-}"
     exit 0
   ;;
 

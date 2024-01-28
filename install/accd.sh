@@ -240,8 +240,13 @@ if ! $init; then
       set_temp_level
       shutdownWarnings=true
 
-      dumpsys activity top | sed -En 's/(.*ACTIVITY )(.*)(\/.*)/\2/p' | tail -n 1 | grep -E "$(echo ${idleApps[*]} | sed 's/ /|/g; s/,/|/g')" >/dev/null \
+      set +u
+      if [ -n "${idleApps[0]}" ]; then
+        dumpsys activity top | sed -En 's/(.*ACTIVITY )(.*)(\/.*)/\2/p' \
+        | tail -n 1 | grep -E "$(echo ${idleApps[*]} | sed 's/ /|/g; s/,/|/g')" >/dev/null \
         && capacity[3]=$(cat $battCapacity) && capacity[2]=$((capacity[3] - 5)) || :
+      fi
+      set -u
 
     else
 
