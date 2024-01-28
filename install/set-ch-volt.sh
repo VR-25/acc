@@ -2,6 +2,8 @@ set_ch_volt() {
 
   if [ -n "${1-}" ]; then
 
+    local verbose=${verbose:-true}
+
     set -- $*
 
     apply_on_boot_() {
