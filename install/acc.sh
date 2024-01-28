@@ -198,7 +198,7 @@ parse_switches() {
     # exclude all known switches
     ! grep -q "$i " $1 || continue
 
-    i="$(echo "$i $n" | grep -Eiv 'brightness|curr|online|present|runtime|status|temp|volt|wakeup|[^pP]reset|daemon|calibrat|init|resistance|capacitance|shutdown|parallel|cycle|shutdown|reboot|nvram|count|disk|state|user|factory|timer|flash|otg|authentic|update|demo|report|info|mask|ship|type|verif')" || :
+    i="$(echo "$i $n" | grep -Eiv '[^pP]reset|authentic|brightness|calibrat|capacitance|count|curr|cycle|daemon|demo|disk|factory|flash|info|init|mask|moist|nvram|online|otg|parallel|present|reboot|report|resistance|runtime|ship|shutdown|shutdown|state|status|step|temp|timer|type|type|update|user|verif|volt|wake|wakeup')" || :
 
     [ -z "$i" ] || echo "$i"
 
