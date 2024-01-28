@@ -60,7 +60,7 @@ online() {
 
 
 online_f() {
-  ls -1 */online | grep -Ei '^ac/|^charger/|^dc/|^usb/|^wireless/' || :
+  ls -1 */online | grep -Ei '^ac/|^charger/|^dc/|^pc_port/|^usb/|^wireless/' || :
 }
 
 
