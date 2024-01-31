@@ -66,8 +66,9 @@ get_ver() { sed -n 's/^versionCode=//p' ${1:-}; }
 
 
 if i=$(which curl) && [ "$(head -n 1 $i)" != "#!/system/bin/sh" ]; then
+  curl --help | grep '\-\-dns\-servers' >/dev/null && dns="--dns-servers 9.9.9.9,1.1.1.1" || dns=
   _curl() {
-    curl --dns-servers 9.9.9.9,1.1.1.1 --progress-bar --insecure -L "$@"
+    curl $dns --progress-bar --insecure -L "$@"
   }
 else
   _curl() {

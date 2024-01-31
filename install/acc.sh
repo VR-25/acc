@@ -640,12 +640,14 @@ case "${1-}" in
     }
 
     if i=$(which curl) && [ "$(head -n 1 $i)" != "#!/system/bin/sh" ]; then
-      curl --dns-servers 9.9.9.9,1.1.1.1 --progress-bar --insecure -Lo \
+      curl --help | grep '\-\-dns\-servers' >/dev/null && dns="--dns-servers 9.9.9.9,1.1.1.1" || dns=
+      curl $dns --progress-bar --insecure -Lo \
         $TMPDIR/install-online.sh https://raw.githubusercontent.com/VR-25/acc/$reference/install-online.sh
     else
       PATH=${PATH#*/busybox:} /dev/.vr25/busybox/wget -O $TMPDIR/install-online.sh --no-check-certificate \
         https://raw.githubusercontent.com/VR-25/acc/$reference/install-online.sh
     fi
+
     trap - EXIT
     set +eu
     installDir=$(readlink -f $execDir)
