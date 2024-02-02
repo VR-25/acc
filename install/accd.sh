@@ -237,7 +237,7 @@ if ! $init; then
       fi
 
       set_ch_volt ${maxChargingVoltage[0]:--}
-      set_temp_level
+      { $restrictCurr && [[ .${cooldownCurrent-} = .*% ]]; } || set_temp_level
       shutdownWarnings=true
 
       set +u
@@ -367,7 +367,11 @@ if ! $init; then
             (set_ch_curr ${cooldownCurrent:--} || :)
             $cooldownCustom_ && sleep ${cooldownCustom[3]:-${loopDelay[1]}} \
               || sleep ${cooldownRatio[1]:-${loopDelay[1]}}
-            [ -n "${maxChargingCurrent[0]-}" ] || (set_ch_curr - || :)
+            if [[ .${cooldownCurrent-} = .*% ]]; then
+              set_temp_level $tempLevel
+            else
+              [ -n "${maxChargingCurrent[0]-}" ] || set_ch_curr -
+            fi || :
             ! $cooldownCustom_ || cooldownRatio[0]=${cooldownCustom[2]:-${loopDelay[0]}}
             count=0
             while [ $count -lt ${cooldownRatio[0]:-${loopDelay[0]}} ]; do

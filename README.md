@@ -364,7 +364,7 @@ runCmdOnPause=''
 
 // chargingSwitch=charging_switch=([CTRL_FILE1 ON OFF [CTRL_FILE2 ON OFF...] [--]]) NULLABLE
 
-// cooldownCurrent=cooldown_current=MILLIAMPS NULLABLE
+// cooldownCurrent=cooldown_current=MILLIAMPS|CURRENT% NULLABLE
 
 // cooldownCustom=cooldown_custom=(FILE THRESHOLD CHARGE_SECONDS PAUSE_SECONDS) NULLABLE
 
@@ -544,8 +544,9 @@ runCmdOnPause=''
 
 
 // cooldown_current (cdc) # Default: null
-// Instead of pausing charging for cooldown_pause seconds, limit the max charging current (e.g., to 500 mA).
+// Instead of pausing charging for cooldown_pause seconds, limit the max charging current (e.g., to 500 (mA) or even 50% (of the max current).
 // cooldown_pause and cooldown_charge are optional.
+// When the value is a percentage, temp_level is used as back-end, rather than the regular current control logic.
 // Note: devices don't support just about any current value. Multiples of 500 mA tend to have higher compatibility.
 
 

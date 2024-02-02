@@ -2,6 +2,11 @@ set_ch_curr() {
 
   local verbose=${verbose:-true}
 
+  if [[ .${1-} = .*% ]]; then
+    set_temp_level ${1%\%}
+    return
+  fi
+
   $verbose || {
     exxit() { exit $?; }
     . $execDir/misc-functions.sh
