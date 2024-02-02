@@ -7,11 +7,10 @@ if (set +x; . $config) > /dev/null 2>&1; then
   configVer=0$(_get_prop configVerCode)
   defaultConfVer=0$(cat $TMPDIR/.config-ver)
   [ $configVer -eq $defaultConfVer ] || {
-    if [ $configVer -lt 202401210 ]; then
+    if [ $configVer -lt 202402010 ]; then
       resume_temp=$($TMPDIR/acca --set --print resume_temp | sed 's/.*=//')
       $TMPDIR/acca --set allow_idle_above_pcap= idle_threshold= resume_temp=${resume_temp%r}
       unset resume_temp
-      $TMPDIR/acca --notif "New defaults set: allow_idle_above_pcap=false, idle_threshold=30; resume_temp no longer supports the trailing r syntax (the functionality is automatic now)"
     else
       $TMPDIR/acca --set dummy=
     fi

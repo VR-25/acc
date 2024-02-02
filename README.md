@@ -237,7 +237,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202401210
+configVerCode=202402010
 
 allowIdleAbovePcap=false
 ampFactor=
@@ -249,7 +249,7 @@ currentWorkaround=false
 dischargePolarity=
 forceOff=false
 idleApps=()
-idleThreshold=30
+idleThreshold=40
 language=en
 offMid=true
 prioritizeBattIdleMode=true
@@ -455,7 +455,7 @@ runCmdOnPause=''
 // The value is not necessarily the same as acc version code.
 
 
-// allow_idle_above_pcap (aiapc) # Default: false
+// allow_idle_above_pcap (aiapc) # Default: true
 // If set to false, accd will avoid idle mode (if possible) when capacity > pause_capacity.
 // This is useful for forever-plugged setups, where battery longevity is a top priority.
 // Idle mode is good, but "storing" a highly charged battery for a LONG time is a bad idea.
@@ -585,7 +585,7 @@ runCmdOnPause=''
 // e.g., idleApps=(maps navig somegame) or idleApps=(maps,navig,somegame) or mixed
 
 
-// idle_threshold (it) # Default: 30
+// idle_threshold (it) # Default: 40
 // Current threshold (absolute value) in milliamps to consider _status=Idle (only relevant if batt_status_workaround=true).
 
 

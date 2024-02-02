@@ -345,6 +345,7 @@ case "${1-}" in
 
     tt ".${2-}" ".-*" && _two= || _two="${2-}"
 
+    allow_idle_above_pcap=
     apply_on_boot=
     apply_on_plug=
     cooldown_charge=

@@ -16,7 +16,7 @@ idle_discharging() {
 not_charging() {
 
   local i=
-  local sti=${sti:-17}
+  local sti=${sti:-15}
   local switch=${flip-}; flip=
   local curThen=$(cat $curThen)
   local idleThreshold=$idleThreshold
@@ -34,14 +34,14 @@ not_charging() {
     for i in $(seq $sti); do
       if [ "$switch" = off ]; then
         ! status ${1-} || {
-          sleep 2
+          sleep ${loopDelay[0]}
           ! status ${1-} || return 0
         }
       else
         status ${1-} || return 1
       fi
       [ ! -f $TMPDIR/.nowrite ] || { rm $TMPDIR/.nowrite 2>/dev/null || :; break; }
-      [ $i = $sti ] || sleep 2
+      [ $i = $sti ] || sleep ${loopDelay[0]}
     done
     [ "$switch" = on ] || return 1
   else

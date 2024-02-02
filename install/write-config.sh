@@ -82,7 +82,7 @@ esac
 
 echo "configVerCode=$(cat $TMPDIR/.config-ver)
 
-allowIdleAbovePcap=${aiapc:-false}
+allowIdleAbovePcap=${aiapc:-true}
 ampFactor=$af
 battStatusWorkaround=${bsw:-true}
 capacity=(${sc:-5} ${cc:-50} $rc $pc ${cs:-false} ${cm:-false})
@@ -92,7 +92,7 @@ currentWorkaround=${cw:-false}
 dischargePolarity=$dp
 forceOff=${fo:-false}
 idleApps=($ia)
-idleThreshold=${it:-30}
+idleThreshold=${it:-40}
 language=${lang:-en}
 offMid=${om:-true}
 prioritizeBattIdleMode=${pbim:-true}
