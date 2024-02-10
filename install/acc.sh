@@ -61,7 +61,14 @@ edit() {
   local file="$1"
   shift
   case "${1-}" in
-    a) echo >> $file; shift; echo "$@" | sed 's/,/;/' >> $file;;
+    a) echo >> $file
+       shift
+       if grep -iv "^: ${2%?};" $file > $TMPDIR/.tmp; then
+         cat $TMPDIR/.tmp > $file
+         rm $TMPDIR/.tmp
+       fi
+       echo "$@" | sed 's/,/;/' >> $file;;
+
     d) sed -Ei "\#$2#d" $file;;
 
     g) [ "$file" = "$config" ] || {
