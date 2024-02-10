@@ -129,6 +129,9 @@ Options
       acc -c a : sleep profile, at 22:00 acc -s pc=50 mcc=500 mcv=3900, acc -n switched to sleep profile (append a schedule)
       acc -c d sleep (remove all lines matching "sleep")
 
+  -c|--config h string   Print config help text associated with "string" (config variable)
+    e.g., acc -c h rt (or resume_temp)
+
   -d|--disable [#%, #s, #m, #h or #mv (optional)]   Disable charging
     e.g.,
       acc -d 70% (do not recharge until capacity <= 70%)

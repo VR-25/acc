@@ -71,6 +71,13 @@ edit() {
        shift
        ext_app $file "$@";;
 
+    h) [ -n "${2-}" ] || exit 0
+       if grep -q "# $2 (.*) #" $file; then
+         sed -n "/# $2 (.*) #/,/^$/p" $file | filter
+       elif grep -q "# .* ($2) #" $file; then
+         sed -n "/# .* ($2) #/,/^$/p" $file | filter
+       fi;;
+
     "") case $file in
           *.log|*.md|*.help) less $file;;
           *) nano -$ $file || vim $file || vi $file || ext_app $file;;
@@ -85,6 +92,11 @@ ext_app() {
            -t "text/${3:-plain}" \
            -d file://$1 \
            --grant-read-uri-permission &>/dev/null || :
+}
+
+
+filter() {
+  sed '/^$/d; s/ # /, /; s/ #//; s/^# //; s/#//'
 }
 
 

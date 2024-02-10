@@ -237,9 +237,9 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202402010
+configVerCode=202402100
 
-allowIdleAbovePcap=false
+allowIdleAbovePcap=true
 ampFactor=
 battStatusWorkaround=true
 capacity=(5 50 70 75 false false)
@@ -455,86 +455,103 @@ runCmdOnPause=''
 // The value is not necessarily the same as acc version code.
 
 
-// allow_idle_above_pcap (aiapc) # Default: true
+// allow_idle_above_pcap (aiapc) #
+// Default: true
+//
 // If set to false, accd will avoid idle mode (if possible) when capacity > pause_capacity.
 // This is useful for forever-plugged setups, where battery longevity is a top priority.
 // Idle mode is good, but "storing" a highly charged battery for a LONG time is a bad idea.
 
 
-// amp_factor (af) # Default: null
-// volt_factor (vf) #
-// Unit multiplier for conversion (e.g., 1V = 1000000 microvolts).
+// amp_factor (af) # volt_factor (vf) #
+// Defaults: null
+//
+// Unit multiplier for conversion (e.g., 1V = 1000000uV, 1A = 1000000mA).
 // ACC can automatically determine the units, but the mechanism is not 100% foolproof.
 // Leave those properties alone, unless current/voltage info is wrong.
 
 
-// apply_on_boot (ab) # Default: null
+// apply_on_boot (ab) #
+// Default: null
+//
 // Kernel settings to apply on boot and on daemon start/restart.
 // The --exit flag (refer back to applyOnBoot=...) tells the daemon to stop after applying settings.
 // If that flag is not included, default values are restored when the daemon stops.
 
 
-// apply_on_plug (ap) # Default: null
+// apply_on_plug (ap) #
+// Default: null
+//
 // Kernel settings to apply on plug.
 // This exists because certain devices reset control files (e.g., current_max) when the charger is re-plugged.
 // Default values are restored when the daemon stops.
 
 
-// batt_status_override (bso) # Default: null
-
+// batt_status_override (bso) #
+// Default: null
+//
 // Overrides the battery status determined by the not_charging function.
 // It can be Idle, Discharging (both case sensitive), or logic to PRINT the desired value for the _status variable.
 // When set to Idle or Discharging, _status will be set to that value if the enforced* charging switch state is off.
 // It only works in conjunction with an enforced charging switch (set manually, has a trailing " --").
-
+//
 // Usage scenario: the switch "main/cool_mode 0 1" supports idle mode. However, sometimes it does not respond soon enough (e.g., due to fast charging). The user can then enforce it with "acc -ss" and set "batt_status_override=Idle". This means, when "main/cool_mode" is "on" (0), _status will be determined by the not_charging function (as usual), but when it's off (1), _status will be Idle, bypassing the not_charging function.
-
+//
 // If the user were to write their own logic, it would be something like the following:
 // batt_status_override='[ $(cat main/cool_mode) -eq 1 ] && printf Idle || :'
 // The "|| :" part is mandatory to avoid issues with "set -e", which acc uses extensively.
 
 
-// batt_status_workaround (bsw) # Default: true
+// batt_status_workaround (bsw) #
+// Default: true
+//
 // With this enabled, in addition to just reading POWER_SUPPLY_STATUS, if the battery is "Charging" and current is within idle_threshold (inclusive), battery status is considered "Idle".
 // Status is considered "Discharging", if current polarity changes after calling the disable_charging function.
 // By not relying solely on the information provided by POWER_SUPPLY_STATUS, this approach dramatically boosts compatibility.
 // This must be disabled on systems that report wrong/misleading charging current values.
 
 
-// capacity_mask (cm) # Default: false
+// capacity_mask (cm) #
+// Default: false
+//
 // Implies capacity_sync.
 // This forces Android to report "capacity = (capacity - shutdown _capacity) * 100 / (pause_capacity - shutdown_capacity)", effectively masking capacity limits.
 // It also prevents Android from getting capacity readings below 2%, since some systems shutdown before battery level actually drops to 0%.
 // Use case: secretly install acc on a relative's device, and enable this, so that they always see the regular 0-100% battery level scale.
 
 
-// capacity_sync (cs) # Default: false
+// capacity_sync (cs) #
+// Default: false
+//
 // Some devices, notably from the Pixel lineup, have a capacity discrepancy issue between Android's battery service and the kernel.
 // capacity_sync forces Android to report the actual battery capacity reported by the kernel.
 // Besides, it also prevents Android from getting capacity readings below 2%, since some systems shutdown before battery level actually drops to 0%.
 
 
-// charging_switch (s) # Default: null (automatic)
-
+// charging_switch (s) #
+// Default: null (automatic)
+//
 // If unset, acc cycles through its database and sets the first switch/group that successfully disables charging.
 // If later the set switch/group fails, acc unsets it and repeats the above.
 // If all switches fail to disable charging, chargingSwitch is unset and acc/d exit with error code 7.
-
+//
 // This automated process can be disabled by appending " --" to the switch/group.
 // e.g., acc -s s="battery/charging_enabled 1 0 --"
 // "acc -ss" always appends " --".
 
 
-// cooldown_capacity (cc) # Default: 50
+// cooldown_capacity (cc) #
+// Default: 50
+//
 // Battery level or millivolts at which the cooldown cycle starts.
 // Cooldown reduces battery stress induced by prolonged exposure to high temperature and high charging voltage.
 // It does so through periodically pausing charging for a few seconds (cooldown_pause, more details below).
 // Requires cooldown_current or cooldown_charge and cooldown_pause, explained next.
 
 
-// cooldown_charge (cch) # Default: null
-// cooldown_pause (cp) # Default: null
-
+// cooldown_charge (cch) # cooldown_pause (cp) #
+// Defaults: null
+//
 // Those two dictate the cooldown cycle intervals (seconds).
 // When not set, the cycle is disabled, unless cooldown_current is set.
 // Suggested values are cch=50 and cp=10.
@@ -543,148 +560,192 @@ runCmdOnPause=''
 // cooldown_current optionally works with ratios as well (cooldown_charge: regular current, cooldown_pause: cooldown_current).
 
 
-// cooldown_current (cdc) # Default: null
+// cooldown_current (cdc) #
+// Default: null
+//
 // Instead of pausing charging for cooldown_pause seconds, limit the max charging current (e.g., to 500 (mA) or even 50% (of the max current).
 // cooldown_pause and cooldown_charge are optional.
 // When the value is a percentage, temp_level is used as back-end, rather than the regular current control logic.
 // Note: devices don't support just about any current value. Multiples of 500 mA tend to have higher compatibility.
 
 
-// cooldown_custom (ccu) # Default: null
+// cooldown_custom (ccu) #
+// Default: null
+//
 // When cooldown_capacity and/or cooldown_temp don't suit your needs, this comes to the rescue.
 // It overrides the regular cooldown settings.
 
 
-// cooldown_temp (ct) # Default: 35
+// cooldown_temp (ct) #
+// Default: 35
+//
 // Temperature (°C) at which the cooldown cycle starts.
 // Cooldown reduces the battery degradation rate by lowering the device's temperature.
 // Requires cooldown_current or cooldown_charge and cooldown_pause, explained above.
 
 
-// current_workaround (cw) # Default: false
+// current_workaround (cw) #
+// Default: false
+//
 // Only use current control files whose paths match "batt".
 // This is necessary only if the current limit affects both input and charging current values.
 // Try this if low current values don't work.
 
 
-// discharge_polarity (dp) # Default: null
+// discharge_polarity (dp) #
+// Default: null
+//
 // This overrides the automatic current polarity (+|-) detection.
 // It's only relevant when batt_status_workaround=true.
 // Polarity may change with a kernel upgrade. If this setting is wrong, charging control won't work if batt_status_workaround is on.
 
 
-// force_off (fo) # Default: false
+// force_off (fo) #
+// Default: false
+//
 // Enable this only if the set charging switch is stubbornly reset by the system.
 // Oftentimes, userspace thermal management daemons (e.g., mi_thermald) and/or driver issues are behind charging control issues.
 // Some people "systemlessly" disable certain thermal daemons with Magisk. While this is not a general recommendation, they swear by it.
 
 
-// idle_apps (ia) # Default: null
+// idle_apps (ia) #
+// Default: null
+//
 // This is a list of comma or space separated patterns matching Android package names.
 // When a matched app is running in the foreground, idle mode is enabled.
 // e.g., idleApps=(maps navig somegame) or idleApps=(maps,navig,somegame) or mixed
 
 
-// idle_threshold (it) # Default: 40
+// idle_threshold (it) #
+// Default: 40
+//
 // Current threshold (absolute value) in milliamps to consider _status=Idle (only relevant if batt_status_workaround=true).
 
 
-// lang (l) # Default: en
+// lang (l) #
+// Default: en
+//
 // Display language, when null, English (en) is assumed.
 
 
-// max_charging_current (mcc) # Default: null
-// max_charging_voltage (mcv) # Default: null
-
+// max_charging_current (mcc) # max_charging_voltage (mcv) #
+// Defaults: null
+//
 // Control files are automatically added by accd when the array has just one element (the milliamps/millivolts value).
 // If the second element of the array (array[1]) starts with "-", accd recognizes it as an instruction to update the control files.
 // This is useful for setting/changing current and voltage limits without a frontend (--set or app).
 // Simply put, if the user has the following in their config, accd automatically adds/updates the control files:
 //   maxChargingCurrent=(1000) # Control files will be added.
 //   maxChargingVoltage=(4000 -battery/voltage_max bms/voltage_max) # Control files will be updated. The "-" is mandatory after changing the value (first element). Otherwise, the change has no effect.
-
+//
 // Notes:
 //   Devices don't support just about any current value. Multiples of 500 mA tend to have higher compatibility.
 //   The maximum current that can be set via dedicated commands is 9999 mA. For voltage, the max is 4300 mV. One can override those by manually editing the config.
 
 
-// max_temp (mt) # Default: 50
-// resume_temp (rt) # Default: 45
-
+// max_temp (mt) # resume_temp (rt) #
+// Defaults: mt=50, rt=45
+//
 // Those two work together and are NOT tied to the cooldown cycle.
 // At max_temp, charging is paused.
 // If charging is paused due to capacity >= pause_capacity, it resumes when capacity <= resume_capacity AND temp <= resume_temp.
 // If charging is paused due to temp >= max_temp, it resumes when temp <= resume_temp AND capacity < pause_capacity.
 
 
-// off_mid (om) # Default: true
+// off_mid (om) #
+// Default: true
+//
 // Whether to turn off charging after rebooting the system or restarting accd, if capacity is within resume_capacity and pause_capacity.
 
 
-// one-line scripts # Default: none
-
+// one-line scripts #
+// Default: none
+//
 // Every line that begins with ":" is interpreted as a shell script.
 // This feature can be useful for many things, including setting up persistent config profiles (source a file that overrides the main config).
 // All script lines are executed whenever the config is loaded/sourced.
 // This happens regularly while the daemon is running, and at least once per command run.
-
+//
 // Note: due to user data encryption, files used in one-line scripts must reside somewhere in /data/adb/, just like acc's own data files. Ignore if your data isn't encrypted.
-
+//
 // Tip: One can schedule tasks with the following construct:
 // : sleep profile; at 22:00 acc -s pc=50 mcc=500 mcv=3900, acc -n Switched to night profile
 
 
-// pause_capacity (pc) # Default: 75
+// pause_capacity (pc) #
+// Default: 75
+//
 // Battery level or millivolts at which charging should pause.
 
 
-// prioritize_batt_idle_mode (pbim) # Default: true
-
+// prioritize_batt_idle_mode (pbim) #
+// Default: true
+//
 // Battery idle mode, also called "standby mode" or "charging bypass", is the ability of running off the charger, as if the battery were disconnected from the device.
 // Not all devices support this, but there's also emulated idle mode (refer to the readme).
 // Emulated idle mode works on all devices.
-
+//
 // If enabled, charging switches that support battery idle mode take precedence.
 // This is only relevant when the switch is automatically determined -- i.e., charging_switch is not set or it has no trailing " --".
 // In other words, this variable is only used when acc is automatically testing charging switches.
 // When set to "no", it has the opposite effect (prioritize non-idle mode).
 
 
-// reboot_resume (rr) # Default: false
+// reboot_resume (rr) #
+// Default: false
+//
 // Reboot (when capacity capacity is at or below resume_capacity) to re-enable charging.
 // This is only for devices whose switches can't re-enable charging.
 // A warning notification is posted 60 seconds prior, for the user to block the action, if they so please.
 
 
-// reset_batt_stats_on_pause (rbsp) # Default: false
+// reset_batt_stats_on_pause (rbsp) #
+// Default: false
+//
 // Reset battery stats after pausing charging.
 
-// reset_batt_stats_on_plug (rbspl) # Default: false
+
+// reset_batt_stats_on_plug (rbspl) #
+// Default: false
+//
 // Reset battery stats seconds after plugging the charger.
 
-// reset_batt_stats_on_unplug (rbsu) # Default: false
+
+// reset_batt_stats_on_unplug (rbsu) #
+// Default: false
+//
 // Reset battery stats seconds after unplugging the charger.
 
 
-// resume_capacity (rc) # Default: 70
+// resume_capacity (rc) #
+// Default: 70
+//
 // Battery level or millivolts at which charging should resume.
 
 
-// run_cmd_on_pause (rcp) # Default: null
+// run_cmd_on_pause (rcp) #
+// Default: null
+//
 // Run commands* after pausing charging.
 // * Usually a script ("sh some_file" or ". some_file")
 
 
-// shutdown_capacity (sc) # Default: 5
+// shutdown_capacity (sc) #
+// Default: 5
+//
 // When the battery is discharging, its level/millivolts is at or below shutdown_capacity, and the device has been running for 15 minutes or more, acc daemon turns the device off to reduce the discharge rate, and protect the battery from potential damage, induced by voltage below the operating range.
 // A value of -1 disables it.
 
 
-// shutdown_temp (st) # Default: 55
+// shutdown_temp (st) #
+// Default: 55
+//
 // Shutdown the system if battery temperature >= this value.
 
 
-// temp_level (tl) # Default: 0
+// temp_level (tl) #
+// Default: 0
+//
 // This is an alternate current limiting feature.
 // Some devices have adjustable "temperature levels" and/or charge_control_limit, siop_level parameters. At the highest level, charging current is blocked.
 // The stock values are generally integers, ranging from 0 to 6, 7 or so.
@@ -761,6 +822,9 @@ Options
     e.g.,
       acc -c a : sleep profile, at 22:00 acc -s pc=50 mcc=500 mcv=3900, acc -n switched to sleep profile (append a schedule)
       acc -c d sleep (remove all lines matching "sleep")
+
+  -c|--config h string   Print config help text associated with "string" (config variable)
+    e.g., acc -c h rt (or resume_temp)
 
   -d|--disable [#%, #s, #m, #h or #mv (optional)]   Disable charging
     e.g.,
