@@ -29,9 +29,10 @@ batt_info() {
 
   # raw battery info from the kernel's battery interface
   info="$(
-    cat $batt/uevent *bms*/uevent 2>/dev/null \
+    { cat $batt/uevent; printf STATUS=; cat $battStatus; } \
       | sort -u \
-      | sed -E -e 's/^POWER_SUPPLY_//' \
+      | sed -E -e '/^POWER_SUPPLY_STATUS=/d' \
+        -e 's/^POWER_SUPPLY_//' \
         -e 's/^BATT_VOL=/VOLTAGE_NOW=/' \
         -e 's/^BATT_TEMP=/TEMP=/' \
         -e '/^(CHARGE_TYPE|NAME)=/d'\
