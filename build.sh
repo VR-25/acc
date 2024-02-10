@@ -134,7 +134,7 @@ fi
 
   # generate $id flashable zip
   case $version in
-    *-dev) basename_=${basename}_$(date +%H%M);;
+    *-*) basename_=${basename}_$(date +%H%M);;
     *) basename_=$basename;;
   esac
   echo "=> _builds/${basename}/${basename_}.zip"
