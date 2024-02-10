@@ -60,7 +60,7 @@ online() {
 
 
 online_f() {
-  ls -1 */online | grep -Ei '^ac/|^charger/|^dc/|^pc_port/|^usb/|^wireless/' || :
+  ls -1 */online | grep -Ei '^ac/|^charger/|^dc/|^pc_port/|^smb[0-9]{3}\-usb/|^usb/|^wireless/' || :
 }
 
 
@@ -134,25 +134,37 @@ volt_now() {
 
 if ${init:-false}; then
 
-  for batt in maxfg/capacity */capacity; do
-    if [ -f ${batt%/*}/status ] && [ -n "$(cat ${batt%/*}/uevent 2>/dev/null || :)" ]; then
-      batt=${batt%/*}
-      break
-    fi
-  done
 
-  case $batt in
-    */capacity) exit 1;;
-  esac
+  # Nexus 10 (manta)
+  f1=smb???-battery/status
+  f2=ds????-fuelgauge/capacity
 
-  for battStatus in sm????_bms/status $batt/status; do
+
+  if ls $f1 $f2 >/dev/null 2>&1; then
+    batt=${f2%/*}
+  else
+    for batt in maxfg/capacity */capacity; do
+      if [ -f ${batt%/*}/status ] && [ -n "$(cat ${batt%/*}/uevent 2>/dev/null || :)" ]; then
+        batt=${batt%/*}
+        break
+      fi
+    done
+  fi
+
+  [[ $batt != */capacity ]] || exit 1
+
+
+  for battStatus in sm????_bms/status $batt/status $f1; do
     [ ! -f $battStatus ] || break
   done
+
+  [ -f $battStatus ] || exit 1
+  unset f1 f2
 
 
   echo 250 > $TMPDIR/.dummy-temp
 
-  for temp in $batt/temp $batt/batt_temp bms/temp $TMPDIR/.dummy-temp; do
+  for temp in $batt/temp $batt/batt_temp bms/temp ${battStatus%/*}/temp $TMPDIR/.dummy-temp; do
     [ ! -f $temp ] || break
   done
 
@@ -160,7 +172,8 @@ if ${init:-false}; then
   echo 0 > $TMPDIR/.dummy-curr
 
   for currFile in $batt/current_now bms/current_now battery/?attery?verage?urrent \
-    /sys/devices/platform/battery/power_supply/battery/?attery?verage?urrent $TMPDIR/.dummy-curr
+    /sys/devices/platform/battery/power_supply/battery/?attery?verage?urrent \
+    ${battStatus%/*}/current_now $TMPDIR/.dummy-curr
   do
     [ ! -f $currFile ] || break
   done
