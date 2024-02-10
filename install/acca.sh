@@ -6,6 +6,8 @@
 
 at() { :; }
 
+online() { :; }
+
 
 daemon_ctrl() {
   case "${1-}" in

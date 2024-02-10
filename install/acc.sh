@@ -383,9 +383,10 @@ case "${1-}" in
     cp -f $defaultConfig $TMPDIR/.acc-f-config
     config=$TMPDIR/.acc-f-config
     . $execDir/write-config.sh
+    sed -i '/^[#:]/d; /^$/d' $config
     print_charging_enabled_until ${_two:-100}%
     echo
-    echo ':; ! online && [ $(cat $battCapacity) -ge ${capacity[2]} ] && exec $TMPDIR/accd || :' >> $config
+    echo ':; online || exec $TMPDIR/accd' >> $config
 
     # additional options
     export acc_f=true
