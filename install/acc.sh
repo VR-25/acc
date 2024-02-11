@@ -383,7 +383,7 @@ case "${1-}" in
     cp -f $defaultConfig $TMPDIR/.acc-f-config
     config=$TMPDIR/.acc-f-config
     . $execDir/write-config.sh
-    sed -i '/^[#:]/d; /^$/d' $config
+    sed -i '/^:/d' $config
     print_charging_enabled_until ${_two:-100}%
     echo
     echo ':; online || exec $TMPDIR/accd' >> $config

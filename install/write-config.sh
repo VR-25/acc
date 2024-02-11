@@ -61,23 +61,11 @@ printf "\n\n\n" >> $TMPDIR/.scripts
 : ${mt:=50}
 : ${rt:=45}
 
-if [ ${rt%r} -ge $mt ] || [ $((mt - ${rt%r})) -gt 10 ]; then
-  ! ${acc_f:-false} || rt=r
-  case $rt in
-    *r) rt=$((mt - 1))r;;
-    *) rt=$((mt - 1));;
-  esac
-fi
+! [[ $rt -ge $mt || $((mt - $rt)) -gt 10 ]] || rt=$((mt - 1))
 
 
-# reset switch (in auto-mode) if pbim has changed
-case "${chargingSwitch[*]}" in
-  *--) ;;
-  *)
-    if [ -z "$s0" ] && [ ".$pbim" != ".$prioritizeBattIdleMode" ]; then
-      s=
-    fi;;
-esac
+# reset switch (in auto-mode) if pbim has changed and another switch is not being set
+! [[ "${chargingSwitch[*]}" != *-- && -z "$s0" && ".$pbim" != ".$prioritizeBattIdleMode" ]] || s=
 
 
 echo "configVerCode=$(cat $TMPDIR/.config-ver)
