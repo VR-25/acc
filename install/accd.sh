@@ -240,14 +240,6 @@ if ! $init; then
       { $restrictCurr && [[ .${cooldownCurrent-} = .*% ]]; } || set_temp_level
       shutdownWarnings=true
 
-      set +u
-      if [ -n "${idleApps[0]}" ]; then
-        dumpsys activity top | sed -En 's/(.*ACTIVITY )(.*)(\/.*)/\2/p' \
-        | tail -n 1 | grep -E "$(echo ${idleApps[*]} | sed 's/ /|/g; s/,/|/g')" >/dev/null \
-        && capacity[3]=$(cat $battCapacity) && capacity[2]=$((capacity[3] - 5)) || :
-      fi
-      set -u
-
     else
 
       $rebootResume \
@@ -278,6 +270,14 @@ if ! $init; then
     fi
 
     sync_capacity
+
+    set +u
+    if [ -n "${idleApps[0]}" ]; then
+      dumpsys activity top | sed -En 's/(.*ACTIVITY )(.*)(\/.*)/\2/p' \
+      | tail -n 1 | grep -E "$(echo ${idleApps[*]} | sed 's/ /|/g; s/,/|/g')" >/dev/null \
+      && capacity[3]=$(cat $battCapacity) && capacity[2]=$((capacity[3] - 5)) || :
+    fi
+    set -u
 
     # log buffer reset
     [ $(du -k $log | cut -f 1) -lt 256 ] || : > $log
