@@ -193,9 +193,9 @@ mkdir -p $tmpd
     echo "#!/system/bin/sh
 #exec_wrapper
 if [ -f $tmpd/.updated ]; then
-  /dev/${i#*:} \"\$@\"
+  exec /dev/${i#*:} \"\$@\"
 else
-  . /data/adb/$domain/$id/${i%:*} \"\$@\"
+  exec . /data/adb/$domain/$id/${i%:*} \"\$@\"
 fi" > $installDir/system/bin/${i#*:}
   done
 }
