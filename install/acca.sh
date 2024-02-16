@@ -26,7 +26,7 @@ daemon_ctrl() {
 
 
 src_cfg() {
-  /system/bin/sh -n $config 2>/dev/null || cat $execDir/default-config.txt > $config
+  (set +x; . $config) >/dev/null 2>&1 || cat $execDir/default-config.txt > $config
   . $config
 }
 
@@ -43,11 +43,12 @@ tt() {
 set -eu
 
 execDir=/data/adb/vr25/acc
-config=/data/adb/vr25/acc-data/config.txt
 dataDir=/data/adb/vr25/acc-data
+config=$dataDir/config.txt
 defaultConfig=$execDir/default-config.txt
-TMPDIR=/dev/.vr25/acc
-verbose=false
+
+export TMPDIR=/dev/.vr25/acc
+export verbose=false
 
 cd /sys/class/power_supply/
 . $execDir/setup-busybox.sh
@@ -62,8 +63,6 @@ case "${1-}" in
     shift
   ;;
 esac
-
-export config execDir TMPDIR verbose
 
 
 case "$@" in

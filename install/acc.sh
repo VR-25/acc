@@ -276,16 +276,10 @@ accVerCode=$(get_prop versionCode $execDir/module.prop)
 
 unset -f get_prop
 
-
 misc_stuff "${1-}"
 ! tt "${1-}" "*/*" || shift
 
-
-# reset broken/obsolete config
-(set +x; . $config) > /dev/null 2>&1 \
-  || cat $execDir/default-config.txt > $config
-
-. $config
+src_cfg
 
 
 # load default language (English)

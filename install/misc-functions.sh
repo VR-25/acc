@@ -369,7 +369,7 @@ print_wait_plug() {
 
 
 src_cfg() {
-  /system/bin/sh -n $config 2>/dev/null || cat $execDir/default-config.txt > $config
+  (set +x; . $config) >/dev/null 2>&1 || cat $execDir/default-config.txt > $config
   . $config
 }
 
@@ -449,9 +449,9 @@ domain=vr25
 loopDelay=(3 9)
 execDir=/data/adb/$domain/acc
 export TMPDIR=/dev/.vr25/acc
-: ${config:=/data/adb/$domain/${id}-data/config.txt}
-config_=$config
 dataDir=/data/adb/$domain/${id}-data
+config=$dataDir/config.txt
+config_=$config
 
 [ -f $TMPDIR/.ghost-charging ] \
   && ghostCharging=true \
