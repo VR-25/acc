@@ -69,7 +69,7 @@ edit() {
        fi
        echo "$@" | sed 's/,/;/' >> $file;;
 
-    d) sed -Ei "\#$2#d" $file;;
+    d) shift; sed -Ei "\#$*#d" $file;;
 
     g) [ "$file" = "$config" ] || {
          install -m 666 $file /data/local/tmp/
