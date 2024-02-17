@@ -185,15 +185,9 @@ if ! $init; then
 
       killall -CONT mi_thermald 2>/dev/null || :
 
-      # set chgStatusCode and capacitySync
-      if [ -z "$chgStatusCode" ] && cmd_batt reset \
-        && chgStatusCode=$(dumpsys battery 2>/dev/null | sed -n 's/^  status: //p')
-      then
-        if [ ! -f $TMPDIR/.dexopt.done ] && _uptime 900; then
-          start-stop-daemon -bx $TMPDIR/.bg-dexopt-job.sh -S -- 2>/dev/null || :
-          touch $TMPDIR/.dexopt.done
-        fi
-      fi
+      # set chgStatusCode
+      [ -z "$chgStatusCode" ] && cmd_batt reset \
+        && chgStatusCode=$(dumpsys battery 2>/dev/null | sed -n 's/^  status: //p') || :
 
       if [ -f $TMPDIR/.ch-curr-read ]; then
         # set charging current control files, as needed
@@ -733,9 +727,6 @@ else
   # preprocess battery interface
   . $execDir/batt-interface.sh
 
-  # prepare bg-dexopt-job wrapper
-  printf "#!/system/bin/sh\n/system/bin/cmd package bg-dexopt-job < /dev/null > /dev/null 2>&1" > $TMPDIR/.bg-dexopt-job.sh
-  chmod 0755 $TMPDIR/.bg-dexopt-job.sh
 
   # start $id daemon
   rm $TMPDIR/.ghost-charging 2>/dev/null
