@@ -237,7 +237,7 @@ In interactive mode, it also asks the user whether they want to download and ins
 ```
 #DC#
 
-configVerCode=202402100
+configVerCode=202402170
 
 allowIdleAbovePcap=true
 ampFactor=
@@ -248,7 +248,6 @@ cooldownRatio=()
 currentWorkaround=false
 dischargePolarity=
 forceOff=false
-idleApps=()
 idleThreshold=40
 language=en
 offMid=true
@@ -257,6 +256,7 @@ rebootResume=false
 resetBattStats=(false false false)
 temperature=(35 50 45 55)
 tempLevel=0
+thermalSuspend=mi_thermald
 voltFactor=
 
 applyOnBoot=()
@@ -268,6 +268,8 @@ battStatusOverride=''
 chargingSwitch=()
 
 cooldownCustom=()
+
+idleApps=()
 
 maxChargingCurrent=()
 
@@ -400,6 +402,8 @@ runCmdOnPause=''
 
 // tempLevel=temp_level=PERCENT (0-100)
 
+// thermalSuspend=thermal_suspend="comma-separated strings matching thermal management processes" NULLABLE
+
 // voltFactor=volt_factor=MULTIPLIER NULLABLE
 
 
@@ -443,6 +447,7 @@ runCmdOnPause=''
 // shutdown_capacity sc
 // shutdown_temp st
 // temp_level tl
+// thermal_suspend ts
 // volt_factor vf
 
 
@@ -472,7 +477,7 @@ runCmdOnPause=''
 
 
 // apply_on_boot (ab) #
-// Default: null
+// Default: Null
 //
 // Kernel settings to apply on boot and on daemon start/restart.
 // The --exit flag (refer back to applyOnBoot=...) tells the daemon to stop after applying settings.
@@ -480,7 +485,7 @@ runCmdOnPause=''
 
 
 // apply_on_plug (ap) #
-// Default: null
+// Default: Null
 //
 // Kernel settings to apply on plug.
 // This exists because certain devices reset control files (e.g., current_max) when the charger is re-plugged.
@@ -488,7 +493,7 @@ runCmdOnPause=''
 
 
 // batt_status_override (bso) #
-// Default: null
+// Default: Null
 //
 // Overrides the battery status determined by the not_charging function.
 // It can be Idle, Discharging (both case sensitive), or logic to PRINT the desired value for the _status variable.
@@ -529,7 +534,7 @@ runCmdOnPause=''
 
 
 // charging_switch (s) #
-// Default: null (automatic)
+// Default: Null (automatic)
 //
 // If unset, acc cycles through its database and sets the first switch/group that successfully disables charging.
 // If later the set switch/group fails, acc unsets it and repeats the above.
@@ -561,7 +566,7 @@ runCmdOnPause=''
 
 
 // cooldown_current (cdc) #
-// Default: null
+// Default: Null
 //
 // Instead of pausing charging for cooldown_pause seconds, limit the max charging current (e.g., to 500 (mA) or even 50% (of the max current).
 // cooldown_pause and cooldown_charge are optional.
@@ -570,7 +575,7 @@ runCmdOnPause=''
 
 
 // cooldown_custom (ccu) #
-// Default: null
+// Default: Null
 //
 // When cooldown_capacity and/or cooldown_temp don't suit your needs, this comes to the rescue.
 // It overrides the regular cooldown settings.
@@ -593,7 +598,7 @@ runCmdOnPause=''
 
 
 // discharge_polarity (dp) #
-// Default: null
+// Default: Null
 //
 // This overrides the automatic current polarity (+|-) detection.
 // It's only relevant when batt_status_workaround=true.
@@ -604,12 +609,12 @@ runCmdOnPause=''
 // Default: false
 //
 // Enable this only if the set charging switch is stubbornly reset by the system.
-// Oftentimes, userspace thermal management daemons (e.g., mi_thermald) and/or driver issues are behind charging control issues.
+// Oftentimes, userspace thermal management daemons (e.g., mi_thermald) and/or driver bugs are behind charging control issues.
 // Some people "systemlessly" disable certain thermal daemons with Magisk. While this is not a general recommendation, they swear by it.
 
 
 // idle_apps (ia) #
-// Default: null
+// Default: Null
 //
 // This is a list of comma or space separated patterns matching Android package names.
 // When a matched app is running in the foreground, idle mode is enabled.
@@ -724,7 +729,7 @@ runCmdOnPause=''
 
 
 // run_cmd_on_pause (rcp) #
-// Default: null
+// Default: Null
 //
 // Run commands* after pausing charging.
 // * Usually a script ("sh some_file" or ". some_file")
@@ -750,6 +755,14 @@ runCmdOnPause=''
 // Some devices have adjustable "temperature levels" and/or charge_control_limit, siop_level parameters. At the highest level, charging current is blocked.
 // The stock values are generally integers, ranging from 0 to 6, 7 or so.
 // For greater flexibility, this variable stores a percentage value -- which is internally mapped to the system's scales.
+
+
+// thermal_suspend (ts) #
+// Default: mi_thermald
+//
+// [Some] thermal management processes interfere with charging control.
+// This variable controls which of these get temporarily suspended after pausing charging.
+// As a safety measure, if the string does not contain "thermal", the value is ignored.
 
 #/DC#
 ```

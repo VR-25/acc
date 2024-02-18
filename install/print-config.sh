@@ -16,9 +16,11 @@ cooldown_temp=${temperature[0]}
 current_workaround=$currentWorkaround
 discharge_polarity=$dischargePolarity
 force_off=$forceOff
-idle_apps=${idleApps[@]}
 idle_threshold=$idleThreshold
 lang=$language
+
+max_charging_current=${maxChargingCurrent[0]}
+max_charging_voltage=${maxChargingVoltage[0]}
 
 max_temp=${temperature[1]}
 resume_temp=${temperature[2]}
@@ -37,6 +39,7 @@ resume_capacity=${capacity[2]}
 shutdown_capacity=${capacity[0]}
 shutdown_temp=${temperature[3]}
 temp_level=$tempLevel
+thermal_suspend=$thermalSuspend
 volt_factor=$voltFactor
 
 apply_on_boot=${applyOnBoot[@]}
@@ -49,9 +52,7 @@ charging_switch=${chargingSwitch[@]}
 
 cooldown_custom=${cooldownCustom[@]}
 
-max_charging_current=${maxChargingCurrent[0]}
-
-max_charging_voltage=${maxChargingVoltage[0]}
+idle_apps=${idleApps[@]}
 
 run_cmd_on_pause=$runCmdOnPause
 

@@ -39,6 +39,7 @@ s="${charging_switch-${s-${chargingSwitch[@]}}}"
 sc=${shutdown_capacity-${sc-${capacity[0]}}}
 st=${shutdown_temp-${st-${temperature[3]}}}
 tl="${temp_level-${tl-$tempLevel}}"
+ts="${thermal_suspend-${ts-$thermalSuspend}}"
 vf=${volt_factor-${vf-$voltFactor}}
 
 
@@ -79,7 +80,6 @@ cooldownRatio=($cch $cp)
 currentWorkaround=${cw:-false}
 dischargePolarity=$dp
 forceOff=${fo:-false}
-idleApps=($ia)
 idleThreshold=${it:-40}
 language=${lang:-en}
 offMid=${om:-true}
@@ -88,6 +88,7 @@ rebootResume=${rr:-false}
 resetBattStats=(${rbsp:-false} ${rbsu:-false} ${rbspl:-false})
 temperature=(${ct:-35} ${mt:-50} ${rt:-45} ${st:-55})
 tempLevel=${tl:-0}
+thermalSuspend=${ts:-mi_thermald}
 voltFactor=$vf
 
 applyOnBoot=($ab)
@@ -99,6 +100,8 @@ battStatusOverride='$bso'
 chargingSwitch=($(echo "$s" | sed 's/ m[AV]//'))
 
 cooldownCustom=($ccu)
+
+idleApps=($ia)
 
 maxChargingCurrent=($mcc)
 

@@ -183,7 +183,7 @@ if ! $init; then
 
     if $isCharging; then
 
-      killall -CONT mi_thermald 2>/dev/null || :
+      pkill_thermal -CONT
 
       # set chgStatusCode
       [ -z "$chgStatusCode" ] && cmd_batt reset \
