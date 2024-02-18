@@ -117,7 +117,7 @@ status() {
     [ $_status = Idle ] || idle_discharging
   fi
 
-  [ -z "${exitCode_-}" ] || echo -e "  switch: ${switch:--} (${swValue:-N/A})\tcurrent: $(calc $curNow \* 1000 / ${ampFactor:-$ampFactor_} | xargs printf %.f)mA\tstatus: $_status"
+  [ -z "${exitCode_-}" ] || echo -e "  ${switch:--} (${swValue:-N/A})\t$(calc $curNow \* 1000 / ${ampFactor:-$ampFactor_} | xargs printf %.f)mA\t$_status"
 
   for i in Discharging DischargingDischarging Idle IdleIdle; do
     [ $i != ${1-}$_status ] || return 0
