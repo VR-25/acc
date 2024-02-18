@@ -1492,8 +1492,6 @@ With modern battery management systems, that's generally unnecessary.
 
 However, if your battery is underperforming, you may want to try the procedure described at https://batteryuniversity.com/article/bu-603-how-to-calibrate-a-smart-battery .
 
-ACC automatically optimizes system performance and battery utilization, by forcing `bg-dexopt-job` on daemon [re]start, once after boot, if charging and uptime >= 900 seconds.
-
 
 > I set voltage to 4080 mV and that corresponds to just about 75% charge.
 But is it typically safer to let charging keep running, or to have the circuits turn on and shut off between defined percentage levels repeatedly?
