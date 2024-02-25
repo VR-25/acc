@@ -374,8 +374,8 @@ case "${1-}" in
     pause_capacity=${_two:-100}
     resume_capacity=$((pause_capacity - 2))
 
-    cp -f $defaultConfig $TMPDIR/.acc-f-config
     config=$TMPDIR/.acc-f-config
+    cp -f $defaultConfig $config
     . $execDir/write-config.sh
     sed -i '/^:/d' $config
     print_charging_enabled_until ${_two:-100}%
@@ -383,14 +383,9 @@ case "${1-}" in
     echo ':; online || exec $TMPDIR/accd' >> $config
 
     # additional options
-    export acc_f=true
     case "${2-}" in
-      [0-9]*)
-        shift 2
-        ! tt "${1-}" "-*" || $TMPDIR/acca $config "$@" || :;;
-      -*)
-        shift
-        $TMPDIR/acca $config "$@" || :;;
+      [0-9]*) [[ ".${3-}" != .-* ]] || { shift 2; verbose=false $TMPDIR/acc $config "$@" || :; };;
+      -*) shift; verbose=false $TMPDIR/acc $config "$@" || :;;
     esac
 
     exec $TMPDIR/accd $config

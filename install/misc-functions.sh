@@ -55,6 +55,7 @@ apply_on_plug() {
 
 
 at() {
+  ${isAccd:-false} || return 0
   local file=$TMPDIR/schedules/${1/:}
   if [ ! -f $file ] && [ $(date +%H%M) -ge ${file##*/} ] && [ $(date +%H) -eq ${1%:*} ]; then
     mkdir -p ${file%/*}
