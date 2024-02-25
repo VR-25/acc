@@ -24,6 +24,8 @@ battery/charging_enabled 0 0 battery/op_disable_charge 0 1 battery/charging_enab
 battery/input_suspend 0 1 /proc/mtk_battery_cmd/en_power_path 1 1
 
 /proc/*disable_chrg 0 1
+/sys/class/asuslib/charger_limit_en 0 1
+/sys/class/asuslib/charging_suspend_en 0 1
 /sys/class/battchg_ext/*charge_disable 0 1
 /sys/class/battchg_ext/*input_suspend 0 1
 /sys/class/hw_power/charger/charge_data/enable_charger 1 0
