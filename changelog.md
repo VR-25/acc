@@ -1,3 +1,90 @@
+**v2024.2.25-rc (202402250)**
+
+- Ability to specify (regex) thermal management processes to temporarily suspend after disabling charging
+- [acc -c d string] Quotes are no longer mandatory
+- Fix config parsing issues
+- Optimize exec wrappers
+
+- Improve the stability of idleApps
+
+- -c|--config h string   Print config help text associated with "string" (config variable, e.g., acc -c h rt (or resume_temp))
+- [acc -f] Don't use scripts from the default config & disengage as soon as the charger is unplugged, regardless of battery level; fix rt issue
+- [acc -i] Avoid duplicate lines & redundant information
+- [acc -p] Filter more useless sysfs nodes
+- Add timestamp to all non-stable flashable zips
+- Always replace one-line scripts with the same name (case-insensitive)
+- Fix idle detection issues
+- Support cooldown_current with temp_level as back-end (e.g., acc -s cdc=60% to limit current by 60%)
+- Support curl binary without --dns-server option (for upgrades)
+- Support Nexus 10 (manta)
+
+- [acc -p] Add filters
+- Also consider pc_port/online for plug state detection
+- Fix accd ungraceful stop issue
+- Minimize the use of subshells
+- Set idleAbovePcap threshold to (pause_capacity + 1)
+- Set millivolts idleAbovePcap threshold to (pause_capacity + 50)
+- Try honoring allowIdleAbovePcap=false only 2x at most, per accd session
+
+- [acc -p] Filter out more useless stuff
+- [acc -t] Add status column hint
+- [acc -t] Show currently set charging switche(s)
+- [accd] Miscellaneous fixes & optimizations
+- [allowIdleAbovePcap=false] Fall back to idle mode as soon as capacity <= pause_capacity
+- [Config updater] Remove redundant text
+- [Refactor] -b[c] restores previous installation; "c" includes the config
+- Fix current and voltage control files parsing logic
+- Optimize busybox handling
+- Patches for KSU/Apatch, install notes and "no reboot needed" workaround
+- Show applied config patches after upgrades (Android notification)
+- Simplify rt-mt logic
+
+- Add debug info to acc-t_output-${device}.log
+- Check dc/online as well for plug state info
+- Fix config printing issues
+- Lower switch test timeout
+- Optimize --info's output
+- Optimize battStatusWorkaround logic
+- Optimize mi_thermald dynamic suspend logic
+- Reset "auto switch" and move it to the end of the list only if unsolicitedResumes = 3, rather than 1
+- Reset switch (in auto-mode) if pbim changes via --set
+- Set defaults allow_idle_above_pcap=false & idle_threshold=30
+- Set discharge_polarity automatically even while charging
+- Support additional busybox paths (including Apatch's)
+
+- Improve charger plug detection
+
+- [push.sh] Support KernelSU
+- Fix typos in doc
+- Improve charger plug detection
+- Recommend trying temp_level if no regular current control file is found
+- Suppress missing current control file errors
+
+- Restore scheduler changes from v2023.11.26-dev
+
+- Implement idle_apps
+- Improve charger online detection
+- Make it possible to post multiple notifications with acc -n
+- Optimize current and voltage logic
+
+- Dynamically pause my_thermald to keep it from disabling idle mode
+- Fix issue with pc, rc, mt and rt null values
+- Fix wizard option 8 (uninstall)
+- Forbid mt - rt > 10 (fallback to rt = mt - 1)
+- Notifications include time
+- Parse current and voltage control files only once per boot session to avoid "false defaults"
+- Rewrite scheduling logic
+- Use hard instead of soft links for KernelSU/Magisk mount files
+
+- Forbid control files modifications by 3rd-party
+- Improve online upgrade, temp_level and schedules logic
+- In acc -c a ': sleep profile; at 22:00 "acc -s pc=60 mcc=500; acc -n \"sleep profile\""', the quotes are optional and all ";" can be replaced with ","
+- Include dmesg and logcat in log archive
+- Support "," in place of "|" for egrep patterns (e.g., acc -i curr,volt; acc -w curr,volt; acc -sp cap,temp)
+- Support unquoted notify string (e.g., acc -n switched to sleep profile)
+- Suppress "Terminated" messages
+
+
 **v2023.10.16 (202310160)**
 - "edit g" shall work with non-root apps (acc -h g, acc -l g, acc -la g)
 - -f supports additional options (e.g., acc -f -sc 500)
@@ -37,15 +124,3 @@
 - 312a429 Update resume_temp information
 - 2744859 Fix module info updater
 - 6dac4a7 resume_temp with trailing r always overrides resume_capacity
-
-**v2023.8.12 (202308120)**
-- -H|--health <mAh>: Print estimated battery health
-- -r|--readme now sends intent to open README.html
-- Additional charging switches
-- Fix set_temp_level() sleep 4;
-- Fixed one-line scripts identifier
-- Fixed random accd crash
-- Implemented resume_temp; deprecated max_temp_pause
-- Refactored edit handler; use "g" (instead of "app") for GUI editor
-- Set default temp_level to null to accommodate battery/siop_level
-- Set list number width to 2 columns

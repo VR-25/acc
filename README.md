@@ -378,7 +378,7 @@ runCmdOnPause=''
 
 // forceOff=force_off=BOOLEAN
 
-// idleApps=idle_apps=(comma or space separated patterns matching Android package names) NULLABLE
+// idleApps=idle_apps=(comma or space-separated patterns matching Android package names) NULLABLE
 
 // idleThreshold=idle_threshold=MILLIAMPS
 
@@ -616,7 +616,7 @@ runCmdOnPause=''
 // idle_apps (ia) #
 // Default: Null
 //
-// This is a list of comma or space separated patterns matching Android package names.
+// This is a list of comma or space-separated patterns matching Android package names.
 // When a matched app is running in the foreground, idle mode is enabled.
 // e.g., idleApps=(maps navig somegame) or idleApps=(maps,navig,somegame) or mixed
 
@@ -739,7 +739,8 @@ runCmdOnPause=''
 // Default: 5
 //
 // When the battery is discharging, its level/millivolts is at or below shutdown_capacity, and the device has been running for 15 minutes or more, acc daemon turns the device off to reduce the discharge rate, and protect the battery from potential damage, induced by voltage below the operating range.
-// A value of -1 disables it.
+// A value less than 1 disables it.
+// An Android warning notification is posted shortly before the shutdown, giving some time to abort the process.
 
 
 // shutdown_temp (st) #
@@ -761,8 +762,9 @@ runCmdOnPause=''
 // Default: mi_thermald
 //
 // [Some] thermal management processes interfere with charging control.
-// This variable controls which of these get temporarily suspended after pausing charging.
-// As a safety measure, if the string does not contain "thermal", the value is ignored.
+// This variable controls which of these get temporarily suspended after pausing charging (comma-separated list).
+// As a safety measure, if the string does not contain the word "thermal", the value is ignored.
+// That word alone matches all thermal management processes.
 
 #/DC#
 ```

@@ -29,10 +29,14 @@ _adb() {
   fi
 }
 
-if _adb shell su -c "which ksud >/dev/null"; then
+if _adb shell su -c "which apd >/dev/null"; then
+  install="apd module install $dest"
+elif _adb shell su -c "which ksud >/dev/null"; then
   install="ksud module install $dest"
-else
+elif _adb shell su -c "which magisk >/dev/null"; then
   install="magisk --install-module $dest"
+else
+  install=
 fi
 
-_adb push $zip $dest && _adb shell su -c "$install" || :
+[ -z "$install" ] || _adb push $zip $dest && _adb shell su -c "$install" || :

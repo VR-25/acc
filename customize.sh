@@ -30,7 +30,7 @@ exxit() {
   rm -rf /dev/.$domain.${id}-install
   $KSU || {
     rm -rf /data/adb/modules_update/$id
-   (abort) > /dev/null
+    (abort) > /dev/null
   }
   echo
   exit $e
@@ -162,9 +162,9 @@ mkdir -p $data_dir/backup
 cp -aH /data/adb/$domain/$id/* $config $data_dir/backup/ 2>/dev/null || :
 
 
-/system/bin/sh $srcDir/install/uninstall.sh install
 KSU=${KSU:-false}
 $KSU || { [ ! -f /data/adb/*/bin/busybox ] || KSU=true; }
+/system/bin/sh $srcDir/install/uninstall.sh install
 cp -R $srcDir/install $installDir/$id
 installDir=$(readlink -f $installDir/$id)
 cp $srcDir/module.prop $installDir/
@@ -305,7 +305,7 @@ printf "$version ($versionCode) installed and running!\n\nRollback with acc -bc 
 if [ -x /sbin/${id}d ] || grep -q '#exec_wrapper' /system/bin/${id}d 2>/dev/null; then
   _echo "Rebooting is unnecessary."
 else
-  _echo "Note: If you're not rebooting now, prefix all acc executables with /dev/ (as in /dev/acc -i, /dev/accd). Otherwise, you'll be using the previous installation of those. Reasoning: Magisk, KernelSU and similar, don't remount/update modules without a reboot. Subsequent upgrades won't require a reboot."
+  _echo "Note: If you're not rebooting now, prefix all acc executables with /dev/ (as in /dev/acc -i, /dev/accd). Otherwise, you'll be using the previous installation of those. Reasoning: Magisk, KernelSU and similar, don't remount/update modules without a reboot."
 fi
 
 
