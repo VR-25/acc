@@ -3,8 +3,6 @@
 # id is set/corrected by build.sh
 # Copyright 2019-2024, VR25
 # License: GPLv3+
-#
-# devs: triple hashtags (###) mark non-generic code
 
 set -u
 id=acc
@@ -46,37 +44,15 @@ mkdir -p $TMPDIR
   kill -KILL $pid >/dev/null 2>&1
   flock 0
 }) <>$TMPDIR/${id}.lock
-###
-pgrep -f "/($id|${id}a) (-|--)[det]|/${id}d" > /dev/null && { #legacy
-  pkill -f "/($id|${id}a) (-|--)[det]|/${id}d"
-  for count in $(seq 10); do
-    sleep 2
-    [ -z "$(pgrep -f "/($id|${id}a) (-|--)[det]|/${id}d")" ] && break
-  done
-  pkill -KILL -f "/($id|${id}a) (-|--)[det]|/${id}d"
-}
 
-# uninstall $id ###
-rm -rf /data/adb/$domain/$id \
-  /data/adb/modules/$id \
+# uninstall
+rm -rf \
+  /data/local/tmp/${id}[-_]* \
   /data/adb/service.d/${id}-*.sh \
   /data/data/mattecarra.accapp/files/$id \
-  /data/local/tmp/${id}[-_]*
-
-[ "${1:-}" = install ] || rm -rf /data/adb/$domain/${id}-data
-rmdir /data/adb/$domain
-
-#legacy
-rm -rf $(readlink -f /data/adb/$id) \
-  /data/adb/$id \
-  /data/adb/${id}-data \
-  $(readlink -f /sbin/.$id/$id) \
-  /data/media/0/${id}-logs-*.tar.* \
-  /data/media/0/${id}[-_]*uninstaller.zip \
-  /data/media/0/.${id}-config-backup.txt \
-  /data/media/0/Download/$id \
-  /data/media/0/$domain \
-  /data/media/0/Documents/$domain/$id \
   /data/data/com.termux/files/home/.termux/boot/${id}-init.sh
+
+[ "${1:-}" = install ] || rm -rf $(readlink -f /data/adb/$domain/$id) /data/adb/$domain/${id}-data
+rmdir /data/adb/$domain
 
 exit 0
