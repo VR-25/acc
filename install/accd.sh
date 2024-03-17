@@ -105,6 +105,7 @@ if ! $init; then
   exxit() {
     exitCode=$?
     $persistLog && set +eu || set +eux
+    [ .${thermalSuspend-} = .full ] && pkill -CONT -f thermal
     rm $TMPDIR/.forceoff* 2>/dev/null
     trap - EXIT
     [ -n "$1" ] && exitCode=$1
@@ -136,6 +137,8 @@ if ! $init; then
 
     # source config & set discharge polarity
     set_dp
+
+    [ .${thermalSuspend-} = .full ] && pkill -STOP -f thermal || :
 
     if not_charging; then
       unsolicitedResumes=0
