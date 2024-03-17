@@ -61,8 +61,8 @@ at() {
     mkdir -p ${file%/*}
     touch $file
     shift
-    set -- $(echo "$@" | sed 's/,/;/g')
-    eval "$@"
+    set -- $(echo "$@" | sed 's/,/\;/g; s|^acc|/dev/acc|g; s| acc| /dev/acc|g')
+    eval "$@" || :
   elif [ $(date +%H%M) -lt ${file##*/} ]; then
     rm $file 2>/dev/null || :
   fi
