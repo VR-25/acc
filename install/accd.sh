@@ -328,15 +328,9 @@ if ! $init; then
 
         # cooldown cycle
 
-        while [ -n "${cooldownRatio[0]-}${cooldownCustom[0]-}" ]; do
+        while [ -n "${cooldownRatio[0]-}" ]; do
 
-          [ $(sed s/-// ${cooldownCustom[0]:-cooldownCustom} 2>/dev/null || echo 0) -ge ${cooldownCustom[1]:-1} ] \
-            && cooldownCustom_=true \
-            || cooldownCustom_=false
-
-          if [ $(cat $temp) -ge $(( ${temperature[0]} * 10 )) ] \
-            || _ge_cooldown_cap || $cooldownCustom_
-          then
+          if [ $(cat $temp) -ge $(( ${temperature[0]} * 10 )) ] || _ge_cooldown_cap; then
             cooldown=true
           else
             break
@@ -347,11 +341,9 @@ if ! $init; then
           if [ -z "${cooldownCurrent-}" ]; then
             cmd_batt set status $chgStatusCode
             disable_charging
-            $cooldownCustom_ && sleep ${cooldownCustom[3]:-${loopDelay[1]}} \
-              || sleep ${cooldownRatio[1]:-${loopDelay[1]}}
+            sleep ${cooldownRatio[1]:-${loopDelay[1]}}
             enable_charging
             $capacitySync || cmd_batt reset
-            ! $cooldownCustom_ || cooldownRatio[0]=${cooldownCustom[2]:-${loopDelay[0]}}
             count=0
             while [ $count -lt ${cooldownRatio[0]:-${loopDelay[0]}} ]; do
               sleep ${loopDelay[0]}
@@ -359,14 +351,12 @@ if ! $init; then
             done
           else
             (set_ch_curr ${cooldownCurrent:--} || :)
-            $cooldownCustom_ && sleep ${cooldownCustom[3]:-${loopDelay[1]}} \
-              || sleep ${cooldownRatio[1]:-${loopDelay[1]}}
+            sleep ${cooldownRatio[1]:-${loopDelay[1]}}
             if [[ .${cooldownCurrent-} = .*% ]]; then
               set_temp_level $tempLevel
             else
               [ -n "${maxChargingCurrent[0]-}" ] || set_ch_curr -
             fi || :
-            ! $cooldownCustom_ || cooldownRatio[0]=${cooldownCustom[2]:-${loopDelay[0]}}
             count=0
             while [ $count -lt ${cooldownRatio[0]:-${loopDelay[0]}} ]; do
               sleep ${loopDelay[0]}

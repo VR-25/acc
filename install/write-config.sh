@@ -10,7 +10,6 @@ bso="${batt_status_override-${bso-$battStatusOverride}}"
 bsw=${batt_status_workaround-${bsw-$battStatusWorkaround}}
 cc=${cooldown_capacity-${cc-${capacity[1]}}}
 cch=${cooldown_charge-${cch-${cooldownRatio[0]}}}
-ccu="${cooldown_custom-${ccu-${cooldownCustom[@]}}}"
 cdc=${cooldown_current-${cdc-$cooldownCurrent}}
 cm=${capacity_mask-${cm-${capacity[5]}}}
 cp=${cooldown_pause-${cp-${cooldownRatio[1]}}}
@@ -98,8 +97,6 @@ applyOnPlug=($ap)
 battStatusOverride='$bso'
 
 chargingSwitch=($(echo "$s" | sed 's/ m[AV]//'))
-
-cooldownCustom=($ccu)
 
 idleApps=($ia)
 

@@ -50,8 +50,6 @@ batt_status_override=$battStatusOverride
 
 charging_switch=${chargingSwitch[@]}
 
-cooldown_custom=${cooldownCustom[@]}
-
 idle_apps=${idleApps[@]}
 
 run_cmd_on_pause=$runCmdOnPause
