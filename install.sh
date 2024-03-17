@@ -162,10 +162,11 @@ mkdir -p $data_dir/backup
 cp -aH /data/adb/$domain/$id/* $config $data_dir/backup/ 2>/dev/null || :
 
 
-KSU=${KSU:-false}
+export KSU=${KSU:-false}
 $KSU || { [ ! -f /data/adb/*/bin/busybox ] || KSU=true; }
 /system/bin/sh $srcDir/install/uninstall.sh install
-cp -R $srcDir/install $installDir/$id
+mkdir -p $installDir/$id
+cp -R $srcDir/install/* $installDir/$id/
 installDir=$(readlink -f $installDir/$id)
 cp $srcDir/module.prop $installDir/
 cp -f $srcDir/README.* $data_dir/
@@ -234,7 +235,7 @@ fi
 
 [ $installDir = /data/adb/$domain/$id ] || {
   mkdir -p /data/adb/$domain
-  ln -s $installDir /data/adb/$domain/
+  ln -sf $installDir /data/adb/$domain/
 }
 
 
@@ -305,7 +306,7 @@ printf "$version ($versionCode) installed and running!\n\nRollback with acc -bc 
 if [ -x /sbin/${id}d ] || grep -q '#exec_wrapper' /system/bin/${id}d 2>/dev/null; then
   _echo "Rebooting is unnecessary."
 else
-  _echo "Note: If you're not rebooting now, prefix all acc executables with /dev/ (as in /dev/acc -i, /dev/accd). Otherwise, you'll be using the previous installation of those. Reasoning: Magisk, KernelSU and similar, don't remount/update modules without a reboot."
+  _echo "Note: If you're not rebooting now, prefix all acc executables with /dev/ (as in /dev/acc -i, /dev/accd). Reasoning: Magisk, KernelSU and similar, don't [re]mount/update modules without a reboot."
 fi
 
 
@@ -315,11 +316,23 @@ case $installDir in
 Non-Magisk users can enable $id auto-start by running /data/adb/$domain/$id/service.sh, a copy of, or a link to it - with init.d or an app that emulates it.";;
 esac
 
-#legacy
-f=$data_dir/logs/ps-blacklist.log
-[ -f $f ] || mv $data_dir/logs/psl-blacklist.txt $f 2>/dev/null
-rm $data_dir/${id}-uninstaller.zip $data_dir/logs/*.tar.gz $data_dir/curr 2>/dev/null
 
 # initialize $id
 /data/adb/$domain/$id/service.sh --init
+
+
+# magic_overlayfs support
+
+OVERLAY_IMAGE_EXTRA=0     # number of kb need to be added to overlay.img
+OVERLAY_IMAGE_SHRINK=true # shrink overlay.img or not?
+
+# Only use OverlayFS if Magisk_OverlayFS is installed
+if [ -f "/data/adb/modules/magisk_overlayfs/util_functions.sh" ] && \
+    /data/adb/modules/magisk_overlayfs/overlayfs_system --test; then
+  ui_print ""
+  ui_print "- Add support for overlayfs"
+  . /data/adb/modules/magisk_overlayfs/util_functions.sh
+  support_overlayfs && rm -rf "$MODPATH"/system
+fi
+
 exit 0
