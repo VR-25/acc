@@ -11,8 +11,8 @@ dataDir=/data/adb/$domain/${id}-data
 
 [ -f $execDir/disable ] && exit 14
 
-# wait until Android has fully booted
-until [ .$(getprop sys.boot_completed 2>/dev/null) = .1 ]; do
+# wait til the lockscreen is ready
+until [ .$(getprop init.svc.bootanim 2>/dev/null) = .stopped ]; do
   sleep 10
 done
 
