@@ -356,38 +356,39 @@ case "${1-}" in
 
   -f|--force|--full)
 
-    tt ".${2-}" ".-*" && _two= || _two="${2-}"
+    [[ ".${2-}" = .-* ]] && _two= || _two="${2-}"
+    _two="${_two:-100}"
+    cp -f $config $TMPDIR/.acc-f-config
+    config=$TMPDIR/.acc-f-config
+    sed -i '/^:/d' $config
 
-    allow_idle_above_pcap=
-    apply_on_boot=
-    apply_on_plug=
+    (allow_idle_above_pcap=
+    cooldown_capacity=
     cooldown_charge=
     cooldown_current=
-    cooldown_custom=
     cooldown_pause=
+    cooldown_temp=
     max_charging_current=
     max_charging_voltage=
     max_temp=
     off_mid=false
+    pause_capacity=$_two
+    resume_capacity=$((_two - 2))
     resume_temp=
-    temp_level=0
-    pause_capacity=${_two:-100}
-    resume_capacity=$((pause_capacity - 2))
-
-    config=$TMPDIR/.acc-f-config
-    cp -f $defaultConfig $config
-    . $execDir/write-config.sh
-    sed -i '/^:/d' $config
-    print_charging_enabled_until ${_two:-100}%
-    echo
-    echo ':; online || exec $TMPDIR/accd' >> $config
+    temp_level=
+    . $execDir/write-config.sh)
 
     # additional options
+    _extra=false
     case "${2-}" in
-      [0-9]*) [[ ".${3-}" != .-* ]] || { shift 2; verbose=false $TMPDIR/acc $config "$@" || :; };;
-      -*) shift; verbose=false $TMPDIR/acc $config "$@" || :;;
+      [0-9]*) [[ ".${3-}" != .-* ]] || { shift 3; _extra=true; };;
+      -*) shift 2; _extra=true;;
     esac
+    ! $_extra || { (export "$@"; . $execDir/write-config.sh); }
 
+    echo ':; online || exec $TMPDIR/accd' >> $config
+    print_charging_enabled_until ${_two}%
+    echo
     exec $TMPDIR/accd $config
   ;;
 
