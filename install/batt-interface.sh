@@ -1,8 +1,8 @@
 idle_discharging() {
-  [ ${curNow#-} -gt $idleThreshold ] || {
+  if [ ${curNow#-} -le $idleThreshold ]; then
     _status=Idle
     return 0
-  }
+  fi
   case "${dischargePolarity-}" in
     +) [ $curNow -ge 0 ] && _status=Discharging || _status=Charging;;
     -) [ $curNow -lt 0 ] && _status=Discharging || _status=Charging;;
@@ -16,7 +16,7 @@ idle_discharging() {
 not_charging() {
 
   local i=
-  local sti=${sti:-15}
+  local sti=${_STI:-15} # switch test iterations
   local switch=${flip-}; flip=
   local curThen=$(cat $curThen)
   local idleThreshold=$idleThreshold
@@ -33,15 +33,13 @@ not_charging() {
   if [ -z "${battStatusOverride-}" ] && [ -n "$switch" ]; then
     for i in $(seq $sti); do
       if [ "$switch" = off ]; then
-        ! status ${1-} || {
-          sleep ${loopDelay[0]}
-          ! status ${1-} || return 0
-        }
+        sti=$((sti - 1))
+        ! status ${1-} || return 0
       else
         status ${1-} || return 1
       fi
       [ ! -f $TMPDIR/.nowrite ] || { rm $TMPDIR/.nowrite 2>/dev/null || :; break; }
-      [ $i = $sti ] || sleep ${loopDelay[0]}
+      [ $i = $sti ] || sleep 1
     done
     [ "$switch" = on ] || return 1
   else
@@ -103,6 +101,8 @@ set_temp_level() {
 status() {
 
   local i=
+  local return1=false
+  local iti=${_ITI:-3} # idle test iterations
   local curNow=$(cat $currFile)
 
   _status=$(read_status)
@@ -114,10 +114,26 @@ status() {
       _status=$(set -eu; eval '$battStatusOverride') || :
     fi
   elif $battStatusWorkaround; then
-    [ $_status = Idle ] || idle_discharging
+    if [ $_status != Idle ]; then
+      if [ "$switch" = off ] && { [ -n "${exitCode_-}" ] || ${cyclingSw:-false}; }; then
+        for i in $(seq $iti); do
+          curNow=$(cat $currFile)
+          idle_discharging
+          if [ $_status = Idle ]; then
+            [ $i -eq $iti ] || sleep 1
+          else
+            [ $sti -eq 0 ] || return1=true
+            break
+          fi
+        done
+      else
+        idle_discharging
+      fi
+    fi
   fi
 
   [ -z "${exitCode_-}" ] || echo -e "  ${switch:--} (${swValue:-N/A})\t$(calc $curNow \* 1000 / ${ampFactor:-$ampFactor_} | xargs printf %.f)mA\t$_status"
+  ! $return1 || return 1
 
   for i in Discharging DischargingDischarging Idle IdleIdle; do
     [ $i != ${1-}$_status ] || return 0

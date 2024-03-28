@@ -502,10 +502,13 @@ case "${1-}" in
 
   -t|--test)
 
-    shift
     parsed=
     exitCode_=10
     exitCode=$exitCode_
+    thermalSuspend=thermal
+    logF=/sdcard/Download/acc-t_output-${device}_$(date +%Y-%m-%d_%H:%M:%S).log
+
+    shift
     print_wait
     print_unplugged
 
@@ -523,16 +526,16 @@ case "${1-}" in
     config=$TMPDIR/.config
 
     exxit() {
-      [ -z "$parsed" ] || {
+      if [ -n "$parsed" ]; then
         cat $TMPDIR/ch-switches $_parsed 2>/dev/null > $parsed \
           && sort -u $parsed | sed 's/ $//; /^$/d' > $TMPDIR/ch-switches
-      }
-      [ ! -f $TMPDIR/.sw ] || {
+      fi
+      if [ -f $TMPDIR/.sw ]; then
         while IFS= read line; do
           [ -n "$line" ] || continue
           ! grep -q "$line " $TMPDIR/.sw || sed -i "\|$line|d" $dataDir/logs/write.log
         done < $dataDir/logs/write.log
-      }
+      fi
       ! $daemonWasUp || start-stop-daemon -bx $TMPDIR/.accdt -S --
       exit $exitCode
     }
@@ -557,7 +560,7 @@ case "${1-}" in
     echo
     grep . */online
     echo
-    grep '^chargingSwitch=' $config; } | tee /sdcard/Download/acc-t_output-${device}.log
+    grep '^chargingSwitch=' $config; } | tee $logF
 
     if [ -z "${2-}" ]; then
       ! tt "${1-}" "p|parse" || parsed=$TMPDIR/.parsed
@@ -585,7 +588,7 @@ case "${1-}" in
         echo "x$_chargingSwitch" | grep -Eq '^x$|^x#' && continue
         [ -f "$(echo "$_chargingSwitch" | cut -d ' ' -f 1)" ] && {
           { test_charging_switch $_chargingSwitch; echo $? > $TMPDIR/.exitCode; } \
-            | tee -a /sdcard/Download/acc-t_output-${device}.log
+            | tee -a $logF
           rm $TMPDIR/.sw 2>/dev/null || :
           swCount=$((swCount + 1))
           exitCode_=$(cat $TMPDIR/.exitCode)
@@ -603,7 +606,7 @@ case "${1-}" in
       echo
     else
       { test_charging_switch "$@"; echo $? > $TMPDIR/.exitCode; } \
-        | tee -a /sdcard/Download/acc-t_output-${device}.log
+        | tee -a $logF
       rm $TMPDIR/.sw 2>/dev/null || :
       exitCode=$(cat $TMPDIR/.exitCode)
       echo

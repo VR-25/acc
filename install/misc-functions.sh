@@ -78,6 +78,7 @@ cycle_switches() {
 
   local on=
   local off=
+  local cyclingSw=true
 
   while read -A chargingSwitch; do
 
@@ -434,10 +435,10 @@ write() {
     [ -n "${swValue-}" ] && swValue="$swValue, $f" || swValue="$f"
   fi
   [ $i = x ] && return ${3-1} || {
-    for i in 1 2 3; do
-      usleep 330000
+    # for i in 1 2 3; do
+    #   [ $i -eq 1 ] || usleep 330000
       eval "echo $1 > $2" || :
-    done
+    # done
     chmod 0444 $2
   }
 }
