@@ -386,7 +386,7 @@ case "${1-}" in
       [0-9]*) [[ ".${3-}" != .-* ]] || { shift 3; _extra=true; };;
       -*) shift 2; _extra=true;;
     esac
-    ! $_extra || { (export "$@"; . $execDir/write-config.sh); }
+    ! $_extra || { (. $config; export "$@"; . $execDir/write-config.sh); }
 
     echo ':; online || exec $TMPDIR/accd' >> $config
     print_charging_enabled_until ${_two}%
