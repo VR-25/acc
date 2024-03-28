@@ -88,11 +88,6 @@ if ! $init; then
   }
 
 
-  below_abs_lims() {
-    _lt_pause_cap && [ $(cat $temp) -lt $(( ${temperature[1]} * 10 )) ] && is_charging
-  }
-
-
   cap_idle_threshold() {
     if [ ${capacity[3]} -gt 3000 ]; then
       [ ${capacity[3]} -gt 3900 ] && [ $(volt_now) -gt $(( ${capacity[3]} + 50 )) ]
@@ -285,8 +280,6 @@ if ! $init; then
 
   ctrl_charging() {
 
-    local count=0
-
     while :; do
 
       if is_charging; then
@@ -339,32 +332,24 @@ if ! $init; then
             break
           fi
 
-          below_abs_lims || break
+          _lt_pause_cap && [ $(cat $temp) -lt $(( ${temperature[1]} * 10 )) ] && is_charging || break
 
           if [ -z "${cooldownCurrent-}" ]; then
             cmd_batt set status $chgStatusCode
             disable_charging
-            sleep ${cooldownRatio[1]:-${loopDelay[1]}}
+            sleep ${cooldownRatio[1]:-${loopDelay[0]}}
             enable_charging
             $capacitySync || cmd_batt reset
-            count=0
-            while [ $count -lt ${cooldownRatio[0]:-${loopDelay[0]}} ]; do
-              sleep ${loopDelay[0]}
-              below_abs_lims && count=$(( count + ${loopDelay[0]} )) || break
-            done
+            sleep ${cooldownRatio[0]:-${loopDelay[0]}}
           else
             (set_ch_curr ${cooldownCurrent:--} || :)
-            sleep ${cooldownRatio[1]:-${loopDelay[1]}}
+            sleep ${cooldownRatio[1]:-${loopDelay[0]}}
             if [[ .${cooldownCurrent-} = .*% ]]; then
               set_temp_level $tempLevel
             else
               [ -n "${maxChargingCurrent[0]-}" ] || set_ch_curr -
             fi || :
-            count=0
-            while [ $count -lt ${cooldownRatio[0]:-${loopDelay[0]}} ]; do
-              sleep ${loopDelay[0]}
-              below_abs_lims && count=$(( count + ${loopDelay[0]} )) || break
-            done
+            sleep ${cooldownRatio[0]:-${loopDelay[0]}}
           fi
         done
 
