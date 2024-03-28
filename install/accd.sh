@@ -688,6 +688,7 @@ else
       echo ${file}::$(sed -n 's/^..../v/p' $file)::$(cat $file) \
         >> $TMPDIR/ch-volt-ctrl-files_
     done
+  grep -q / $TMPDIR/ch-volt-ctrl-files_ || rm $TMPDIR/ch-volt-ctrl-files_
 
 
   # exclude troublesome ctrl files

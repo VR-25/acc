@@ -79,7 +79,7 @@ if [ README.md -ot install/default-config.txt ] \
 then
 # default config
   set -e
-  { sed -n '1,/#DC#/p' README.md; echo; sed 's/^#/\/\//' install/default-config.txt; \
+  { sed -n '1,/#DC#/p' README.md; echo; cat install/default-config.txt; \
     echo; sed -n '/^#\/DC#/,$p' README.md; } > README.md.tmp
 # terminal commands
   { sed -n '1,/#TC#/p' README.md.tmp; \

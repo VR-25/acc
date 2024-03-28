@@ -1,5 +1,7 @@
 logf() {
 
+  local date=$(date +%Y-%m-%d_%H:%M:%S)
+
   if tt "${1:-x}" "-*e*"; then
 
     mkdir -p $dataDir/logs
@@ -36,20 +38,20 @@ logf() {
     tar -hc *.log *.txt | gzip -9 > $dataDir/logs/acc-logs-$device.tgz
     rm -rf $TMPDIR/.logf 2>/dev/null
 
-    cp -f $dataDir/logs/acc-logs-$device.tgz /sdcard/Download/ 2>/dev/null \
-      && echo /sdcard/Download/acc-logs-$device.tgz \
+    cp -f $dataDir/logs/acc-logs-$device.tgz /sdcard/Download/acc-logs-${device}_${date}.tgz 2>/dev/null \
+      && echo /sdcard/Download/acc-logs-${device}_${date}.tgz \
       || echo $dataDir/logs/acc-logs-$device.tgz
 
-    [ -z "${PS1-}" ] || {
-      ! install -m 666 $dataDir/logs/acc-logs-$device.tgz /data/local/tmp/acc-logs-$device.tgz \
-        || am start -a android.intent.action.SEND \
-                    -t application/x-gtar-compressed \
-                    --eu android.intent.extra.STREAM \
-                    file:///data/local/tmp/acc-logs-$device.tgz
-    } &>/dev/null </dev/null
+    # [ -z "${PS1-}" ] || {
+    #   ! install -m 666 $dataDir/logs/acc-logs-$device.tgz /data/local/tmp/acc-logs-$device.tgz \
+    #     || am start -a android.intent.action.SEND \
+    #                 -t application/x-gtar-compressed \
+    #                 --eu android.intent.extra.STREAM \
+    #                 file:///data/local/tmp/acc-logs-$device.tgz
+    # } &>/dev/null </dev/null
 
   else
-    if tt "${1:-x}" "-*a*"; then
+    if [[ "${1:-x}" = -*a* ]]; then
       shift
       edit $log "$@"
     else

@@ -518,7 +518,7 @@ print_acct_info() {
   battIdleMode: whether the device can run directly off the charger.
   If it's not supported, you still have options. Refer to \"README > FAQ > What's idle mode, and how do I set it up?\"
 
-  The output of this command is saved to /sdcard/Download/acc-t_output-${device}.log."
+  The output of this command is saved to ${logF}."
 }
 
 
