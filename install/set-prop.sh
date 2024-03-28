@@ -19,7 +19,7 @@ set_prop() {
     # set multiple properties
     *=*)
       . $defaultConfig
-      src_cfg
+      . $config
 
       export "$@"
 

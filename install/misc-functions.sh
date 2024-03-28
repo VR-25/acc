@@ -376,12 +376,6 @@ print_wait_plug() {
 }
 
 
-src_cfg() {
-  (set +x; . $config) >/dev/null 2>&1 || cat $execDir/default-config.txt > $config
-  . $config
-}
-
-
 # test
 t() { test "$@"; }
 

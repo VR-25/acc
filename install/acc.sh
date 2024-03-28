@@ -281,7 +281,7 @@ unset -f get_prop
 misc_stuff "${1-}"
 ! tt "${1-}" "*/*" || shift
 
-src_cfg
+. $config
 
 
 # load default language (English)

@@ -25,12 +25,6 @@ daemon_ctrl() {
 }
 
 
-src_cfg() {
-  (set +x; . $config) >/dev/null 2>&1 || cat $execDir/default-config.txt > $config
-  . $config
-}
-
-
 # extended test
 tt() {
   eval "case \"$1\" in
@@ -74,7 +68,7 @@ case "$@" in
 
   # print battery uevent data
   -i*|--info*)
-    src_cfg
+    . $config
     . $execDir/batt-interface.sh
     . $execDir/batt-info.sh
     batt_info "${2-}"
@@ -96,7 +90,7 @@ case "$@" in
     shift
 
     . $defaultConfig
-    src_cfg
+    . $config
 
     export "$@"
 
@@ -127,7 +121,7 @@ case "$@" in
   # print current config
   -s\ p*|-s\ --print|-s\ --print\ *|--set\ p|--set\ --print|--set\ --print\ *|-sp*)
     [ $1 = -sp ] && shift || shift 2
-    src_cfg
+    . $config
     one="${1//,/|}"
     . $execDir/print-config.sh | grep -E "${one:-.}" | sed 's/^$//' || :
     exit 0

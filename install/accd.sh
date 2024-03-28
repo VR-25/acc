@@ -437,7 +437,7 @@ if ! $init; then
   set_dp() {
     local cmd=
     local curr=
-    src_cfg
+    . $config
     while [ -z "${dischargePolarity-}" ] && [ $currFile != $TMPDIR/.dummy-curr ] && $battStatusWorkaround; do
       cmd="$TMPDIR/acca --set discharge_polarity="
       curr=$(cat $currFile)
@@ -457,7 +457,7 @@ if ! $init; then
         fi
       fi
       set +x
-      src_cfg
+      . $config
     done
     set -x
   }
@@ -565,7 +565,7 @@ if ! $init; then
 
   misc_stuff "${1-}"
   . $execDir/oem-custom.sh
-  src_cfg
+  . $config
   currentWorkaround0=$currentWorkaround
 
 
