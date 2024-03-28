@@ -63,10 +63,12 @@ edit() {
   case "${1-}" in
     a) echo >> $file
        shift
-       if grep -iv "^: ${2%?};" $file > $TMPDIR/.tmp; then
+       two=($*)
+       if grep -iv "^: ${two[1]%?};" $file > $TMPDIR/.tmp; then
          cat $TMPDIR/.tmp > $file
          rm $TMPDIR/.tmp
        fi
+       unset two
        echo "$@" | sed 's/,/;/' >> $file;;
 
     d) shift; sed -Ei "\#$*#d" $file;;
