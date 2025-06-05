@@ -255,7 +255,7 @@ if ! $_INIT; then
       && dumpsys activity top | sed -En 's/(.*ACTIVITY )(.*)(\/.*)/\2/p' \
       | tail -n 1 | grep -E "$(echo ${idleApps[*]} | sed 's/ /|/g; s/,/|/g')" >/dev/null \
       && pause_now || :
-    [ $(cat /dev/encore_mode 2>/dev/null || print 0) -ne 1 ] || pause_now
+    [ $(cat /dev/encore_mode 2>/dev/null || cat /data/adb/.config/encore/current_profile 2>/dev/null || print 0) -ne 1 ] || pause_now
     set -u
 
     # log buffer reset
