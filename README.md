@@ -444,7 +444,7 @@ runCmdOnPause=''
 # Type: Integer (usually 1000000 or 1000)
 # Defaults: Null
 #
-# Unit multiplier for conversion (e.g., 1V = 1000000uV, 1A = 1000000mA).
+# Unit multiplier for conversion (e.g., 1V = 1000000uV, 1A = 1000000uA).
 # ACC can automatically determine the units, but the mechanism is not 100% foolproof.
 # Leave those properties alone, unless acc -i misreports current/voltage values.
 
