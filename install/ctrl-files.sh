@@ -44,6 +44,7 @@ battery/input_suspend 0 1 /proc/mtk_battery_cmd/en_power_path 1 1
 /sys/devices/platform/soc/soc:qcom,pmic_glink/soc:qcom,pmic_glink:qcom,battery_charger/force_charger_suspend 0 1
 /sys/devices/soc/soc:lge,*/lge_power/lge_*/charging_enabled 1 0
 /sys/devices/virtual/oplus_chg/battery/*charging_enable 1 0
+/sys/devices/virtual/oplus_chg/battery/*charging_enable 1 0 battery/charge_control_limit 0 battery/charge_control_limit_max
 /sys/kernel/debug/google_charger/chg_suspend 0 1
 /sys/kernel/debug/google_charger/input_suspend 0 1
 /sys/kernel/nubia_charge/charger_bypass off on
